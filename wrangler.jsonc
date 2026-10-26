@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sixfigures",
+  "compatibility_date": "2026-10-26",
+  // Static assets only: no Worker script. Headers come from web/public/_headers.
+  "assets": {
+    "directory": "./web/dist"
+  }
+}

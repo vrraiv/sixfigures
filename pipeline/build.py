@@ -146,7 +146,8 @@ def main():
         valid = v.dropna()
         # method="nearest" keeps every break an actual DA value
         q = np.quantile(valid, np.linspace(0, 1, N_CLASSES + 1), method="nearest")
-        gdf[f"pct_{m}"] = (v.rank(pct=True) * 100).round()
+        # share of DAs with an equal or lower value (ties take the max rank)
+        gdf[f"pct_{m}"] = (v.rank(method="max", pct=True) * 100).round().clip(lower=1)
         breaks["measures"][m] = {
             "label": TARGETS[m],
             "breaks": [int(x) for x in q],

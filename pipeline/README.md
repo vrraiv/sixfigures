@@ -47,7 +47,8 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
   (`city_median`); `median_of_das` is the unweighted median of DA medians, for reference.
 - **Breaks:** 6-class quantiles over non-null DA values (`numpy.quantile(method="nearest")`,
   so each break is an actual DA value); array is `[min, q1/6 … q5/6, max]`.
-- **Percentile rank** `pct_<measure>`: `rank(pct=True) × 100`, rounded, among non-null DAs.
+- **Percentile rank** `pct_<measure>`: share of non-null DAs with an equal or lower value
+  (`rank(method="max", pct=True) × 100`, rounded, floor 1).
 
 ## Row counts (2026-10-26 build)
 
