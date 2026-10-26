@@ -5,9 +5,14 @@ An interactive choropleth of median income across the City of Toronto's 3,743
 individual, before and after tax), hover for values, click for detail.
 
 Fully static: a Python pipeline turns Statistics Canada bulk downloads into one
-PMTiles file (~2 MB) plus `breaks.json`; MapLibre GL JS reads the tiles with HTTP
-range requests. It is hosted as a Cloudflare Worker with static assets only (no
-Worker script, no API keys). Basemap: OpenFreeMap Positron.
+PMTiles file (~2 MB) plus `breaks.json`; MapLibre GL JS reads the tiles through
+pmtiles.js. It is hosted as a Cloudflare Worker with static assets only (no Worker
+script, no API keys). Basemap: OpenFreeMap Positron.
+
+Cloudflare's cache answers HTTP Range requests for the tiles with the whole file, which
+the stock pmtiles.js fetcher rejects. `web/src/main.js` therefore uses a small source
+that keeps range reads when a server returns 206 (as the Vite dev server does) and
+otherwise reads from the single full response.
 
 ```
 pipeline/            Python + Makefile: raw StatCan zips -> GeoJSON -> PMTiles
