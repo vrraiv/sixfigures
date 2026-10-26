@@ -2,7 +2,7 @@ import * as maplibregl from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { PMTiles, Protocol } from "pmtiles";
-import { snapshot } from "./snapshot.js";
+import { compose, grabMap, toBlob } from "./snapshot.js";
 import "./style.css";
 
 // pmtiles.js reads the archive with HTTP Range requests. Cloudflare's cache in
@@ -268,6 +268,9 @@ map.on("load", () => {
     setHover(f.id);
     tooltip.hidden = true;
     clearSelection();
+    // Keep the clicked DA outlined, so its borders show in snapshots too.
+    selected = [f.id];
+    map.setFeatureState({ source: "da", sourceLayer: "da", id: f.id }, { selected: true });
     showDetails(f.properties, e.lngLat);
   });
 });
@@ -455,8 +458,8 @@ form.addEventListener("submit", (e) => {
 
 
 // ---- snapshot ---------------------------------------------------------------
-// A camera button composes a PNG of the view (map, legend, selected DA, credits)
-// and copies it to the clipboard, with a download link as the fallback.
+// Camera button -> drag a rectangle over the map (or take the whole view) ->
+// preview with options -> copy to clipboard or download a PNG.
 
 const CREDITS = [
   "Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001). Income reference year 2020. Contains information licensed under the Open Government Licence – Canada.",
@@ -488,63 +491,203 @@ function snapshotDetails() {
   };
 }
 
+function snapshotLabel() {
+  if (!current) return null;
+  const p = current.props;
+  const v = p[select.value];
+  return {
+    lngLat: current.lngLat,
+    title: `DA ${p.dauid}`,
+    lines: [p.nbhd2 ? `Mostly ${p.nbhd}` : p.nbhd, `${MEASURES[select.value].short}: ${v == null ? "suppressed" : fmtMoney(v)}`],
+  };
+}
+
 const toast = document.createElement("div");
 toast.className = "toast";
 toast.setAttribute("role", "status");
 toast.hidden = true;
 document.body.append(toast);
-let toastTimer, toastUrl;
-
-function showToast(html, ms = 8000) {
-  toast.innerHTML = html;
+let toastTimer;
+function showToast(text, ms = 5000) {
+  toast.textContent = text;
   toast.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (toast.hidden = true), ms);
 }
 
-async function takeSnapshot(button) {
-  button.disabled = true;
-  const m = select.value;
-  const meta = breaks.measures[m];
-  const name = `toronto-income-${current ? `DA${current.props.dauid}-` : ""}${m}.png`;
-  const blob = snapshot({
-    map,
-    title: "Toronto median income by dissemination area",
-    subtitle: `${MEASURES[m].long}, 2020 · 2021 Census`,
-    url: location.host,
-    legend: { title: `${MEASURES[m].long}, 2020`, items: legendItems(m), footer: `City of Toronto median: ${fmtMoney(meta.city_median)}` },
-    details: snapshotDetails(),
-    pin: marker ? marker.getLngLat().toArray() : null,
-    credits: CREDITS,
-  });
-  // The clipboard write must start inside the click; ClipboardItem accepts the
-  // pending image as a promise.
-  let copied = false;
-  if (window.ClipboardItem && navigator.clipboard?.write && !narrow.matches) {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      copied = true;
-    } catch {
-      // permission denied or unsupported: fall through to download
-    }
+// -- snip overlay
+
+const mapWrap = document.querySelector(".map-wrap");
+const snipLayer = document.createElement("div");
+snipLayer.className = "snip";
+snipLayer.hidden = true;
+snipLayer.innerHTML = `
+  <div class="snip-bar" role="toolbar" aria-label="Snapshot">
+    <span>Drag to select an area</span>
+    <button type="button" data-act="full">Whole view</button>
+    <button type="button" data-act="cancel">Cancel</button>
+  </div>
+  <div class="snip-box" hidden><span class="snip-size"></span></div>`;
+mapWrap.append(snipLayer);
+const snipBox = snipLayer.querySelector(".snip-box");
+const snipSize = snipLayer.querySelector(".snip-size");
+const MIN_SNIP = 80;
+
+function startSnip() {
+  snipLayer.hidden = false;
+  snipBox.hidden = true;
+  mapWrap.classList.add("snipping");
+  tooltip.hidden = true;
+  hideSuggest();
+  setStatus(""); // search messages sit over the snip toolbar
+  snipLayer.querySelector("[data-act=full]").focus();
+}
+
+function endSnip() {
+  snipLayer.hidden = true;
+  mapWrap.classList.remove("snipping");
+}
+
+let drag = null;
+snipLayer.addEventListener("pointerdown", (e) => {
+  if (e.target.closest(".snip-bar")) return;
+  const b = snipLayer.getBoundingClientRect();
+  drag = { x0: e.clientX - b.left, y0: e.clientY - b.top, b };
+  snipLayer.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+snipLayer.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  const x1 = Math.min(Math.max(e.clientX - drag.b.left, 0), drag.b.width);
+  const y1 = Math.min(Math.max(e.clientY - drag.b.top, 0), drag.b.height);
+  drag.r = { x: Math.min(drag.x0, x1), y: Math.min(drag.y0, y1), w: Math.abs(x1 - drag.x0), h: Math.abs(y1 - drag.y0) };
+  Object.assign(snipBox.style, { left: `${drag.r.x}px`, top: `${drag.r.y}px`, width: `${drag.r.w}px`, height: `${drag.r.h}px` });
+  snipBox.hidden = false;
+  snipSize.textContent = `${Math.round(drag.r.w)} × ${Math.round(drag.r.h)}`;
+});
+snipLayer.addEventListener("pointerup", () => {
+  const r = drag?.r;
+  drag = null;
+  if (!r) return;
+  if (r.w < MIN_SNIP || r.h < MIN_SNIP) {
+    snipBox.hidden = true;
+    showToast(`Drag a larger area (at least ${MIN_SNIP} × ${MIN_SNIP} px).`, 3000);
+    return;
   }
+  endSnip();
+  openPreview(r);
+});
+snipLayer.querySelector(".snip-bar").addEventListener("click", (e) => {
+  const act = e.target.closest("button")?.dataset.act;
+  if (act === "cancel") endSnip();
+  if (act === "full") {
+    endSnip();
+    const c = map.getCanvas();
+    openPreview({ x: 0, y: 0, w: c.clientWidth, h: c.clientHeight });
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !snipLayer.hidden) endSnip();
+});
+
+// -- preview dialog
+
+const dlg = document.createElement("dialog");
+dlg.className = "snap-dialog";
+dlg.innerHTML = `
+  <form method="dialog" class="snap-form">
+    <div class="snap-head"><h2>Snapshot</h2><button value="close" aria-label="Close" class="snap-x">×</button></div>
+    <div class="snap-preview"><img alt="Snapshot preview" /></div>
+    <fieldset class="snap-opts">
+      <legend class="visually-hidden">Include</legend>
+      <label><input type="checkbox" name="title" checked /> Title</label>
+      <label><input type="checkbox" name="legend" checked /> Legend</label>
+      <label><input type="checkbox" name="details" checked /> DA figures</label>
+      <label><input type="checkbox" name="label" checked /> Label selected DA</label>
+      <label>Resolution <select name="scale"><option value="1">Screen</option><option value="2" selected>2× sharper</option></select></label>
+    </fieldset>
+    <p class="snap-info" aria-live="polite"></p>
+    <div class="snap-actions">
+      <button type="button" data-act="copy" class="primary">Copy image</button>
+      <button type="button" data-act="download">Download PNG</button>
+      <button type="button" data-act="again">New snip</button>
+    </div>
+  </form>`;
+document.body.append(dlg);
+const dlgImg = dlg.querySelector("img");
+const dlgInfo = dlg.querySelector(".snap-info");
+const opt = (n) => dlg.querySelector(`[name=${n}]`);
+let snap = null; // { region, grabs: {scale: grab}, canvas, blob, url }
+
+async function render() {
+  const scale = +opt("scale").value;
+  dlgInfo.textContent = "Rendering…";
+  snap.grabs[scale] ??= await grabMap(map, scale);
+  const hasDA = !!current;
+  for (const n of ["details", "label"]) opt(n).disabled = !hasDA;
+  const { canvas, labelHidden } = compose({
+    grab: snap.grabs[scale],
+    region: snap.region,
+    project: (ll) => map.project(ll),
+    include: { title: opt("title").checked, legend: opt("legend").checked, details: hasDA && opt("details").checked, label: hasDA && opt("label").checked },
+    title: "Toronto median income by dissemination area",
+    subtitle: `${MEASURES[select.value].long}, 2020 · 2021 Census`,
+    url: location.host,
+    credits: CREDITS,
+    legend: { title: `${MEASURES[select.value].long}, 2020`, items: legendItems(select.value), footer: `City of Toronto median: ${fmtMoney(breaks.measures[select.value].city_median)}` },
+    details: snapshotDetails(),
+    label: snapshotLabel(),
+    pin: marker ? marker.getLngLat().toArray() : null,
+  });
+  snap.canvas = canvas;
+  snap.blob = toBlob(canvas);
+  if (snap.url) URL.revokeObjectURL(snap.url);
+  snap.url = URL.createObjectURL(await snap.blob);
+  dlgImg.src = snap.url;
+  const notes = [`${canvas.width} × ${canvas.height} px`];
+  if (!hasDA) notes.push("Click a DA (or search) before snipping to outline, label and describe it.");
+  if (labelHidden) notes.push("The selected DA's label point is outside this area; snip around it to label it.");
+  dlgInfo.textContent = notes.join(" · ");
+}
+
+async function openPreview(region) {
+  snap = { region, grabs: {} };
+  dlgImg.removeAttribute("src");
+  dlg.showModal();
   try {
-    const png = await blob;
-    if (toastUrl) URL.revokeObjectURL(toastUrl);
-    toastUrl = URL.createObjectURL(png);
-    const link = `<a href="${toastUrl}" download="${name}">Download PNG</a>`;
-    if (copied) {
-      showToast(`Snapshot copied to the clipboard. Paste it anywhere, or ${link}.`);
-    } else {
-      showToast(`Snapshot ready: ${link}`);
-      toast.querySelector("a").click();
-    }
+    await render();
   } catch {
-    showToast("Couldn't create the snapshot in this browser.");
-  } finally {
-    button.disabled = false;
+    dlgInfo.textContent = "Couldn't create the image in this browser.";
   }
 }
+
+dlg.querySelector(".snap-opts").addEventListener("change", () => render().catch(() => {}));
+dlg.addEventListener("close", () => {
+  if (snap?.url) URL.revokeObjectURL(snap.url);
+  snap = null;
+});
+dlg.querySelector(".snap-actions").addEventListener("click", async (e) => {
+  const act = e.target.closest("button")?.dataset.act;
+  if (!act || !snap?.blob) return;
+  const name = `toronto-income-${current ? `DA${current.props.dauid}-` : ""}${select.value}.png`;
+  if (act === "again") {
+    dlg.close();
+    startSnip();
+  } else if (act === "download") {
+    const a = document.createElement("a");
+    a.href = snap.url;
+    a.download = name;
+    a.click();
+  } else if (act === "copy") {
+    try {
+      // Pass the pending blob so the write starts within the click (user activation).
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": snap.blob })]);
+      dlgInfo.textContent = "Copied to the clipboard. Paste it anywhere.";
+    } catch {
+      dlgInfo.textContent = "This browser didn't allow copying images; use Download PNG instead.";
+    }
+  }
+});
 
 class SnapshotControl {
   onAdd() {
@@ -553,10 +696,10 @@ class SnapshotControl {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "snapshot-btn";
-    b.title = "Copy a snapshot image of this view";
-    b.setAttribute("aria-label", "Copy a snapshot image of this view");
+    b.title = "Snapshot: drag to select an area";
+    b.setAttribute("aria-label", "Take a snapshot of an area of the map");
     b.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`;
-    b.addEventListener("click", () => takeSnapshot(b));
+    b.addEventListener("click", startSnip);
     this.el.append(b);
     return this.el;
   }
