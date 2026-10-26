@@ -19,6 +19,11 @@ a Toronto address or intersection to jump to its DA.
     meeting there are outlined and you pick one.
   The index (`search.json`, ~4.7 MB, ~1.1 MB compressed) loads the first time the search
   box is used.
+- **Snapshot.** The camera button (under the zoom buttons) composes a PNG of the current
+  view, with title, legend, the selected DA's figures and credits, drawn with exact sRGB
+  colours and dark text. It copies the image to the clipboard and offers a download
+  (download only on phones or where clipboard images aren't allowed). This avoids
+  over-saturated system screenshots on HDR or wide-gamut displays.
 - **Place names.** DAs have no names; StatCan identifies them only by number. The popup
   shows the City of Toronto neighbourhood (one of 158) that covers most of the DA, or
   "mostly X, partly Y" for the 13 DAs split between two.

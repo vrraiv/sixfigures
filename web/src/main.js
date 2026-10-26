@@ -2,6 +2,7 @@ import * as maplibregl from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { PMTiles, Protocol } from "pmtiles";
+import { snapshot } from "./snapshot.js";
 import "./style.css";
 
 // pmtiles.js reads the archive with HTTP Range requests. Cloudflare's cache in
@@ -98,16 +99,24 @@ function hatchImage() {
   return ctx.getImageData(0, 0, size, size);
 }
 
-function renderLegend(m) {
+// Legend entries, shared by the on-page legend and the snapshot image.
+function legendItems(m) {
   const meta = breaks.measures[m];
   const b = meta.breaks;
+  const items = COLORS.map((color, i) => ({
+    color,
+    label: i === COLORS.length - 1 ? `${fmtK(b[i])} and over` : `${fmtK(b[i])} – ${fmtK(b[i + 1])}`,
+  }));
+  items.push({ hatch: true, label: `Suppressed (${meta.suppressed} DAs)` });
+  return items;
+}
+
+function renderLegend(m) {
+  const meta = breaks.measures[m];
   $("legend-title").textContent = `${MEASURES[m].long}, 2020`;
-  const items = COLORS.map((c, i) => {
-    const label = i === COLORS.length - 1 ? `${fmtK(b[i])} and over` : `${fmtK(b[i])} – ${fmtK(b[i + 1])}`;
-    return `<li><span class="swatch" style="background:${c}"></span>${label}</li>`;
-  });
-  items.push(`<li><span class="swatch hatch"></span>Suppressed (${meta.suppressed} DAs)</li>`);
-  $("legend-items").innerHTML = items.join("");
+  $("legend-items").innerHTML = legendItems(m)
+    .map((it) => `<li><span class="swatch${it.hatch ? " hatch" : ""}"${it.color ? ` style="background:${it.color}"` : ""}></span>${it.label}</li>`)
+    .join("");
   $("legend-city").innerHTML = `City of Toronto median: <strong>${fmtMoney(meta.city_median)}</strong>`;
 }
 
@@ -444,3 +453,115 @@ form.addEventListener("submit", (e) => {
   runSearch(input.value);
 });
 
+
+// ---- snapshot ---------------------------------------------------------------
+// A camera button composes a PNG of the view (map, legend, selected DA, credits)
+// and copies it to the clipboard, with a download link as the fallback.
+
+const CREDITS = [
+  "Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001). Income reference year 2020. Contains information licensed under the Open Government Licence – Canada.",
+  "Neighbourhoods, address points and intersections: City of Toronto Open Data, Open Government Licence – Toronto. Basemap © OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors.",
+];
+
+function snapshotDetails() {
+  if (!current) return null;
+  const p = current.props;
+  const m = select.value;
+  const meta = breaks.measures[m];
+  const v = p[m];
+  const lines = [];
+  if (v != null) lines.push({ text: `${v >= meta.city_median ? "Above" : "Below"} the city median of ${fmtMoney(meta.city_median)} for this measure.` });
+  if (p[`sup_${m}`]) lines.push({ note: true, text: "Income figures for this DA are suppressed by Statistics Canada (small population or data-quality rules)." });
+  lines.push({ text: `Population 2021: ${fmtCount(p.pop21)} · Households: ${fmtCount(p.hh)}` });
+  return {
+    note: current.note,
+    heading: `DA ${p.dauid}`,
+    sub: placeLine(p),
+    rows: Object.entries(MEASURES).map(([k, d]) => ({
+      label: d.short,
+      value: fmtMoney(p[k]),
+      pct: p[`pct_${k}`] == null ? "—" : ordinal(p[`pct_${k}`]),
+      selected: k === m,
+    })),
+    lines,
+    fine: ["Percentile = share of Toronto DAs with an equal or lower median. DAs have no official names; the neighbourhood is the City of Toronto neighbourhood covering most of the DA."],
+  };
+}
+
+const toast = document.createElement("div");
+toast.className = "toast";
+toast.setAttribute("role", "status");
+toast.hidden = true;
+document.body.append(toast);
+let toastTimer, toastUrl;
+
+function showToast(html, ms = 8000) {
+  toast.innerHTML = html;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (toast.hidden = true), ms);
+}
+
+async function takeSnapshot(button) {
+  button.disabled = true;
+  const m = select.value;
+  const meta = breaks.measures[m];
+  const name = `toronto-income-${current ? `DA${current.props.dauid}-` : ""}${m}.png`;
+  const blob = snapshot({
+    map,
+    title: "Toronto median income by dissemination area",
+    subtitle: `${MEASURES[m].long}, 2020 · 2021 Census`,
+    url: location.host,
+    legend: { title: `${MEASURES[m].long}, 2020`, items: legendItems(m), footer: `City of Toronto median: ${fmtMoney(meta.city_median)}` },
+    details: snapshotDetails(),
+    pin: marker ? marker.getLngLat().toArray() : null,
+    credits: CREDITS,
+  });
+  // The clipboard write must start inside the click; ClipboardItem accepts the
+  // pending image as a promise.
+  let copied = false;
+  if (window.ClipboardItem && navigator.clipboard?.write && !narrow.matches) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      copied = true;
+    } catch {
+      // permission denied or unsupported: fall through to download
+    }
+  }
+  try {
+    const png = await blob;
+    if (toastUrl) URL.revokeObjectURL(toastUrl);
+    toastUrl = URL.createObjectURL(png);
+    const link = `<a href="${toastUrl}" download="${name}">Download PNG</a>`;
+    if (copied) {
+      showToast(`Snapshot copied to the clipboard. Paste it anywhere, or ${link}.`);
+    } else {
+      showToast(`Snapshot ready: ${link}`);
+      toast.querySelector("a").click();
+    }
+  } catch {
+    showToast("Couldn't create the snapshot in this browser.");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+class SnapshotControl {
+  onAdd() {
+    this.el = document.createElement("div");
+    this.el.className = "maplibregl-ctrl maplibregl-ctrl-group";
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "snapshot-btn";
+    b.title = "Copy a snapshot image of this view";
+    b.setAttribute("aria-label", "Copy a snapshot image of this view");
+    b.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`;
+    b.addEventListener("click", () => takeSnapshot(b));
+    this.el.append(b);
+    return this.el;
+  }
+  onRemove() {
+    this.el.remove();
+  }
+}
+map.addControl(new SnapshotControl(), "top-right");

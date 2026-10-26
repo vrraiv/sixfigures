@@ -139,3 +139,13 @@ a { color: var(--accent); }
   .legend { left: 16px; top: 12px; bottom: auto; max-width: calc(100vw - 80px); max-height: calc(100% - 24px); overflow: auto; }
   .foot { font-size: 10px; }
 }
+
+/* ---- snapshot ---- */
+.snapshot-btn { display: grid; place-items: center; color: var(--ink); }
+.snapshot-btn:disabled { opacity: 0.5; cursor: progress; }
+.toast {
+  position: fixed; left: 50%; bottom: 48px; transform: translateX(-50%); z-index: 8;
+  max-width: calc(100vw - 32px); padding: 10px 14px; border-radius: 8px;
+  background: var(--ink); color: #fff; font-size: 13px; box-shadow: var(--shadow);
+}
+.toast a { color: #9ec5f4; }
