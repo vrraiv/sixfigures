@@ -9,6 +9,15 @@
   <body>
     <header class="bar">
       <h1>Toronto median income <span class="sub">by dissemination area, 2020</span></h1>
+      <form id="search" class="search" role="search" autocomplete="off">
+        <label for="q" class="visually-hidden">Find a Toronto address, intersection or DA</label>
+        <input id="q" type="search" placeholder="Address or intersection, e.g. 100 Queen St W"
+               role="combobox" aria-autocomplete="list" aria-controls="suggest" aria-expanded="false"
+               aria-describedby="search-status" enterkeyhint="search" spellcheck="false" />
+        <button type="submit">Find</button>
+        <ul id="suggest" class="suggest" role="listbox" aria-label="Matching official addresses" hidden></ul>
+        <div id="search-status" class="search-status" aria-live="polite" hidden></div>
+      </form>
       <label class="measure">
         <span class="visually-hidden">Measure</span>
         <select id="measure">
@@ -43,6 +52,8 @@
       Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001). Income reference year 2020.
       Contains information licensed under the
       <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      Neighbourhoods, address points and intersections: City of Toronto Open Data; contains information licensed under the
+      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
       Basemap © <a href="https://openfreemap.org">OpenFreeMap</a>, © <a href="https://www.openmaptiles.org/">OpenMapTiles</a>,
       data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
       <a href="https://github.com/vrraiv/sixfigures">Source</a>

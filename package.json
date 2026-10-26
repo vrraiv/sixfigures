@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/check-size.mjs",
     "preview": "vite preview",
+    "test": "node --test web/src/search.test.mjs",
     "deploy": "vite build && wrangler deploy"
   },
   "devDependencies": {

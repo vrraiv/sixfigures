@@ -6,6 +6,7 @@ Steps
   2. Pivot to one row per DA; derive per-measure suppression flags.
   3. Join to DA cartographic boundaries, reproject to EPSG:4326.
   4. Quantile breaks, city-wide medians and percentile ranks.
+  5. Tag each DA with its City of Toronto neighbourhood (DAs have no names).
 """
 import csv
 import io
@@ -27,6 +28,8 @@ PROFILE_ZIP = RAW / "98-401-X2021006_Ontario_eng_CSV.zip"
 PROFILE_CSV = "98-401-X2021006_English_CSV_data_Ontario.csv"
 BOUNDARY = f"zip://{(RAW / 'lda_000b21a_e.zip').as_posix()}!lda_000b21a_e.shp"
 EXTRACT = OUT / "toronto_profile_long.csv"
+NEIGHBOURHOODS = RAW / "toronto_neighbourhoods_4326.geojson"
+METRIC_CRS = 2952  # NAD83(CSRS) / MTM zone 10, the City of Toronto's projection
 
 TORONTO_CSD = "3520005"
 TORONTO_CD = "3520"
@@ -119,6 +122,33 @@ def pivot(long: pd.DataFrame):
     return wide[list(TARGETS)], city
 
 
+def assign_neighbourhoods(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Tag each DA with the City of Toronto neighbourhood (158) covering most of it.
+
+    DAs have no names of their own; this is context, not a DA name. When the
+    dominant neighbourhood covers < 90% of the DA, the runner-up is kept too.
+    """
+    nb = gpd.read_file(NEIGHBOURHOODS)[["AREA_NAME", "AREA_SHORT_CODE", "geometry"]].to_crs(METRIC_CRS)
+    ov = gpd.overlay(gdf[["DAUID", "geometry"]].to_crs(METRIC_CRS), nb, how="intersection", keep_geom_type=True)
+    ov["area"] = ov.area
+    ov["share"] = ov.area / ov.groupby("DAUID").area.transform("sum")
+    ov = ov.sort_values(["DAUID", "share"], ascending=[True, False])
+    first = ov.groupby("DAUID").nth(0).set_index("DAUID")
+    second = ov.groupby("DAUID").nth(1).set_index("DAUID")
+    out = gdf.set_index("DAUID")
+    out["nbhd"] = first.AREA_NAME
+    out["nbhd_id"] = first.AREA_SHORT_CODE.astype(int)
+    split = first.share < 0.9
+    out["nbhd2"] = second.AREA_NAME.where(split.reindex(second.index, fill_value=False))
+    missing = out.nbhd.isna().sum()
+    if missing:
+        sys.exit(f"{missing} DAs fall in no City neighbourhood")
+    print(f"\nneighbourhoods: {out.nbhd.nunique()} used; "
+          f"{int((first.share >= 0.95).sum())} DAs >= 95% in one; "
+          f"{int(out.nbhd2.notna().sum())} DAs < 90% (shown as 'mostly X, partly Y')")
+    return out.reset_index()
+
+
 def main():
     long = extract()
     wide, city = pivot(long)
@@ -134,6 +164,7 @@ def main():
         print(f"  WARNING: {len(unmatched)} DAUIDs not in both sources: {sorted(unmatched)[:10]}")
 
     gdf = gdf.merge(wide, left_on="DAUID", right_index=True, how="left")
+    gdf = assign_neighbourhoods(gdf)
     gdf = gdf.to_crs(4326)
 
     pop_da, pop_city = gdf.pop21.sum(), city["pop21"]

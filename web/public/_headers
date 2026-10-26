@@ -1,6 +1,9 @@
 /*.pmtiles
   Cache-Control: public, max-age=31536000, immutable
 
+/search.json
+  Cache-Control: public, max-age=31536000, immutable
+
 /breaks.json
   Cache-Control: public, max-age=3600
 

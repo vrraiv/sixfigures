@@ -2,7 +2,26 @@
 
 An interactive choropleth of median income across the City of Toronto's 3,743
 2021 Census dissemination areas (DAs). Switch between four measures (household and
-individual, before and after tax), hover for values, click for detail.
+individual, before and after tax), hover for values, click for detail, or search for
+a Toronto address or intersection to jump to its DA.
+
+## Search and place names
+
+- **Search** accepts a street address (`100 Queen St W`, `1203-100 Queen St W`,
+  `978 1/2 Kingston Rd`), an intersection (`Yonge & Bloor`, `King St W and Spadina Ave`)
+  or a DA number. It works offline against the City of Toronto's official address points
+  and intersection file, pre-assigned to DAs in the pipeline. No geocoding service is
+  called. Only exact official addresses resolve:
+  - an address in more than one former municipality (e.g. `1 Byng Ave`) asks which one;
+  - a number that isn't on the street suggests the nearest listed numbers;
+  - an address naming another municipality (`…, Mississauga`) is refused;
+  - most intersections lie on DA boundaries (DAs are bounded by streets), so all DAs
+    meeting there are outlined and you pick one.
+  The index (`search.json`, ~4.7 MB, ~1.1 MB compressed) loads the first time the search
+  box is used.
+- **Place names.** DAs have no names; StatCan identifies them only by number. The popup
+  shows the City of Toronto neighbourhood (one of 158) that covers most of the DA, or
+  "mostly X, partly Y" for the 13 DAs split between two.
 
 Fully static: a Python pipeline turns Statistics Canada bulk downloads into one
 PMTiles file (~2 MB) plus `breaks.json`; MapLibre GL JS reads the tiles through
@@ -15,8 +34,9 @@ that keeps range reads when a server returns 206 (as the Vite dev server does) a
 otherwise reads from the single full response.
 
 ```
-pipeline/            Python + Makefile: raw StatCan zips -> GeoJSON -> PMTiles
-web/                 Vite app (index.html, src/, public/ with tiles, breaks, _headers)
+pipeline/            Python + Makefile: raw downloads -> GeoJSON -> PMTiles, search index
+web/                 Vite app (index.html, src/, public/ with tiles, breaks, search, _headers)
+scripts/             build-time size check (fails above the 10 MB budget)
 wrangler.jsonc       Worker config: serves ./web/dist as static assets
 ```
 
@@ -27,23 +47,25 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 3.7 MB)
+npm run build      # -> web/dist (about 8.2 MB; fails above 10 MB)
+npm test           # search lookups vs the pipeline's DA assignment
 ```
 
 ## Rebuild the data
 
-The derived `web/public/toronto_da.pmtiles` and `web/public/breaks.json` are
+The derived `web/public/toronto_da.pmtiles`, `breaks.json` and `search.json` are
 committed, so this is only needed to change the pipeline. From WSL, Linux or macOS,
 with Python 3.11+ and tippecanoe installed:
 
 ```sh
 python3 -m venv ~/.venvs/toronto-dash && . ~/.venvs/toronto-dash/bin/activate
 make deps
-make data          # download -> build.py -> tippecanoe
+make data          # download -> build.py -> tippecanoe -> search_index.py
 ```
 
 StatCan's site blocks scripted downloads with a bot challenge. If `make download`
-reports that, fetch the two files it prints in a browser into `pipeline/raw/`.
+reports that, fetch the files it prints in a browser into `pipeline/raw/`. The City of
+Toronto portal sometimes times out; rerun `make download` later.
 Source URLs, row counts and processing details are in
 [pipeline/README.md](pipeline/README.md).
 
@@ -60,9 +82,9 @@ Manual deploy from a machine logged in with `npx wrangler login`:
 npm run deploy     # vite build && wrangler deploy
 ```
 
-`web/public/_headers` gives `*.pmtiles` and hashed assets a one-year immutable cache
-and `index.html` no-cache. The page requests the tiles as
-`toronto_da.pmtiles?v=<content hash>`, so a data rebuild still reaches visitors.
+`web/public/_headers` gives `*.pmtiles`, `search.json` and hashed assets a one-year
+immutable cache and `index.html` no-cache. The page requests those data files with
+`?v=<content hash>`, so a data rebuild still reaches visitors.
 
 ## Data caveats
 
@@ -82,6 +104,11 @@ and `index.html` no-cache. The page requests the tiles as
 - **Visual weight.** Large, sparsely populated DAs (industrial land, parks, the
   airport) take up more of the map than their population warrants.
 - "Individual" measures cover people aged 15+ in private households who had income.
+- **Search reflects census geography, not current addresses exactly.** Addresses are a
+  2026 City snapshot placed in 2021 DAs; new buildings may sit in DAs whose 2021
+  population was different, and a handful of points lie within metres of a DA edge.
+- **Neighbourhoods** are the City's 158 social-planning neighbourhoods, used only as a
+  locator; they are not a census geography.
 
 ## Sources and licence
 
@@ -89,4 +116,7 @@ Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001), 
 2021 Census dissemination area cartographic boundary file (92-160-X). Contains
 information licensed under the
 [Open Government Licence - Canada](https://open.canada.ca/en/open-government-licence-canada).
+City of Toronto Open Data: Neighbourhoods, Address Points (Municipal) and Centreline
+Intersection file. Contains information licensed under the
+[Open Government Licence - Toronto](https://open.toronto.ca/open-data-licence/).
 Basemap © OpenFreeMap, © OpenMapTiles, data © OpenStreetMap contributors.
