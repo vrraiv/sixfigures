@@ -1,15 +1,41 @@
 import * as maplibregl from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Protocol } from "pmtiles";
+import { PMTiles, Protocol } from "pmtiles";
 import "./style.css";
+
+// pmtiles.js reads the archive with HTTP Range requests. Cloudflare's cache in
+// front of the Worker answers those with the whole file (200), which the stock
+// FetchSource rejects. This source uses ranges when the server honours them and
+// otherwise keeps the one full response (~2 MB) and slices it.
+class RangeOrFullSource {
+  constructor(url) {
+    this.url = url;
+    this.full = null;
+  }
+  getKey() {
+    return this.url;
+  }
+  async getBytes(offset, length) {
+    if (!this.full) {
+      const resp = await fetch(this.url, { headers: { Range: `bytes=${offset}-${offset + length - 1}` } });
+      if (resp.status === 206) return { data: await resp.arrayBuffer() };
+      if (!resp.ok) throw new Error(`Tiles request failed: ${resp.status}`);
+      this.full = resp.arrayBuffer();
+    }
+    const buf = await this.full;
+    return { data: buf.slice(offset, offset + length) };
+  }
+}
 
 maplibregl.setWorkerUrl(workerUrl);
 const protocol = new Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
+const tilesUrl = `${location.origin}/toronto_da.pmtiles?v=${__TILES_VERSION__}`;
+protocol.add(new PMTiles(new RangeOrFullSource(tilesUrl)));
 
 const STYLE = "https://tiles.openfreemap.org/styles/positron";
-const TILES = `pmtiles://${location.origin}/toronto_da.pmtiles?v=${__TILES_VERSION__}`;
+const TILES = `pmtiles://${tilesUrl}`;
 const BOUNDS = [[-79.6393, 43.5792], [-79.1153, 43.8555]];
 
 // One-hue blue ramp, light -> dark (validated: monotone lightness, single hue).
