@@ -44,9 +44,10 @@ Source URLs, row counts and processing details are in
 
 ## Deploy
 
-The GitHub repo is connected to the Cloudflare Worker (Workers Builds), so every push
-to `main` builds and deploys. Build command: `npm run build`; deploy command:
-`npx wrangler deploy`.
+The GitHub repo is connected to the Cloudflare Worker `sixfigures` (Workers Builds),
+so every push to `main` deploys. The dashboard deploy command is `npx wrangler deploy`;
+no dashboard build command is needed because `wrangler.jsonc` sets
+`build.command: "npm run build"`, which wrangler runs before each deploy.
 
 Manual deploy from a machine logged in with `npx wrangler login`:
 

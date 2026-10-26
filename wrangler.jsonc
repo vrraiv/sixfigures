@@ -2,6 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sixfigures",
   "compatibility_date": "2026-10-26",
+  // Wrangler runs this before every deploy, so Workers Builds works even with
+  // no build command set in the dashboard.
+  "build": {
+    "command": "npm run build"
+  },
   // Static assets only: no Worker script. Headers come from web/public/_headers.
   "assets": {
     "directory": "./web/dist"
