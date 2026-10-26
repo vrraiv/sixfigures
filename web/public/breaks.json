@@ -1,0 +1,70 @@
+{
+  "classes": 6,
+  "method": "quantile",
+  "measures": {
+    "med_hh_tot": {
+      "label": "Median total income of household in 2020 ($)",
+      "breaks": [
+        22600,
+        70500,
+        84000,
+        95000,
+        106000,
+        128000,
+        608000
+      ],
+      "city_median": 84000,
+      "median_of_das": 95000,
+      "n": 3675,
+      "suppressed": 68
+    },
+    "med_hh_at": {
+      "label": "Median after-tax income of household in 2020 ($)",
+      "breaks": [
+        22600,
+        63200,
+        74500,
+        84000,
+        92000,
+        108000,
+        392000
+      ],
+      "city_median": 74000,
+      "median_of_das": 84000,
+      "n": 3675,
+      "suppressed": 68
+    },
+    "med_ind_tot": {
+      "label": "Median total income in 2020 among recipients ($)",
+      "breaks": [
+        22000,
+        32000,
+        35200,
+        39200,
+        45600,
+        56000,
+        114000
+      ],
+      "city_median": 39200,
+      "median_of_das": 39200,
+      "n": 3675,
+      "suppressed": 68
+    },
+    "med_ind_at": {
+      "label": "Median after-tax income in 2020 among recipients ($)",
+      "breaks": [
+        21800,
+        30200,
+        32800,
+        35600,
+        40800,
+        48400,
+        87000
+      ],
+      "city_median": 36000,
+      "median_of_das": 35600,
+      "n": 3675,
+      "suppressed": 68
+    }
+  }
+}

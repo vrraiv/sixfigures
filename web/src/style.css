@@ -1,0 +1,104 @@
+:root {
+  --surface: #fcfcfb;
+  --panel: rgba(252, 252, 251, 0.96);
+  --ink: #1a1a19;
+  --ink-2: #4b4b47;
+  --ink-3: #75756f;
+  --rule: #e2e2dd;
+  --accent: #256abf;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font: 14px/1.4 var(--font);
+  color: var(--ink);
+  background: var(--surface);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+a { color: var(--accent); }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
+}
+
+/* ---- header ---- */
+.bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 16px; border-bottom: 1px solid var(--rule); background: var(--surface);
+  flex-wrap: wrap;
+}
+.bar h1 { font-size: 17px; margin: 0; font-weight: 650; }
+.bar .sub { font-weight: 400; color: var(--ink-3); font-size: 14px; }
+.measure select {
+  font: inherit; padding: 6px 28px 6px 10px; border: 1px solid #c9c9c3; border-radius: 6px;
+  background: #fff; color: var(--ink); min-width: 230px;
+}
+
+.map-wrap { position: relative; min-height: 0; }
+#map { position: absolute; inset: 0; }
+
+/* ---- legend ---- */
+.legend {
+  position: absolute; left: 16px; bottom: 16px; z-index: 2;
+  background: var(--panel); border-radius: 8px; box-shadow: var(--shadow);
+  padding: 8px 12px; max-width: 260px;
+}
+.legend summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.legend[open] summary { margin-bottom: 6px; }
+.legend-title { margin: 0 0 6px; font-weight: 600; }
+.legend-items { list-style: none; margin: 0; padding: 0; font-variant-numeric: tabular-nums; }
+.legend-items li { display: flex; align-items: center; gap: 8px; padding: 2px 0; color: var(--ink-2); }
+.swatch { width: 18px; height: 12px; border-radius: 2px; flex: none; outline: 1px solid rgba(0, 0, 0, 0.06); }
+.swatch.hatch { background: repeating-linear-gradient(135deg, #9a9a95 0 1.5px, #e4e4e0 1.5px 5px); }
+.legend-city { margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--rule); }
+.legend-note { margin: 4px 0 0; color: var(--ink-3); font-size: 12px; }
+
+/* ---- hover tooltip ---- */
+.tooltip {
+  position: fixed; left: 0; top: 0; z-index: 5; pointer-events: none;
+  background: var(--ink); color: #fff; padding: 4px 8px; border-radius: 4px;
+  font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
+/* ---- details (popup + bottom sheet) ---- */
+.maplibregl-popup-content { padding: 12px 14px; border-radius: 8px; font: 13px/1.4 var(--font); }
+.maplibregl-popup-close-button { font-size: 18px; padding: 0 6px; }
+.maplibregl-popup-content h2, .sheet h2 { font-size: 15px; margin: 0 0 6px; }
+.dt { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.dt th, .dt td { padding: 3px 4px; text-align: right; border-bottom: 1px solid var(--rule); }
+.dt th[scope="row"] { text-align: left; font-weight: 400; color: var(--ink-2); }
+.dt thead th { font-weight: 600; color: var(--ink-3); font-size: 12px; }
+.dt tr.sel th, .dt tr.sel td { font-weight: 650; color: var(--ink); background: #eef4fc; }
+.cmp, .ctx { margin: 8px 0 0; }
+.note { margin: 8px 0 0; padding: 6px 8px; background: #f3f3f0; border-left: 3px solid #9a9a95; color: var(--ink-2); }
+.fine { margin: 6px 0 0; color: var(--ink-3); font-size: 11px; }
+
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 4;
+  background: var(--surface); box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+  border-radius: 12px 12px 0 0; padding: 14px 16px 18px; max-height: 60vh; overflow: auto;
+}
+.sheet[hidden] { display: none; }
+.sheet-close {
+  position: absolute; top: 6px; right: 8px; border: 0; background: none;
+  font-size: 22px; line-height: 1; padding: 6px 10px; cursor: pointer; color: var(--ink-2);
+}
+
+/* ---- footer ---- */
+.foot {
+  padding: 8px 16px; font-size: 11px; color: var(--ink-3);
+  border-top: 1px solid var(--rule); background: var(--surface);
+}
+
+@media (max-width: 640px) {
+  .bar { padding: 8px 16px; }
+  .bar h1 { font-size: 15px; }
+  .bar .sub { display: block; font-size: 12px; }
+  .measure, .measure select { width: 100%; min-width: 0; }
+  .legend { left: 16px; top: 12px; bottom: auto; max-width: calc(100vw - 80px); max-height: calc(100% - 24px); overflow: auto; }
+  .foot { font-size: 10px; }
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto Median Income</title>
+    <meta name="description" content="Median income by 2021 Census dissemination area, City of Toronto (income year 2020)." />
+  </head>
+  <body>
+    <header class="bar">
+      <h1>Toronto median income <span class="sub">by dissemination area, 2020</span></h1>
+      <label class="measure">
+        <span class="visually-hidden">Measure</span>
+        <select id="measure">
+          <option value="med_hh_tot">Household income, total</option>
+          <option value="med_hh_at">Household income, after tax</option>
+          <option value="med_ind_tot">Individual income, total</option>
+          <option value="med_ind_at">Individual income, after tax</option>
+        </select>
+      </label>
+    </header>
+
+    <main class="map-wrap">
+      <div id="map" aria-label="Map of median income by dissemination area"></div>
+
+      <details id="legend" class="legend" open>
+        <summary>Legend</summary>
+        <div class="legend-body">
+          <p id="legend-title" class="legend-title"></p>
+          <ol id="legend-items" class="legend-items"></ol>
+          <p id="legend-city" class="legend-city"></p>
+          <p class="legend-note">Quantile classes: each holds about one sixth of DAs.</p>
+        </div>
+      </details>
+    </main>
+
+    <section id="sheet" class="sheet" hidden aria-live="polite">
+      <button id="sheet-close" class="sheet-close" aria-label="Close details">×</button>
+      <div id="sheet-body"></div>
+    </section>
+
+    <footer class="foot">
+      Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001). Income reference year 2020.
+      Contains information licensed under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      Basemap © <a href="https://openfreemap.org">OpenFreeMap</a>, © <a href="https://www.openmaptiles.org/">OpenMapTiles</a>,
+      data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+# --- large / raw data (rebuilt by `make download` / `make data`) ---
+pipeline/raw/
+pipeline/out/
+*.zip
+*.7z
+*.tar.gz
+*.part
+*.crdownload
+# shapefile components and other GIS bulk formats
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.sbn
+*.sbx
+*.gdb/
+*.gpkg
+*.gml
+*.mbtiles
+*.parquet
+# raw StatCan tables
+*.csv
+*.CSV
+*.tab
+*.ivt
+# office documents
+*.docx
+*.xlsx
+*.pptx
+*.pdf
+# The derived web/public/toronto_da.pmtiles and breaks.json ARE committed.
+
+# --- environments / build output ---
+.venv/
+__pycache__/
+node_modules/
+web/dist/
+.wrangler/
+.DS_Store
+Thumbs.db
+desktop.ini

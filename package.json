@@ -1,0 +1,18 @@
+{
+  "name": "toronto-median-income",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "maplibre-gl": "^6.16.0",
+    "pmtiles": "^4.5.0"
+  }
+}
