@@ -73,6 +73,7 @@ const numberKey = (tok) => parseInt(tok, 10);
 export class SearchIndex {
   constructor(doc) {
     this.das = doc.das;
+    this.y2016 = doc.y2016 ?? { das: [], links: {} };
     this.munis = doc.munis;
     this.streets = doc.streets.map(([name, nums, da, mu]) => ({ name, nums, da, mu }));
     this.allNames = [...this.streets.map((s) => s.name), ...doc.names];
@@ -107,6 +108,34 @@ export class SearchIndex {
   daByUid(uid) {
     const i = this.das.findIndex((d) => d[0] === uid);
     return i < 0 ? null : this.da(i);
+  }
+
+  /**
+   * The 2016 DA(s) for a set of 2021 DA indices, via the official
+   * correspondence: unchanged DAs keep their DAUID (same land), a split 2021 DA
+   * maps to the one 2016 DA containing it, a redrawn one to every 2016 DA it
+   * overlaps. Returns { das: [{dauid, bbox, point}], redrawn } where redrawn
+   * means a boundary changed and the user should pick.
+   */
+  in2016(indices) {
+    const y = this.y2016;
+    const out = new Map();
+    let redrawn = false;
+    for (const i of indices) {
+      const link = y.links[i];
+      if (!link) {
+        const d = this.da(i);
+        out.set(d.dauid, d);
+        continue;
+      }
+      const [flag, targets] = link;
+      if (flag !== 3) redrawn = true;
+      for (const t of targets) {
+        const [dauid, w, s, e, n, x, yy] = y.das[t];
+        out.set(dauid, { dauid, bbox: [w, s, e, n], point: [x, yy] });
+      }
+    }
+    return { das: [...out.values()], redrawn };
   }
 
   expand(st) {

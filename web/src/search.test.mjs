@@ -124,3 +124,21 @@ test("typeahead offers only official addresses", () => {
   assert.ok(b.length >= 3);
   for (const x of b) assert.equal(idx.resolve(x.text).status, "match", x.text);
 });
+
+test("2016 view: unchanged, split and redrawn DAs map through the correspondence", () => {
+  const idxOf = (uid) => idx.das.findIndex((d) => d[0] === uid);
+  // unchanged: same DAUID (100 Queen St W is in an unchanged DA)
+  const q = idx.resolve("100 Queen St W").results[0].das;
+  const same = idx.in2016(q);
+  assert.equal(same.redrawn, false);
+  assert.deepEqual(same.das.map((d) => d.dauid), q.map((i) => idx.das[i][0]));
+  // split: 2021 DA 35204909 lies wholly inside 2016 DA 35204833
+  const split = idx.in2016([idxOf("35204909")]);
+  assert.equal(split.redrawn, false);
+  assert.deepEqual(split.das.map((d) => d.dauid), ["35204833"]);
+  // redrawn: 35200832 overlaps two 2016 DAs; both are offered, none picked
+  const many = idx.in2016([idxOf("35200832")]);
+  assert.equal(many.redrawn, true);
+  assert.deepEqual(many.das.map((d) => d.dauid).sort(), ["35200832", "35203175"]);
+  for (const d of many.das) assert.equal(d.bbox.length, 4);
+});

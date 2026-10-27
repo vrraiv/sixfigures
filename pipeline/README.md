@@ -3,10 +3,11 @@
 `make data` (from the repo root, in WSL/Linux/macOS) runs:
 
 1. `pipeline/download.py` – fetches the raw files into `pipeline/raw/` (gitignored).
-2. `pipeline/build.py` – streams the profile CSV, filters to Toronto, pivots, joins to
-   boundaries, tags each DA with its City neighbourhood, writes
-   `pipeline/out/toronto_da.geojson` and `web/public/breaks.json`.
-3. `tippecanoe` – writes `web/public/toronto_da.pmtiles`.
+2. `pipeline/build.py` (with `census2016.py`) – streams both profile CSVs, filters to
+   Toronto, pivots, joins to boundaries, tags each DA with its City neighbourhood, links
+   the years through the DA correspondence file, writes `pipeline/out/toronto_da.geojson`,
+   `pipeline/out/toronto_da_2016.geojson` and `web/public/breaks.json`.
+3. `tippecanoe` – writes `web/public/toronto_da.pmtiles` and `toronto_da_2016.pmtiles`.
 4. `pipeline/search_index.py` – writes `web/public/search.json` (address/intersection → DA
    lookup) and `pipeline/out/search_sample.json` for `npm test`.
 
@@ -25,6 +26,18 @@ Then install tippecanoe (below).
 |---|---|---|
 | `98-401-X2021006_Ontario_eng_CSV.zip` – Census Profile 2021, CDs/CSDs/DAs, Ontario only | 757,020,277 B (8.78 GB CSV inside) | https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/download-telecharger/comp/GetFile.cfm?Lang=E&FILETYPE=CSV&GEONO=006_Ontario |
 | `lda_000b21a_e.zip` – 2021 DA cartographic boundary file, shapefile, English | 197,042,003 B | https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/boundary-limites/files-fichiers/lda_000b21a_e.zip |
+
+2016 Census and correspondence (downloaded 2026-10-26):
+
+| File | Size | URL |
+|---|---|---|
+| `98-401-X2016044_ONTARIO_eng_CSV.zip` – Census Profile 2016, CDs/CSDs/DAs, Ontario only | 567,028,559 B (4.70 GB CSV inside) | https://www12.statcan.gc.ca/census-recensement/2016/dp-pd/prof/details/download-telecharger/comp/GetFile.cfm?Lang=E&FILETYPE=CSV&GEONO=044_ONTARIO |
+| `lda_000b16a_e.zip` – 2016 DA cartographic boundary file, shapefile, English | 92,584,383 B | https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/files-fichiers/2016/lda_000b16a_e.zip |
+| `2021_92-156-X_DALand_ADsup.zip` – 2021↔2016 DA correspondence with land-area share | 628,586 B | https://www12.statcan.gc.ca/census-recensement/2021/geo/aip-pia/correspondence-correspondance/files-fichiers/2021_92-156-X_DALand_ADsup.zip |
+
+Listing pages: 2016 profile https://www12.statcan.gc.ca/census-recensement/2016/dp-pd/prof/details/download-telecharger/comp/page_dl-tc.cfm?Lang=E ;
+2016 boundaries https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/bound-limit-2016-eng.cfm ;
+correspondence https://www12.statcan.gc.ca/census-recensement/2021/geo/aip-pia/correspondence-correspondance/index2021-eng.cfm?year=21 .
 
 City of Toronto Open Data (Open Government Licence – Toronto), resolved at download time
 through the portal's CKAN `package_show` API (the portal intermittently returns 504s, so
@@ -61,8 +74,20 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
   and that DA populations sum to the CSD total, before continuing.
 - **City-wide median** in `breaks.json` is the official CSD 3520005 value from the profile
   (`city_median`); `median_of_das` is the unweighted median of DA medians, for reference.
-- **Breaks:** 6-class quantiles over non-null DA values (`numpy.quantile(method="nearest")`,
-  so each break is an actual DA value); array is `[min, q1/6 … q5/6, max]`.
+- **Breaks:** 6-class quantiles over 2016 and 2021 DA values pooled
+  (`numpy.quantile(method="nearest")`, so each break is an actual DA value); array is
+  `[min, q1/6 … q5/6, max]`. One scale for both years, so a colour means the same dollars.
+- **Change breaks** (fixed, symmetric around zero): household ±$2k / $10k / $20k,
+  individual ±$1k / $5k / $10k, percentile ±3 / 10 / 20 points. The middle class is
+  "little or no change" because 2021 medians are rounded and 2016 medians are not.
+- **2016 profile format** differs from 2021: UTF-8 with BOM, no DGUID, numeric GEO_LEVEL,
+  DAUID in `GEO_CODE (POR)` and CSDUID + suffix in `ALT_GEO_CODE` (so Toronto DAs are
+  exactly those with ALT_GEO_CODE starting 3520005), suppression markers (`x`, `F`)
+  inline in the value column, unrounded medians.
+- **Correspondence:** `DARELFLAG` 1 = same DA (same code, 100% of land), 3 = several 2021
+  DAs from one 2016 DA (each 2021 DA wholly inside it, checked), 4 = many-to-many. Only
+  flag-1 DAs get 2016 values (`v16_*`, `p16_*`) in the 2021 tiles; the browser computes
+  the change from them. 2021 DAs: 3,606 flag 1, 70 flag 3, 67 flag 4.
 - **Percentile rank** `pct_<measure>`: share of non-null DAs with an equal or lower value
   (`rank(method="max", pct=True) × 100`, rounded, floor 1).
 
@@ -93,17 +118,32 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
 | City address points / inside a Toronto DA | 525,377 / 525,375 |
 | Address records in `search.json` (distinct strings) | 523,984 (522,235) |
 | Intersections kept / one DA / on a boundary | 28,804 / 9,210 / 19,594 |
+| 2016 profile data rows scanned / kept | 46,706,142 / 22,224 |
+| 2016 Toronto DAs (profile = boundary = correspondence) | 3,702 |
+| 2016 population: sum of DAs = CSD 3520005 | 2,731,571 |
+| 2016 DAs suppressed (household / individual measures) | 23 / 66 |
+| DAs with a change value (household / individual) | 3,534 / 3,526 |
+| DAs not compared: boundary changed / not published | 137 / 72–80 |
 
 Matched characteristics (`CHARACTERISTIC_ID`: name): 243 median total household income,
 244 median after-tax household income, 113 median total income among recipients,
 115 median after-tax income among recipients, 1 Population 2021,
 50 "Total - Private households by household size - 100% data".
 
+2016 (Member ID: name): 742 "Median total income of households in 2015 ($)",
+743 "Median after-tax income of households in 2015 ($)", 663 "Median total income in 2015
+among recipients ($)", 665 "Median after-tax income in 2015 among recipients ($)",
+1 "Population, 2016", 51 "Total - Private households by household size - 100% data".
+
 ## Output properties (`da` layer)
 
-`dauid`, `med_hh_tot`, `med_hh_at`, `med_ind_tot`, `med_ind_at`, `pop21`, `hh`,
-`sup_<measure>` (bool), `pct_<measure>` (0–100), `nbhd`, `nbhd_id`, `nbhd2`.
-Nulls are omitted from the tiles.
+2021 (`toronto_da.pmtiles`): `dauid`, `med_hh_tot`, `med_hh_at`, `med_ind_tot`,
+`med_ind_at`, `pop21`, `hh`, `sup_<measure>` (bool), `pct_<measure>` (1–100), `nbhd`,
+`nbhd_id`, `nbhd2`, `rel` (correspondence flag), and for `rel` = 1: `v16_<measure>`,
+`p16_<measure>` (2016 value and percentile).
+
+2016 (`toronto_da_2016.pmtiles`): the same income fields for 2016 plus `pop16`, and
+`rel` = 1 if the DA is unchanged in 2021, else 0. Nulls are omitted from the tiles.
 
 ## Installing tippecanoe
 

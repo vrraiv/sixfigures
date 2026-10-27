@@ -16,6 +16,8 @@ Layout (compact JSON, decoded by web/src/search.js):
            *_rle  = "idx" or "idx*count" runs, ";"-separated, aligned with nums
   names:   extra street names that only occur in intersections
   x:       [[street_ids ".", lon*1e5, lat*1e5, da_ids "."], ...]
+  y2016:   {das: [[dauid16, w, s, e, n, x, y]], links: {da_idx: [flag, [das16 idx]]}}
+           for 2021 DAs whose boundary changed since 2016 (others keep their DAUID)
            street_ids index streets first, then names (len(streets) + i)
 """
 import json
@@ -27,6 +29,8 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import shape
 
+import census2016
+
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
 OUT = HERE.parent / "web" / "public" / "search.json"
@@ -36,6 +40,34 @@ INTERSECTIONS = RAW / "toronto_intersections_4326.csv"
 METRIC_CRS = 2952
 SNAP_M = 15  # an intersection "touches" every DA within this distance
 SKIP_CLASSES = {"Pseudo Intersection-Overpass/Underpass"}
+
+
+def map_to_2016(da: gpd.GeoDataFrame) -> dict:
+    """2021 DAs whose boundary changed -> their 2016 DA(s), from the official
+    correspondence file. Unchanged DAs keep their DAUID, so they need no entry.
+      split (flag 3): the 2021 DA lies wholly inside one 2016 DA -> that DA
+      many-to-many (flag 4): every 2016 DA it overlaps -> the user picks
+    """
+    corr = census2016.correspondence()
+    corr = corr[corr.flag != census2016.REL_SAME]
+    split = corr[corr.flag == census2016.REL_SPLIT]
+    if not (split.groupby("da21").da16.nunique().eq(1).all() and split.pct.eq(100).all()):
+        sys.exit("a split DA is not wholly inside one 2016 DA")
+    g16 = gpd.read_file(census2016.BOUNDARY, engine="pyogrio", where="CSDUID = '3520005'",
+                        columns=["DAUID", "CSDUID"]).set_index("DAUID")
+    targets = sorted(set(corr.da16))
+    g = g16.loc[targets].to_crs(METRIC_CRS)
+    rep = g.representative_point().to_crs(4326)
+    b = g.to_crs(4326).bounds.round(5)
+    das16 = [[d, *b.loc[d], round(rep.loc[d].x, 5), round(rep.loc[d].y, 5)] for d in targets]
+    i16 = {d: i for i, d in enumerate(targets)}
+    da_idx = {d: i for i, d in enumerate(da.DAUID)}
+    links = {}
+    for d21, grp in corr.groupby("da21"):
+        links[str(da_idx[d21])] = [int(grp.flag.iloc[0]), sorted(i16[d] for d in grp.da16)]
+    n4 = sum(1 for f, _ in links.values() if f == census2016.REL_MANY)
+    print(f"2016 links: {len(links)} changed 2021 DAs -> {len(targets)} 2016 DAs ({n4} many-to-many)")
+    return {"das": das16, "links": links}
 
 
 def rle(values) -> str:
@@ -122,7 +154,8 @@ def main():
     print(f"intersections kept: {len(x):,}; inside one DA: {single:,}; "
           f"on a boundary (>1 DA within {SNAP_M} m): {len(x) - single:,}")
 
-    doc = {"v": 1, "das": das, "munis": munis, "streets": streets, "names": names, "x": x}
+    doc = {"v": 1, "das": das, "munis": munis, "streets": streets, "names": names, "x": x,
+           "y2016": map_to_2016(da)}
     OUT.write_text(json.dumps(doc, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
     print(f"wrote {OUT} ({OUT.stat().st_size / 1e6:.2f} MB)")
 

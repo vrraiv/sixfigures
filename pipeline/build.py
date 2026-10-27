@@ -7,6 +7,8 @@ Steps
   3. Join to DA cartographic boundaries, reproject to EPSG:4326.
   4. Quantile breaks, city-wide medians and percentile ranks.
   5. Tag each DA with its City of Toronto neighbourhood (DAs have no names).
+  6. Load the 2016 Census (census2016.py); give boundary-identical 2021 DAs their
+     2016 values and percentiles; pooled 2016+2021 breaks and change breaks.
 """
 import csv
 import io
@@ -18,6 +20,8 @@ from pathlib import Path
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+
+import census2016
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -149,6 +153,38 @@ def assign_neighbourhoods(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return out.reset_index()
 
 
+
+# Change classes (2016 -> 2021), symmetric round numbers centred on zero. The
+# middle class is "little or no change": 2021 medians are rounded (to $1,000
+# above $80,000) while 2016 medians are not, so small differences are noise.
+CHANGE_BREAKS = {
+    "dollars": {
+        "med_hh_tot": [-20000, -10000, -2000, 2000, 10000, 20000],
+        "med_hh_at": [-20000, -10000, -2000, 2000, 10000, 20000],
+        "med_ind_tot": [-10000, -5000, -1000, 1000, 5000, 10000],
+        "med_ind_at": [-10000, -5000, -1000, 1000, 5000, 10000],
+    },
+    "points": [-20, -10, -3, 3, 10, 20],
+}
+
+
+def write_geojson(gdf: gpd.GeoDataFrame, path: Path):
+    path.unlink(missing_ok=True)
+    gdf.to_file(path, driver="GeoJSON", engine="pyogrio",
+                layer_options={"COORDINATE_PRECISION": 6, "RFC7946": "YES"})
+    print(f"wrote {path} ({path.stat().st_size / 1e6:.1f} MB, {len(gdf):,} features)")
+
+
+def year_stats(v: pd.Series, city_value) -> dict:
+    valid = v.dropna()
+    return {
+        "city_median": int(city_value),        # official CSD 3520005 value
+        "median_of_das": int(valid.median()),  # unweighted median of DA medians
+        "n": int(valid.size),
+        "suppressed": int(v.isna().sum()),
+    }
+
+
 def main():
     long = extract()
     wide, city = pivot(long)
@@ -169,51 +205,85 @@ def main():
 
     pop_da, pop_city = gdf.pop21.sum(), city["pop21"]
     print(f"population: sum of DAs {pop_da:,.0f} vs CSD {pop_city:,.0f}")
-
-    breaks = {"classes": N_CLASSES, "method": "quantile", "measures": {}}
     for m in MEASURES:
-        v = gdf[m]
-        gdf[f"sup_{m}"] = v.isna()
-        valid = v.dropna()
-        # method="nearest" keeps every break an actual DA value
-        q = np.quantile(valid, np.linspace(0, 1, N_CLASSES + 1), method="nearest")
+        gdf[f"sup_{m}"] = gdf[m].isna()
         # share of DAs with an equal or lower value (ties take the max rank)
-        gdf[f"pct_{m}"] = (v.rank(method="max", pct=True) * 100).round().clip(lower=1)
-        breaks["measures"][m] = {
-            "label": TARGETS[m],
-            "breaks": [int(x) for x in q],
-            "city_median": int(city[m]),          # official CSD 3520005 value
-            "median_of_das": int(valid.median()),  # unweighted median of DA medians
-            "n": int(valid.size),
-            "suppressed": int(v.isna().sum()),
-        }
+        gdf[f"pct_{m}"] = (gdf[m].rank(method="max", pct=True) * 100).round().clip(lower=1)
+
+    # ---- 2016 Census (income year 2015) ----
+    g16, city16 = census2016.load_2016()
+    g16 = assign_neighbourhoods(g16).to_crs(4326)
+    corr = census2016.correspondence()
+    rel = corr.groupby("da21").flag.first()
+    gdf["rel"] = gdf.DAUID.map(rel).astype(int)
+    same = gdf.rel == census2016.REL_SAME
+    by16 = g16.set_index("DAUID")
+    for m in MEASURES:
+        # Only boundary-identical DAs carry 2016 figures; the browser computes
+        # the change from these, so no change is ever shown across a redraw.
+        gdf[f"v16_{m}"] = gdf.DAUID.where(same).map(by16[m])
+        gdf[f"p16_{m}"] = gdf.DAUID.where(same).map(by16[f"pct_{m}"])
+    # 2016 DA unchanged in 2021 (1) or redrawn (0)
+    g16["rel"] = g16.DAUID.isin(corr.loc[corr.flag == census2016.REL_SAME, "da16"]).astype(int)
+
+    breaks = {"classes": N_CLASSES, "method": "quantile, pooled 2016+2021", "measures": {}}
+    print("\nclass counts under pooled breaks, and change summary:")
+    for m in MEASURES:
+        both = pd.concat([gdf[m], g16[m]]).dropna()
+        # method="nearest" keeps every break an actual DA value
+        q = np.quantile(both, np.linspace(0, 1, N_CLASSES + 1), method="nearest")
         if len(set(q)) != len(q):
             print(f"  WARNING: duplicate breaks for {m}: {q}")
+        comparable = same & gdf[m].notna() & gdf[f"v16_{m}"].notna()
+        d = (gdf[m] - gdf[f"v16_{m}"])[comparable]
+        dp = (gdf[f"pct_{m}"] - gdf[f"p16_{m}"])[comparable]
+        cb_d, cb_p = CHANGE_BREAKS["dollars"][m], CHANGE_BREAKS["points"]
+        breaks["measures"][m] = {
+            "label": TARGETS[m],
+            "label_2016": census2016.TARGETS[m],
+            "breaks": [int(x) for x in q],
+            "y2021": year_stats(gdf[m], city[m]),
+            "y2016": year_stats(g16[m], city16[m]),
+            "change": {
+                "dollars": cb_d,
+                "points": cb_p,
+                "comparable": int(comparable.sum()),
+                "boundary_changed": int((~same).sum()),
+                "not_published": int((same & ~comparable).sum()),
+                "median_dollars": int(d.median()),
+                "median_points": int(dp.median()),
+            },
+        }
+        counts = lambda v: np.bincount(np.digitize(v.dropna(), q[1:-1]), minlength=6).tolist()
+        print(f"  {m:12s} 2016 {counts(g16[m])}  2021 {counts(gdf[m])}")
+        print(f"  {'':12s} change $ classes {np.bincount(np.digitize(d, cb_d), minlength=7).tolist()}"
+              f"  pts classes {np.bincount(np.digitize(dp, cb_p), minlength=7).tolist()}"
+              f"  comparable {int(comparable.sum())}, boundary changed {int((~same).sum())},"
+              f" not published {int((same & ~comparable).sum())}")
 
-    int_cols = list(TARGETS) + [f"pct_{m}" for m in MEASURES]
-    for c in int_cols:
+    int21 = list(TARGETS) + [f"{p}_{m}" for m in MEASURES for p in ("pct", "v16", "p16")]
+    for c in int21:
         gdf[c] = gdf[c].astype("Int64")
+    for c in list(census2016.TARGETS) + [f"pct_{m}" for m in MEASURES]:
+        g16[c] = g16[c].astype("Int64")
     gdf = gdf.rename(columns={"DAUID": "dauid"})
+    g16 = g16.rename(columns={"DAUID": "dauid"})
 
-    print("\nsummary (non-null values):")
+    print("\n2021 summary (non-null values):")
     print(gdf[list(TARGETS)].describe().T[["count", "min", "25%", "50%", "75%", "max"]]
           .astype("Int64").to_string())
-    print("\nsuppressed DAs per measure:")
+    print("\n2021 suppressed DAs per measure:")
     for m in MEASURES:
         print(f"  {m:12s} {int(gdf[f'sup_{m}'].sum()):5d}")
     print(f"  all four     {int(gdf[[f'sup_{m}' for m in MEASURES]].all(axis=1).sum()):5d}")
 
     OUT.mkdir(exist_ok=True)
-    out = OUT / "toronto_da.geojson"
-    out.unlink(missing_ok=True)
-    gdf.to_file(out, driver="GeoJSON", engine="pyogrio",
-                layer_options={"COORDINATE_PRECISION": 6, "RFC7946": "YES"})
-    print(f"\nwrote {out} ({out.stat().st_size / 1e6:.1f} MB, {len(gdf):,} features)")
+    write_geojson(gdf, OUT / "toronto_da.geojson")
+    write_geojson(g16, OUT / "toronto_da_2016.geojson")
 
     WEB.mkdir(parents=True, exist_ok=True)
     (WEB / "breaks.json").write_text(json.dumps(breaks, indent=2) + "\n")
     print(f"wrote {WEB / 'breaks.json'}")
-    print(json.dumps(breaks["measures"], indent=2))
 
 
 if __name__ == "__main__":

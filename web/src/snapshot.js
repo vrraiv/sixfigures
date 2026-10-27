@@ -9,6 +9,7 @@ const ACCENT = "#eb6834", HIGHLIGHT = "#eef4fc";
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 const PAD = 14;
 const SIDE_W = 260;      // details panel width when placed beside the map
+const SIDE_W_WIDE = 380; // ... with the four-column change table
 const SIDE_MIN_MAP = 420; // narrower snips get the panel below instead
 
 const nextRender = (map) => new Promise((resolve) => { map.once("render", resolve); map.triggerRepaint(); });
@@ -67,7 +68,7 @@ function wrap(ctx, text, x, y, maxW, lineH, draw = true) {
 }
 
 function swatch(ctx, it, x, y) {
-  if (it.hatch) {
+  if (it.pattern === "hatch") {
     ctx.save();
     ctx.beginPath();
     ctx.rect(x, y, 18, 12);
@@ -80,6 +81,17 @@ function swatch(ctx, it, x, y) {
     for (let o = -12; o < 24; o += 5) { ctx.moveTo(x + o, y + 12); ctx.lineTo(x + 12 + o, y); }
     ctx.stroke();
     ctx.restore();
+  } else if (it.pattern === "dots") {
+    ctx.fillStyle = "#f7f7f5";
+    ctx.fillRect(x, y, 18, 12);
+    ctx.strokeStyle = RULE;
+    ctx.strokeRect(x + 0.5, y + 0.5, 17, 11);
+    ctx.fillStyle = "#9a9a95";
+    for (const [dx, dy] of [[4, 3], [10, 3], [16, 3], [7, 8], [13, 8]]) {
+      ctx.beginPath();
+      ctx.arc(x + dx, y + dy, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else {
     ctx.fillStyle = it.color;
     ctx.fillRect(x, y, 18, 12);
@@ -105,7 +117,13 @@ function legendStrip(ctx, legend, x, y, w, draw) {
   cy += 22;
   font(ctx, 12, 600);
   if (draw) { ctx.fillStyle = INK; ctx.fillText(legend.footer, x, cy + 8); }
-  return cy + 16;
+  cy += 16;
+  if (legend.note) {
+    font(ctx, 11);
+    if (draw) ctx.fillStyle = INK3;
+    cy = wrap(ctx, legend.note, x, cy + 10, w, 14, draw) - 4;
+  }
+  return cy;
 }
 
 // DA figures; returns the y below the panel.
@@ -123,25 +141,29 @@ function panel(ctx, d, x, y, w, draw) {
   font(ctx, 12.5);
   if (draw) ctx.fillStyle = INK2;
   cy = wrap(ctx, d.sub, x, cy, inner, 16, draw) + 6;
+  // Value columns, right-aligned from the panel's right edge, each as wide as
+  // its widest entry; the row label takes what is left.
+  const size = d.columns.length > 2 ? 11.5 : 12.5;
+  font(ctx, size, 700);
+  const colW = d.columns.map((c, i) => Math.max(ctx.measureText(c).width, ...d.rows.map((r) => ctx.measureText(r.cells[i]).width)) + 10);
+  const right = colW.map((_, i) => x + w - colW.slice(i + 1).reduce((a, b) => a + b, 0));
   font(ctx, 11, 600);
   if (draw) {
     ctx.fillStyle = INK3;
     ctx.textAlign = "right";
-    ctx.fillText("Median", x + w - 70, cy);
-    ctx.fillText("Percentile", x + w, cy);
+    d.columns.forEach((c, i) => ctx.fillText(c, right[i], cy));
     ctx.textAlign = "left";
   }
   cy += 6;
   for (const r of d.rows) {
     if (draw) {
       if (r.selected) { ctx.fillStyle = HIGHLIGHT; ctx.fillRect(x - 4, cy, inner + 8, 24); }
-      font(ctx, 12.5, r.selected ? 700 : 400);
+      font(ctx, size, r.selected ? 700 : 400);
       ctx.fillStyle = r.selected ? INK : INK2;
       ctx.fillText(r.label, x, cy + 16);
       ctx.textAlign = "right";
       ctx.fillStyle = INK;
-      ctx.fillText(r.value, x + w - 70, cy + 16);
-      ctx.fillText(r.pct, x + w, cy + 16);
+      r.cells.forEach((c, i) => ctx.fillText(c, right[i], cy + 16));
       ctx.textAlign = "left";
       ctx.fillStyle = RULE;
       ctx.fillRect(x, cy + 24, inner, 1);
@@ -224,8 +246,9 @@ export function compose(opts) {
   const r = grab.ratio;
   const mapW = region.w, mapH = region.h;
   const details = include.details && opts.details;
+  const sideW = details && details.columns.length > 2 ? SIDE_W_WIDE : SIDE_W;
   const side = details && mapW >= SIDE_MIN_MAP;
-  const W = mapW + (side ? SIDE_W + PAD : 0);
+  const W = mapW + (side ? sideW + PAD : 0);
   const innerW = W - PAD * 2;
   const probe = document.createElement("canvas").getContext("2d");
 
@@ -241,7 +264,7 @@ export function compose(opts) {
   };
   const credits = [...opts.credits, opts.url];
   const headH = include.title ? header(probe, false) : 0;
-  const sideH = side ? panel(probe, details, 0, 0, SIDE_W - PAD, false) + PAD : 0;
+  const sideH = side ? panel(probe, details, 0, 0, sideW - PAD, false) + PAD : 0;
   const mapBlockH = Math.max(mapH, sideH);
   const legendH = include.legend ? legendStrip(probe, opts.legend, 0, 0, innerW, false) + PAD : 0;
   const belowH = details && !side ? panel(probe, details, 0, 0, innerW, false) + PAD : 0;
@@ -288,7 +311,7 @@ export function compose(opts) {
   ctx.lineWidth = 1;
   ctx.strokeRect(0.5, my + 0.5, mapW - 1, mapH - 1);
 
-  if (side) panel(ctx, details, mapW + PAD, my, SIDE_W - PAD, true);
+  if (side) panel(ctx, details, mapW + PAD, my, sideW - PAD, true);
 
   let y = my + mapBlockH + PAD;
   if (include.legend) y = legendStrip(ctx, opts.legend, PAD, y, innerW, true) + PAD;

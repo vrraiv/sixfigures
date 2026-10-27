@@ -1,70 +1,198 @@
 {
   "classes": 6,
-  "method": "quantile",
+  "method": "quantile, pooled 2016+2021",
   "measures": {
     "med_hh_tot": {
       "label": "Median total income of household in 2020 ($)",
+      "label_2016": "Median total income of households in 2015 ($)",
       "breaks": [
-        22600,
-        70500,
-        84000,
-        95000,
-        106000,
-        128000,
+        12432,
+        59600,
+        73500,
+        85248,
+        98000,
+        119296,
         608000
       ],
-      "city_median": 84000,
-      "median_of_das": 95000,
-      "n": 3675,
-      "suppressed": 68
+      "y2021": {
+        "city_median": 84000,
+        "median_of_das": 95000,
+        "n": 3675,
+        "suppressed": 68
+      },
+      "y2016": {
+        "city_median": 65829,
+        "median_of_das": 75435,
+        "n": 3679,
+        "suppressed": 23
+      },
+      "change": {
+        "dollars": [
+          -20000,
+          -10000,
+          -2000,
+          2000,
+          10000,
+          20000
+        ],
+        "points": [
+          -20,
+          -10,
+          -3,
+          3,
+          10,
+          20
+        ],
+        "comparable": 3534,
+        "boundary_changed": 137,
+        "not_published": 72,
+        "median_dollars": 18964,
+        "median_points": 0
+      }
     },
     "med_hh_at": {
       "label": "Median after-tax income of household in 2020 ($)",
+      "label_2016": "Median after-tax income of households in 2015 ($)",
       "breaks": [
-        22600,
-        63200,
-        74500,
-        84000,
-        92000,
-        108000,
-        392000
+        12432,
+        54000,
+        65408,
+        75008,
+        86000,
+        101000,
+        422912
       ],
-      "city_median": 74000,
-      "median_of_das": 84000,
-      "n": 3675,
-      "suppressed": 68
+      "y2021": {
+        "city_median": 74000,
+        "median_of_das": 84000,
+        "n": 3675,
+        "suppressed": 68
+      },
+      "y2016": {
+        "city_median": 58264,
+        "median_of_das": 66816,
+        "n": 3679,
+        "suppressed": 23
+      },
+      "change": {
+        "dollars": [
+          -20000,
+          -10000,
+          -2000,
+          2000,
+          10000,
+          20000
+        ],
+        "points": [
+          -20,
+          -10,
+          -3,
+          3,
+          10,
+          20
+        ],
+        "comparable": 3534,
+        "boundary_changed": 137,
+        "not_published": 72,
+        "median_dollars": 16342,
+        "median_points": 0
+      }
     },
     "med_ind_tot": {
       "label": "Median total income in 2020 among recipients ($)",
+      "label_2016": "Median total income in 2015 among recipients ($)",
       "breaks": [
-        22000,
-        32000,
-        35200,
-        39200,
-        45600,
-        56000,
+        11072,
+        26005,
+        31520,
+        35669,
+        41600,
+        52752,
         114000
       ],
-      "city_median": 39200,
-      "median_of_das": 39200,
-      "n": 3675,
-      "suppressed": 68
+      "y2021": {
+        "city_median": 39200,
+        "median_of_das": 39200,
+        "n": 3675,
+        "suppressed": 68
+      },
+      "y2016": {
+        "city_median": 30089,
+        "median_of_das": 30551,
+        "n": 3636,
+        "suppressed": 66
+      },
+      "change": {
+        "dollars": [
+          -10000,
+          -5000,
+          -1000,
+          1000,
+          5000,
+          10000
+        ],
+        "points": [
+          -20,
+          -10,
+          -3,
+          3,
+          10,
+          20
+        ],
+        "comparable": 3526,
+        "boundary_changed": 137,
+        "not_published": 80,
+        "median_dollars": 8450,
+        "median_points": 0
+      }
     },
     "med_ind_at": {
       "label": "Median after-tax income in 2020 among recipients ($)",
+      "label_2016": "Median after-tax income in 2015 among recipients ($)",
       "breaks": [
-        21800,
-        30200,
+        11072,
+        24688,
+        29400,
         32800,
-        35600,
-        40800,
-        48400,
-        87000
+        37600,
+        45995,
+        89600
       ],
-      "city_median": 36000,
-      "median_of_das": 35600,
-      "n": 3675,
-      "suppressed": 68
+      "y2021": {
+        "city_median": 36000,
+        "median_of_das": 35600,
+        "n": 3675,
+        "suppressed": 68
+      },
+      "y2016": {
+        "city_median": 27958,
+        "median_of_das": 28352,
+        "n": 3636,
+        "suppressed": 66
+      },
+      "change": {
+        "dollars": [
+          -10000,
+          -5000,
+          -1000,
+          1000,
+          5000,
+          10000
+        ],
+        "points": [
+          -20,
+          -10,
+          -3,
+          3,
+          10,
+          20
+        ],
+        "comparable": 3526,
+        "boundary_changed": 137,
+        "not_published": 80,
+        "median_dollars": 7369,
+        "median_points": 0
+      }
     }
   }
 }

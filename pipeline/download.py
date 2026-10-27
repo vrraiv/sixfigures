@@ -1,6 +1,9 @@
 """Fetch the raw inputs into pipeline/raw/.
 
-StatCan (census profile, DA boundaries): www12.statcan.gc.ca sits behind a
+StatCan inputs: 2021 and 2016 Census Profiles (Ontario, DA level), 2021 and 2016 DA
+boundary files, and the 2021<->2016 DA correspondence file (land-area version).
+
+StatCan: www12.statcan.gc.ca sits behind a
 Cloudflare bot challenge that often rejects non-browser clients with HTTP 403.
 We try a plain download, verify the result is a real zip, and otherwise print
 the URLs to fetch manually in a browser. A challenge page is never saved.
@@ -30,6 +33,18 @@ STATCAN = {
     "lda_000b21a_e.zip": (
         "https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/"
         "boundary-limites/files-fichiers/lda_000b21a_e.zip"
+    ),
+    "98-401-X2016044_ONTARIO_eng_CSV.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2016/dp-pd/prof/details/"
+        "download-telecharger/comp/GetFile.cfm?Lang=E&FILETYPE=CSV&GEONO=044_ONTARIO"
+    ),
+    "lda_000b16a_e.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/"
+        "files-fichiers/2016/lda_000b16a_e.zip"
+    ),
+    "2021_92-156-X_DALand_ADsup.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2021/geo/aip-pia/"
+        "correspondence-correspondance/files-fichiers/2021_92-156-X_DALand_ADsup.zip"
     ),
 }
 

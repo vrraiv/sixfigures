@@ -1,9 +1,26 @@
 # Toronto median income map
 
-An interactive choropleth of median income across the City of Toronto's 3,743
-2021 Census dissemination areas (DAs). Switch between four measures (household and
-individual, before and after tax), hover for values, click for detail, or search for
-a Toronto address or intersection to jump to its DA.
+An interactive choropleth of median income across the City of Toronto's
+dissemination areas (DAs) in the 2016 and 2021 censuses (income years 2015 and 2020),
+and the change between them. Switch between four measures (household and individual,
+before and after tax), hover for values, click for detail, or search for a Toronto
+address or intersection to jump to its DA.
+
+## Census years and change
+
+- **2016 / 2021** show each census on its own DA boundaries (3,702 and 3,743 DAs). Both
+  use one colour scale (6 quantile classes over 2016 and 2021 DAs pooled), so a colour
+  means the same dollars in either year. The 2016 tiles load on first use.
+- **Change** (2021 boundaries) shows, for each DA, the change in median income in
+  dollars or the change in its percentile rank (points), on a red-grey-blue scale centred
+  on zero. Only DAs whose boundary is identical in both censuses are compared, per
+  StatCan's DA correspondence file: 3,606 of 3,743 (96%). The other 137 were split or
+  redrawn; a median can't be split or combined across new boundaries, so they are
+  shown dotted, not estimated. DAs whose income wasn't published in either year are
+  hatched.
+- The popup lists both years, the dollar change and the percentile change for all four
+  measures. Search works in every view; in 2016 a split DA opens its 2016 parent, and a
+  redrawn one outlines every 2016 DA it overlaps.
 
 ## Search and place names
 
@@ -44,7 +61,7 @@ otherwise reads from the single full response.
 ```
 pipeline/            Python + Makefile: raw downloads -> GeoJSON -> PMTiles, search index
 web/                 Vite app (index.html, src/, public/ with tiles, breaks, search, _headers)
-scripts/             build-time size check (fails above the 10 MB budget)
+scripts/             build-time size check (fails above the 15 MB budget)
 wrangler.jsonc       Worker config: serves ./web/dist as static assets
 ```
 
@@ -55,7 +72,7 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 8.2 MB; fails above 10 MB)
+npm run build      # -> web/dist (about 10.7 MB; fails above 15 MB)
 npm test           # search lookups vs the pipeline's DA assignment
 ```
 
@@ -96,19 +113,27 @@ immutable cache and `index.html` no-cache. The page requests those data files wi
 
 ## Data caveats
 
-- **Income year is 2020.** The 2021 Census asks about the previous calendar year. 2020
-  includes pandemic benefits (CERB and others), which raised low-end incomes, so
-  medians are not directly comparable with 2015 (2016 Census) figures.
+- **Income years are 2015 and 2020.** Each census asks about the previous calendar
+  year. 2020 includes pandemic benefits (CERB and others), which raised low-end
+  incomes, so part of the 2015→2020 change reflects temporary benefits.
+- **Nominal dollars.** Changes are not adjusted for inflation (Toronto prices rose
+  roughly 9% from 2015 to 2020), so a DA with no real change still shows a gain.
+- **Percentile change** compares a DA's rank among Toronto DAs in each census; each
+  year's percentiles are computed over that year's own set of DAs.
+- **Residents change.** A DA's population turns over between censuses (new towers
+  especially), so a change describes the place, not the same people.
 - **Suppression.** StatCan suppresses income for DAs with small populations or
-  data-quality problems. 68 Toronto DAs have no income figures; they are drawn
-  hatched grey, never as zero.
+  data-quality problems: 68 Toronto DAs in 2021, 23 (household) / 66 (individual) in
+  2016. They are drawn hatched grey, never as zero.
 - **Rounding.** StatCan publishes income medians rounded, more coarsely as values grow
   (in this data: multiples of $1,000 above $80,000, finer steps of $100–$200 below),
-  so many DAs tie.
-  Quantile classes and percentile ranks are computed on those rounded values.
+  so many DAs tie. 2016 medians are not rounded. Quantile classes and percentile ranks
+  are computed on the published values, so small changes (the "within ±$2k" / ±$1k /
+  ±3 pts class) are within rounding noise.
 - **Medians of DAs.** Each DA counts once in the classes and percentiles regardless
-  of population. The city-wide figure shown is StatCan's own City of Toronto median
-  ($84,000 household total), which is lower than the median of DA medians ($95,000).
+  of population. The city-wide figures shown are StatCan's own City of Toronto medians
+  (household total $65,829 in 2015, $84,000 in 2020), which differ from the median of
+  DA medians.
 - **Visual weight.** Large, sparsely populated DAs (industrial land, parks, the
   airport) take up more of the map than their population warrants.
 - "Individual" measures cover people aged 15+ in private households who had income.
@@ -120,8 +145,10 @@ immutable cache and `index.html` no-cache. The page requests those data files wi
 
 ## Sources and licence
 
-Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001), and
-2021 Census dissemination area cartographic boundary file (92-160-X). Contains
+Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001) and
+2016 Census of Population (98-316-X2016001); 2021 and 2016 dissemination area
+cartographic boundary files (92-160-X); 2021 dissemination area correspondence file
+(92-156-X). Contains
 information licensed under the
 [Open Government Licence - Canada](https://open.canada.ca/en/open-government-licence-canada).
 City of Toronto Open Data: Neighbourhoods, Address Points (Municipal) and Centreline

@@ -4,11 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Toronto Median Income</title>
-    <meta name="description" content="Median income by 2021 Census dissemination area, City of Toronto (income year 2020)." />
+    <meta name="description" content="Median income by census dissemination area, City of Toronto: 2016 and 2021 censuses (income years 2015 and 2020) and the change between them." />
   </head>
   <body>
     <header class="bar">
-      <h1>Toronto median income <span class="sub">by dissemination area, 2020</span></h1>
+      <h1>Toronto median income <span class="sub">by dissemination area, 2016 and 2021 censuses</span></h1>
       <form id="search" class="search" role="search" autocomplete="off">
         <label for="q" class="visually-hidden">Find a Toronto address, intersection or DA</label>
         <input id="q" type="search" placeholder="Address or intersection, e.g. 100 Queen St W"
@@ -27,6 +27,19 @@
           <option value="med_ind_at">Individual income, after tax</option>
         </select>
       </label>
+      <fieldset class="years">
+        <legend class="visually-hidden">Census</legend>
+        <label><input type="radio" name="year" value="2016" /> 2016</label>
+        <label><input type="radio" name="year" value="2021" checked /> 2021</label>
+        <label><input type="radio" name="year" value="change" /> Change</label>
+      </fieldset>
+      <label class="measure changeby">
+        <span class="visually-hidden">Show change as</span>
+        <select id="changeby" hidden>
+          <option value="dollars">Change in dollars</option>
+          <option value="points">Change in percentile rank</option>
+        </select>
+      </label>
     </header>
 
     <main class="map-wrap">
@@ -38,7 +51,7 @@
           <p id="legend-title" class="legend-title"></p>
           <ol id="legend-items" class="legend-items"></ol>
           <p id="legend-city" class="legend-city"></p>
-          <p class="legend-note">Quantile classes: each holds about one sixth of DAs.</p>
+          <p id="legend-note" class="legend-note"></p>
         </div>
       </details>
     </main>
@@ -49,7 +62,8 @@
     </section>
 
     <footer class="foot">
-      Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001). Income reference year 2020.
+      Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001) and 2016 Census of Population
+      (98-316-X2016001); income reference years 2020 and 2015; 2021 dissemination area correspondence file (92-156-X).
       Contains information licensed under the
       <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
       Neighbourhoods, address points and intersections: City of Toronto Open Data; contains information licensed under the
