@@ -38,6 +38,10 @@ const TILES = {
   da16: tilesUrl("toronto_da_2016.pmtiles", __TILES16_VERSION__),
 };
 for (const url of Object.values(TILES)) protocol.add(new PMTiles(new RangeOrFullSource(url)));
+// Boundary overlays (`make overlays`); null when the file wasn't built.
+const OVERLAY_TILES = __OVERLAYS_VERSION__ ? tilesUrl("overlays.pmtiles", __OVERLAYS_VERSION__) : null;
+const overlayArchive = OVERLAY_TILES && new PMTiles(new RangeOrFullSource(OVERLAY_TILES));
+if (overlayArchive) protocol.add(overlayArchive);
 
 const STYLE = "https://tiles.openfreemap.org/styles/positron";
 const BOUNDS = [[-79.6393, 43.5792], [-79.1153, 43.8555]];
@@ -80,7 +84,8 @@ const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "
 const select = $("measure");
 const changeBy = $("changeby");
 // The URL hash keeps the view shareable: #m=<measure>&y=<view>&c=<change basis>
-// &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&at=<zoom>/<lat>/<lng>.
+// &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&o=<boundary overlay>
+// &at=<zoom>/<lat>/<lng>.
 const hashParams = new URLSearchParams(location.hash.slice(1));
 if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
@@ -95,10 +100,12 @@ const camera = linkedAt.length === 3 && linkedAt.every(Number.isFinite)
 document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 if (narrow.matches) $("legend").open = false;
 
-const breaks = await fetch(`/breaks.json?v=${__TILES_VERSION__}`).then((r) => r.json());
+const breaks = await fetch(`/breaks.json?v=${__BREAKS_VERSION__}`).then((r) => r.json());
 // 2015 dollars -> 2020 dollars (annual-average CPI, table 18-10-0005-01; see breaks.json).
 const CPI = breaks.cpi.factor;
-const cpiName = `${breaks.cpi.geography.split(",")[0]} CPI`;
+// breaks.json from before cpi.py had no geography (it was Canada); never let a
+// stale cached copy stop the page from loading.
+const cpiName = `${(breaks.cpi.geography ?? "Canada").split(",")[0]} CPI`;
 const inflationPct = Math.round((CPI - 1) * 1000) / 10;
 
 const sourceOf = (v) => (v === "2016" ? "da16" : "da");
@@ -273,7 +280,9 @@ for (const ev of ["mouseover", "focusin"]) {
 }
 for (const ev of ["mouseout", "focusout"]) {
   legendItems.addEventListener(ev, (e) => {
-    if (clsOf(e) == null) return;
+    const btn = e.target.closest(".lg-cls");
+    // Moving between a button's swatch and its text isn't leaving it.
+    if (!btn || e.relatedTarget && btn.contains(e.relatedTarget)) return;
     previewCls = null;
     applyFocus();
   });
@@ -293,6 +302,7 @@ $("legend-all").addEventListener("click", () => {
 // ---- layers -----------------------------------------------------------------
 
 const HIT = { da: ["da-fill", "da-sup", "da-nocmp"], da16: ["da16-fill", "da16-sup"] };
+const hitLayers = () => HIT[sourceOf(view)].filter((l) => map.getLayer(l));
 let firstSymbol;
 
 function addSourceLayers(id) {
@@ -303,15 +313,17 @@ function addSourceLayers(id) {
     attribution: '<a href="https://www.statcan.gc.ca/">Statistics Canada</a>',
   });
   const base = { source: id, "source-layer": "da", layout: { visibility: "none" } };
-  map.addLayer({ ...base, id: `${id}-fill`, type: "fill", paint: { "fill-opacity": 0.85 } }, firstSymbol);
-  map.addLayer({ ...base, id: `${id}-sup`, type: "fill", paint: { "fill-pattern": "hatch", "fill-opacity": 0.9 } }, firstSymbol);
+  // Fills and DA outlines go beneath the boundary overlays; highlights above them.
+  const under = map.getLayer(OVERLAY_FIRST) ? OVERLAY_FIRST : firstSymbol;
+  map.addLayer({ ...base, id: `${id}-fill`, type: "fill", paint: { "fill-opacity": 0.85 } }, under);
+  map.addLayer({ ...base, id: `${id}-sup`, type: "fill", paint: { "fill-pattern": "hatch", "fill-opacity": 0.9 } }, under);
   if (id === "da") {
-    map.addLayer({ ...base, id: "da-nocmp", type: "fill", filter: ["!=", ["get", "rel"], 1], paint: { "fill-pattern": "dots", "fill-opacity": 0.9 } }, firstSymbol);
+    map.addLayer({ ...base, id: "da-nocmp", type: "fill", filter: ["!=", ["get", "rel"], 1], paint: { "fill-pattern": "dots", "fill-opacity": 0.9 } }, under);
   }
   map.addLayer({
     ...base, id: `${id}-line`, type: "line",
     paint: { "line-color": "#ffffff", "line-opacity": 0.7, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 14, 1] },
-  }, firstSymbol);
+  }, under);
   map.addLayer({
     ...base, id: `${id}-hover`, type: "line",
     paint: { "line-color": "#1a1a19", "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 2, 0] },
@@ -330,6 +342,63 @@ function addSourceLayers(id) {
     map.on("click", layer, onClick);
   }
 }
+
+// ---- boundary overlays ----------------------------------------------------------
+// Outlines and labels of City neighbourhoods, wards and FSAs over the DAs, one at
+// a time. The control lists only the layers overlays.pmtiles holds (FSAs need a
+// StatCan file the pipeline can't always download).
+
+const OVERLAYS = {
+  nbhd: { name: "Neighbourhoods", labelMinzoom: 11.5 },
+  ward: { name: "Wards", labelMinzoom: 9.5 },
+  fsa: { name: "Postal areas (FSA)", labelMinzoom: 10.5 },
+};
+const OVERLAY_FIRST = `ov-${Object.keys(OVERLAYS)[0]}`;
+let overlay = hashParams.get("o") in OVERLAYS ? hashParams.get("o") : "none";
+
+// Added for every kind right after the 2021 DA layers, so the 2016 layers (added
+// later) can be slotted beneath them; a kind missing from the tiles draws nothing.
+function addOverlayLayers() {
+  if (!overlayArchive) return;
+  map.addSource("ov", { type: "vector", url: `pmtiles://${OVERLAY_TILES}` });
+  const font = map.getStyle().layers.find((l) => l.type === "symbol" && l.layout?.["text-font"])?.layout["text-font"]
+    ?? ["Noto Sans Regular"];
+  for (const [k, o] of Object.entries(OVERLAYS)) {
+    map.addLayer({
+      id: `ov-${k}`, type: "line", source: "ov", "source-layer": k, layout: { visibility: "none", "line-join": "round" },
+      paint: { "line-color": "#1a1a19", "line-opacity": 0.8, "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.8, 14, 2.2] },
+    }, "da-hover");
+    map.addLayer({
+      id: `ov-${k}-label`, type: "symbol", source: "ov", "source-layer": `${k}_label`, minzoom: o.labelMinzoom,
+      layout: {
+        visibility: "none", "text-field": ["get", "label"], "text-font": font, "text-max-width": 8,
+        "text-size": ["interpolate", ["linear"], ["zoom"], 10, 11, 14, 14], "symbol-sort-key": ["-", 0, ["get", "area_km2"]],
+      },
+      paint: { "text-color": "#1a1a19", "text-halo-color": "rgba(255, 255, 255, 0.9)", "text-halo-width": 1.5 },
+    });
+  }
+  overlayArchive.getMetadata().then((meta) => {
+    const kinds = Object.keys(OVERLAYS).filter((k) => meta.vector_layers?.some((l) => l.id === k));
+    if (!kinds.length) return;
+    if (!kinds.includes(overlay)) overlay = "none";
+    const radio = (v, label) => `<label><input type="radio" name="overlay" value="${v}"${v === overlay ? " checked" : ""} /> ${label}</label>`;
+    $("overlay-opts").innerHTML = [radio("none", "None"), ...kinds.map((k) => radio(k, OVERLAYS[k].name))].join("");
+    $("overlays").hidden = false;
+    applyOverlay();
+  }).catch(() => {});
+}
+
+function applyOverlay() {
+  for (const k of Object.keys(OVERLAYS)) {
+    for (const l of [`ov-${k}`, `ov-${k}-label`]) map.setLayoutProperty(l, "visibility", k === overlay ? "visible" : "none");
+  }
+  writeHash();
+}
+
+$("overlay-opts").addEventListener("change", (e) => {
+  overlay = e.target.value;
+  applyOverlay();
+});
 
 // The 2016 tiles (~1.8 MB) load only when someone first switches to 2016.
 function ensureSource(id) {
@@ -358,7 +427,8 @@ function applyView() {
   }
   changeBy.hidden = view !== "change";
   renderLegend();
-  // A kept class survives a change of measure, not of view or change basis.
+  // A kept class survives a change of measure or census, not a change of classes
+  // (level <-> change view, dollars <-> percentile points).
   const key = view === "change" ? `change-${changeBy.value === "points" ? "points" : "dollars"}` : "level";
   if (key !== focusKey) focusCls = previewCls = null;
   focusKey = key;
@@ -373,6 +443,7 @@ function writeHash() {
   if (view === "change") h.set("c", changeBy.value);
   if (current) h.set("da", current.props.dauid);
   if (pinned) h.set("vs", pinned.props.dauid);
+  if (overlay !== "none") h.set("o", overlay);
   if (mapMoved || camera.center) {
     const { lng, lat } = map.getCenter();
     h.set("at", `${map.getZoom().toFixed(2)}/${lat.toFixed(5)}/${lng.toFixed(5)}`);
@@ -390,10 +461,10 @@ async function setView(next) {
     return;
   }
   // Different boundary set: outlines and search messages refer to the old one.
-  carryPin(toSrc);
   const carry = current;
   clearSelection();
   closeDetails();
+  carryPin(toSrc);
   setStatus("");
   if (!carry) return;
   // Carry the selected DA across only when its boundary is the same in both years.
@@ -419,7 +490,9 @@ document.body.append(tooltip);
 
 let hover = null; // { source, id }
 let current = null; // { props, lngLat, note, source } of the shown DA
-const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false });
+// Not closeOnClick: its map click handler runs after the layer's and would
+// close the popup that a click on another DA has just filled.
+const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false, closeOnClick: false });
 popup.on("close", () => {
   if (narrow.matches) return;
   current = null;
@@ -646,7 +719,9 @@ async function carryPin(toSrc) {
   }
   await idle();
   const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], props.dauid] });
-  if (f && sourceOf(view) === toSrc) setPin({ props: f.properties, source: toSrc });
+  if (sourceOf(view) !== toSrc) return; // toggled back while waiting
+  if (f) setPin({ props: f.properties, source: toSrc });
+  else showToast(`Unpinned DA ${props.dauid}: it isn't loaded at this zoom. Zoom in and pin it again.`, 5000);
 }
 
 document.addEventListener("click", (e) => {
@@ -746,7 +821,64 @@ async function openLinkedDA(dauid) {
   else setStatus(`The linked DA ${dauid} isn't a City of Toronto dissemination area.`, "error");
 }
 
+// A shared link's pinned DA (vs=): pin it once its tile has loaded.
+async function pinLinkedDA(dauid) {
+  const source = sourceOf(view);
+  await idle();
+  const [f] = map.querySourceFeatures(source, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
+  if (f) setPin({ props: f.properties, source });
+  else showToast(`The link's pinned DA ${dauid} isn't loaded in this part of the map or at this zoom, so nothing is pinned.`, 5000);
+}
+
 $("sheet-close").addEventListener("click", closeDetails);
+
+// ---- keyboard and screen readers -----------------------------------------------
+// MapLibre already pans with the arrow keys and zooms with + and −. While the map
+// has keyboard focus a crosshair marks its centre (CSS); the DA under it is
+// announced after each move, Enter or Space opens it and Escape closes it.
+
+const canvas = map.getCanvas();
+canvas.setAttribute("aria-label",
+  "Map of median income by dissemination area. Arrow keys pan, plus and minus zoom, Enter opens the area at the centre, Escape closes it.");
+const live = $("map-live");
+
+function centreDA() {
+  if (!map.getSource("da")) return null;
+  const [f] = map.queryRenderedFeatures([canvas.clientWidth / 2, canvas.clientHeight / 2], { layers: hitLayers() });
+  return f ?? null;
+}
+
+const announce = (text) => (live.textContent = text);
+const centreText = () => {
+  const f = centreDA();
+  return f ? tooltipText(f.properties) : "No dissemination area at the map centre.";
+};
+
+map.on("moveend", () => {
+  if (document.activeElement === canvas) announce(centreText());
+});
+canvas.addEventListener("focus", () => {
+  if (canvas.matches(":focus-visible")) announce(centreText());
+});
+// Chrome keeps :focus-visible on a canvas clicked while focused; the crosshair
+// is for keyboard use, so pointer use hides it until the next key.
+const wrap = document.querySelector(".map-wrap");
+canvas.addEventListener("pointerdown", () => wrap.classList.add("pointing"));
+canvas.addEventListener("keydown", (e) => {
+  wrap.classList.remove("pointing");
+  if (e.key === "Escape" && current) {
+    closeDetails();
+    announce("Closed the area's details.");
+  } else if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    const f = centreDA();
+    if (!f) return announce("No dissemination area at the map centre.");
+    clearSelection();
+    select_(f.source, [f.id]);
+    showDetails(f.properties, map.getCenter());
+    announce(`Opened ${tooltipText(f.properties)}.`);
+  }
+});
 
 // ---- load -------------------------------------------------------------------
 
@@ -756,6 +888,7 @@ map.on("load", () => {
   // Draw data beneath the basemap's labels.
   firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
   addSourceLayers("da");
+  addOverlayLayers();
   applyView();
   select.addEventListener("change", () => {
     applyView();
@@ -768,10 +901,15 @@ map.on("load", () => {
   for (const r of document.querySelectorAll("input[name=year]")) {
     r.addEventListener("change", () => r.checked && setView(r.value));
   }
+  // A click off every DA closes the popup (the bottom sheet has its own ×).
+  map.on("click", (e) => {
+    if (!map.queryRenderedFeatures(e.point, { layers: hitLayers() }).length) popup.remove();
+  });
   map.on("moveend", () => {
     mapMoved = true;
     writeHash();
   });
+  if (linkedPin) pinLinkedDA(linkedPin);
   if (linkedDA) openLinkedDA(linkedDA);
 });
 
@@ -980,7 +1118,7 @@ form.addEventListener("submit", (e) => {
 
 const CREDITS = [
   "Statistics Canada, Census Profile, 2021 Census (98-316-X2021001) and 2016 Census (98-316-X2016001); income years 2020 and 2015; 2021 DA correspondence file (92-156-X). Contains information licensed under the Open Government Licence – Canada.",
-  "Neighbourhoods, address points and intersections: City of Toronto Open Data, Open Government Licence – Toronto. Basemap © OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors.",
+  "Neighbourhoods, wards, address points and intersections: City of Toronto Open Data, Open Government Licence – Toronto. Basemap © OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors.",
 ];
 
 function snapshotDetails() {

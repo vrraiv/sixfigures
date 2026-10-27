@@ -1,14 +1,15 @@
 """Fetch the raw inputs into pipeline/raw/.
 
 StatCan inputs: 2021 and 2016 Census Profiles (Ontario, DA level), 2021 and 2016 DA
-boundary files, and the 2021<->2016 DA correspondence file (land-area version).
+boundary files, the 2021<->2016 DA correspondence file (land-area version) and,
+optionally, the 2021 forward sortation area (FSA) boundary file.
 
 StatCan: www12.statcan.gc.ca sits behind a
 Cloudflare bot challenge that often rejects non-browser clients with HTTP 403.
 We try a plain download, verify the result is a real zip, and otherwise print
 the URLs to fetch manually in a browser. A challenge page is never saved.
 
-City of Toronto Open Data (neighbourhoods, address points, intersections):
+City of Toronto Open Data (neighbourhoods, address points, intersections, wards):
 resource URLs are resolved through the CKAN package_show API at download time.
 The portal intermittently returns 504 error pages, so each download is retried
 with backoff and checked for the expected leading bytes before it is kept.
@@ -47,6 +48,14 @@ STATCAN = {
         "correspondence-correspondance/files-fichiers/2021_92-156-X_DALand_ADsup.zip"
     ),
 }
+# Optional: only the FSA overlay (overlays.py) uses it, so a failed download is
+# reported but doesn't fail the run.
+STATCAN_OPTIONAL = {
+    "lfsa000b21a_e.zip": (  # 2021 forward sortation area cartographic boundary file
+        "https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/"
+        "boundary-limites/files-fichiers/lfsa000b21a_e.zip"
+    ),
+}
 
 CKAN = "https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/package_show?id="
 # local name -> (package id, resource name, expected leading bytes)
@@ -56,6 +65,7 @@ TORONTO = {
         "address-points-municipal-toronto-one-address-repository", "Address Points - 4326.csv", b"_id,"),
     "toronto_intersections_4326.csv": (
         "intersection-file-city-of-toronto", "Centreline Intersection - 4326.csv", b"_id,"),
+    "toronto_wards_4326.geojson": ("city-wards", "City Wards Data - 4326.geojson", b"{"),
 }
 
 
@@ -91,15 +101,15 @@ def ckan_url(package: str, resource: str) -> str:
 
 def main() -> int:
     RAW.mkdir(exist_ok=True)
-    missing = []
-    for name, url in STATCAN.items():
+    missing, optional = [], []
+    for name, url in {**STATCAN, **STATCAN_OPTIONAL}.items():
         dest = RAW / name
         if dest.exists() and zipfile.is_zipfile(dest):
             print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   {name}")
         if not fetch(url, dest, b"PK"):
-            missing.append((name, url))
+            (optional if name in STATCAN_OPTIONAL else missing).append((name, url))
     for name, (package, resource, magic) in TORONTO.items():
         dest = RAW / name
         if dest.exists() and dest.open("rb").read(len(magic)) == magic:
@@ -115,6 +125,11 @@ def main() -> int:
             if fetch(url, dest, magic, attempts=6):
                 continue
         missing.append((name, url))
+    if optional:
+        print("\nOptional downloads failed (overlays.py skips the FSA overlay without them).")
+        print(f"To include them, download these in a browser and save them to {RAW.resolve()}:")
+        for name, url in optional:
+            print(f"  {name}\n    {url}")
     if missing:
         print("\nSome downloads failed. StatCan blocks scripts with a bot challenge;")
         print("the Toronto portal sometimes times out (rerun later).")

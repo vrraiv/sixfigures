@@ -9,15 +9,16 @@ PMTILES   := web/public/toronto_da.pmtiles
 PMTILES16 := web/public/toronto_da_2016.pmtiles
 BREAKS    := web/public/breaks.json
 SEARCH    := web/public/search.json
+OVERLAYS  := web/public/overlays.pmtiles
 CORR      := $(RAW)/2021_92-156-X_DALand_ADsup.zip
 STATCAN   := $(RAW)/98-401-X2021006_Ontario_eng_CSV.zip $(RAW)/lda_000b21a_e.zip \
              $(RAW)/98-401-X2016044_ONTARIO_eng_CSV.zip $(RAW)/lda_000b16a_e.zip $(CORR)
 TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_points_4326.csv \
-             $(RAW)/toronto_intersections_4326.csv
+             $(RAW)/toronto_intersections_4326.csv $(RAW)/toronto_wards_4326.geojson
 
-.PHONY: data download tiles search deps clean cpi breaks
+.PHONY: data download tiles search overlays deps clean cpi breaks
 
-data: $(PMTILES) $(PMTILES16) $(SEARCH)
+data: $(PMTILES) $(PMTILES16) $(SEARCH) $(OVERLAYS)
 
 deps:
 	$(PYTHON) -m pip install -r pipeline/requirements.txt
@@ -28,9 +29,10 @@ download:
 $(STATCAN) $(TORONTO):
 	$(PYTHON) pipeline/download.py
 
+# build.py also applies cpi.json and writes the CSVs, but a change to those alone
+# only needs `make breaks`, not a rebuild of the GeoJSON and tiles.
 $(GEOJSON) $(GEOJSON16) $(BREAKS) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
-                                     pipeline/build.py pipeline/census2016.py pipeline/distributions.py \
-                                     pipeline/exports.py pipeline/cpi.json
+                                     pipeline/build.py pipeline/census2016.py pipeline/distributions.py
 	$(PYTHON) pipeline/build.py
 
 # Refresh the CPI from StatCan's Web Data Service, then re-apply it (and the
@@ -49,6 +51,16 @@ $(PMTILES16): $(GEOJSON16)
 $(PMTILES) $(PMTILES16):
 	@command -v tippecanoe >/dev/null || { echo "tippecanoe not found; see pipeline/README.md"; exit 1; }
 	tippecanoe -o $@ -l da -zg --drop-densest-as-needed --coalesce-smallest-as-needed --force $<
+	@ls -l $@
+
+# Neighbourhood, ward and (if lfsa000b21a_e.zip was downloaded) FSA outlines and
+# labels, one tile layer per GeoJSON that overlays.py writes.
+overlays: $(OVERLAYS)
+
+$(OVERLAYS): $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_wards_4326.geojson              $(wildcard $(RAW)/lfsa000b21a_e.zip) pipeline/overlays.py
+	$(PYTHON) pipeline/overlays.py
+	@command -v tippecanoe >/dev/null || { echo "tippecanoe not found; see pipeline/README.md"; exit 1; }
+	tippecanoe -q -o $@ -Z9 -z14 -r1 --no-tile-size-limit --detect-shared-borders --force 	  $$(for f in pipeline/out/overlays/*.geojson; do printf -- '-L %s:%s ' "$$(basename $$f .geojson)" "$$f"; done)
 	@ls -l $@
 
 search: $(SEARCH)

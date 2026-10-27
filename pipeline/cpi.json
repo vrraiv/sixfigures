@@ -1,10 +1,9 @@
 {
-  "series": "Consumer Price Index, all-items, Canada, annual average (2002=100)",
+  "series": "Consumer Price Index, all-items, Toronto, Ontario, annual average (2002=100)",
   "table": "18-10-0005-01",
-  "geography": "Canada",
-  "vector": "v41693271",
-  "retrieved": null,
-  "note": "Entered by hand from Statistics Canada 62-001-X (December 2015, table 8-2) and The Daily, 2021-01-20, because the Web Data Service was unreachable. Run `make cpi` to fetch Toronto's values.",
-  "2015": 126.6,
-  "2020": 137.0
+  "geography": "Toronto, Ontario",
+  "vector": "v41695186",
+  "retrieved": "2026-10-26",
+  "2015": 128.3,
+  "2020": 140.3
 }

@@ -6,10 +6,32 @@
 2. `pipeline/build.py` (with `census2016.py` and `distributions.py`) – streams both profile CSVs, filters to
    Toronto, pivots, joins to boundaries, tags each DA with its City neighbourhood, links
    the years through the DA correspondence file, writes `pipeline/out/toronto_da.geojson`,
-   `pipeline/out/toronto_da_2016.geojson` and `web/public/breaks.json`.
+   `pipeline/out/toronto_da_2016.geojson` and `web/public/breaks.json`, and (through
+   `exports.py`) the CSV downloads in `web/public/data/`.
 3. `tippecanoe` – writes `web/public/toronto_da.pmtiles` and `toronto_da_2016.pmtiles`.
 4. `pipeline/search_index.py` – writes `web/public/search.json` (address/intersection → DA
    lookup) and `pipeline/out/search_sample.json` for `npm test`.
+5. `pipeline/overlays.py` + `tippecanoe` – boundary overlays in `web/public/overlays.pmtiles`:
+   layers `nbhd`, `ward` and, if `raw/lfsa000b21a_e.zip` exists, `fsa` (FSAs whose code
+   starts with M), each with a `<kind>_label` layer of one point per area
+   (`representative_point`, inside the area). Properties: `code`, `label`, `area_km2`.
+
+Separately:
+
+- `make cpi` – `pipeline/cpi.py` reads the annual-average all-items CPI for
+  "Toronto, Ontario" (or `--geo Canada`) for 2015 and 2020 from table 18-10-0005-01
+  through StatCan's Web Data Service (getCubeMetadata, then
+  getDataFromCubePidCoordAndLatestNPeriods), writes `pipeline/cpi.json`, then runs
+  `make breaks`. Last run 2026-10-26: Toronto 128.3 → 140.3 (×1.0935, vector v41695186);
+  a Canada run returned 126.6 → 137.0, as published.
+- `make breaks` – `pipeline/refresh.py` reapplies the CPI factor and histograms to
+  `breaks.json` and rewrites the CSVs from `pipeline/out/*.geojson`, without the raw
+  downloads. It checks that the GeoJSON matches the breaks (same comparable-DA counts).
+
+The FSA boundary file comes from www12.statcan.gc.ca, whose bot challenge rejects
+scripts, so `download.py` lists it as optional: fetch
+https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/boundary-limites/files-fichiers/lfsa000b21a_e.zip
+in a browser into `pipeline/raw/` and rerun `make overlays` to add FSAs.
 
 Setup in WSL (keep the Linux venv off `/mnt/c`, which is OneDrive-synced and already
 holds the Windows `.venv`; Ubuntu 24.04's system pip refuses installs under PEP 668):
@@ -46,6 +68,7 @@ through the portal's CKAN `package_show` API (the portal intermittently returns 
 | File | Size | Dataset |
 |---|---|---|
 | `toronto_neighbourhoods_4326.geojson` – 158 neighbourhoods | 2,141,269 B | https://open.toronto.ca/dataset/neighbourhoods/ |
+| `toronto_wards_4326.geojson` – 25 City wards (CKAN `city-wards`, "City Wards Data - 4326.geojson") | 1,148,140 B | https://open.toronto.ca/dataset/city-wards/ |
 | `toronto_address_points_4326.csv` – Address Points (Municipal), Toronto One Address Repository | 183,485,596 B | https://open.toronto.ca/dataset/address-points-municipal-toronto-one-address-repository/ |
 | `toronto_intersections_4326.csv` – Centreline Intersection file | 11,731,542 B | https://open.toronto.ca/dataset/intersection-file-city-of-toronto/ |
 
