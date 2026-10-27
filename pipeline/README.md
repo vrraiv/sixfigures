@@ -3,7 +3,7 @@
 `make data` (from the repo root, in WSL/Linux/macOS) runs:
 
 1. `pipeline/download.py` – fetches the raw files into `pipeline/raw/` (gitignored).
-2. `pipeline/build.py` (with `census2016.py`) – streams both profile CSVs, filters to
+2. `pipeline/build.py` (with `census2016.py` and `distributions.py`) – streams both profile CSVs, filters to
    Toronto, pivots, joins to boundaries, tags each DA with its City neighbourhood, links
    the years through the DA correspondence file, writes `pipeline/out/toronto_da.geojson`,
    `pipeline/out/toronto_da_2016.geojson` and `web/public/breaks.json`.

@@ -29,7 +29,7 @@ $(STATCAN) $(TORONTO):
 	$(PYTHON) pipeline/download.py
 
 $(GEOJSON) $(GEOJSON16) $(BREAKS) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
-                                     pipeline/build.py pipeline/census2016.py
+                                     pipeline/build.py pipeline/census2016.py pipeline/distributions.py
 	$(PYTHON) pipeline/build.py
 
 tiles: $(PMTILES) $(PMTILES16)

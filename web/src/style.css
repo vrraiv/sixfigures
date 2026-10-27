@@ -112,6 +112,19 @@ a { color: var(--accent); }
 .found { margin: 0 0 6px; padding: 4px 8px; background: #fdf0ea; border-left: 3px solid #eb6834; font-size: 12px; color: var(--ink-2); }
 .note { margin: 8px 0 0; padding: 6px 8px; background: #f3f3f0; border-left: 3px solid #9a9a95; color: var(--ink-2); }
 .fine { margin: 6px 0 0; color: var(--ink-3); font-size: 11px; }
+.dist { margin: 10px 0 0; }
+.dist svg { display: block; width: 100%; height: 44px; border-bottom: 1px solid #c9c9c3; }
+.dist rect { fill: #c3d3e6; }
+.dist rect.here { fill: #eb6834; }
+.dist .ref { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
+.dist-axis { display: flex; justify-content: space-between; color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+.dist figcaption { margin-top: 2px; color: var(--ink-2); font-size: 12px; }
+.copylink {
+  margin-top: 8px; font: inherit; font-size: 12px; padding: 4px 10px; cursor: pointer;
+  color: var(--accent); background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+}
+.copylink:hover { background: #eef4fc; }
+.copylink:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 4;
