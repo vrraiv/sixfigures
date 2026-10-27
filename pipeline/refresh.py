@@ -11,8 +11,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from distributions import MEASURES, add_distributions
+from distributions import add_distributions
 from exports import write_csvs
+from measures import MEASURES
 
 HERE = Path(__file__).parent
 BREAKS = HERE.parent / "web" / "public" / "breaks.json"
@@ -20,8 +21,8 @@ BREAKS = HERE.parent / "web" / "public" / "breaks.json"
 
 def properties(path: Path) -> pd.DataFrame:
     df = pd.DataFrame([f["properties"] for f in json.loads(path.read_text())["features"]])
-    num = [c for c in df if c.split("_", 1)[-1] in MEASURES or c in MEASURES]
-    return df.astype({c: "Float64" for c in num if not c.startswith("sup_")})
+    num = [c for c in df if c in MEASURES or c.split("_", 1)[-1] in MEASURES]
+    return df.astype({c: "Float64" for c in num})
 
 
 def main():

@@ -2,8 +2,9 @@
 
 Steps
   1. Stream the Ontario Census Profile CSV (8.8 GB, inside the zip) and keep
-     only Toronto rows (CD 3520) for the six target characteristics.
-  2. Pivot to one row per DA; derive per-measure suppression flags.
+     only Toronto rows (CD 3520) for the characteristics in measures.py.
+  2. Pivot to one row per DA; compute the shares (renters, shelter costs). A
+     suppressed value is null, and so absent from the tiles (no flag needed).
   3. Join to DA cartographic boundaries, reproject to EPSG:4326.
   4. Quantile breaks, city-wide medians and percentile ranks.
   5. Tag each DA with its City of Toronto neighbourhood (DAs have no names).
@@ -26,6 +27,7 @@ import pandas as pd
 import census2016
 from distributions import add_distributions
 from exports import write_csvs
+from measures import CHARS_2021, MEASURES, MONEY, derive_city_shares, derive_shares, label, targets
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -43,71 +45,64 @@ TORONTO_CSD = "3520005"
 TORONTO_CD = "3520"
 EXPECTED_DAS = 3700
 
-# short property name -> CHARACTERISTIC_NAME (after strip). The household
-# count row is named "Total - Private households by household size - 100% data".
-TARGETS = {
-    "med_hh_tot": "Median total income of household in 2020 ($)",
-    "med_hh_at": "Median after-tax income of household in 2020 ($)",
-    "med_ind_tot": "Median total income in 2020 among recipients ($)",
-    "med_ind_at": "Median after-tax income in 2020 among recipients ($)",
-    "pop21": "Population, 2021",
-    "hh": "Total - Private households by household size - 100% data",
-}
-MEASURES = ["med_hh_tot", "med_hh_at", "med_ind_tot", "med_ind_at"]
+TARGETS = targets(CHARS_2021)  # (CHARACTERISTIC_ID, CHARACTERISTIC_NAME) -> key
 N_CLASSES = 6
 
 # Row prefixes (CENSUS_YEAR,"DGUID...) for Toronto DAs and CSDs in CD 3520.
 DA_PREFIX = f'2021,"2021S0512{TORONTO_CD}'.encode()
 CSD_PREFIX = f'2021,"2021A0005{TORONTO_CD}'.encode()
-NAME_BYTES = [n.encode("latin-1") for n in TARGETS.values()]
+NAME_BYTES = [n.encode("latin-1") for _, n in TARGETS]
 
 
 def extract() -> pd.DataFrame:
     """Stream the profile once and cache the Toronto subset as a small CSV."""
     if EXTRACT.exists() and EXTRACT.stat().st_mtime > PROFILE_ZIP.stat().st_mtime:
-        print(f"using cached {EXTRACT.name}")
-    else:
-        print(f"streaming {PROFILE_CSV} (several minutes) ...")
-        kept, total = [], 0
-        with zipfile.ZipFile(PROFILE_ZIP) as z, z.open(PROFILE_CSV) as f:
-            header = f.readline().decode("latin-1")
-            for line in f:
-                total += 1
-                if (line.startswith(DA_PREFIX) or line.startswith(CSD_PREFIX)) and any(
-                    n in line for n in NAME_BYTES
-                ):
-                    kept.append(line)
-        print(f"  scanned {total:,} data rows, kept {len(kept):,}")
-        rows = csv.reader(io.StringIO(b"".join(kept).decode("latin-1")))
-        cols = next(csv.reader([header]))
-        # SYMBOL is repeated after every value column; we only need the first.
-        out = [
-            (r[1], r[2], r[3], r[8], r[9].strip(), r[11], r[12])
-            for r in rows
-            if r[9].strip() in TARGETS.values()
-        ]
-        assert cols[11] == "C1_COUNT_TOTAL" and cols[12] == "SYMBOL", cols
-        OUT.mkdir(exist_ok=True)
-        pd.DataFrame(
-            out,
-            columns=["DGUID", "ALT_GEO_CODE", "GEO_LEVEL", "CHARACTERISTIC_ID",
-                     "CHARACTERISTIC_NAME", "C1_COUNT_TOTAL", "SYMBOL"],
-        ).to_csv(EXTRACT, index=False)
+        long = pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
+        # a cache from before a characteristic was added to measures.py is stale
+        if set(TARGETS) <= set(zip(long.CHARACTERISTIC_ID, long.CHARACTERISTIC_NAME)):
+            print(f"using cached {EXTRACT.name}")
+            return long
+        print(f"{EXTRACT.name} lacks some characteristics in measures.py")
+    print(f"streaming {PROFILE_CSV} (several minutes) ...")
+    kept, total = [], 0
+    with zipfile.ZipFile(PROFILE_ZIP) as z, z.open(PROFILE_CSV) as f:
+        header = f.readline().decode("latin-1")
+        for line in f:
+            total += 1
+            if (line.startswith(DA_PREFIX) or line.startswith(CSD_PREFIX)) and any(
+                n in line for n in NAME_BYTES
+            ):
+                kept.append(line)
+    print(f"  scanned {total:,} data rows, kept {len(kept):,}")
+    rows = csv.reader(io.StringIO(b"".join(kept).decode("latin-1")))
+    cols = next(csv.reader([header]))
+    # SYMBOL is repeated after every value column; we only need the first.
+    out = [
+        (r[1], r[2], r[3], r[8], r[9].strip(), r[11], r[12])
+        for r in rows
+        if (r[8], r[9].strip()) in TARGETS
+    ]
+    assert cols[11] == "C1_COUNT_TOTAL" and cols[12] == "SYMBOL", cols
+    OUT.mkdir(exist_ok=True)
+    pd.DataFrame(
+        out,
+        columns=["DGUID", "ALT_GEO_CODE", "GEO_LEVEL", "CHARACTERISTIC_ID",
+                 "CHARACTERISTIC_NAME", "C1_COUNT_TOTAL", "SYMBOL"],
+    ).to_csv(EXTRACT, index=False)
     return pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
 
 
 def pivot(long: pd.DataFrame):
     print("\nmatched characteristics (CHARACTERISTIC_ID: name):")
-    for key, name in TARGETS.items():
-        ids = sorted(long.loc[long.CHARACTERISTIC_NAME == name, "CHARACTERISTIC_ID"].unique())
-        print(f"  {key:12s} {ids}: {name!r}")
-        if len(ids) != 1:
-            sys.exit(f"expected exactly one CHARACTERISTIC_ID for {name!r}, got {ids}")
+    found = set(zip(long.CHARACTERISTIC_ID, long.CHARACTERISTIC_NAME))
+    for (i, name), key in TARGETS.items():
+        print(f"  {key:12s} {i:>5s}: {name[:90]!r}")
+        if (i, name) not in found:
+            sys.exit(f"characteristic {i} {name!r} not in the profile; check measures.py")
 
     # ".." / "x" / "F" / blank (and anything non-numeric) -> null
     long["value"] = pd.to_numeric(long.C1_COUNT_TOTAL.str.strip(), errors="coerce")
-    key_of = {v: k for k, v in TARGETS.items()}
-    long["key"] = long.CHARACTERISTIC_NAME.map(key_of)
+    long["key"] = [TARGETS[k] for k in zip(long.CHARACTERISTIC_ID, long.CHARACTERISTIC_NAME)]
 
     print("\nSYMBOL values by measure (blank = published):")
     print(long.pivot_table(index="key", columns="SYMBOL", values="value",
@@ -119,7 +114,7 @@ def pivot(long: pd.DataFrame):
     if csd_ids != [TORONTO_CSD]:
         sys.exit(f"CD {TORONTO_CD} is not coterminous with CSD {TORONTO_CSD}; "
                  "need a DA->CSD lookup instead of the DAUID prefix")
-    city = csd.set_index("key").value
+    city = derive_city_shares(csd.set_index("key").value)
 
     da = long[long.GEO_LEVEL == "Dissemination area"]
     dups = da.duplicated(["ALT_GEO_CODE", "key"]).sum()
@@ -127,7 +122,7 @@ def pivot(long: pd.DataFrame):
         sys.exit(f"{dups} duplicate DA x characteristic rows")
     wide = da.pivot(index="ALT_GEO_CODE", columns="key", values="value")
     wide.index.name = "DAUID"
-    return wide[list(TARGETS)], city
+    return derive_shares(wide[list(TARGETS.values())]), city
 
 
 def assign_neighbourhoods(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -158,18 +153,11 @@ def assign_neighbourhoods(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 
-# Change classes (2016 -> 2021), symmetric round numbers centred on zero. The
-# middle class is "little or no change": 2021 medians are rounded (to $1,000
-# above $80,000) while 2016 medians are not, so small differences are noise.
-CHANGE_BREAKS = {
-    "dollars": {
-        "med_hh_tot": [-20000, -10000, -2000, 2000, 10000, 20000],
-        "med_hh_at": [-20000, -10000, -2000, 2000, 10000, 20000],
-        "med_ind_tot": [-10000, -5000, -1000, 1000, 5000, 10000],
-        "med_ind_at": [-10000, -5000, -1000, 1000, 5000, 10000],
-    },
-    "points": [-20, -10, -3, 3, 10, 20],
-}
+# Change classes (2016 -> 2021) are in measures.py, in dollars or percentage
+# points. The middle class is "little or no change": 2021 medians are rounded
+# (to $1,000 above $80,000) while 2016 medians are not, so small differences
+# are noise. Percentile-rank change classes are shared by every measure.
+POINTS_BREAKS = [-20, -10, -3, 3, 10, 20]
 
 
 def write_geojson(gdf: gpd.GeoDataFrame, path: Path):
@@ -179,11 +167,12 @@ def write_geojson(gdf: gpd.GeoDataFrame, path: Path):
     print(f"wrote {path} ({path.stat().st_size / 1e6:.1f} MB, {len(gdf):,} features)")
 
 
-def year_stats(v: pd.Series, city_value) -> dict:
+def year_stats(v: pd.Series, city_value, unit: str) -> dict:
     valid = v.dropna()
+    num = int if unit == "money" else lambda x: round(float(x), 1)
     return {
-        "city_median": int(city_value),        # official CSD 3520005 value
-        "median_of_das": int(valid.median()),  # unweighted median of DA medians
+        "city": num(city_value),                # official CSD 3520005 value
+        "median_of_das": num(valid.median()),   # unweighted median of DA values
         "n": int(valid.size),
         "suppressed": int(v.isna().sum()),
     }
@@ -210,7 +199,6 @@ def main():
     pop_da, pop_city = gdf.pop21.sum(), city["pop21"]
     print(f"population: sum of DAs {pop_da:,.0f} vs CSD {pop_city:,.0f}")
     for m in MEASURES:
-        gdf[f"sup_{m}"] = gdf[m].isna()
         # share of DAs with an equal or lower value (ties take the max rank)
         gdf[f"pct_{m}"] = (gdf[m].rank(method="max", pct=True) * 100).round().clip(lower=1)
 
@@ -243,20 +231,23 @@ def main():
         comparables[m] = comparable
         d = (gdf[m] - gdf[f"v16_{m}"])[comparable]
         dp = (gdf[f"pct_{m}"] - gdf[f"p16_{m}"])[comparable]
-        cb_d, cb_p = CHANGE_BREAKS["dollars"][m], CHANGE_BREAKS["points"]
+        unit = MEASURES[m]["unit"]
+        num = int if unit == "money" else lambda x: round(float(x), 1)
+        cb_d, cb_p = MEASURES[m]["change"], POINTS_BREAKS
         breaks["measures"][m] = {
-            "label": TARGETS[m],
-            "label_2016": census2016.TARGETS[m],
-            "breaks": [int(x) for x in q],
-            "y2021": year_stats(gdf[m], city[m]),
-            "y2016": year_stats(g16[m], city16[m]),
+            "unit": unit,
+            "label": label(CHARS_2021, m),
+            "label_2016": label(census2016.CHARS_2016, m),
+            "breaks": [num(x) for x in q],
+            "y2021": year_stats(gdf[m], city[m], unit),
+            "y2016": year_stats(g16[m], city16[m], unit),
             "change": {
-                "dollars": cb_d,
+                "value": cb_d,
                 "points": cb_p,
                 "comparable": int(comparable.sum()),
                 "boundary_changed": int((~same).sum()),
                 "not_published": int((same & ~comparable).sum()),
-                "median_dollars": int(d.median()),
+                "median_value": num(d.median()),
                 "median_points": int(dp.median()),
             },
         }
@@ -268,21 +259,22 @@ def main():
               f" not published {int((same & ~comparable).sum())}")
     add_distributions(breaks, gdf, g16, comparables)
 
-    int21 = list(TARGETS) + [f"{p}_{m}" for m in MEASURES for p in ("pct", "v16", "p16")]
+    # Rates stay floats with one decimal; everything else is a whole number.
+    int21 = ["pop21", "hh"] + [f"{p}_{m}" for m in MEASURES for p in ("pct", "p16")] + MONEY + [f"v16_{m}" for m in MONEY]
     for c in int21:
         gdf[c] = gdf[c].astype("Int64")
-    for c in list(census2016.TARGETS) + [f"pct_{m}" for m in MEASURES]:
+    for c in ["pop16", "hh"] + [f"pct_{m}" for m in MEASURES] + MONEY:
         g16[c] = g16[c].astype("Int64")
     gdf = gdf.rename(columns={"DAUID": "dauid"})
     g16 = g16.rename(columns={"DAUID": "dauid"})
 
     print("\n2021 summary (non-null values):")
-    print(gdf[list(TARGETS)].describe().T[["count", "min", "25%", "50%", "75%", "max"]]
-          .astype("Int64").to_string())
+    print(gdf[["pop21", "hh", *MEASURES]].astype(float).describe().T[["count", "min", "25%", "50%", "75%", "max"]]
+          .round(1).to_string())
     print("\n2021 suppressed DAs per measure:")
     for m in MEASURES:
-        print(f"  {m:12s} {int(gdf[f'sup_{m}'].sum()):5d}")
-    print(f"  all four     {int(gdf[[f'sup_{m}' for m in MEASURES]].all(axis=1).sum()):5d}")
+        print(f"  {m:12s} {int(gdf[m].isna().sum()):5d}")
+    print(f"  all          {int(gdf[list(MEASURES)].isna().all(axis=1).sum()):5d}")
 
     OUT.mkdir(exist_ok=True)
     write_geojson(gdf, OUT / "toronto_da.geojson")
