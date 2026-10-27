@@ -28,9 +28,10 @@ download:
 $(STATCAN) $(TORONTO):
 	$(PYTHON) pipeline/download.py
 
+# build.py also applies cpi.json and writes the CSVs, but a change to those alone
+# only needs `make breaks`, not a rebuild of the GeoJSON and tiles.
 $(GEOJSON) $(GEOJSON16) $(BREAKS) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
-                                     pipeline/build.py pipeline/census2016.py pipeline/distributions.py \
-                                     pipeline/exports.py pipeline/cpi.json
+                                     pipeline/build.py pipeline/census2016.py pipeline/distributions.py
 	$(PYTHON) pipeline/build.py
 
 # Refresh the CPI from StatCan's Web Data Service, then re-apply it (and the

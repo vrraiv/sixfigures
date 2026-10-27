@@ -273,7 +273,9 @@ for (const ev of ["mouseover", "focusin"]) {
 }
 for (const ev of ["mouseout", "focusout"]) {
   legendItems.addEventListener(ev, (e) => {
-    if (clsOf(e) == null) return;
+    const btn = e.target.closest(".lg-cls");
+    // Moving between a button's swatch and its text isn't leaving it.
+    if (!btn || e.relatedTarget && btn.contains(e.relatedTarget)) return;
     previewCls = null;
     applyFocus();
   });
@@ -293,6 +295,7 @@ $("legend-all").addEventListener("click", () => {
 // ---- layers -----------------------------------------------------------------
 
 const HIT = { da: ["da-fill", "da-sup", "da-nocmp"], da16: ["da16-fill", "da16-sup"] };
+const hitLayers = () => HIT[sourceOf(view)].filter((l) => map.getLayer(l));
 let firstSymbol;
 
 function addSourceLayers(id) {
@@ -390,10 +393,10 @@ async function setView(next) {
     return;
   }
   // Different boundary set: outlines and search messages refer to the old one.
-  carryPin(toSrc);
   const carry = current;
   clearSelection();
   closeDetails();
+  carryPin(toSrc);
   setStatus("");
   if (!carry) return;
   // Carry the selected DA across only when its boundary is the same in both years.
@@ -419,7 +422,9 @@ document.body.append(tooltip);
 
 let hover = null; // { source, id }
 let current = null; // { props, lngLat, note, source } of the shown DA
-const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false });
+// Not closeOnClick: its map click handler runs after the layer's and would
+// close the popup that a click on another DA has just filled.
+const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false, closeOnClick: false });
 popup.on("close", () => {
   if (narrow.matches) return;
   current = null;
@@ -746,6 +751,15 @@ async function openLinkedDA(dauid) {
   else setStatus(`The linked DA ${dauid} isn't a City of Toronto dissemination area.`, "error");
 }
 
+// A shared link's pinned DA (vs=): pin it once its tile has loaded.
+async function pinLinkedDA(dauid) {
+  const source = sourceOf(view);
+  await idle();
+  const [f] = map.querySourceFeatures(source, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
+  if (f) setPin({ props: f.properties, source });
+  else showToast(`The link's pinned DA ${dauid} isn't in this part of the map, so nothing is pinned.`, 5000);
+}
+
 $("sheet-close").addEventListener("click", closeDetails);
 
 // ---- load -------------------------------------------------------------------
@@ -768,10 +782,15 @@ map.on("load", () => {
   for (const r of document.querySelectorAll("input[name=year]")) {
     r.addEventListener("change", () => r.checked && setView(r.value));
   }
+  // A click off every DA closes the popup (the bottom sheet has its own ×).
+  map.on("click", (e) => {
+    if (!map.queryRenderedFeatures(e.point, { layers: hitLayers() }).length) popup.remove();
+  });
   map.on("moveend", () => {
     mapMoved = true;
     writeHash();
   });
+  if (linkedPin) pinLinkedDA(linkedPin);
   if (linkedDA) openLinkedDA(linkedDA);
 });
 

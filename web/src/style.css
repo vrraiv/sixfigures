@@ -6,6 +6,7 @@
   --ink-3: #75756f;
   --rule: #e2e2dd;
   --accent: #256abf;
+  --pin: #7a3db8; /* pinned-DA outline on the map */
   --shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
@@ -88,6 +89,19 @@ a { color: var(--accent); }
 .legend-items li { display: flex; align-items: center; gap: 8px; padding: 2px 0; color: var(--ink-2); }
 .swatch { width: 18px; height: 12px; border-radius: 2px; flex: none; outline: 1px solid rgba(0, 0, 0, 0.06); }
 .swatch.hatch { background: repeating-linear-gradient(135deg, #9a9a95 0 1.5px, #e4e4e0 1.5px 5px); }
+/* colour classes are buttons: hover previews, click keeps (see applyFocus) */
+.legend-items li:has(.lg-cls) { padding: 0; }
+.lg-cls {
+  display: flex; align-items: center; gap: 8px; width: calc(100% + 8px); margin: 0 -4px; padding: 2px 4px;
+  font: inherit; color: inherit; text-align: left; background: none; border: 0; border-radius: 4px; cursor: pointer;
+}
+.lg-cls:hover { background: #eef4fc; }
+.lg-cls:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.lg-cls[aria-pressed="true"] { background: #eef4fc; color: var(--ink); font-weight: 600; }
+.lg-cls.dim { opacity: 0.45; }
+.legend-filter { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0 0; font-size: 12px; color: var(--ink-2); }
+.legend-filter[hidden] { display: none; }
+.legend-filter button { padding: 2px 8px; }
 .legend-city { margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--rule); }
 .legend-note { margin: 4px 0 0; color: var(--ink-3); font-size: 12px; }
 
@@ -119,12 +133,14 @@ a { color: var(--accent); }
 .dist .ref { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
 .dist-axis { display: flex; justify-content: space-between; color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
 .dist figcaption { margin-top: 2px; color: var(--ink-2); font-size: 12px; }
-.copylink {
-  margin-top: 8px; font: inherit; font-size: 12px; padding: 4px 10px; cursor: pointer;
+.copylink, .pinbtn, .legend-filter button {
+  font: inherit; font-size: 12px; padding: 4px 10px; cursor: pointer;
   color: var(--accent); background: #fff; border: 1px solid var(--rule); border-radius: 6px;
 }
-.copylink:hover { background: #eef4fc; }
-.copylink:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.copylink:hover, .pinbtn:hover, .legend-filter button:hover { background: #eef4fc; }
+.copylink:focus-visible, .pinbtn:focus-visible, .legend-filter button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pinbtn { color: var(--pin); }
 
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 4;
@@ -183,7 +199,7 @@ a { color: var(--accent); }
 .snip-bar button, .snap-actions button {
   font: inherit; padding: 5px 10px; border-radius: 6px; border: 1px solid #c9c9c3; background: #fff; color: var(--ink); cursor: pointer;
 }
-.snipping .maplibregl-popup, .snipping .legend { visibility: hidden; }
+.snipping .maplibregl-popup, .snipping .legend, .snipping .pinchip { visibility: hidden; }
 
 /* preview dialog */
 .snap-dialog {
@@ -229,4 +245,25 @@ a { color: var(--accent); }
   .viewctl .changeby { flex: 1; }
   .viewctl .changeby select { width: 100%; }
   .measure:not(.changeby) { flex: 1 1 100%; }
+}
+
+/* ---- pin to compare ---- */
+.compare { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--rule); }
+.compare h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--pin); }
+.pinchip {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3;
+  display: flex; align-items: center; gap: 10px; max-width: calc(100% - 140px);
+  padding: 6px 8px 6px 12px; border-radius: 8px; border-left: 3px solid var(--pin);
+  background: var(--panel); box-shadow: var(--shadow); font-size: 13px; color: var(--ink-2);
+}
+.pinchip[hidden] { display: none; }
+.pinchip strong { color: var(--ink); }
+.pinchip .unpin {
+  flex: none; font: inherit; font-size: 12px; padding: 3px 10px; cursor: pointer;
+  color: var(--pin); background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+}
+.pinchip .unpin:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 640px) {
+  /* the collapsed legend sits top-left on phones */
+  .pinchip { top: auto; bottom: 12px; left: 16px; right: 16px; transform: none; max-width: none; }
 }
