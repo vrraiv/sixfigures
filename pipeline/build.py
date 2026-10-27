@@ -9,7 +9,8 @@ Steps
   5. Tag each DA with its City of Toronto neighbourhood (DAs have no names).
   6. Load the 2016 Census (census2016.py); give boundary-identical 2021 DAs their
      2016 values and percentiles; pooled 2016+2021 breaks and change breaks.
-  7. CPI factor and histograms for the popup charts (distributions.py).
+  7. CPI factor and histograms for the popup charts (distributions.py); CSV
+     downloads (exports.py).
 """
 import csv
 import io
@@ -24,6 +25,7 @@ import pandas as pd
 
 import census2016
 from distributions import add_distributions
+from exports import write_csvs
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -289,6 +291,7 @@ def main():
     WEB.mkdir(parents=True, exist_ok=True)
     (WEB / "breaks.json").write_text(json.dumps(breaks, indent=2) + "\n")
     print(f"wrote {WEB / 'breaks.json'}")
+    write_csvs(gdf, g16)
 
 
 if __name__ == "__main__":

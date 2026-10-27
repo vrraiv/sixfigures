@@ -15,7 +15,7 @@ STATCAN   := $(RAW)/98-401-X2021006_Ontario_eng_CSV.zip $(RAW)/lda_000b21a_e.zip
 TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_points_4326.csv \
              $(RAW)/toronto_intersections_4326.csv
 
-.PHONY: data download tiles search deps clean
+.PHONY: data download tiles search deps clean cpi breaks
 
 data: $(PMTILES) $(PMTILES16) $(SEARCH)
 
@@ -29,8 +29,18 @@ $(STATCAN) $(TORONTO):
 	$(PYTHON) pipeline/download.py
 
 $(GEOJSON) $(GEOJSON16) $(BREAKS) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
-                                     pipeline/build.py pipeline/census2016.py pipeline/distributions.py
+                                     pipeline/build.py pipeline/census2016.py pipeline/distributions.py \
+                                     pipeline/exports.py pipeline/cpi.json
 	$(PYTHON) pipeline/build.py
+
+# Refresh the CPI from StatCan's Web Data Service, then re-apply it (and the
+# histograms and CSV downloads) from pipeline/out without the raw downloads.
+cpi:
+	$(PYTHON) pipeline/cpi.py
+	$(PYTHON) pipeline/refresh.py
+
+breaks:
+	$(PYTHON) pipeline/refresh.py
 
 tiles: $(PMTILES) $(PMTILES16)
 

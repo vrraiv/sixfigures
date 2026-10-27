@@ -80,12 +80,14 @@ const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "
 const select = $("measure");
 const changeBy = $("changeby");
 // The URL hash keeps the view shareable: #m=<measure>&y=<view>&c=<change basis>
-// &da=<DAUID of the open DA>&at=<zoom>/<lat>/<lng>.
+// &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&at=<zoom>/<lat>/<lng>.
 const hashParams = new URLSearchParams(location.hash.slice(1));
 if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
 if (["real", "dollars", "points"].includes(hashParams.get("c"))) changeBy.value = hashParams.get("c");
-const linkedDA = /^\d{8}$/.test(hashParams.get("da") ?? "") ? hashParams.get("da") : null;
+const dauidParam = (k) => (/^\d{8}$/.test(hashParams.get(k) ?? "") ? hashParams.get(k) : null);
+const linkedDA = dauidParam("da");
+const linkedPin = dauidParam("vs");
 const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
 const camera = linkedAt.length === 3 && linkedAt.every(Number.isFinite)
   ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] }
@@ -94,8 +96,9 @@ document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 if (narrow.matches) $("legend").open = false;
 
 const breaks = await fetch(`/breaks.json?v=${__TILES_VERSION__}`).then((r) => r.json());
-// 2015 dollars -> 2020 dollars (Canada CPI, annual averages; see breaks.json).
+// 2015 dollars -> 2020 dollars (annual-average CPI, table 18-10-0005-01; see breaks.json).
 const CPI = breaks.cpi.factor;
+const cpiName = `${breaks.cpi.geography.split(",")[0]} CPI`;
 const inflationPct = Math.round((CPI - 1) * 1000) / 10;
 
 const sourceOf = (v) => (v === "2016" ? "da16" : "da");
@@ -196,7 +199,7 @@ function legendModel() {
         : real ? `City median: ${fmtMoney(Math.round(y16 * CPI))} → ${fmtMoney(y21)} in 2020 dollars (${fmtSignedMoney(Math.round(y21 - y16 * CPI))})`
           : `City median: ${fmtMoney(y16)} → ${fmtMoney(y21)} (${fmtSignedMoney(y21 - y16)})`,
       note: pts ? "Percentile = rank among Toronto DAs within each census."
-        : real ? `2015 incomes restated in 2020 dollars: prices rose ${inflationPct}% (Canada CPI, annual averages).`
+        : real ? `2015 incomes restated in 2020 dollars: prices rose ${inflationPct}% (${cpiName}, annual averages).`
           : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct}%, 2015 → 2020).`,
     };
   }
@@ -219,12 +222,73 @@ function legendModel() {
 function renderLegend() {
   const lg = legendModel();
   $("legend-title").textContent = lg.title;
+  const swatch = (it) => `<span class="swatch${it.pattern ? ` ${it.pattern}` : ""}"${it.color ? ` style="background:${it.color}"` : ""}></span>`;
+  // Colour classes are buttons: hover or focus previews a class, click keeps it.
+  let cls = 0;
   $("legend-items").innerHTML = lg.items
-    .map((it) => `<li><span class="swatch${it.pattern ? ` ${it.pattern}` : ""}"${it.color ? ` style="background:${it.color}"` : ""}></span>${it.label}</li>`)
+    .map((it) => (it.color
+      ? `<li><button type="button" class="lg-cls" data-cls="${cls++}" aria-pressed="false">${swatch(it)}${it.label}</button></li>`
+      : `<li>${swatch(it)}${it.label}</li>`))
     .join("");
   $("legend-city").textContent = lg.footer;
   $("legend-note").textContent = lg.note;
 }
+
+// ---- legend as a filter -------------------------------------------------------
+
+let focusCls = null; // class kept by a click
+let previewCls = null; // class under the pointer or keyboard focus
+let focusKey = null; // classes differ between level and change views and bases
+
+// Legend class index (0 = lowest) of each DA in the current view.
+function classExpr() {
+  const m = select.value;
+  return view === "change"
+    ? step(changeValue(m), changeStops(m), DIVERGING.map((_, i) => i))
+    : step(["get", m], breaks.measures[m].breaks.slice(1, -1), COLORS.map((_, i) => i));
+}
+
+function applyFocus() {
+  const k = previewCls ?? focusCls;
+  const src = sourceOf(view);
+  map.setPaintProperty(`${src}-fill`, "fill-opacity", k == null ? 0.85 : ["case", ["==", classExpr(), k], 0.9, 0.12]);
+  for (const l of [`${src}-sup`, ...(src === "da" ? ["da-nocmp"] : [])]) map.setPaintProperty(l, "fill-opacity", k == null ? 0.9 : 0.3);
+  for (const b of document.querySelectorAll(".lg-cls")) {
+    const i = +b.dataset.cls;
+    b.setAttribute("aria-pressed", String(i === focusCls));
+    b.classList.toggle("dim", k != null && i !== k);
+  }
+  $("legend-filter").hidden = focusCls == null;
+}
+
+const legendItems = $("legend-items");
+const clsOf = (e) => e.target.closest(".lg-cls")?.dataset.cls;
+for (const ev of ["mouseover", "focusin"]) {
+  legendItems.addEventListener(ev, (e) => {
+    const c = clsOf(e);
+    if (c == null || ev === "focusin" && !e.target.matches(":focus-visible")) return;
+    previewCls = +c;
+    applyFocus();
+  });
+}
+for (const ev of ["mouseout", "focusout"]) {
+  legendItems.addEventListener(ev, (e) => {
+    if (clsOf(e) == null) return;
+    previewCls = null;
+    applyFocus();
+  });
+}
+legendItems.addEventListener("click", (e) => {
+  const c = clsOf(e);
+  if (c == null) return;
+  focusCls = focusCls === +c ? null : +c;
+  previewCls = null;
+  applyFocus();
+});
+$("legend-all").addEventListener("click", () => {
+  focusCls = previewCls = null;
+  applyFocus();
+});
 
 // ---- layers -----------------------------------------------------------------
 
@@ -253,6 +317,10 @@ function addSourceLayers(id) {
     paint: { "line-color": "#1a1a19", "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 2, 0] },
   }, firstSymbol);
   map.addLayer({
+    ...base, id: `${id}-pinned`, type: "line",
+    paint: { "line-color": "#7a3db8", "line-width": ["case", ["boolean", ["feature-state", "pinned"], false], 3, 0] },
+  }, firstSymbol);
+  map.addLayer({
     ...base, id: `${id}-selected`, type: "line",
     paint: { "line-color": "#eb6834", "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 3, 0] },
   }, firstSymbol);
@@ -275,7 +343,7 @@ function applyView() {
   for (const id of ["da", "da16"]) {
     if (!map.getSource(id)) continue;
     const vis = id === src ? "visible" : "none";
-    for (const l of ["fill", "sup", "line", "hover", "selected", ...(id === "da" ? ["nocmp"] : [])]) {
+    for (const l of ["fill", "sup", "line", "hover", "pinned", "selected", ...(id === "da" ? ["nocmp"] : [])]) {
       map.setLayoutProperty(`${id}-${l}`, "visibility", l === "nocmp" && view !== "change" ? "none" : vis);
     }
   }
@@ -290,6 +358,11 @@ function applyView() {
   }
   changeBy.hidden = view !== "change";
   renderLegend();
+  // A kept class survives a change of measure, not of view or change basis.
+  const key = view === "change" ? `change-${changeBy.value === "points" ? "points" : "dollars"}` : "level";
+  if (key !== focusKey) focusCls = previewCls = null;
+  focusKey = key;
+  applyFocus();
   tooltip.hidden = true;
   writeHash();
 }
@@ -299,6 +372,7 @@ function writeHash() {
   const h = new URLSearchParams({ m: select.value, y: view });
   if (view === "change") h.set("c", changeBy.value);
   if (current) h.set("da", current.props.dauid);
+  if (pinned) h.set("vs", pinned.props.dauid);
   if (mapMoved || camera.center) {
     const { lng, lat } = map.getCenter();
     h.set("at", `${map.getZoom().toFixed(2)}/${lat.toFixed(5)}/${lng.toFixed(5)}`);
@@ -316,6 +390,7 @@ async function setView(next) {
     return;
   }
   // Different boundary set: outlines and search messages refer to the old one.
+  carryPin(toSrc);
   const carry = current;
   clearSelection();
   closeDetails();
@@ -431,7 +506,7 @@ function detailsModel(p, note) {
     lines.push({
       note: true,
       text: realDollars()
-        ? `"Real chg" is the change after inflation: 2015 incomes × ${CPI} (prices rose ${inflationPct}%, Canada CPI). 2020 incomes include pandemic benefits (CERB).`
+        ? `"Real chg" is the change after inflation: 2015 incomes × ${CPI} (prices rose ${inflationPct}%, ${cpiName}). 2020 incomes include pandemic benefits (CERB).`
         : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct}%, 2015 → 2020). 2020 incomes include pandemic benefits (CERB).`,
     });
     lines.push({ text: `Population 2021: ${fmtCount(p.pop21)} · Households: ${fmtCount(p.hh)}` });
@@ -455,6 +530,8 @@ function detailsModel(p, note) {
   }
   return {
     note,
+    compare: compareModel(p),
+    pinnedHere: pinned?.props.dauid === p.dauid,
     dist: distModel(p),
     heading: `DA ${p.dauid}${view === "2016" ? " (2016 boundary)" : ""}`,
     sub: placeLine(p),
@@ -517,6 +594,77 @@ function distHTML(d) {
     </figure>`;
 }
 
+// ---- compare with a pinned DA -------------------------------------------------
+
+let pinned = null; // { props, source }
+
+function compareModel(p) {
+  if (!pinned || pinned.props.dauid === p.dauid) return null;
+  const q = pinned.props;
+  const change = view === "change", pts = change && changeBy.value === "points";
+  const val = (x, k) => {
+    if (!change) return x[k];
+    const dc = dollarChange(x, k);
+    return pts && dc != null ? x[`pct_${k}`] - x[`p16_${k}`] : dc;
+  };
+  const fmt = !change ? fmtMoney : pts ? fmtPts : fmtSignedMoney;
+  const diff = pts ? fmtPts : fmtSignedMoney;
+  return {
+    title: `Compared with pinned DA ${q.dauid}, ${q.nbhd}`,
+    columns: ["Pinned", "This DA", "Difference"],
+    rows: Object.entries(MEASURES).map(([k, d]) => {
+      const a = val(q, k), b = val(p, k);
+      return { label: d.short, selected: k === select.value, cells: [fmt(a), fmt(b), a == null || b == null ? "—" : diff(b - a)] };
+    }),
+    note: !change ? `Medians, ${YEARS[view].income}.`
+      : `Change 2015 → 2020, ${pts ? "in percentile points" : realDollars() ? "in 2020 dollars" : "in nominal dollars"}.`,
+  };
+}
+
+function setPin(next) {
+  if (pinned) map.setFeatureState({ source: pinned.source, sourceLayer: "da", id: pinned.props.dauid }, { pinned: false });
+  pinned = next;
+  if (pinned) map.setFeatureState({ source: pinned.source, sourceLayer: "da", id: pinned.props.dauid }, { pinned: true });
+  const chip = $("pinchip");
+  chip.hidden = !pinned;
+  chip.innerHTML = pinned
+    ? `<span>Comparing with <strong>DA ${escapeHTML(pinned.props.dauid)}</strong>, ${escapeHTML(pinned.props.nbhd)}. Click another DA.</span> <button type="button" class="unpin">Unpin</button>`
+    : "";
+  if (current) showDetails(current.props, current.lngLat, current.note);
+  else writeHash();
+}
+
+// The pinned DA follows a switch between 2016 and 2021 boundaries only when its
+// boundary is the same in both.
+async function carryPin(toSrc) {
+  if (!pinned || pinned.source === toSrc) return;
+  const { props } = pinned;
+  setPin(null);
+  if (props.rel !== 1) {
+    showToast(`Unpinned DA ${props.dauid}: its boundary changed between 2016 and 2021.`, 5000);
+    return;
+  }
+  await idle();
+  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], props.dauid] });
+  if (f && sourceOf(view) === toSrc) setPin({ props: f.properties, source: toSrc });
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".unpin")) return setPin(null);
+  if (!e.target.closest(".pinbtn") || !current) return;
+  setPin(pinned?.props.dauid === current.props.dauid ? null : { props: current.props, source: sourceOf(view) });
+});
+
+function compareHTML(c) {
+  const head = `<tr><th></th>${c.columns.map((x) => `<th>${x}</th>`).join("")}</tr>`;
+  const body = c.rows.map((r) => `<tr class="${r.selected ? "sel" : ""}"><th scope="row">${r.label}</th>${r.cells.map((x) => `<td>${x}</td>`).join("")}</tr>`).join("");
+  return `<section class="compare" aria-label="Comparison with the pinned DA">
+      <h3>${escapeHTML(c.title)}</h3>
+      <table class="dt wide"><thead>${head}</thead><tbody>${body}</tbody></table>
+      <p class="fine">${escapeHTML(c.note)} Difference = this DA minus the pinned one.</p>
+    </section>`;
+}
+
 function detailsHTML(d) {
   const head = `<tr><th></th>${d.columns.map((c) => `<th>${c}</th>`).join("")}</tr>`;
   const body = d.rows.map((r) => `<tr class="${r.selected ? "sel" : ""}"><th scope="row">${r.label}</th>${r.cells.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
@@ -524,10 +672,14 @@ function detailsHTML(d) {
     <h2>${escapeHTML(d.heading)}</h2>
     <p class="place">${escapeHTML(d.sub)}</p>
     <table class="dt${d.columns.length > 2 ? " wide" : ""}"><thead>${head}</thead><tbody>${body}</tbody></table>
+    ${d.compare ? compareHTML(d.compare) : ""}
     ${d.dist ? distHTML(d.dist) : ""}
     ${d.lines.map((l) => `<p class="${l.note ? "note" : "cmp"}">${escapeHTML(l.text)}</p>`).join("")}
     <p class="fine">${d.fine.map(escapeHTML).join(" ")}</p>
-    <button type="button" class="copylink">Copy link to this DA</button>`;
+    <div class="detail-actions">
+      <button type="button" class="copylink">Copy link to this DA</button>
+      <button type="button" class="pinbtn">${d.pinnedHere ? "Unpin" : d.compare ? "Pin this DA instead" : "Pin to compare"}</button>
+    </div>`;
 }
 
 function showDetails(props, lngLat, note) {
