@@ -701,7 +701,7 @@ function setPin(next) {
   const chip = $("pinchip");
   chip.hidden = !pinned;
   chip.innerHTML = pinned
-    ? `<span>Comparing with <strong>DA ${escapeHTML(pinned.props.dauid)}</strong>, ${escapeHTML(pinned.props.nbhd)}. Click another DA.</span> <button type="button" class="unpin">Unpin</button>`
+    ? `<span>Comparing with <strong>DA ${escapeHTML(pinned.props.dauid)}</strong>, ${escapeHTML(pinned.props.nbhd)}. ${narrow.matches ? "Tap" : "Click"} another DA.</span> <button type="button" class="unpin">Unpin</button>`
     : "";
   if (current) showDetails(current.props, current.lngLat, current.note);
   else writeHash();
@@ -728,6 +728,9 @@ document.addEventListener("click", (e) => {
   if (e.target.closest(".unpin")) return setPin(null);
   if (!e.target.closest(".pinbtn") || !current) return;
   setPin(pinned?.props.dauid === current.props.dauid ? null : { props: current.props, source: sourceOf(view) });
+  // On phones the sheet covers most of the map; get it out of the way so the
+  // second DA can be tapped. The pin chip says what to do next.
+  if (pinned && narrow.matches) closeDetails();
 });
 
 function compareHTML(c) {
@@ -939,7 +942,7 @@ function loadIndex() {
       }),
     ]);
     index = new SearchIndex(doc);
-    setStatus(input.value ? "" : HELP);
+    setStatus(!input.value && document.activeElement === input ? HELP : "");
     return index;
   })().catch((err) => {
     indexPromise = null;
@@ -1105,7 +1108,17 @@ suggestBox.addEventListener("mousedown", (e) => {
     pick(li);
   }
 });
-input.addEventListener("blur", () => setTimeout(hideSuggest, 150));
+input.addEventListener("blur", () => setTimeout(() => {
+  hideSuggest();
+  // The help sits over the measure menu; it's only useful while typing.
+  if (!input.value && statusBox.textContent.startsWith("Type a street")) setStatus("");
+}, 150));
+// MapLibre cancels touches on the map, so a tap there never blurs the search box
+// (and its panel stays over the controls); do it here, and dismiss the panel.
+canvas.addEventListener("pointerdown", () => {
+  if (document.activeElement === input) input.blur();
+  if (!statusBox.hidden) setStatus("");
+});
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   runSearch(input.value);
