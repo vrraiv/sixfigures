@@ -36,8 +36,9 @@ address or intersection to jump to its DA.
   change views or to or from percentile points, where the classes differ.
 - **Pin to compare.** "Pin to compare" in the popup outlines that DA in purple; clicking
   another DA then adds a table of the pinned DA, this DA and the difference for all four
-  measures, in the current view's terms. The chip at the top of the map unpins it. The
-  pin follows a switch to the other census only if the DA's boundary is the same in both.
+  measures, in the current view's terms. The chip at the top of the map (the bottom, on
+  phones) unpins it. On phones, pinning closes the details sheet so the map is clear for
+  the second tap. The pin follows a switch to the other census only if the DA's boundary is the same in both.
 - **Boundaries.** The legend's Boundaries control draws City neighbourhood or ward
   outlines (with labels) over the DAs, and FSAs (the first three characters of a postal
   code) when the pipeline had StatCan's FSA file. It lists only the layers in
