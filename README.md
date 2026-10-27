@@ -12,8 +12,8 @@ address or intersection to jump to its DA.
   use one colour scale (6 quantile classes over 2016 and 2021 DAs pooled), so a colour
   means the same dollars in either year. The 2016 tiles load on first use.
 - **Change** (2021 boundaries) shows, for each DA, the change in median income in
-  2020 dollars (the default: 2015 incomes × 1.0821, Canada's all-items CPI 126.6 → 137.0,
-  table 18-10-0005-01), in nominal dollars, or the change in its percentile rank (points),
+  2020 dollars (the default: 2015 incomes × 1.0935, Toronto's all-items CPI 128.3 → 140.3,
+  table 18-10-0005-01, from `pipeline/cpi.json`), in nominal dollars, or the change in its percentile rank (points),
   on a red-grey-blue scale centred on zero. Only DAs whose boundary is identical in both censuses are compared, per
   StatCan's DA correspondence file: 3,606 of 3,743 (96%). The other 137 were split or
   redrawn; a median can't be split or combined across new boundaries, so they are
@@ -23,11 +23,27 @@ address or intersection to jump to its DA.
   measures, and a histogram of all Toronto DAs with this DA's bar in orange and a line at
   the city median (or at zero for change). The histograms are in `breaks.json`, built by
   `pipeline/distributions.py`.
-- **Links.** The URL hash holds the measure, view, change basis, the open DA and (once the
-  map has moved) the map position, e.g. `#m=med_hh_tot&y=change&c=real&da=35204265&at=13.5/43.73/-79.38`.
+- **Links.** The URL hash holds the measure, view, change basis, the open DA (`da`), the
+  pinned DA (`vs`), the boundary overlay (`o`) and (once the map has moved) the map
+  position, e.g. `#m=med_hh_tot&y=change&c=real&da=35204265&vs=35202681&o=ward&at=13.5/43.73/-79.38`.
   Opening such a link selects that DA; if it isn't in the loaded tiles, it is looked up
   like a DA-number search. "Copy link to this DA" in the popup copies it. Search works in every view; in 2016 a split DA opens its 2016 parent, and a
   redrawn one outlines every 2016 DA it overlaps.
+- **Legend as a filter.** Hovering over a colour class in the legend (or tabbing to it)
+  fades every other class; clicking keeps that class until "Show all" or a second
+  click. A kept class survives a change of measure but is cleared when the view or the
+  change basis changes, since the classes differ.
+- **Pin to compare.** "Pin to compare" in the popup outlines that DA in purple; clicking
+  another DA then adds a table of the pinned DA, this DA and the difference for all four
+  measures, in the current view's terms. The chip at the top of the map unpins it. The
+  pin follows a switch to the other census only if the DA's boundary is the same in both.
+- **Boundaries.** The legend's Boundaries control draws City neighbourhood or ward
+  outlines (with labels) over the DAs, and FSAs (the first three characters of a postal
+  code) when the pipeline had StatCan's FSA file. It lists only the layers in
+  `overlays.pmtiles` and is hidden if that file wasn't built.
+- **Keyboard and screen readers.** Tab to the map: a crosshair marks the centre, arrow
+  keys pan and + / − zoom, and the DA under the crosshair is announced after each move.
+  Enter or Space opens it; Escape closes it.
 
 ## Search and place names
 
@@ -79,7 +95,7 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 10.7 MB; fails above 15 MB)
+npm run build      # -> web/dist (about 12 MB; fails above 15 MB)
 npm test           # search lookups vs the pipeline's DA assignment
 ```
 
@@ -92,7 +108,10 @@ with Python 3.11+ and tippecanoe installed:
 ```sh
 python3 -m venv ~/.venvs/toronto-dash && . ~/.venvs/toronto-dash/bin/activate
 make deps
-make data          # download -> build.py -> tippecanoe -> search_index.py
+make data          # download -> build.py -> tippecanoe -> search_index.py, overlays
+make cpi           # refetch the CPI from StatCan's Web Data Service, then make breaks
+make breaks        # redo breaks.json histograms/CPI and the CSVs from pipeline/out
+make overlays      # boundary overlays -> web/public/overlays.pmtiles
 ```
 
 StatCan's site blocks scripted downloads with a bot challenge. If `make download`
@@ -118,13 +137,39 @@ npm run deploy     # vite build && wrangler deploy
 immutable cache and `index.html` no-cache. The page requests those data files with
 `?v=<content hash>`, so a data rebuild still reaches visitors.
 
+## Data downloads
+
+The footer links to two CSVs (one row per DA, built by `pipeline/exports.py`; values
+match the popups, dollars rounded to whole dollars):
+
+- `/data/toronto_da_income_2021.csv`: 3,743 DAs on 2021 boundaries.
+  - `dauid`; `nbhd_id`, `nbhd`: the City neighbourhood covering most of the DA; `nbhd2`:
+    a second neighbourhood when the DA is split between two (otherwise empty).
+  - `pop21`: 2021 population; `hh`: private households.
+  - `same_boundary_2016`: 1 if the DA's boundary is identical in 2016 (change is
+    only reported for these), else 0.
+  - For each measure `med_hh_tot`, `med_hh_at`, `med_ind_tot`, `med_ind_at` (household
+    total / after-tax, individual total / after-tax):
+    `<m>_2020` and `<m>_2020_pctl` (median and percentile rank among Toronto DAs, 2021
+    Census); `<m>_2015` and `<m>_2015_pctl` (the same DA in the 2016 Census, boundary-
+    identical DAs only); `<m>_change` (nominal dollars), `<m>_change_real` (2020
+    dollars, 2015 median × the CPI factor in `breaks.json`) and `<m>_change_pctl`
+    (percentile points).
+  - Empty cells: suppressed or not published, or (for the 2015 and change columns) no
+    boundary-identical 2016 DA.
+- `/data/toronto_da_income_2016.csv`: 3,702 DAs on 2016 boundaries: `dauid`, `nbhd_id`,
+  `nbhd`, `nbhd2`, `pop16`, `hh`, `same_boundary_2021`, and `<m>_2015`, `<m>_2015_pctl`
+  for the four measures.
+
 ## Data caveats
 
 - **Income years are 2015 and 2020.** Each census asks about the previous calendar
   year. 2020 includes pandemic benefits (CERB and others), which raised low-end
   incomes, so part of the 2015→2020 change reflects temporary benefits.
-- **Nominal dollars.** Changes are not adjusted for inflation; prices rose between 2015
-  and 2020, so a DA whose income merely kept pace with prices still shows a gain.
+- **Inflation.** The default change is in 2020 dollars using Toronto's annual-average
+  all-items CPI (prices rose 9.4%, 2015 → 2020). It is one price index for everyone; it
+  doesn't reflect each household's own costs (rent especially). The nominal option shows
+  unadjusted dollars, where a DA whose income merely kept pace with prices still gains.
 - **Percentile change** compares a DA's rank among Toronto DAs in each census; each
   year's percentiles are computed over that year's own set of DAs.
 - **Residents change.** A DA's population turns over between censuses (new towers
@@ -158,7 +203,9 @@ cartographic boundary files (92-160-X); 2021 dissemination area correspondence f
 (92-156-X). Contains
 information licensed under the
 [Open Government Licence - Canada](https://open.canada.ca/en/open-government-licence-canada).
-City of Toronto Open Data: Neighbourhoods, Address Points (Municipal) and Centreline
-Intersection file. Contains information licensed under the
+2021 forward sortation area boundary file, when used for the FSA overlay; Consumer Price
+Index, table 18-10-0005-01.
+City of Toronto Open Data: Neighbourhoods, City Wards, Address Points (Municipal) and
+Centreline Intersection file. Contains information licensed under the
 [Open Government Licence - Toronto](https://open.toronto.ca/open-data-licence/).
 Basemap © OpenFreeMap, © OpenMapTiles, data © OpenStreetMap contributors.
