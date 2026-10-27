@@ -103,7 +103,9 @@ if (narrow.matches) $("legend").open = false;
 const breaks = await fetch(`/breaks.json?v=${__BREAKS_VERSION__}`).then((r) => r.json());
 // 2015 dollars -> 2020 dollars (annual-average CPI, table 18-10-0005-01; see breaks.json).
 const CPI = breaks.cpi.factor;
-const cpiName = `${breaks.cpi.geography.split(",")[0]} CPI`;
+// breaks.json from before cpi.py had no geography (it was Canada); never let a
+// stale cached copy stop the page from loading.
+const cpiName = `${(breaks.cpi.geography ?? "Canada").split(",")[0]} CPI`;
 const inflationPct = Math.round((CPI - 1) * 1000) / 10;
 
 const sourceOf = (v) => (v === "2016" ? "da16" : "da");
