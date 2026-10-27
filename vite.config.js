@@ -12,6 +12,7 @@ export default defineConfig({
   define: {
     __TILES_VERSION__: JSON.stringify(version("web/public/toronto_da.pmtiles")),
     __TILES16_VERSION__: JSON.stringify(version("web/public/toronto_da_2016.pmtiles")),
+    __BREAKS_VERSION__: JSON.stringify(version("web/public/breaks.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
   },
   build: { outDir: "dist", emptyOutDir: true },

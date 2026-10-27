@@ -22,6 +22,8 @@ pipeline/out/
 # raw StatCan tables
 *.csv
 *.CSV
+# ...except the CSV downloads served by the site (pipeline/exports.py)
+!web/public/data/*.csv
 *.tab
 *.ivt
 # office documents

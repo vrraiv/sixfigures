@@ -95,7 +95,7 @@ const camera = linkedAt.length === 3 && linkedAt.every(Number.isFinite)
 document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 if (narrow.matches) $("legend").open = false;
 
-const breaks = await fetch(`/breaks.json?v=${__TILES_VERSION__}`).then((r) => r.json());
+const breaks = await fetch(`/breaks.json?v=${__BREAKS_VERSION__}`).then((r) => r.json());
 // 2015 dollars -> 2020 dollars (annual-average CPI, table 18-10-0005-01; see breaks.json).
 const CPI = breaks.cpi.factor;
 const cpiName = `${breaks.cpi.geography.split(",")[0]} CPI`;
