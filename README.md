@@ -116,8 +116,8 @@ immutable cache and `index.html` no-cache. The page requests those data files wi
 - **Income years are 2015 and 2020.** Each census asks about the previous calendar
   year. 2020 includes pandemic benefits (CERB and others), which raised low-end
   incomes, so part of the 2015→2020 change reflects temporary benefits.
-- **Nominal dollars.** Changes are not adjusted for inflation (Toronto prices rose
-  roughly 9% from 2015 to 2020), so a DA with no real change still shows a gain.
+- **Nominal dollars.** Changes are not adjusted for inflation; prices rose between 2015
+  and 2020, so a DA whose income merely kept pace with prices still shows a gain.
 - **Percentile change** compares a DA's rank among Toronto DAs in each census; each
   year's percentiles are computed over that year's own set of DAs.
 - **Residents change.** A DA's population turns over between censuses (new towers

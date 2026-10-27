@@ -277,17 +277,24 @@ async function setView(next) {
   view = next;
   applyView();
   const toSrc = sourceOf(view);
-  if (!current) return;
-  if (fromSrc === toSrc) return showDetails(current.props, current.lngLat, current.note);
-  // Carry the selected DA across only when its boundary is the same in both years.
-  const { props, lngLat, note } = current;
+  if (fromSrc === toSrc) {
+    if (current) showDetails(current.props, current.lngLat, current.note);
+    return;
+  }
+  // Different boundary set: outlines and search messages refer to the old one.
+  const carry = current;
   clearSelection();
   closeDetails();
+  setStatus("");
+  if (!carry) return;
+  // Carry the selected DA across only when its boundary is the same in both years.
+  const { props, lngLat, note } = carry;
   if (props.rel !== 1) {
     setStatus(`DA ${props.dauid}'s boundary changed between 2016 and 2021, so it has no direct counterpart. Click a DA to see its figures.`);
     return;
   }
   await idle();
+  if (view !== next) return; // toggled again while waiting
   const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], props.dauid] });
   if (!f) return;
   select_(toSrc, [props.dauid]);
@@ -319,7 +326,7 @@ function tooltipText(p) {
   if (view === "change") {
     if (p.rel !== 1) v = "Boundary changed";
     else if (p[m] == null || p[`v16_${m}`] == null) v = "Not published";
-    else v = changeBy.value === "points" ? fmtPts(p[`pct_${m}`] - p[`p16_${m}`]) : fmtSignedMoney(p[m] - p[`v16_${m}`]);
+    else v = `${fmtSignedMoney(p[m] - p[`v16_${m}`])} · ${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])}`;
   } else {
     v = p[m] == null ? "Suppressed" : fmtMoney(p[m]);
   }
@@ -537,7 +544,13 @@ async function goTo(hit, kind) {
   // correspondence; a redrawn boundary is never resolved to a single DA.
   let das = hit.das.map((i) => index.da(i));
   let redrawn = false;
-  if (view === "2016") ({ das, redrawn } = index.in2016(hit.das));
+  if (hit.da16) {
+    if (view !== "2016") {
+      setStatus(`DA ${hit.da16.dauid} existed only in the 2016 Census (its boundary was redrawn). Switch to 2016 to see it.`);
+      return;
+    }
+    das = [hit.da16];
+  } else if (view === "2016") ({ das, redrawn } = index.in2016(hit.das));
   const source = sourceOf(view);
   select_(source, das.map((d) => d.dauid));
   if (hit.point) {

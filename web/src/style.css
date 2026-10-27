@@ -208,3 +208,12 @@ a { color: var(--accent); }
   .years { flex: 1 1 auto; }
   .years label { flex: 1; text-align: center; }
 }
+.viewctl { display: inline-flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.changeby:has(select[hidden]) { display: none; }
+@media (max-width: 640px) {
+  .viewctl { flex: 1 1 100%; }
+  .viewctl .years { flex: 0 0 auto; }
+  .viewctl .changeby { flex: 1; }
+  .viewctl .changeby select { width: 100%; }
+  .measure:not(.changeby) { flex: 1 1 100%; }
+}

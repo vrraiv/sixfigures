@@ -137,6 +137,10 @@ test("2016 view: unchanged, split and redrawn DAs map through the correspondence
   assert.equal(split.redrawn, false);
   assert.deepEqual(split.das.map((d) => d.dauid), ["35204833"]);
   // redrawn: 35200832 overlaps two 2016 DAs; both are offered, none picked
+  // a DA number that exists only in 2016
+  const only16 = idx.resolve("35204833");
+  assert.equal(only16.status, "match");
+  assert.equal(only16.results[0].da16.dauid, "35204833");
   const many = idx.in2016([idxOf("35200832")]);
   assert.equal(many.redrawn, true);
   assert.deepEqual(many.das.map((d) => d.dauid).sort(), ["35200832", "35203175"]);

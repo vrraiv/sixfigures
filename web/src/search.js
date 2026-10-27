@@ -212,7 +212,13 @@ export class SearchIndex {
     if (/^3520\d{4}$/.test(uid)) {
       const i = this.das.findIndex((d) => d[0] === uid);
       if (i >= 0) return { status: "match", kind: "da", results: [{ label: `DA ${uid}`, das: [i] }] };
-      return { status: "error", message: `DA ${uid} is not a City of Toronto dissemination area.` };
+      // 2016 DAs whose boundary was redrawn by 2021 keep codes 2021 doesn't have.
+      const d16 = this.y2016.das.find((d) => d[0] === uid);
+      if (d16) {
+        const [dauid, w, s, e, n, x, y] = d16;
+        return { status: "match", kind: "da", results: [{ label: `DA ${uid}`, das: [], da16: { dauid, bbox: [w, s, e, n], point: [x, y] } }] };
+      }
+      return { status: "error", message: `DA ${uid} is not a City of Toronto dissemination area (2016 or 2021).` };
     }
     const ctx = this.parseContext(text);
     const outside = (o) => ({ status: "error", message: `That looks like an address in ${title(o)}. This map covers the City of Toronto only.` });
