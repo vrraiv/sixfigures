@@ -1,18 +1,20 @@
 """Inflation factor and per-measure histograms for breaks.json.
 
-Kept apart from build.py (pandas/numpy only) so the browser's popup charts and
-inflation-adjusted change can be checked against the DA values on their own.
+Kept apart from build.py (pandas/numpy only) so refresh.py can rebuild them from
+pipeline/out without the raw downloads, e.g. after `make cpi`.
 """
+import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 MEASURES = ["med_hh_tot", "med_hh_at", "med_ind_tot", "med_ind_at"]
 
-# Consumer Price Index, all-items, Canada, annual average (2002=100), Statistics
-# Canada table 18-10-0005-01 (vector v41693271). Census incomes are for the
-# calendar years before each census, so 2015 incomes are restated in 2020 dollars.
-CPI = {"series": "Consumer Price Index, all-items, Canada, annual average (2002=100), table 18-10-0005-01",
-       "2015": 126.6, "2020": 137.0}
+# Annual-average CPI for the two income years, from table 18-10-0005-01
+# (pipeline/cpi.py writes it). Census incomes are for the calendar year before
+# each census, so 2015 incomes are restated in 2020 dollars.
+CPI = json.loads((Path(__file__).parent / "cpi.json").read_text())
 CPI_FACTOR = round(CPI["2020"] / CPI["2015"], 4)
 
 # Histogram bin widths: about 25-35 bins between the 1st and 99th percentiles.

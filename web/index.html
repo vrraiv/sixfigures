@@ -47,12 +47,16 @@
 
     <main class="map-wrap">
       <div id="map" aria-label="Map of median income by dissemination area"></div>
+      <div class="crosshair" aria-hidden="true"></div>
+      <div id="pinchip" class="pinchip" hidden></div>
+      <p id="map-live" class="visually-hidden" aria-live="polite"></p>
 
       <details id="legend" class="legend" open>
         <summary>Legend</summary>
         <div class="legend-body">
           <p id="legend-title" class="legend-title"></p>
-          <ol id="legend-items" class="legend-items"></ol>
+          <ol id="legend-items" class="legend-items" aria-label="Classes: hover to preview, click to show only that class"></ol>
+          <p id="legend-filter" class="legend-filter" hidden>Showing one class only. <button type="button" id="legend-all">Show all</button></p>
           <p id="legend-city" class="legend-city"></p>
           <p id="legend-note" class="legend-note"></p>
         </div>
@@ -65,6 +69,10 @@
     </section>
 
     <footer class="foot">
+      <p class="downloads">Download the data:
+        <a href="/data/toronto_da_income_2021.csv" download>2021 DAs, with 2016 figures and change (CSV)</a> ·
+        <a href="/data/toronto_da_income_2016.csv" download>2016 DAs (CSV)</a> ·
+        <a href="https://github.com/vrraiv/sixfigures#data-downloads">column guide</a></p>
       Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001) and 2016 Census of Population
       (98-316-X2016001); income reference years 2020 and 2015; 2021 dissemination area correspondence file (92-156-X).
       Contains information licensed under the
