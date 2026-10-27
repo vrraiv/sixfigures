@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Population pyramid (age bands by sex) in the map's blue ramp. -->
+  <rect width="32" height="32" rx="7" fill="#0d366b"/>
+  <g fill="#86b6ef">
+    <rect x="12.5" y="5" width="3" height="3.6" rx="0.8"/>
+    <rect x="9.5" y="10" width="6" height="3.6" rx="0.8"/>
+    <rect x="7" y="15" width="8.5" height="3.6" rx="0.8"/>
+    <rect x="5" y="20" width="10.5" height="3.6" rx="0.8"/>
+    <rect x="4" y="25" width="11.5" height="3.6" rx="0.8"/>
+  </g>
+  <g fill="#cde2fb">
+    <rect x="16.5" y="5" width="3" height="3.6" rx="0.8"/>
+    <rect x="16.5" y="10" width="5.5" height="3.6" rx="0.8"/>
+    <rect x="16.5" y="15" width="9" height="3.6" rx="0.8"/>
+    <rect x="16.5" y="20" width="10" height="3.6" rx="0.8"/>
+    <rect x="16.5" y="25" width="11.5" height="3.6" rx="0.8"/>
+  </g>
+</svg>
