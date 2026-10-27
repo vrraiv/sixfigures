@@ -38,6 +38,10 @@ const TILES = {
   da16: tilesUrl("toronto_da_2016.pmtiles", __TILES16_VERSION__),
 };
 for (const url of Object.values(TILES)) protocol.add(new PMTiles(new RangeOrFullSource(url)));
+// Boundary overlays (`make overlays`); null when the file wasn't built.
+const OVERLAY_TILES = __OVERLAYS_VERSION__ ? tilesUrl("overlays.pmtiles", __OVERLAYS_VERSION__) : null;
+const overlayArchive = OVERLAY_TILES && new PMTiles(new RangeOrFullSource(OVERLAY_TILES));
+if (overlayArchive) protocol.add(overlayArchive);
 
 const STYLE = "https://tiles.openfreemap.org/styles/positron";
 const BOUNDS = [[-79.6393, 43.5792], [-79.1153, 43.8555]];
@@ -80,7 +84,8 @@ const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "
 const select = $("measure");
 const changeBy = $("changeby");
 // The URL hash keeps the view shareable: #m=<measure>&y=<view>&c=<change basis>
-// &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&at=<zoom>/<lat>/<lng>.
+// &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&o=<boundary overlay>
+// &at=<zoom>/<lat>/<lng>.
 const hashParams = new URLSearchParams(location.hash.slice(1));
 if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
@@ -306,15 +311,17 @@ function addSourceLayers(id) {
     attribution: '<a href="https://www.statcan.gc.ca/">Statistics Canada</a>',
   });
   const base = { source: id, "source-layer": "da", layout: { visibility: "none" } };
-  map.addLayer({ ...base, id: `${id}-fill`, type: "fill", paint: { "fill-opacity": 0.85 } }, firstSymbol);
-  map.addLayer({ ...base, id: `${id}-sup`, type: "fill", paint: { "fill-pattern": "hatch", "fill-opacity": 0.9 } }, firstSymbol);
+  // Fills and DA outlines go beneath the boundary overlays; highlights above them.
+  const under = map.getLayer(OVERLAY_FIRST) ? OVERLAY_FIRST : firstSymbol;
+  map.addLayer({ ...base, id: `${id}-fill`, type: "fill", paint: { "fill-opacity": 0.85 } }, under);
+  map.addLayer({ ...base, id: `${id}-sup`, type: "fill", paint: { "fill-pattern": "hatch", "fill-opacity": 0.9 } }, under);
   if (id === "da") {
-    map.addLayer({ ...base, id: "da-nocmp", type: "fill", filter: ["!=", ["get", "rel"], 1], paint: { "fill-pattern": "dots", "fill-opacity": 0.9 } }, firstSymbol);
+    map.addLayer({ ...base, id: "da-nocmp", type: "fill", filter: ["!=", ["get", "rel"], 1], paint: { "fill-pattern": "dots", "fill-opacity": 0.9 } }, under);
   }
   map.addLayer({
     ...base, id: `${id}-line`, type: "line",
     paint: { "line-color": "#ffffff", "line-opacity": 0.7, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 14, 1] },
-  }, firstSymbol);
+  }, under);
   map.addLayer({
     ...base, id: `${id}-hover`, type: "line",
     paint: { "line-color": "#1a1a19", "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 2, 0] },
@@ -333,6 +340,63 @@ function addSourceLayers(id) {
     map.on("click", layer, onClick);
   }
 }
+
+// ---- boundary overlays ----------------------------------------------------------
+// Outlines and labels of City neighbourhoods, wards and FSAs over the DAs, one at
+// a time. The control lists only the layers overlays.pmtiles holds (FSAs need a
+// StatCan file the pipeline can't always download).
+
+const OVERLAYS = {
+  nbhd: { name: "Neighbourhoods", labelMinzoom: 11.5 },
+  ward: { name: "Wards", labelMinzoom: 9.5 },
+  fsa: { name: "Postal areas (FSA)", labelMinzoom: 10.5 },
+};
+const OVERLAY_FIRST = `ov-${Object.keys(OVERLAYS)[0]}`;
+let overlay = hashParams.get("o") in OVERLAYS ? hashParams.get("o") : "none";
+
+// Added for every kind right after the 2021 DA layers, so the 2016 layers (added
+// later) can be slotted beneath them; a kind missing from the tiles draws nothing.
+function addOverlayLayers() {
+  if (!overlayArchive) return;
+  map.addSource("ov", { type: "vector", url: `pmtiles://${OVERLAY_TILES}` });
+  const font = map.getStyle().layers.find((l) => l.type === "symbol" && l.layout?.["text-font"])?.layout["text-font"]
+    ?? ["Noto Sans Regular"];
+  for (const [k, o] of Object.entries(OVERLAYS)) {
+    map.addLayer({
+      id: `ov-${k}`, type: "line", source: "ov", "source-layer": k, layout: { visibility: "none", "line-join": "round" },
+      paint: { "line-color": "#1a1a19", "line-opacity": 0.8, "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.8, 14, 2.2] },
+    }, "da-hover");
+    map.addLayer({
+      id: `ov-${k}-label`, type: "symbol", source: "ov", "source-layer": `${k}_label`, minzoom: o.labelMinzoom,
+      layout: {
+        visibility: "none", "text-field": ["get", "label"], "text-font": font, "text-max-width": 8,
+        "text-size": ["interpolate", ["linear"], ["zoom"], 10, 11, 14, 14], "symbol-sort-key": ["-", 0, ["get", "area_km2"]],
+      },
+      paint: { "text-color": "#1a1a19", "text-halo-color": "rgba(255, 255, 255, 0.9)", "text-halo-width": 1.5 },
+    });
+  }
+  overlayArchive.getMetadata().then((meta) => {
+    const kinds = Object.keys(OVERLAYS).filter((k) => meta.vector_layers?.some((l) => l.id === k));
+    if (!kinds.length) return;
+    if (!kinds.includes(overlay)) overlay = "none";
+    const radio = (v, label) => `<label><input type="radio" name="overlay" value="${v}"${v === overlay ? " checked" : ""} /> ${label}</label>`;
+    $("overlay-opts").innerHTML = [radio("none", "None"), ...kinds.map((k) => radio(k, OVERLAYS[k].name))].join("");
+    $("overlays").hidden = false;
+    applyOverlay();
+  }).catch(() => {});
+}
+
+function applyOverlay() {
+  for (const k of Object.keys(OVERLAYS)) {
+    for (const l of [`ov-${k}`, `ov-${k}-label`]) map.setLayoutProperty(l, "visibility", k === overlay ? "visible" : "none");
+  }
+  writeHash();
+}
+
+$("overlay-opts").addEventListener("change", (e) => {
+  overlay = e.target.value;
+  applyOverlay();
+});
 
 // The 2016 tiles (~1.8 MB) load only when someone first switches to 2016.
 function ensureSource(id) {
@@ -376,6 +440,7 @@ function writeHash() {
   if (view === "change") h.set("c", changeBy.value);
   if (current) h.set("da", current.props.dauid);
   if (pinned) h.set("vs", pinned.props.dauid);
+  if (overlay !== "none") h.set("o", overlay);
   if (mapMoved || camera.center) {
     const { lng, lat } = map.getCenter();
     h.set("at", `${map.getZoom().toFixed(2)}/${lat.toFixed(5)}/${lng.toFixed(5)}`);
@@ -818,6 +883,7 @@ map.on("load", () => {
   // Draw data beneath the basemap's labels.
   firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
   addSourceLayers("da");
+  addOverlayLayers();
   applyView();
   select.addEventListener("change", () => {
     applyView();
@@ -1047,7 +1113,7 @@ form.addEventListener("submit", (e) => {
 
 const CREDITS = [
   "Statistics Canada, Census Profile, 2021 Census (98-316-X2021001) and 2016 Census (98-316-X2016001); income years 2020 and 2015; 2021 DA correspondence file (92-156-X). Contains information licensed under the Open Government Licence – Canada.",
-  "Neighbourhoods, address points and intersections: City of Toronto Open Data, Open Government Licence – Toronto. Basemap © OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors.",
+  "Neighbourhoods, wards, address points and intersections: City of Toronto Open Data, Open Government Licence – Toronto. Basemap © OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors.",
 ];
 
 function snapshotDetails() {
