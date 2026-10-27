@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Toronto Median Income</title>
+    <title>Toronto Income and Housing</title>
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="Median income by census dissemination area, City of Toronto: 2016 and 2021 censuses (income years 2015 and 2020) and the change between them." />
+    <meta name="description" content="Income, low income, renting and shelter costs by census dissemination area, City of Toronto: 2016 and 2021 censuses and the change between them." />
   </head>
   <body>
     <header class="bar">
-      <h1>Toronto median income <span class="sub">by dissemination area, 2016 and 2021 censuses</span></h1>
+      <h1>Toronto income and housing <span class="sub">by dissemination area, 2016 and 2021 censuses</span></h1>
       <form id="search" class="search" role="search" autocomplete="off">
         <label for="q" class="visually-hidden">Find a Toronto address, intersection or DA</label>
         <input id="q" type="search" placeholder="Address or intersection, e.g. 100 Queen St W"
@@ -24,10 +24,21 @@
       <label class="measure">
         <span class="visually-hidden">Measure</span>
         <select id="measure">
-          <option value="med_hh_tot">Household income, total</option>
-          <option value="med_hh_at">Household income, after tax</option>
-          <option value="med_ind_tot">Individual income, total</option>
-          <option value="med_ind_at">Individual income, after tax</option>
+          <optgroup label="Income">
+            <option value="med_hh_tot">Median household income</option>
+            <option value="med_hh_at">Median household income, after tax</option>
+            <option value="med_ind_tot">Median individual income</option>
+            <option value="med_ind_at">Median individual income, after tax</option>
+            <option value="avg_hh_tot">Average household income</option>
+          </optgroup>
+          <optgroup label="Low income and transfers">
+            <option value="lim_at">People in low income (LIM-AT)</option>
+            <option value="transfers">Share of income from government transfers</option>
+          </optgroup>
+          <optgroup label="Housing">
+            <option value="renter">Renter households</option>
+            <option value="shelter30">Households spending 30%+ of income on shelter</option>
+          </optgroup>
         </select>
       </label>
       <div class="viewctl">
@@ -39,6 +50,7 @@
       </fieldset>
       <label class="measure changeby">
         <span class="visually-hidden">Show change as</span>
+        <!-- options set by main.js: dollars for incomes, percentage points for rates -->
         <select id="changeby" hidden>
           <option value="real">Change in 2020 dollars (inflation-adjusted)</option>
           <option value="dollars">Change in nominal dollars</option>

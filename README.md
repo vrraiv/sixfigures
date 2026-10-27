@@ -1,27 +1,43 @@
-# Toronto median income map
+# Toronto income and housing map
 
-An interactive choropleth of median income across the City of Toronto's
-dissemination areas (DAs) in the 2016 and 2021 censuses (income years 2015 and 2020),
-and the change between them. Switch between four measures (household and individual,
-before and after tax), hover for values, click for detail, or search for a Toronto
-address or intersection to jump to its DA.
+An interactive choropleth of income, low income and housing across the City of
+Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the change
+between them. Hover for values, click for detail, or search for a Toronto address or
+intersection to jump to its DA.
+
+## Measures
+
+The measure menu has three sections:
+
+| Section | Measures | Unit |
+|---|---|---|
+| Income | Median household income, total and after tax; median individual income (recipients 15+), total and after tax; average household income | dollars, income years 2015 and 2020 |
+| Low income and transfers | People in low income (LIM-AT prevalence); share of total income from government transfers | percent, income years 2015 and 2020 |
+| Housing | Renter households (share of private households); households spending 30% or more of income on shelter costs (owners and tenants with income) | percent, 2016 and 2021 Census |
+
+The popup and the pinned comparison list the measures in the current section. Rates
+are published with one decimal; renter and shelter-cost shares are computed from
+StatCan's counts (`pipeline/measures.py`, which lists every characteristic by ID and
+name). A rate's change is in percentage points (pp), not restated for inflation.
 
 ## Census years and change
 
 - **2016 / 2021** show each census on its own DA boundaries (3,702 and 3,743 DAs). Both
   use one colour scale (6 quantile classes over 2016 and 2021 DAs pooled), so a colour
-  means the same dollars in either year. The 2016 tiles load on first use.
-- **Change** (2021 boundaries) shows, for each DA, the change in median income in
+  means the same value in either year. The 2016 tiles load on first use.
+- **Change** (2021 boundaries) shows, for each DA, the change in an income measure in
   2020 dollars (the default: 2015 incomes × 1.0935, Toronto's all-items CPI 128.3 → 140.3,
-  table 18-10-0005-01, from `pipeline/cpi.json`), in nominal dollars, or the change in its percentile rank (points),
-  on a red-grey-blue scale centred on zero. Only DAs whose boundary is identical in both censuses are compared, per
+  table 18-10-0005-01, from `pipeline/cpi.json`) or in nominal dollars; the change in a
+  rate in percentage points; or the change in its percentile rank (points),
+  on a red-grey-blue scale centred on zero. Red always means the value fell, which for
+  low income or shelter costs means fewer people affected. Only DAs whose boundary is identical in both censuses are compared, per
   StatCan's DA correspondence file: 3,606 of 3,743 (96%). The other 137 were split or
   redrawn; a median can't be split or combined across new boundaries, so they are
-  shown dotted, not estimated. DAs whose income wasn't published in either year are
+  shown dotted, not estimated. DAs whose measure wasn't published in either year are
   hatched.
-- The popup lists both years, the dollar change and the percentile change for all four
-  measures, and a histogram of all Toronto DAs with this DA's bar in orange and a line at
-  the city median (or at zero for change). The histograms are in `breaks.json`, built by
+- The popup lists both years, the change and the percentile change for the measures in
+  the current section, and a histogram of all Toronto DAs with this DA's bar in orange
+  and a line at the city-wide figure (or at zero for change). The histograms are in `breaks.json`, built by
   `pipeline/distributions.py`.
 - **Links.** The URL hash holds the measure, view, change basis, the open DA (`da`), the
   pinned DA (`vs`), the boundary overlay (`o`) and (once the map has moved) the map
@@ -34,9 +50,11 @@ address or intersection to jump to its DA.
   click. A kept class survives a change of measure, a switch between 2016 and 2021 and
   between real and nominal dollars; it is cleared on a switch between the census and
   change views or to or from percentile points, where the classes differ.
+- **Old links** keep working: `c=real` or `c=dollars` on a rate measure opens its
+  percentage-point change (`c=pp`).
 - **Pin to compare.** "Pin to compare" in the popup outlines that DA in purple; clicking
-  another DA then adds a table of the pinned DA, this DA and the difference for all four
-  measures, in the current view's terms. The chip at the top of the map (the bottom, on
+  another DA then adds a table of the pinned DA, this DA and the difference for the
+  measures in the current section, in the current view's terms. The chip at the top of the map (the bottom, on
   phones) unpins it. On phones, pinning closes the details sheet so the map is clear for
   the second tap. The pin follows a switch to the other census only if the DA's boundary is the same in both.
 - **Boundaries.** The legend's Boundaries control draws City neighbourhood or ward
@@ -74,7 +92,7 @@ address or intersection to jump to its DA.
   "mostly X, partly Y" for the 13 DAs split between two.
 
 Fully static: a Python pipeline turns Statistics Canada bulk downloads into one
-PMTiles file (~2 MB) plus `breaks.json`; MapLibre GL JS reads the tiles through
+PMTiles file per census (~4.6 MB for 2021, ~2.6 MB for 2016) plus `breaks.json`; MapLibre GL JS reads the tiles through
 pmtiles.js. It is hosted as a Cloudflare Worker with static assets only (no Worker
 script, no API keys). Basemap: OpenFreeMap Positron.
 
@@ -97,7 +115,7 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 12 MB; fails above 15 MB)
+npm run build      # -> web/dist (about 15 MB; fails above 15 MB)
 npm test           # search lookups vs the pipeline's DA assignment
 ```
 
@@ -143,7 +161,7 @@ immutable cache and `index.html` no-cache. The page requests those data files wi
 ## Data downloads
 
 The footer links to two CSVs (one row per DA, built by `pipeline/exports.py`; values
-match the popups, dollars rounded to whole dollars):
+match the popups, dollars rounded to whole dollars, rates to one decimal):
 
 - `/data/toronto_da_income_2021.csv`: 3,743 DAs on 2021 boundaries.
   - `dauid`; `nbhd_id`, `nbhd`: the City neighbourhood covering most of the DA; `nbhd2`:
@@ -151,24 +169,39 @@ match the popups, dollars rounded to whole dollars):
   - `pop21`: 2021 population; `hh`: private households.
   - `same_boundary_2016`: 1 if the DA's boundary is identical in 2016 (change is
     only reported for these), else 0.
-  - For each measure `med_hh_tot`, `med_hh_at`, `med_ind_tot`, `med_ind_at` (household
-    total / after-tax, individual total / after-tax):
-    `<m>_2020` and `<m>_2020_pctl` (median and percentile rank among Toronto DAs, 2021
+  - For each income measure `med_hh_tot`, `med_hh_at`, `med_ind_tot`, `med_ind_at`
+    (median household total / after-tax, individual total / after-tax) and
+    `avg_hh_tot` (average household total):
+    `<m>_2020` and `<m>_2020_pctl` (value and percentile rank among Toronto DAs, 2021
     Census); `<m>_2015` and `<m>_2015_pctl` (the same DA in the 2016 Census, boundary-
     identical DAs only); `<m>_change` (nominal dollars), `<m>_change_real` (2020
-    dollars, 2015 median × the CPI factor in `breaks.json`) and `<m>_change_pctl`
+    dollars, 2015 value × the CPI factor in `breaks.json`) and `<m>_change_pctl`
     (percentile points).
-  - Empty cells: suppressed or not published, or (for the 2015 and change columns) no
-    boundary-identical 2016 DA.
+  - For `lim_at` (% of people in low income, LIM-AT) and `transfers` (% of total
+    income from government transfers): `<m>_2020`, `<m>_2020_pctl`, `<m>_2015`,
+    `<m>_2015_pctl`, `<m>_change` (percentage points) and `<m>_change_pctl`.
+  - For `renter` (% of private households renting) and `shelter30` (% of owner and
+    tenant households with income spending 30%+ of it on shelter): the same columns,
+    suffixed by census year: `<m>_2021`, `<m>_2021_pctl`, `<m>_2016`, `<m>_2016_pctl`,
+    `<m>_change`, `<m>_change_pctl`.
+  - Empty cells: suppressed or not published, or (for the 2015/2016 and change
+    columns) no boundary-identical 2016 DA.
 - `/data/toronto_da_income_2016.csv`: 3,702 DAs on 2016 boundaries: `dauid`, `nbhd_id`,
-  `nbhd`, `nbhd2`, `pop16`, `hh`, `same_boundary_2021`, and `<m>_2015`, `<m>_2015_pctl`
-  for the four measures.
+  `nbhd`, `nbhd2`, `pop16`, `hh`, `same_boundary_2021`, and for each measure its 2016
+  Census value and percentile (`<m>_2015`, `<m>_2015_pctl`; `renter_2016`,
+  `shelter30_2016` and their `_pctl`).
 
 ## Data caveats
 
 - **Income years are 2015 and 2020.** Each census asks about the previous calendar
   year. 2020 includes pandemic benefits (CERB and others), which raised low-end
-  incomes, so part of the 2015→2020 change reflects temporary benefits.
+  incomes, so part of the 2015→2020 change reflects temporary benefits. This matters
+  most for the low-income rate (City of Toronto 20.2% → 13.2%) and the share of income
+  from transfers (9.4% → 15.5%), and it also lowers 2021's shelter-cost burden, which is
+  measured against 2020 income.
+- **Housing shares are estimates from the 25% sample, with randomly rounded counts.**
+  In small DAs this makes them noisy (a renter share can move several points by
+  rounding alone), and a computed share is capped at 100%.
 - **Inflation.** The default change is in 2020 dollars using Toronto's annual-average
   all-items CPI (prices rose 9.4%, 2015 → 2020). It is one price index for everyone; it
   doesn't reflect each household's own costs (rent especially). The nominal option shows
@@ -177,9 +210,10 @@ match the popups, dollars rounded to whole dollars):
   year's percentiles are computed over that year's own set of DAs.
 - **Residents change.** A DA's population turns over between censuses (new towers
   especially), so a change describes the place, not the same people.
-- **Suppression.** StatCan suppresses income for DAs with small populations or
-  data-quality problems: 68 Toronto DAs in 2021, 23 (household) / 66 (individual) in
-  2016. They are drawn hatched grey, never as zero.
+- **Suppression.** StatCan suppresses figures for DAs with small populations or
+  data-quality problems: for median incomes, 68 Toronto DAs in 2021, 23 (household) / 66
+  (individual) in 2016; 16-100 DAs for the other measures (the legend gives each count).
+  They are drawn hatched grey, never as zero.
 - **Rounding.** StatCan publishes income medians rounded, more coarsely as values grow
   (in this data: multiples of $1,000 above $80,000, finer steps of $100–$200 below),
   so many DAs tie. 2016 medians are not rounded. Quantile classes and percentile ranks

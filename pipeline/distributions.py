@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-MEASURES = ["med_hh_tot", "med_hh_at", "med_ind_tot", "med_ind_at"]
+from measures import MEASURES
 
 # Annual-average CPI for the two income years, from table 18-10-0005-01
 # (pipeline/cpi.py writes it). Census incomes are for the calendar year before
@@ -17,10 +17,9 @@ MEASURES = ["med_hh_tot", "med_hh_at", "med_ind_tot", "med_ind_at"]
 CPI = json.loads((Path(__file__).parent / "cpi.json").read_text())
 CPI_FACTOR = round(CPI["2020"] / CPI["2015"], 4)
 
-# Histogram bin widths: about 25-35 bins between the 1st and 99th percentiles.
-# Change bins put zero on a bin edge, and the class breaks fall on edges too.
-LEVEL_WIDTH = {"med_hh_tot": 10000, "med_hh_at": 8000, "med_ind_tot": 3000, "med_ind_at": 2500}
-CHANGE_WIDTH = {"med_hh_tot": 2000, "med_hh_at": 2000, "med_ind_tot": 1000, "med_ind_at": 1000}
+# Histogram bin widths (measures.py): about 20-35 bins between the 1st and 99th
+# percentiles. Change bins put zero on a bin edge, and the class breaks fall on
+# edges too.
 POINTS_WIDTH = 2
 
 
@@ -46,24 +45,27 @@ def add_distributions(breaks: dict, gdf: pd.DataFrame, g16: pd.DataFrame, compar
     """Add the CPI factor, real-dollar change stats and histograms to breaks.
 
     `comparable[m]` is the boolean mask of 2021 DAs with a change for measure m.
+    Change histograms are keyed like the page's change-basis menu: "real",
+    "dollars" and "points" (percentile rank) for money, "pp" and "points" for rates.
     """
     breaks["cpi"] = {**CPI, "factor": CPI_FACTOR}
-    for m in MEASURES:
+    for m, spec in MEASURES.items():
         c = comparable[m]
-        nominal = (gdf[m] - gdf[f"v16_{m}"])[c]
-        real = real_change(gdf, m)[c]
+        diff = (gdf[m] - gdf[f"v16_{m}"])[c]
         points = (gdf[f"pct_{m}"] - gdf[f"p16_{m}"])[c]
         meta = breaks["measures"][m]
-        meta["change"]["median_real"] = int(round(real.median()))
         # one axis for both years, so the two charts can be compared
-        w = LEVEL_WIDTH[m]
+        w, cw = spec["width"], spec["change_width"]
         top = int(np.ceil(np.percentile(pd.concat([gdf[m], g16[m]]).dropna(), 99) / w) * w)
+        if spec["unit"] == "money":
+            real = real_change(gdf, m)[c]
+            meta["change"]["median_real"] = int(round(real.median()))
+            change = {"dollars": histogram(diff, cw), "real": histogram(real, cw)}
+        else:
+            top = min(top, 100)
+            change = {"pp": histogram(diff, cw)}
         meta["hist"] = {
             "2016": histogram(g16[m], w, lo=0, hi=top),
             "2021": histogram(gdf[m], w, lo=0, hi=top),
-            "change": {
-                "dollars": histogram(nominal, CHANGE_WIDTH[m]),
-                "real": histogram(real, CHANGE_WIDTH[m]),
-                "points": histogram(points, POINTS_WIDTH),
-            },
+            "change": {**change, "points": histogram(points, POINTS_WIDTH)},
         }

@@ -4,7 +4,8 @@
 
 1. `pipeline/download.py` – fetches the raw files into `pipeline/raw/` (gitignored).
 2. `pipeline/build.py` (with `census2016.py` and `distributions.py`) – streams both profile CSVs, filters to
-   Toronto, pivots, joins to boundaries, tags each DA with its City neighbourhood, links
+   Toronto, keeps the characteristics listed in `measures.py`, pivots, computes the renter
+   and shelter-cost shares, joins to boundaries, tags each DA with its City neighbourhood, links
    the years through the DA correspondence file, writes `pipeline/out/toronto_da.geojson`,
    `pipeline/out/toronto_da_2016.geojson` and `web/public/breaks.json`, and (through
    `exports.py`) the CSV downloads in `web/public/data/`.
@@ -128,12 +129,27 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
 - **Test:** `npm test` decodes 20,000 random address records with the browser code and
   checks each lands in the pipeline's DA, with and without the former municipality.
 
-## Row counts (2026-10-26 build)
+## Adding a measure
+
+1. Find the characteristic in both profiles (the first geography in each CSV lists them
+   all) and add it to `CHARS_2021` and `CHARS_2016` in `measures.py` by ID **and** name;
+   both must match, since some names repeat (2021 has "Government transfers (%)" for
+   both 2020 and 2019 income). A share computed from counts goes in `SHARES`.
+2. Add it to `MEASURES` (unit, histogram widths, change breaks) and, for census-dated
+   figures, to `CENSUS_DATED`.
+3. Add it to `MEASURES` in `web/src/main.js` and to the menu in `web/index.html`.
+4. `make data`. The cached extracts in `pipeline/out/` are re-streamed automatically
+   when they lack a characteristic. Check the class counts that `build.py` prints.
+
+Each measure adds about 0.4 MB to the 2021 tiles, which Cloudflare serves whole, so
+every first visit downloads it.
+
+## Row counts (2026-10-26 build; characteristics as of 2026-10-27)
 
 | | rows |
 |---|---|
 | Profile CSV data rows scanned | 55,503,576 |
-| Rows kept (CD 3520 DAs + CSD, 6 characteristics) | 22,464 |
+| Rows kept (CD 3520 DAs + CSD, 13 characteristics) | 67,392 (22,464 with the first 6) |
 | Toronto DAs in boundary file / in profile | 3,743 / 3,743 |
 | DAs with suppressed income (all four measures together) | 68 |
 | DAs with suppressed household count | 9 |
@@ -141,32 +157,28 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
 | City address points / inside a Toronto DA | 525,377 / 525,375 |
 | Address records in `search.json` (distinct strings) | 523,984 (522,235) |
 | Intersections kept / one DA / on a boundary | 28,804 / 9,210 / 19,594 |
-| 2016 profile data rows scanned / kept | 46,706,142 / 22,224 |
+| 2016 profile data rows scanned / kept | 46,706,142 / 48,152 |
 | 2016 Toronto DAs (profile = boundary = correspondence) | 3,702 |
 | 2016 population: sum of DAs = CSD 3520005 | 2,731,571 |
 | 2016 DAs suppressed (household / individual measures) | 23 / 66 |
 | DAs with a change value (household / individual) | 3,534 / 3,526 |
 | DAs not compared: boundary changed / not published | 137 / 72–80 |
 
-Matched characteristics (`CHARACTERISTIC_ID`: name): 243 median total household income,
-244 median after-tax household income, 113 median total income among recipients,
-115 median after-tax income among recipients, 1 Population 2021,
-50 "Total - Private households by household size - 100% data".
-
-2016 (Member ID: name): 742 "Median total income of households in 2015 ($)",
-743 "Median after-tax income of households in 2015 ($)", 663 "Median total income in 2015
-among recipients ($)", 665 "Median after-tax income in 2015 among recipients ($)",
-1 "Population, 2016", 51 "Total - Private households by household size - 100% data".
+Matched characteristics: see `CHARS_2021` (`CHARACTERISTIC_ID`) and `CHARS_2016`
+(Member ID) in `measures.py`. 2021 DAs suppressed per measure: 68 (median incomes),
+100 (average household income, transfers share, shelter costs), 81 (LIM-AT), 16
+(tenure). 2016: 23 / 66 (household / individual medians), 87, 66, 66, 19, 87.
 
 ## Output properties (`da` layer)
 
-2021 (`toronto_da.pmtiles`): `dauid`, `med_hh_tot`, `med_hh_at`, `med_ind_tot`,
-`med_ind_at`, `pop21`, `hh`, `sup_<measure>` (bool), `pct_<measure>` (1–100), `nbhd`,
+2021 (`toronto_da.pmtiles`): `dauid`, each measure in `measures.py` (dollars as whole
+numbers, rates with one decimal), `pop21`, `hh`, `pct_<measure>` (1–100), `nbhd`,
 `nbhd_id`, `nbhd2`, `rel` (correspondence flag), and for `rel` = 1: `v16_<measure>`,
 `p16_<measure>` (2016 value and percentile).
 
-2016 (`toronto_da_2016.pmtiles`): the same income fields for 2016 plus `pop16`, and
-`rel` = 1 if the DA is unchanged in 2021, else 0. Nulls are omitted from the tiles.
+2016 (`toronto_da_2016.pmtiles`): the same measure fields for 2016 plus `pop16`, and
+`rel` = 1 if the DA is unchanged in 2021, else 0. Nulls are omitted from the tiles, so a
+suppressed value is simply absent (the map tests `has`).
 
 ## Installing tippecanoe
 
