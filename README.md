@@ -31,8 +31,9 @@ address or intersection to jump to its DA.
   redrawn one outlines every 2016 DA it overlaps.
 - **Legend as a filter.** Hovering over a colour class in the legend (or tabbing to it)
   fades every other class; clicking keeps that class until "Show all" or a second
-  click. A kept class survives a change of measure but is cleared when the view or the
-  change basis changes, since the classes differ.
+  click. A kept class survives a change of measure, a switch between 2016 and 2021 and
+  between real and nominal dollars; it is cleared on a switch between the census and
+  change views or to or from percentile points, where the classes differ.
 - **Pin to compare.** "Pin to compare" in the popup outlines that DA in purple; clicking
   another DA then adds a table of the pinned DA, this DA and the difference for all four
   measures, in the current view's terms. The chip at the top of the map unpins it. The
@@ -101,7 +102,8 @@ npm test           # search lookups vs the pipeline's DA assignment
 
 ## Rebuild the data
 
-The derived `web/public/toronto_da.pmtiles`, `breaks.json` and `search.json` are
+The derived `web/public/*.pmtiles` (including `overlays.pmtiles`), `breaks.json`,
+`search.json` and `data/*.csv` are
 committed, so this is only needed to change the pipeline. From WSL, Linux or macOS,
 with Python 3.11+ and tippecanoe installed:
 

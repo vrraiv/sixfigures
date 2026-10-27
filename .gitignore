@@ -31,7 +31,7 @@ pipeline/out/
 *.xlsx
 *.pptx
 *.pdf
-# The derived web/public/toronto_da.pmtiles and breaks.json ARE committed.
+# The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---
 .venv/

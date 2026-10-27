@@ -425,7 +425,8 @@ function applyView() {
   }
   changeBy.hidden = view !== "change";
   renderLegend();
-  // A kept class survives a change of measure, not of view or change basis.
+  // A kept class survives a change of measure or census, not a change of classes
+  // (level <-> change view, dollars <-> percentile points).
   const key = view === "change" ? `change-${changeBy.value === "points" ? "points" : "dollars"}` : "level";
   if (key !== focusKey) focusCls = previewCls = null;
   focusKey = key;
@@ -716,7 +717,9 @@ async function carryPin(toSrc) {
   }
   await idle();
   const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], props.dauid] });
-  if (f && sourceOf(view) === toSrc) setPin({ props: f.properties, source: toSrc });
+  if (sourceOf(view) !== toSrc) return; // toggled back while waiting
+  if (f) setPin({ props: f.properties, source: toSrc });
+  else showToast(`Unpinned DA ${props.dauid}: it isn't loaded at this zoom. Zoom in and pin it again.`, 5000);
 }
 
 document.addEventListener("click", (e) => {
@@ -822,7 +825,7 @@ async function pinLinkedDA(dauid) {
   await idle();
   const [f] = map.querySourceFeatures(source, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
   if (f) setPin({ props: f.properties, source });
-  else showToast(`The link's pinned DA ${dauid} isn't in this part of the map, so nothing is pinned.`, 5000);
+  else showToast(`The link's pinned DA ${dauid} isn't loaded in this part of the map or at this zoom, so nothing is pinned.`, 5000);
 }
 
 $("sheet-close").addEventListener("click", closeDetails);
