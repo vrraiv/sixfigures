@@ -9,6 +9,7 @@ Steps
   5. Tag each DA with its City of Toronto neighbourhood (DAs have no names).
   6. Load the 2016 Census (census2016.py); give boundary-identical 2021 DAs their
      2016 values and percentiles; pooled 2016+2021 breaks and change breaks.
+  7. CPI factor and histograms for the popup charts (distributions.py).
 """
 import csv
 import io
@@ -22,6 +23,7 @@ import numpy as np
 import pandas as pd
 
 import census2016
+from distributions import add_distributions
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -228,6 +230,7 @@ def main():
 
     breaks = {"classes": N_CLASSES, "method": "quantile, pooled 2016+2021", "measures": {}}
     print("\nclass counts under pooled breaks, and change summary:")
+    comparables = {}
     for m in MEASURES:
         both = pd.concat([gdf[m], g16[m]]).dropna()
         # method="nearest" keeps every break an actual DA value
@@ -235,6 +238,7 @@ def main():
         if len(set(q)) != len(q):
             print(f"  WARNING: duplicate breaks for {m}: {q}")
         comparable = same & gdf[m].notna() & gdf[f"v16_{m}"].notna()
+        comparables[m] = comparable
         d = (gdf[m] - gdf[f"v16_{m}"])[comparable]
         dp = (gdf[f"pct_{m}"] - gdf[f"p16_{m}"])[comparable]
         cb_d, cb_p = CHANGE_BREAKS["dollars"][m], CHANGE_BREAKS["points"]
@@ -260,6 +264,7 @@ def main():
               f"  pts classes {np.bincount(np.digitize(dp, cb_p), minlength=7).tolist()}"
               f"  comparable {int(comparable.sum())}, boundary changed {int((~same).sum())},"
               f" not published {int((same & ~comparable).sum())}")
+    add_distributions(breaks, gdf, g16, comparables)
 
     int21 = list(TARGETS) + [f"{p}_{m}" for m in MEASURES for p in ("pct", "v16", "p16")]
     for c in int21:

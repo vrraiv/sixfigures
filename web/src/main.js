@@ -79,14 +79,24 @@ const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "
 
 const select = $("measure");
 const changeBy = $("changeby");
+// The URL hash keeps the view shareable: #m=<measure>&y=<view>&c=<change basis>
+// &da=<DAUID of the open DA>&at=<zoom>/<lat>/<lng>.
 const hashParams = new URLSearchParams(location.hash.slice(1));
 if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
-if (["dollars", "points"].includes(hashParams.get("c"))) changeBy.value = hashParams.get("c");
+if (["real", "dollars", "points"].includes(hashParams.get("c"))) changeBy.value = hashParams.get("c");
+const linkedDA = /^\d{8}$/.test(hashParams.get("da") ?? "") ? hashParams.get("da") : null;
+const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
+const camera = linkedAt.length === 3 && linkedAt.every(Number.isFinite)
+  ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] }
+  : { bounds: BOUNDS, fitBoundsOptions: { padding: 24 } };
 document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 if (narrow.matches) $("legend").open = false;
 
 const breaks = await fetch(`/breaks.json?v=${__TILES_VERSION__}`).then((r) => r.json());
+// 2015 dollars -> 2020 dollars (Canada CPI, annual averages; see breaks.json).
+const CPI = breaks.cpi.factor;
+const inflationPct = Math.round((CPI - 1) * 1000) / 10;
 
 const sourceOf = (v) => (v === "2016" ? "da16" : "da");
 const yearOf = (v) => (v === "2016" ? "2016" : "2021");
@@ -94,8 +104,7 @@ const yearOf = (v) => (v === "2016" ? "2016" : "2021");
 const map = new maplibregl.Map({
   container: "map",
   style: STYLE,
-  bounds: BOUNDS,
-  fitBoundsOptions: { padding: 24 },
+  ...camera,
   attributionControl: { compact: true },
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -111,12 +120,22 @@ function step(value, stops, colors) {
 // Pooled 2016+2021 quantile breaks: a colour means the same dollars in both years.
 const levelColor = (m) => step(["get", m], breaks.measures[m].breaks.slice(1, -1), COLORS);
 
+// Dollar figures in the change view are in 2020 dollars unless "nominal" is chosen.
+const realDollars = () => changeBy.value !== "dollars";
+const dollarBasis = () => (realDollars() ? "real" : "dollars");
+
 function changeValue(m) {
-  return changeBy.value === "points"
-    ? ["-", ["get", `pct_${m}`], ["get", `p16_${m}`]]
-    : ["-", ["get", m], ["get", `v16_${m}`]];
+  if (changeBy.value === "points") return ["-", ["get", `pct_${m}`], ["get", `p16_${m}`]];
+  if (changeBy.value === "real") return ["-", ["get", m], ["*", ["get", `v16_${m}`], CPI]];
+  return ["-", ["get", m], ["get", `v16_${m}`]];
 }
 const changeStops = (m) => breaks.measures[m].change[changeBy.value === "points" ? "points" : "dollars"];
+
+// Change in a DA's median for measure k, in the dollars chosen (null if not comparable).
+function dollarChange(p, k) {
+  if (p.rel !== 1 || p[k] == null || p[`v16_${k}`] == null) return null;
+  return Math.round(p[k] - p[`v16_${k}`] * (realDollars() ? CPI : 1));
+}
 const changeColor = (m) => step(changeValue(m), changeStops(m), DIVERGING);
 
 // Change is only defined for boundary-identical DAs published in both years.
@@ -168,13 +187,17 @@ function legendModel() {
     items.push({ pattern: "dots", label: `Boundary changed since 2016 (${c.boundary_changed} DAs)` });
     items.push({ pattern: "hatch", label: `Not published in 2016 or 2021 (${c.not_published} DAs)` });
     const y16 = meta.y2016.city_median, y21 = meta.y2021.city_median;
+    const real = changeBy.value === "real";
     return {
       title: pts ? `Change in percentile rank, ${MEASURES[m].long.toLowerCase()}, 2015 → 2020`
-        : `Change in ${MEASURES[m].long.toLowerCase()}, 2015 → 2020`,
+        : `Change in ${MEASURES[m].long.toLowerCase()}, 2015 → 2020${real ? ", in 2020 dollars" : ""}`,
       items,
       footer: pts ? `Median DA change: ${fmtPts(c.median_points)}`
-        : `City median: ${fmtMoney(y16)} → ${fmtMoney(y21)} (${fmtSignedMoney(y21 - y16)})`,
-      note: pts ? "Percentile = rank among Toronto DAs within each census." : "Nominal dollars, not adjusted for inflation.",
+        : real ? `City median: ${fmtMoney(Math.round(y16 * CPI))} → ${fmtMoney(y21)} in 2020 dollars (${fmtSignedMoney(Math.round(y21 - y16 * CPI))})`
+          : `City median: ${fmtMoney(y16)} → ${fmtMoney(y21)} (${fmtSignedMoney(y21 - y16)})`,
+      note: pts ? "Percentile = rank among Toronto DAs within each census."
+        : real ? `2015 incomes restated in 2020 dollars: prices rose ${inflationPct}% (Canada CPI, annual averages).`
+          : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct}%, 2015 → 2020).`,
     };
   }
   const y = YEARS[view];
@@ -268,8 +291,19 @@ function applyView() {
   changeBy.hidden = view !== "change";
   renderLegend();
   tooltip.hidden = true;
-  const c = view === "change" ? `&c=${changeBy.value}` : "";
-  history.replaceState(null, "", `#m=${m}&y=${view}${c}`);
+  writeHash();
+}
+
+let mapMoved = false; // keep the default whole-city framing out of links until the map moves
+function writeHash() {
+  const h = new URLSearchParams({ m: select.value, y: view });
+  if (view === "change") h.set("c", changeBy.value);
+  if (current) h.set("da", current.props.dauid);
+  if (mapMoved || camera.center) {
+    const { lng, lat } = map.getCenter();
+    h.set("at", `${map.getZoom().toFixed(2)}/${lat.toFixed(5)}/${lng.toFixed(5)}`);
+  }
+  history.replaceState(null, "", `#${h.toString().replaceAll("%2F", "/")}`);
 }
 
 async function setView(next) {
@@ -311,7 +345,11 @@ document.body.append(tooltip);
 let hover = null; // { source, id }
 let current = null; // { props, lngLat, note, source } of the shown DA
 const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false });
-popup.on("close", () => { if (!narrow.matches) current = null; });
+popup.on("close", () => {
+  if (narrow.matches) return;
+  current = null;
+  writeHash();
+});
 
 function setHover(source, id) {
   if (hover?.source === source && hover?.id === id) return;
@@ -326,7 +364,7 @@ function tooltipText(p) {
   if (view === "change") {
     if (p.rel !== 1) v = "Boundary changed";
     else if (p[m] == null || p[`v16_${m}`] == null) v = "Not published";
-    else v = `${fmtSignedMoney(p[m] - p[`v16_${m}`])} · ${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])}`;
+    else v = `${fmtSignedMoney(dollarChange(p, m))}${realDollars() ? " (2020 $)" : ""} · ${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])}`;
   } else {
     v = p[m] == null ? "Suppressed" : fmtMoney(p[m]);
   }
@@ -374,13 +412,13 @@ function detailsModel(p, note) {
   const lines = [];
   let columns, rows;
   if (view === "change") {
-    columns = ["2015", "2020", "Change", "Pctl pts"];
+    columns = ["2015", "2020", realDollars() ? "Real chg" : "Change", "Pctl pts"];
     rows = Object.entries(MEASURES).map(([k, d]) => {
-      const ok = p.rel === 1 && p[k] != null && p[`v16_${k}`] != null;
+      const dc = dollarChange(p, k);
       return {
         label: d.short, selected: k === m,
         cells: [fmtMoney(p[`v16_${k}`]), fmtMoney(p[k]),
-          ok ? fmtSignedMoney(p[k] - p[`v16_${k}`]) : "—", ok ? fmtPts(p[`pct_${k}`] - p[`p16_${k}`]) : "—"],
+          fmtSignedMoney(dc), dc == null ? "—" : fmtPts(p[`pct_${k}`] - p[`p16_${k}`])],
       };
     });
     if (p.rel !== 1) {
@@ -390,7 +428,12 @@ function detailsModel(p, note) {
     } else {
       lines.push({ note: true, text: "Income for this DA was not published in 2016 or 2021 (small population or data-quality rules), so no change is reported." });
     }
-    lines.push({ text: "Nominal dollars, not adjusted for inflation. 2020 incomes include pandemic benefits (CERB)." , note: true });
+    lines.push({
+      note: true,
+      text: realDollars()
+        ? `"Real chg" is the change after inflation: 2015 incomes × ${CPI} (prices rose ${inflationPct}%, Canada CPI). 2020 incomes include pandemic benefits (CERB).`
+        : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct}%, 2015 → 2020). 2020 incomes include pandemic benefits (CERB).`,
+    });
     lines.push({ text: `Population 2021: ${fmtCount(p.pop21)} · Households: ${fmtCount(p.hh)}` });
   } else {
     const y = YEARS[view];
@@ -404,13 +447,15 @@ function detailsModel(p, note) {
     if (v != null) lines.push({ text: `${v >= cm ? "Above" : "Below"} the ${y.income} city median of ${fmtMoney(cm)} for this measure.` });
     if (p[`sup_${m}`]) lines.push({ note: true, text: "Income figures for this DA are suppressed by Statistics Canada (small population or data-quality rules). It is shown hatched, not as zero." });
     if (view === "2021" && p.rel === 1 && v != null && p[`v16_${m}`] != null) {
-      lines.push({ text: `Since 2016: ${fmtSignedMoney(v - p[`v16_${m}`])} (from ${fmtMoney(p[`v16_${m}`])}), ${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])} in percentile rank.` });
+      const v16 = p[`v16_${m}`];
+      lines.push({ text: `Since 2016: ${fmtSignedMoney(v - v16)} (from ${fmtMoney(v16)}), ${fmtSignedMoney(Math.round(v - v16 * CPI))} after inflation, ${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])} in percentile rank.` });
     }
     if (p.rel !== 1) lines.push({ note: true, text: `This DA's boundary changed between 2016 and 2021, so ${view === "2016" ? "2021" : "2016"} figures can't be compared directly.` });
     lines.push({ text: `Population ${view}: ${fmtCount(p[y.pop])} · Households: ${fmtCount(p.hh)}` });
   }
   return {
     note,
+    dist: distModel(p),
     heading: `DA ${p.dauid}${view === "2016" ? " (2016 boundary)" : ""}`,
     sub: placeLine(p),
     columns,
@@ -420,6 +465,58 @@ function detailsModel(p, note) {
   };
 }
 
+/**
+ * Where the DA sits among all Toronto DAs for the current measure and view:
+ * a histogram from breaks.json, with a reference line at the city median (or
+ * at zero for change).
+ */
+function distModel(p) {
+  const m = select.value;
+  const meta = breaks.measures[m];
+  if (view === "change") {
+    const pts = changeBy.value === "points";
+    const value = pts ? (dollarChange(p, m) == null ? null : p[`pct_${m}`] - p[`p16_${m}`]) : dollarChange(p, m);
+    if (value == null) return null;
+    return {
+      hist: meta.hist.change[pts ? "points" : dollarBasis()],
+      value,
+      ref: 0,
+      fmt: pts ? fmtPts : fmtSignedK,
+      caption: `Change across the ${fmtCount(meta.change.comparable)} comparable Toronto DAs${pts ? " (percentile points)" : realDollars() ? " (2020 dollars)" : ""}. This DA in orange; the line marks no change.`,
+    };
+  }
+  if (p[m] == null) return null;
+  const y = YEARS[view];
+  const stats = meta[`y${view}`];
+  return {
+    hist: meta.hist[view],
+    value: p[m],
+    ref: stats.city_median,
+    fmt: fmtK,
+    caption: `${MEASURES[m].short} median across ${fmtCount(stats.n)} Toronto DAs, ${y.income}. This DA in orange; the line marks the city median (${fmtMoney(stats.city_median)}).`,
+  };
+}
+
+function distHTML(d) {
+  const { lo, width, counts } = d.hist;
+  const n = counts.length, max = Math.max(...counts);
+  const bin = Math.min(Math.max(Math.floor((d.value - lo) / width), 0), n - 1);
+  const W = 300, H = 44, bw = W / n;
+  const bars = counts.map((c, i) => {
+    const h = c ? Math.max((c / max) * H, 1) : 0;
+    return `<rect x="${(i * bw + 0.5).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw - 1).toFixed(1)}" height="${h.toFixed(1)}"${i === bin ? ' class="here"' : ""}/>`;
+  }).join("");
+  const rx = ((d.ref - lo) / (width * n)) * W;
+  const ref = rx >= 0 && rx <= W ? `<line x1="${rx.toFixed(1)}" x2="${rx.toFixed(1)}" y1="0" y2="${H}" class="ref"/>` : "";
+  const hi = lo + width * n;
+  const label = `Histogram. This DA is in the ${d.fmt(lo + bin * width)} to ${d.fmt(lo + (bin + 1) * width)} bin, with ${fmtCount(counts[bin])} DAs.`;
+  return `<figure class="dist">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${escapeHTML(label)}">${bars}${ref}</svg>
+      <div class="dist-axis"><span>${lo === 0 ? "$0" : `${d.fmt(lo)} or less`}</span><span>${d.fmt(hi)} or more</span></div>
+      <figcaption>${escapeHTML(d.caption)}</figcaption>
+    </figure>`;
+}
+
 function detailsHTML(d) {
   const head = `<tr><th></th>${d.columns.map((c) => `<th>${c}</th>`).join("")}</tr>`;
   const body = d.rows.map((r) => `<tr class="${r.selected ? "sel" : ""}"><th scope="row">${r.label}</th>${r.cells.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
@@ -427,8 +524,10 @@ function detailsHTML(d) {
     <h2>${escapeHTML(d.heading)}</h2>
     <p class="place">${escapeHTML(d.sub)}</p>
     <table class="dt${d.columns.length > 2 ? " wide" : ""}"><thead>${head}</thead><tbody>${body}</tbody></table>
+    ${d.dist ? distHTML(d.dist) : ""}
     ${d.lines.map((l) => `<p class="${l.note ? "note" : "cmp"}">${escapeHTML(l.text)}</p>`).join("")}
-    <p class="fine">${d.fine.map(escapeHTML).join(" ")}</p>`;
+    <p class="fine">${d.fine.map(escapeHTML).join(" ")}</p>
+    <button type="button" class="copylink">Copy link to this DA</button>`;
 }
 
 function showDetails(props, lngLat, note) {
@@ -445,12 +544,54 @@ function showDetails(props, lngLat, note) {
     if (!popup.isOpen()) popup.addTo(map);
   }
   current = { props, lngLat, note };
+  writeHash();
 }
 
 function closeDetails() {
   popup.remove();
   $("sheet").hidden = true;
   current = null;
+  writeHash();
+}
+
+// Popup and bottom sheet both carry a "Copy link" button; the hash already
+// names the view, the open DA and the map position.
+document.addEventListener("click", async (e) => {
+  if (!e.target.closest(".copylink")) return;
+  try {
+    await navigator.clipboard.writeText(location.href);
+    showToast("Link copied. It opens this view with this DA selected.", 3000);
+  } catch {
+    showToast("Couldn't copy; copy the address bar instead.", 4000);
+  }
+});
+
+// A shared link's DA: outline it and open its details once its tile has loaded.
+async function openLinkedDA(dauid) {
+  const source = sourceOf(view);
+  await idle();
+  const parts = map.querySourceFeatures(source, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
+  if (parts.length) {
+    // A DA can be split across tiles; centre the popup on all of its pieces.
+    const b = [Infinity, Infinity, -Infinity, -Infinity];
+    const walk = (c) => {
+      if (typeof c[0] !== "number") return c.forEach(walk);
+      b[0] = Math.min(b[0], c[0]); b[1] = Math.min(b[1], c[1]); b[2] = Math.max(b[2], c[0]); b[3] = Math.max(b[3], c[1]);
+    };
+    for (const f of parts) walk(f.geometry.coordinates);
+    select_(source, [dauid]);
+    showDetails(parts[0].properties, { lng: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 });
+    return;
+  }
+  // Not in view (or dropped at this zoom): find it like a DA-number search.
+  try {
+    await loadIndex();
+  } catch {
+    return;
+  }
+  const res = index.resolve(dauid);
+  if (res.status === "match") goTo(res.results[0], "da");
+  else setStatus(`The linked DA ${dauid} isn't a City of Toronto dissemination area.`, "error");
 }
 
 $("sheet-close").addEventListener("click", closeDetails);
@@ -475,6 +616,11 @@ map.on("load", () => {
   for (const r of document.querySelectorAll("input[name=year]")) {
     r.addEventListener("change", () => r.checked && setView(r.value));
   }
+  map.on("moveend", () => {
+    mapMoved = true;
+    writeHash();
+  });
+  if (linkedDA) openLinkedDA(linkedDA);
 });
 
 // ---- search -----------------------------------------------------------------

@@ -12,14 +12,21 @@ address or intersection to jump to its DA.
   use one colour scale (6 quantile classes over 2016 and 2021 DAs pooled), so a colour
   means the same dollars in either year. The 2016 tiles load on first use.
 - **Change** (2021 boundaries) shows, for each DA, the change in median income in
-  dollars or the change in its percentile rank (points), on a red-grey-blue scale centred
-  on zero. Only DAs whose boundary is identical in both censuses are compared, per
+  2020 dollars (the default: 2015 incomes × 1.0821, Canada's all-items CPI 126.6 → 137.0,
+  table 18-10-0005-01), in nominal dollars, or the change in its percentile rank (points),
+  on a red-grey-blue scale centred on zero. Only DAs whose boundary is identical in both censuses are compared, per
   StatCan's DA correspondence file: 3,606 of 3,743 (96%). The other 137 were split or
   redrawn; a median can't be split or combined across new boundaries, so they are
   shown dotted, not estimated. DAs whose income wasn't published in either year are
   hatched.
 - The popup lists both years, the dollar change and the percentile change for all four
-  measures. Search works in every view; in 2016 a split DA opens its 2016 parent, and a
+  measures, and a histogram of all Toronto DAs with this DA's bar in orange and a line at
+  the city median (or at zero for change). The histograms are in `breaks.json`, built by
+  `pipeline/distributions.py`.
+- **Links.** The URL hash holds the measure, view, change basis, the open DA and (once the
+  map has moved) the map position, e.g. `#m=med_hh_tot&y=change&c=real&da=35204265&at=13.5/43.73/-79.38`.
+  Opening such a link selects that DA; if it isn't in the loaded tiles, it is looked up
+  like a DA-number search. "Copy link to this DA" in the popup copies it. Search works in every view; in 2016 a split DA opens its 2016 parent, and a
   redrawn one outlines every 2016 DA it overlaps.
 
 ## Search and place names
