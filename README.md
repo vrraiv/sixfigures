@@ -104,7 +104,7 @@ otherwise reads from the single full response.
 ```
 pipeline/            Python + Makefile: raw downloads -> GeoJSON -> PMTiles, search index
 web/                 Vite app (index.html, src/, public/ with tiles, breaks, search, _headers)
-scripts/             build-time size check (fails above the 15 MB budget)
+scripts/             build-time size check (2021 tiles over 5 MB, or a Cloudflare limit)
 wrangler.jsonc       Worker config: serves ./web/dist as static assets
 ```
 
@@ -115,7 +115,7 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 15 MB; fails above 15 MB)
+npm run build      # -> web/dist (about 15 MB; first load about 6 MB)
 npm test           # search lookups vs the pipeline's DA assignment
 ```
 

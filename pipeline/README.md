@@ -142,7 +142,8 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
    when they lack a characteristic. Check the class counts that `build.py` prints.
 
 Each measure adds about 0.4 MB to the 2021 tiles, which Cloudflare serves whole, so
-every first visit downloads it.
+every first visit downloads it. `npm run build` fails when that file passes 5 MB
+(`scripts/check-size.mjs`); there is room for about one more.
 
 ## Row counts (2026-10-26 build; characteristics as of 2026-10-27)
 
