@@ -762,6 +762,54 @@ async function pinLinkedDA(dauid) {
 
 $("sheet-close").addEventListener("click", closeDetails);
 
+// ---- keyboard and screen readers -----------------------------------------------
+// MapLibre already pans with the arrow keys and zooms with + and −. While the map
+// has keyboard focus a crosshair marks its centre (CSS); the DA under it is
+// announced after each move, Enter or Space opens it and Escape closes it.
+
+const canvas = map.getCanvas();
+canvas.setAttribute("aria-label",
+  "Map of median income by dissemination area. Arrow keys pan, plus and minus zoom, Enter opens the area at the centre, Escape closes it.");
+const live = $("map-live");
+
+function centreDA() {
+  if (!map.getSource("da")) return null;
+  const [f] = map.queryRenderedFeatures([canvas.clientWidth / 2, canvas.clientHeight / 2], { layers: hitLayers() });
+  return f ?? null;
+}
+
+const announce = (text) => (live.textContent = text);
+const centreText = () => {
+  const f = centreDA();
+  return f ? tooltipText(f.properties) : "No dissemination area at the map centre.";
+};
+
+map.on("moveend", () => {
+  if (document.activeElement === canvas) announce(centreText());
+});
+canvas.addEventListener("focus", () => {
+  if (canvas.matches(":focus-visible")) announce(centreText());
+});
+// Chrome keeps :focus-visible on a canvas clicked while focused; the crosshair
+// is for keyboard use, so pointer use hides it until the next key.
+const wrap = document.querySelector(".map-wrap");
+canvas.addEventListener("pointerdown", () => wrap.classList.add("pointing"));
+canvas.addEventListener("keydown", (e) => {
+  wrap.classList.remove("pointing");
+  if (e.key === "Escape" && current) {
+    closeDetails();
+    announce("Closed the area's details.");
+  } else if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    const f = centreDA();
+    if (!f) return announce("No dissemination area at the map centre.");
+    clearSelection();
+    select_(f.source, [f.id]);
+    showDetails(f.properties, map.getCenter());
+    announce(`Opened ${tooltipText(f.properties)}.`);
+  }
+});
+
 // ---- load -------------------------------------------------------------------
 
 map.on("load", () => {

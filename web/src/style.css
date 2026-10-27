@@ -267,3 +267,14 @@ a { color: var(--accent); }
   /* the collapsed legend sits top-left on phones */
   .pinchip { top: auto; bottom: 12px; left: 16px; right: 16px; transform: none; max-width: none; }
 }
+
+/* ---- keyboard: centre crosshair while the map has keyboard focus ---- */
+.crosshair {
+  display: none; position: absolute; left: 50%; top: 50%; z-index: 1; width: 24px; height: 24px;
+  margin: -12px 0 0 -12px; pointer-events: none;
+  background: linear-gradient(var(--ink), var(--ink)) center / 2px 100% no-repeat,
+              linear-gradient(var(--ink), var(--ink)) center / 100% 2px no-repeat;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);
+}
+.map-wrap:not(.pointing):has(.maplibregl-canvas:focus-visible) .crosshair { display: block; }
+.maplibregl-canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
