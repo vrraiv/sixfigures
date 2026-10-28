@@ -92,19 +92,24 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   "mostly X, partly Y" for the 13 DAs split between two.
 
 Fully static: a Python pipeline turns Statistics Canada bulk downloads into one
-PMTiles file per census (~4.6 MB for 2021, ~2.6 MB for 2016) plus `breaks.json`; MapLibre GL JS reads the tiles through
-pmtiles.js. It is hosted as a Cloudflare Worker with static assets only (no Worker
-script, no API keys). Basemap: OpenFreeMap Positron.
+PMTiles file per census (~4.6 MB for 2021, ~2.6 MB for 2016) plus `breaks.json`. It is
+hosted as a Cloudflare Worker with static assets only (no Worker script, no API keys).
+Basemap: OpenFreeMap Positron.
 
-Cloudflare's cache answers HTTP Range requests for the tiles with the whole file, which
-the stock pmtiles.js fetcher rejects. `web/src/main.js` therefore uses a small source
-that keeps range reads when a server returns 206 (as the Vite dev server does) and
-otherwise reads from the single full response.
+Cloudflare's cache answers HTTP Range requests with the whole file, so serving the
+.pmtiles directly would make every visitor download all of them. Instead
+`scripts/extract-tiles.mjs` (run by `vite.config.js` on every dev start and build)
+unpacks each archive into gzipped z/x/y files under `web/public/tiles/<name>-<hash>/`
+(about 555 files, not committed), and MapLibre fetches only the tiles in view: about
+0.5 MB for the opening whole-city view, against 4.6 MB for the 2021 archive.
+`web/src/main.js` inflates the tiles itself, so it works whether or not a server marks
+them `Content-Encoding: gzip`. The archives are left out of the deploy
+(`web/public/.assetsignore`).
 
 ```
 pipeline/            Python + Makefile: raw downloads -> GeoJSON -> PMTiles, search index
 web/                 Vite app (index.html, src/, public/ with tiles, breaks, search, _headers)
-scripts/             build-time size check (fails above the 15 MB budget)
+scripts/             tile extraction; build-time size check (2021 tiles, Cloudflare limits)
 wrangler.jsonc       Worker config: serves ./web/dist as static assets
 ```
 
@@ -115,7 +120,7 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 15 MB; fails above 15 MB)
+npm run build      # -> web/dist (about 15 MB in ~570 files; first load about 2 MB)
 npm test           # search lookups vs the pipeline's DA assignment
 ```
 
@@ -154,9 +159,10 @@ Manual deploy from a machine logged in with `npx wrangler login`:
 npm run deploy     # vite build && wrangler deploy
 ```
 
-`web/public/_headers` gives `*.pmtiles`, `search.json` and hashed assets a one-year
-immutable cache and `index.html` no-cache. The page requests those data files with
-`?v=<content hash>`, so a data rebuild still reaches visitors.
+`web/public/_headers` gives `tiles/*`, `search.json` and hashed assets a one-year
+immutable cache and `index.html` no-cache. The tile directories are named after the
+archive's content hash and the page requests `search.json` with `?v=<content hash>`,
+so a data rebuild still reaches visitors.
 
 ## Data downloads
 

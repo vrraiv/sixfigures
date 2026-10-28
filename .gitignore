@@ -42,3 +42,5 @@ web/dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+# Unpacked from the .pmtiles at build time (scripts/extract-tiles.mjs)
+web/public/tiles/

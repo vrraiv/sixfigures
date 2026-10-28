@@ -1,0 +1,3 @@
+# The .pmtiles archives are served as the unpacked files in tiles/ instead
+# (scripts/extract-tiles.mjs), so wrangler leaves them out of the deploy.
+*.pmtiles

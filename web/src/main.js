@@ -1,47 +1,27 @@
 import * as maplibregl from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { PMTiles, Protocol } from "pmtiles";
 import { compose, grabMap, toBlob } from "./snapshot.js";
 import "./style.css";
 
-// pmtiles.js reads the archive with HTTP Range requests. Cloudflare's cache in
-// front of the Worker answers those with the whole file (200), which the stock
-// FetchSource rejects. This source uses ranges when the server honours them and
-// otherwise keeps the one full response (~2 MB) and slices it.
-class RangeOrFullSource {
-  constructor(url) {
-    this.url = url;
-    this.full = null;
-  }
-  getKey() {
-    return this.url;
-  }
-  async getBytes(offset, length) {
-    if (!this.full) {
-      const resp = await fetch(this.url, { headers: { Range: `bytes=${offset}-${offset + length - 1}` } });
-      if (resp.status === 206) return { data: await resp.arrayBuffer() };
-      if (!resp.ok) throw new Error(`Tiles request failed: ${resp.status}`);
-      this.full = resp.arrayBuffer();
-    }
-    const buf = await this.full;
-    return { data: buf.slice(offset, offset + length) };
-  }
-}
-
+// Vector tiles are static files unpacked from the .pmtiles archives at build time
+// (scripts/extract-tiles.mjs), so the browser fetches only the tiles in view. They
+// are stored gzipped; this protocol inflates them unless the server or browser
+// already has. A missing tile (404, or the dev server's index.html) is empty.
 maplibregl.setWorkerUrl(workerUrl);
-const protocol = new Protocol();
-maplibregl.addProtocol("pmtiles", protocol.tile);
-const tilesUrl = (file, v) => `${location.origin}/${file}?v=${v}`;
-const TILES = {
-  da: tilesUrl("toronto_da.pmtiles", __TILES_VERSION__),
-  da16: tilesUrl("toronto_da_2016.pmtiles", __TILES16_VERSION__),
-};
-for (const url of Object.values(TILES)) protocol.add(new PMTiles(new RangeOrFullSource(url)));
+maplibregl.addProtocol("gztile", async ({ url }, abort) => {
+  const resp = await fetch(url.replace("gztile://", `${location.origin}/`), { signal: abort.signal });
+  if (resp.status === 404 || (resp.headers.get("content-type") ?? "").startsWith("text/html")) return { data: new ArrayBuffer(0) };
+  if (!resp.ok) throw new Error(`Tile request failed: ${resp.status}`);
+  const buf = await resp.arrayBuffer();
+  const b = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+  if (b[0] !== 0x1f || b[1] !== 0x8b) return { data: buf };
+  return { data: await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer() };
+});
+const tileSource = (t) => ({ type: "vector", tiles: [`gztile://${t.tiles}`], minzoom: t.minzoom, maxzoom: t.maxzoom, bounds: t.bounds });
+const TILES = __TILES__;
 // Boundary overlays (`make overlays`); null when the file wasn't built.
-const OVERLAY_TILES = __OVERLAYS_VERSION__ ? tilesUrl("overlays.pmtiles", __OVERLAYS_VERSION__) : null;
-const overlayArchive = OVERLAY_TILES && new PMTiles(new RangeOrFullSource(OVERLAY_TILES));
-if (overlayArchive) protocol.add(overlayArchive);
+const OVERLAY_TILES = TILES.ov;
 
 const STYLE = "https://tiles.openfreemap.org/styles/positron";
 const BOUNDS = [[-79.6393, 43.5792], [-79.1153, 43.8555]];
@@ -359,8 +339,7 @@ let firstSymbol;
 
 function addSourceLayers(id) {
   map.addSource(id, {
-    type: "vector",
-    url: `pmtiles://${TILES[id]}`,
+    ...tileSource(TILES[id]),
     promoteId: "dauid",
     attribution: '<a href="https://www.statcan.gc.ca/">Statistics Canada</a>',
   });
@@ -411,8 +390,8 @@ let overlay = hashParams.get("o") in OVERLAYS ? hashParams.get("o") : "none";
 // Added for every kind right after the 2021 DA layers, so the 2016 layers (added
 // later) can be slotted beneath them; a kind missing from the tiles draws nothing.
 function addOverlayLayers() {
-  if (!overlayArchive) return;
-  map.addSource("ov", { type: "vector", url: `pmtiles://${OVERLAY_TILES}` });
+  if (!OVERLAY_TILES) return;
+  map.addSource("ov", tileSource(OVERLAY_TILES));
   const font = map.getStyle().layers.find((l) => l.type === "symbol" && l.layout?.["text-font"])?.layout["text-font"]
     ?? ["Noto Sans Regular"];
   for (const [k, o] of Object.entries(OVERLAYS)) {
@@ -429,15 +408,13 @@ function addOverlayLayers() {
       paint: { "text-color": "#1a1a19", "text-halo-color": "rgba(255, 255, 255, 0.9)", "text-halo-width": 1.5 },
     });
   }
-  overlayArchive.getMetadata().then((meta) => {
-    const kinds = Object.keys(OVERLAYS).filter((k) => meta.vector_layers?.some((l) => l.id === k));
-    if (!kinds.length) return;
-    if (!kinds.includes(overlay)) overlay = "none";
-    const radio = (v, label) => `<label><input type="radio" name="overlay" value="${v}"${v === overlay ? " checked" : ""} /> ${label}</label>`;
-    $("overlay-opts").innerHTML = [radio("none", "None"), ...kinds.map((k) => radio(k, OVERLAYS[k].name))].join("");
-    $("overlays").hidden = false;
-    applyOverlay();
-  }).catch(() => {});
+  const kinds = Object.keys(OVERLAYS).filter((k) => OVERLAY_TILES.layers.includes(k));
+  if (!kinds.length) return;
+  if (!kinds.includes(overlay)) overlay = "none";
+  const radio = (v, label) => `<label><input type="radio" name="overlay" value="${v}"${v === overlay ? " checked" : ""} /> ${label}</label>`;
+  $("overlay-opts").innerHTML = [radio("none", "None"), ...kinds.map((k) => radio(k, OVERLAYS[k].name))].join("");
+  $("overlays").hidden = false;
+  applyOverlay();
 }
 
 function applyOverlay() {

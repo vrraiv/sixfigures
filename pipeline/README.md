@@ -141,8 +141,10 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
 4. `make data`. The cached extracts in `pipeline/out/` are re-streamed automatically
    when they lack a characteristic. Check the class counts that `build.py` prints.
 
-Each measure adds about 0.4 MB to the 2021 tiles, which Cloudflare serves whole, so
-every first visit downloads it.
+Each measure adds roughly a tenth to the size of every 2021 tile. The browser fetches only the tiles in
+view, so `npm run build` (`scripts/check-size.mjs`) budgets the 2021 tile set at its
+heaviest zoom level, the most any view could need: it fails above 1.5 MB (0.95 MB at
+zoom 13 with nine measures).
 
 ## Row counts (2026-10-26 build; characteristics as of 2026-10-27)
 
