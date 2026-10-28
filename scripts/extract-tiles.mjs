@@ -17,6 +17,9 @@ import { gzipSync } from "node:zlib";
 import { PMTiles } from "pmtiles";
 
 const OUT = "web/public/tiles";
+// Part of each directory's name, so a change to how tiles are written gets a fresh
+// directory (and URLs) even when the archive hasn't changed.
+const FORMAT = "2";
 
 class BufferSource {
   constructor(key, buf) {
@@ -45,7 +48,7 @@ const tileRange = (lon, lat, z) => {
 export async function extractTiles(file, name) {
   if (!existsSync(file)) return null;
   const buf = readFileSync(file);
-  const version = createHash("sha256").update(buf).digest("hex").slice(0, 12);
+  const version = createHash("sha256").update(FORMAT).update(buf).digest("hex").slice(0, 12);
   const archive = new PMTiles(new BufferSource(file, buf));
   const h = await archive.getHeader();
   const meta = await archive.getMetadata();
@@ -53,7 +56,7 @@ export async function extractTiles(file, name) {
   mkdirSync(OUT, { recursive: true });
   for (const d of readdirSync(OUT)) if (d.startsWith(`${name}-`) && d !== dir) rmSync(join(OUT, d), { recursive: true });
   if (!existsSync(join(OUT, dir))) {
-    let count = 0;
+    let count = 0, empty = 0;
     // The header bounds are the data's; tiles that only hold a feature's buffer can
     // sit just outside them, hence the one-tile margin (checked below).
     for (let z = h.minZoom; z <= h.maxZoom; z++) {
@@ -63,10 +66,14 @@ export async function extractTiles(file, name) {
       for (let x = Math.max(x0 - 1, 0); x <= Math.min(x1 + 1, n - 1); x++) {
         for (let y = Math.max(y0 - 1, 0); y <= Math.min(y1 + 1, n - 1); y++) {
           const t = await archive.getZxy(z, x, y);
-          if (!t) continue;
+          // MapLibre requests every tile within the bounds; an empty file for those
+          // with no data (open lake, mostly) saves a 404 in the console for each.
+          const inBounds = x >= x0 && x <= x1 && y >= y0 && y <= y1;
+          if (!t && !inBounds) continue;
           mkdirSync(join(OUT, `${dir}.tmp`, `${z}`, `${x}`), { recursive: true });
-          writeFileSync(join(OUT, `${dir}.tmp`, `${z}`, `${x}`, `${y}.pbf`), gzipSync(Buffer.from(t.data), { level: 9 }));
-          count++;
+          writeFileSync(join(OUT, `${dir}.tmp`, `${z}`, `${x}`, `${y}.pbf`), t ? gzipSync(Buffer.from(t.data), { level: 9 }) : "");
+          if (t) count++;
+          else empty++;
         }
       }
     }
@@ -74,7 +81,7 @@ export async function extractTiles(file, name) {
     // Written under .tmp and renamed, so an interrupted run is redone next time.
     rmSync(join(OUT, dir), { recursive: true, force: true });
     if (count) renameSync(join(OUT, `${dir}.tmp`), join(OUT, dir));
-    console.log(`${file}: ${count} tiles -> ${OUT}/${dir}`);
+    console.log(`${file}: ${count} tiles (+${empty} empty) -> ${OUT}/${dir}`);
   }
   return {
     tiles: `tiles/${dir}/{z}/{x}/{y}.pbf`,

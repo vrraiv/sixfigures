@@ -100,7 +100,8 @@ Cloudflare's cache answers HTTP Range requests with the whole file, so serving t
 .pmtiles directly would make every visitor download all of them. Instead
 `scripts/extract-tiles.mjs` (run by `vite.config.js` on every dev start and build)
 unpacks each archive into gzipped z/x/y files under `web/public/tiles/<name>-<hash>/`
-(about 555 files, not committed), and MapLibre fetches only the tiles in view: about
+(about 555 files, plus empty ones for squares with no data inside the bounds,
+which would otherwise 404; not committed), and MapLibre fetches only the tiles in view: about
 0.5 MB for the opening whole-city view, against 4.6 MB for the 2021 archive.
 `web/src/main.js` inflates the tiles itself, so it works whether or not a server marks
 them `Content-Encoding: gzip`. The archives are left out of the deploy
@@ -120,7 +121,7 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 15 MB in ~570 files; first load about 2 MB)
+npm run build      # -> web/dist (about 15 MB in ~900 files; first load about 2 MB)
 npm test           # search lookups vs the pipeline's DA assignment
 ```
 
