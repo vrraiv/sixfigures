@@ -7,9 +7,13 @@
    Toronto, keeps the characteristics listed in `measures.py`, pivots, computes the renter
    and shelter-cost shares, joins to boundaries, tags each DA with its City neighbourhood, links
    the years through the DA correspondence file, writes `pipeline/out/toronto_da.geojson`,
-   `pipeline/out/toronto_da_2016.geojson` and `web/public/breaks.json`, and (through
-   `exports.py`) the CSV downloads in `web/public/data/`.
-3. `tippecanoe` – writes `web/public/toronto_da.pmtiles` and `toronto_da_2016.pmtiles`.
+   `pipeline/out/toronto_da_2016.geojson` (every property) and `web/public/breaks.json`,
+   and (through `exports.py`) the CSV downloads in `web/public/data/` and (through
+   `figures.py`) the geometry-only `pipeline/out/toronto_da_geom.geojson` and
+   `toronto_da_2016_geom.geojson` the tiles are cut from, plus the per-measure figure
+   files in `web/public/data/figures/<year>/`.
+3. `tippecanoe` – writes `web/public/toronto_da.pmtiles` and `toronto_da_2016.pmtiles`
+   from the geometry-only GeoJSON.
 4. `pipeline/search_index.py` – writes `web/public/search.json` (address/intersection → DA
    lookup) and `pipeline/out/search_sample.json` for `npm test`.
 5. `pipeline/overlays.py` + `tippecanoe` – boundary overlays in `web/public/overlays.pmtiles`:
@@ -26,8 +30,9 @@ Separately:
   `make breaks`. Last run 2026-10-26: Toronto 128.3 → 140.3 (×1.0935, vector v41695186);
   a Canada run returned 126.6 → 137.0, as published.
 - `make breaks` – `pipeline/refresh.py` reapplies the CPI factor and histograms to
-  `breaks.json` and rewrites the CSVs from `pipeline/out/*.geojson`, without the raw
-  downloads. It checks that the GeoJSON matches the breaks (same comparable-DA counts).
+  `breaks.json` and rewrites the CSVs and figure files from `pipeline/out/*.geojson`,
+  without the raw downloads. It checks that the GeoJSON matches the breaks (same
+  comparable-DA counts).
 
 The FSA boundary file comes from www12.statcan.gc.ca, whose bot challenge rejects
 scripts, so `download.py` lists it as optional: fetch
@@ -151,12 +156,14 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
 4. `make data`. The cached extracts in `pipeline/out/` are re-streamed automatically
    when they lack a characteristic. Check the class counts that `build.py` prints.
 
-Each measure adds to the size of every 2021 tile. The browser fetches only the tiles in
-view, so `npm run build` (`scripts/check-size.mjs`) budgets the 2021 tile set at its
-heaviest zoom level, the most any view could need: it fails above 2 MB (0.95 MB at
-zoom 13 with nine measures; 1.76 MB with 27, for a first load of about 2.75 MB).
+A measure adds one JSON file per census to `web/public/data/figures/` (about 20–25 KB
+compressed for 2021), not to the tiles, which carry only DA numbers. The browser
+fetches only the tiles in view, and `npm run build` (`scripts/check-size.mjs`) budgets
+the 2021 tile set at its heaviest zoom level, the most any view could need: it fails
+above 2 MB (it was 1.76 MB with 27 measures in the tiles; a few hundred KB without).
 The tiles are built with `--no-tile-size-limit`: under tippecanoe's default 500 KB
-limit, 27 measures made it drop about 1,500 of the 3,743 DAs at zooms 9 and 10.
+limit, 27 measures in the tiles made it drop about 1,500 of the 3,743 DAs at zooms 9
+and 10.
 
 ## Row counts (2026-10-26 build; characteristics as of 2026-10-27)
 
@@ -183,16 +190,21 @@ Matched characteristics: see `CHARS_2021` (`CHARACTERISTIC_ID`) and `CHARS_2016`
 100 (average household income, transfers share, shelter costs), 81 (LIM-AT), 16
 (tenure). 2016: 23 / 66 (household / individual medians), 87, 66, 66, 19, 87.
 
-## Output properties (`da` layer)
+## Outputs: tiles and figure files
 
-2021 (`toronto_da.pmtiles`): `dauid`, each measure in `measures.py` (dollars as whole
-numbers, rates with one decimal), `pop21`, `hh`, `pct_<measure>` (1–100), `nbhd`,
-`nbhd_id`, `nbhd2`, `rel` (correspondence flag), and for `rel` = 1: `v16_<measure>`,
-`p16_<measure>` (2016 value and percentile).
+The tiles (`toronto_da.pmtiles`, `toronto_da_2016.pmtiles`, layer `da`) carry one
+property, `dauid`, which is also the feature id. The figures live in
+`web/public/data/figures/<2021|2016>/`, every file listing DAs in the same order:
 
-2016 (`toronto_da_2016.pmtiles`): the same measure fields for 2016 plus `pop16`, and
-`rel` = 1 if the DA is unchanged in 2021, else 0. Nulls are omitted from the tiles, so a
-suppressed value is simply absent (the map tests `has`).
+- `common.json`: `dauid`, `nbhd`, `nbhd_id`, `nbhd2`, `pop21` (or `pop16`), `hh`, `rel`
+  (2021: the correspondence flag, 1 = same boundary as 2016; 2016: 1 if unchanged in 2021).
+- `<measure>.json`: `v` (dollars as whole numbers, rates with one decimal; null where
+  suppressed), `pct` (percentile, 1–100) and, for 2021 DAs with `rel` = 1, `v16` and
+  `p16` (the 2016 value and percentile).
+
+`pipeline/out/toronto_da.geojson` and `toronto_da_2016.geojson` keep every property
+in one place (`refresh.py` reads them): the measures, `pct_<measure>`, `v16_<measure>`,
+`p16_<measure>` and the common fields above.
 
 ## Installing tippecanoe
 

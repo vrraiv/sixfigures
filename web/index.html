@@ -88,12 +88,21 @@
     <main class="map-wrap">
       <div id="map" aria-label="Map of median income by dissemination area"></div>
       <script>
-        // Starts the opening view's DA tiles downloading now, ahead of the app
-        // script and the basemap style (vite.config.js fills in the tile source).
-        // Works out the zoom fitBounds will pick and the tiles that cover the data.
-        (function (t) {
+        // Starts the opening view's figures and DA tiles downloading now, ahead of
+        // the app script and the basemap style (vite.config.js fills in the tile
+        // source and the figures version). The tiles: works out the zoom fitBounds
+        // will pick and the tiles that cover the data.
+        (function (t, fv) {
+          var link = function (href) {
+            var l = document.createElement("link");
+            l.rel = "preload"; l.as = "fetch"; l.crossOrigin = "anonymous"; l.href = href;
+            document.head.appendChild(l);
+          };
+          var h = location.hash, m = /[#&]m=([a-z0-9_]+)/.exec(h), y = /[#&]y=2016(&|$)/.test(h) ? "2016" : "2021";
+          link("/data/figures/" + y + "/common.json?v=" + fv);
+          link("/data/figures/" + y + "/" + (m ? m[1] : "med_hh_tot") + ".json?v=" + fv);
           var el = document.getElementById("map");
-          if (!t || !el || !el.clientWidth || !el.clientHeight || /[#&]at=/.test(location.hash)) return;
+          if (!t || !el || !el.clientWidth || !el.clientHeight || /[#&]at=/.test(h)) return;
           var b = t.bounds, p = 24, n;
           var my = function (lat) { return (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / 360; };
           var z = Math.floor(Math.log2(Math.min((el.clientWidth - 2 * p) / (((b[2] - b[0]) / 360) * 512), (el.clientHeight - 2 * p) / ((my(b[1]) - my(b[3])) * 512))));
@@ -103,13 +112,10 @@
           var ty = function (lat) { return Math.floor(my(lat) * n); };
           for (var x = tx(b[0]); x <= tx(b[2]); x++) {
             for (var y = ty(b[3]); y <= ty(b[1]); y++) {
-              var l = document.createElement("link");
-              l.rel = "preload"; l.as = "fetch"; l.crossOrigin = "anonymous";
-              l.href = "/" + t.tiles.replace("{z}", z).replace("{x}", x).replace("{y}", y);
-              document.head.appendChild(l);
+              link("/" + t.tiles.replace("{z}", z).replace("{x}", x).replace("{y}", y));
             }
           }
-        })(__DA_TILES__);
+        })(__DA_TILES__, __FIGURES_VERSION__);
       </script>
       <div class="crosshair" aria-hidden="true"></div>
       <div id="pinchip" class="pinchip" hidden></div>

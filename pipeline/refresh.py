@@ -13,6 +13,7 @@ import pandas as pd
 
 from distributions import add_distributions
 from exports import write_csvs
+from figures import write_figures
 from measures import MEASURES
 
 HERE = Path(__file__).parent
@@ -40,6 +41,7 @@ def main():
     BREAKS.write_text(json.dumps(breaks, indent=2) + "\n")
     print(f"wrote {BREAKS} (CPI x{breaks['cpi']['factor']}, {breaks['cpi']['geography']})")
     write_csvs(gdf, g16)
+    write_figures(gdf, g16)
 
 
 if __name__ == "__main__":
