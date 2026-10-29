@@ -977,7 +977,9 @@ canvas.addEventListener("keydown", (e) => {
 
 // ---- load -------------------------------------------------------------------
 
-map.on("load", () => {
+// The data layers go in as soon as the style is parsed, before the basemap's own
+// tiles, sprite and glyphs arrive, so the DA tiles download and parse alongside them.
+map.once("style.load", () => {
   map.addImage("hatch", pattern("hatch"), { pixelRatio: 2 });
   map.addImage("dots", pattern("dots"), { pixelRatio: 2 });
   // Draw data beneath the basemap's labels.
@@ -985,6 +987,9 @@ map.on("load", () => {
   addSourceLayers("da");
   addOverlayLayers();
   applyView();
+});
+
+map.on("load", () => {
   select.addEventListener("change", () => {
     applyView();
     if (current) showDetails(current.props, current.lngLat, current.note);

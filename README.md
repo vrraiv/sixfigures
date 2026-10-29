@@ -111,7 +111,9 @@ Cloudflare's cache answers HTTP Range requests with the whole file, so serving t
 unpacks each archive into gzipped z/x/y files under `web/public/tiles/<name>-<hash>/`
 (about 555 files, plus empty ones for squares with no data inside the bounds,
 which would otherwise 404; not committed), and MapLibre fetches only the tiles in view: about
-0.5 MB for the opening whole-city view, against 4.6 MB for the 2021 archive.
+1 MB (two z10 tiles) for the opening whole-city view on a desktop, against 4.6 MB for the
+2021 archive. `index.html` starts those downloads before the app script arrives, and the
+DA layers go in at `style.load`, so they load alongside the basemap rather than after it.
 `web/src/main.js` inflates the tiles itself, so it works whether or not a server marks
 them `Content-Encoding: gzip`. The archives are left out of the deploy
 (`web/public/.assetsignore`).
