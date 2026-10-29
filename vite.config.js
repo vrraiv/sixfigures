@@ -25,4 +25,6 @@ export default defineConfig({
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
   },
   build: { outDir: "dist", emptyOutDir: true },
+  // index.html preloads the opening view's DA tiles; it needs the tile source for that.
+  plugins: [{ name: "da-tiles-in-html", transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)) }],
 });
