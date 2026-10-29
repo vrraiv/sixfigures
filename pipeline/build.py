@@ -27,6 +27,7 @@ import pandas as pd
 import census2016
 from distributions import add_distributions
 from exports import write_csvs
+from figures import GEOMETRY, write_figures
 from measures import CHARS_2021, MEASURES, MONEY, derive_city_shares, derive_shares, label, targets
 
 HERE = Path(__file__).parent
@@ -292,11 +293,15 @@ def main():
     OUT.mkdir(exist_ok=True)
     write_geojson(gdf, OUT / "toronto_da.geojson")
     write_geojson(g16, OUT / "toronto_da_2016.geojson")
+    # The tiles carry only DA numbers; the figures go out as small JSON files.
+    write_geojson(gdf[GEOMETRY], OUT / "toronto_da_geom.geojson")
+    write_geojson(g16[GEOMETRY], OUT / "toronto_da_2016_geom.geojson")
 
     WEB.mkdir(parents=True, exist_ok=True)
     (WEB / "breaks.json").write_text(json.dumps(breaks, indent=2) + "\n")
     print(f"wrote {WEB / 'breaks.json'}")
     write_csvs(gdf, g16)
+    write_figures(gdf, g16)
 
 
 if __name__ == "__main__":

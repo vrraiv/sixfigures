@@ -5,6 +5,10 @@ PYTHON ?= python3
 RAW       := pipeline/raw
 GEOJSON   := pipeline/out/toronto_da.geojson
 GEOJSON16 := pipeline/out/toronto_da_2016.geojson
+# geometry-only copies the tiles are cut from; the figures go to web/public/data/figures
+GEOM      := pipeline/out/toronto_da_geom.geojson
+GEOM16    := pipeline/out/toronto_da_2016_geom.geojson
+FIGURES   := web/public/data/figures/2021/common.json
 PMTILES   := web/public/toronto_da.pmtiles
 PMTILES16 := web/public/toronto_da_2016.pmtiles
 BREAKS    := web/public/breaks.json
@@ -31,9 +35,9 @@ $(STATCAN) $(TORONTO):
 
 # build.py also applies cpi.json and writes the CSVs, but a change to those alone
 # only needs `make breaks`, not a rebuild of the GeoJSON and tiles.
-$(GEOJSON) $(GEOJSON16) $(BREAKS) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
+$(GEOJSON) $(GEOJSON16) $(GEOM) $(GEOM16) $(BREAKS) $(FIGURES) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
                                      pipeline/build.py pipeline/census2016.py pipeline/distributions.py \
-                                     pipeline/measures.py
+                                     pipeline/measures.py pipeline/figures.py
 	$(PYTHON) pipeline/build.py
 
 # Refresh the CPI from StatCan's Web Data Service, then re-apply it (and the
@@ -47,8 +51,8 @@ breaks:
 
 tiles: $(PMTILES) $(PMTILES16)
 
-$(PMTILES): $(GEOJSON)
-$(PMTILES16): $(GEOJSON16)
+$(PMTILES): $(GEOM)
+$(PMTILES16): $(GEOM16)
 # No tile size limit: with one, tippecanoe drops DAs from the whole-city view
 # rather than exceed 500 KB a tile. scripts/check-size.mjs budgets the result.
 $(PMTILES) $(PMTILES16):

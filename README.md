@@ -105,9 +105,10 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   "mostly X, partly Y" for the 13 DAs split between two.
 
 Fully static: a Python pipeline turns Statistics Canada bulk downloads into one
-PMTiles file per census (~4.6 MB for 2021, ~2.6 MB for 2016) plus `breaks.json`. It is
-hosted as a Cloudflare Worker with static assets only (no Worker script, no API keys).
-Basemap: OpenFreeMap Positron.
+PMTiles file of DA outlines per census (~1.2 MB for 2021, ~0.9 MB for 2016), the
+figures as one small JSON file per measure and census (`data/figures/`), and
+`breaks.json`. It is hosted as a Cloudflare Worker with static assets only (no Worker
+script, no API keys). Basemap: OpenFreeMap Positron.
 
 Cloudflare's cache answers HTTP Range requests with the whole file, so serving the
 .pmtiles directly would make every visitor download all of them. Instead
@@ -115,9 +116,13 @@ Cloudflare's cache answers HTTP Range requests with the whole file, so serving t
 unpacks each archive into gzipped z/x/y files under `web/public/tiles/<name>-<hash>/`
 (about 555 files, plus empty ones for squares with no data inside the bounds,
 which would otherwise 404; not committed), and MapLibre fetches only the tiles in view: about
-1 MB (two z10 tiles) for the opening whole-city view on a desktop, against 4.6 MB for the
-2021 archive. `index.html` starts those downloads before the app script arrives, and the
-DA layers go in at `style.load`, so they load alongside the basemap rather than after it.
+130 KB (two z10 tiles) for the opening whole-city view on a desktop. The tiles carry only
+each DA's number; `web/src/figures.js` fetches the figures of the measure on show (about
+55 KB with the place names and population) and attaches each DA's colour class to its
+tile feature through feature state, so a change of measure never refetches tiles.
+`index.html` starts the opening view's tile and figure downloads before the app script
+arrives, and the DA layers go in at `style.load`, so they load alongside the basemap
+rather than after it.
 `web/src/main.js` inflates the tiles itself, so it works whether or not a server marks
 them `Content-Encoding: gzip`. The archives are left out of the deploy
 (`web/public/.assetsignore`).
@@ -136,14 +141,14 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 15 MB in ~900 files; first load about 2 MB)
-npm test           # search lookups vs the pipeline's DA assignment
+npm run build      # -> web/dist (about 15 MB in ~970 files; first load about 2 MB before compression)
+npm test           # search lookups, wheel zoom bounds, figures loader
 ```
 
 ## Rebuild the data
 
 The derived `web/public/*.pmtiles` (including `overlays.pmtiles`), `breaks.json`,
-`search.json` and `data/*.csv` are
+`search.json`, `data/figures/` and `data/*.csv` are
 committed, so this is only needed to change the pipeline. From WSL, Linux or macOS,
 with Python 3.11+ and tippecanoe installed:
 

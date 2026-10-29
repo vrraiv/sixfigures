@@ -4,8 +4,9 @@
 // The map tiles are static files under tiles/ (scripts/extract-tiles.mjs), so the
 // browser fetches only those in view. The budget is the whole 2021 tile set at
 // its heaviest zoom level: no view can need more than that, and the opening
-// whole-city view (zoom 10 or so) needs about a whole level. Each measure adds to
-// every tile. The 2016 tiles, search.json and the CSVs load only on demand.
+// whole-city view (zoom 10 or so) needs about a whole level. The tiles carry only
+// DA numbers; the figures are small files per measure (data/figures/). The 2016
+// tiles, search.json and the CSVs load only on demand.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -32,8 +33,8 @@ for (const f of files) {
 const [heavy, heavyBytes] = Object.entries(zooms).sort((a, b) => b[1] - a[1])[0] ?? [null, 0];
 const z10 = zooms[10] ?? 0;
 // Loaded before the map draws: the page, its CSS and JS (but not the lazy search
-// chunk), the MapLibre worker, breaks.json and the zoom-10 tiles.
-const first = size(/^(index\.html|breaks\.json|assets\/(index|maplibre)-.*)$/) + z10;
+// chunk), the MapLibre worker, breaks.json, the opening view's figures and the zoom-10 tiles.
+const first = size(/^(index\.html|breaks\.json|data\/figures\/2021\/(common|med_hh_tot)\.json|assets\/(index|maplibre)-.*)$/) + z10;
 const total = files.reduce((a, f) => a + f.size, 0);
 console.log(`2021 tiles: heaviest zoom (z${heavy}) ${mb(heavyBytes)} MB of ${mb(ZOOM_LIMIT)} MB budget; first load ~${mb(first)} MB; deploying ${mb(total)} MB in ${files.length} files`);
 

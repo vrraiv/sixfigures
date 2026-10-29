@@ -3,6 +3,7 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { compose, grabMap, toBlob } from "./snapshot.js";
 import { wheelZoom } from "./wheel.js";
+import { Figures, classIndex } from "./figures.js";
 import "./style.css";
 
 // Vector tiles are static files unpacked from the .pmtiles archives at build time
@@ -171,6 +172,14 @@ const cerbNote = (m) => (MEASURES[m].group === "income" ? " 2020 incomes include
 const sourceOf = (v) => (v === "2016" ? "da16" : "da");
 const yearOf = (v) => (v === "2016" ? "2016" : "2021");
 
+// The tiles carry only DA numbers; the figures come apart, a small file per
+// measure and census (figures.js), and are joined to the tiles by feature state.
+const figures = { da: new Figures("2021"), da16: new Figures("2016") };
+const groupOf = (m) => Object.keys(MEASURES).filter((k) => MEASURES[k].group === MEASURES[m].group);
+// A DA's figures (those loaded so far of the current measure's group), or null
+// for a DA that isn't in the figures; `source` is the tile source it came from.
+const propsOf = (source, dauid) => figures[source].props(dauid, groupOf(select.value));
+
 const map = new maplibregl.Map({
   container: "map",
   style: STYLE,
@@ -183,27 +192,22 @@ wheelZoom(map);
 // /#diag overlays the graphics driver, frame times, wheel events and load timings.
 if (hashParams.has("diag")) import("./diag.js").then((d) => d.diagnostics(map));
 
-// ---- colour expressions -----------------------------------------------------
+// ---- colouring ----------------------------------------------------------------
+// Each DA's legend class is worked out here and attached to its tile feature as
+// feature state `cls`: 0.. its class, SUPPRESSED (hatched), CHANGED (dotted, in
+// the change view), or unset until the figures arrive. The paint expressions
+// only read `cls`, so they are the same for every measure.
 
-function step(value, stops, colors) {
-  const expr = ["step", value, colors[0]];
-  stops.forEach((s, i) => expr.push(s, colors[i + 1]));
-  return expr;
-}
-
+const SUPPRESSED = -1, CHANGED = -2;
+const CLS = ["coalesce", ["feature-state", "cls"], -3];
 // Pooled 2016+2021 quantile breaks: a colour means the same value in both years.
-const levelColor = (m) => step(["get", m], breaks.measures[m].breaks.slice(1, -1), COLORS);
+const palette = () => (view === "change" ? DIVERGING : COLORS);
+const fillColor = () => ["match", CLS, ...palette().flatMap((c, i) => [i, c]), "rgba(0,0,0,0)"];
 
 // Dollar figures in the change view are in real dollars unless "nominal" is
 // chosen (also while a rate measure is shown, for its group's money rows).
 const realDollars = () => changeBy.value !== "dollars";
 const byPoints = () => changeBy.value === "points";
-
-function changeValue(m) {
-  if (byPoints()) return ["-", ["get", `pct_${m}`], ["get", `p16_${m}`]];
-  if (isMoney(m) && realDollars()) return ["-", ["get", m], ["*", ["get", `v16_${m}`], cpiOf(m)]];
-  return ["-", ["get", m], ["get", `v16_${m}`]];
-}
 const changeStops = (m) => breaks.measures[m].change[byPoints() ? "points" : "value"];
 
 // Change in a DA's value for measure k (null if not comparable): dollars, real
@@ -213,11 +217,34 @@ function valueChange(p, k) {
   if (!isMoney(k)) return Math.round((p[k] - p[`v16_${k}`]) * 10) / 10;
   return Math.round(p[k] - p[`v16_${k}`] * (realDollars() ? cpiOf(k) : 1));
 }
-const changeColor = (m) => step(changeValue(m), changeStops(m), DIVERGING);
 
-// Change is only defined for boundary-identical DAs published in both years.
-const comparable = (m) => ["all", ["==", ["get", "rel"], 1], ["has", m], ["has", `v16_${m}`]];
-const notPublished = (m) => ["all", ["==", ["get", "rel"], 1], ["!", comparable(m)]];
+// Legend class (0 = lowest) of a DA with figures p in the current view. Change is
+// only defined for boundary-identical DAs published in both years.
+function classOf(p, m) {
+  if (view !== "change") return p[m] == null ? SUPPRESSED : classIndex(p[m], breaks.measures[m].breaks.slice(1, -1));
+  if (p.rel !== 1) return CHANGED;
+  const dc = valueChange(p, m);
+  if (dc == null) return SUPPRESSED;
+  return classIndex(byPoints() ? p[`pct_${m}`] - p[`p16_${m}`] : dc, changeStops(m));
+}
+
+// Gives every DA of the current source its class for the current measure and
+// view, once that measure's figures are here. A later call supersedes a pending one.
+let paintToken = 0;
+async function paintView() {
+  const src = sourceOf(view), m = select.value, token = ++paintToken;
+  const f = figures[src];
+  try {
+    await f.load(m);
+  } catch {
+    if (token === paintToken) showToast("Couldn't load this measure's figures. Check your connection and try again.");
+    return;
+  }
+  if (token !== paintToken) return;
+  for (const dauid of f.dauids) {
+    map.setFeatureState({ source: src, sourceLayer: "da", id: dauid }, { cls: classOf(f.props(dauid, [m]), m) });
+  }
+}
 
 function pattern(kind) {
   const size = 16, c = document.createElement("canvas");
@@ -324,19 +351,14 @@ let focusCls = null; // class kept by a click
 let previewCls = null; // class under the pointer or keyboard focus
 let focusKey = null; // classes differ between level and change views and bases
 
-// Legend class index (0 = lowest) of each DA in the current view.
-function classExpr() {
-  const m = select.value;
-  return view === "change"
-    ? step(changeValue(m), changeStops(m), DIVERGING.map((_, i) => i))
-    : step(["get", m], breaks.measures[m].breaks.slice(1, -1), COLORS.map((_, i) => i));
-}
-
 function applyFocus() {
   const k = previewCls ?? focusCls;
   const src = sourceOf(view);
-  map.setPaintProperty(`${src}-fill`, "fill-opacity", k == null ? 0.85 : ["case", ["==", classExpr(), k], 0.9, 0.12]);
-  for (const l of [`${src}-sup`, ...(src === "da" ? ["da-nocmp"] : [])]) map.setPaintProperty(l, "fill-opacity", k == null ? 0.9 : 0.3);
+  map.setPaintProperty(`${src}-fill`, "fill-opacity", k == null ? 0.85 : ["case", ["==", CLS, k], 0.9, 0.12]);
+  // The hatched and dotted fills cover every DA; opacity picks out theirs.
+  const dim = k == null ? 0.9 : 0.3;
+  map.setPaintProperty(`${src}-sup`, "fill-opacity", ["case", ["==", CLS, SUPPRESSED], dim, 0]);
+  if (src === "da") map.setPaintProperty("da-nocmp", "fill-opacity", ["case", ["==", CLS, CHANGED], dim, 0]);
   for (const b of document.querySelectorAll(".lg-cls")) {
     const i = +b.dataset.cls;
     b.setAttribute("aria-pressed", String(i === focusCls));
@@ -378,7 +400,7 @@ $("legend-all").addEventListener("click", () => {
 
 // ---- layers -----------------------------------------------------------------
 
-const HIT = { da: ["da-fill", "da-sup", "da-nocmp"], da16: ["da16-fill", "da16-sup"] };
+const HIT = { da: ["da-fill"], da16: ["da16-fill"] }; // the fill covers every DA
 const hitLayers = () => HIT[sourceOf(view)].filter((l) => map.getLayer(l));
 let firstSymbol;
 
@@ -391,26 +413,23 @@ function addSourceLayers(id) {
   const base = { source: id, "source-layer": "da", layout: { visibility: "none" } };
   // Fills and DA outlines go beneath the boundary overlays; highlights above them.
   const under = map.getLayer(OVERLAY_FIRST) ? OVERLAY_FIRST : firstSymbol;
-  map.addLayer({ ...base, id: `${id}-fill`, type: "fill", paint: { "fill-opacity": 0.85 } }, under);
-  map.addLayer({ ...base, id: `${id}-sup`, type: "fill", paint: { "fill-pattern": "hatch", "fill-opacity": 0.9 } }, under);
-  if (id === "da") {
-    map.addLayer({ ...base, id: "da-nocmp", type: "fill", filter: ["!=", ["get", "rel"], 1], paint: { "fill-pattern": "dots", "fill-opacity": 0.9 } }, under);
-  }
+  // The three fills share a layout and have no filter, so MapLibre builds their
+  // geometry once per tile; feature state decides which shows where (applyFocus).
+  map.addLayer({ ...base, id: `${id}-fill`, type: "fill", paint: { "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0.85 } }, under);
+  map.addLayer({ ...base, id: `${id}-sup`, type: "fill", paint: { "fill-pattern": "hatch", "fill-opacity": 0 } }, under);
+  if (id === "da") map.addLayer({ ...base, id: "da-nocmp", type: "fill", paint: { "fill-pattern": "dots", "fill-opacity": 0 } }, under);
   map.addLayer({
     ...base, id: `${id}-line`, type: "line",
     paint: { "line-color": "#ffffff", "line-opacity": 0.7, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 14, 1] },
   }, under);
+  // One layer outlines the hovered, pinned and selected DAs (selected wins, then pinned).
+  const flag = (k) => ["boolean", ["feature-state", k], false];
   map.addLayer({
-    ...base, id: `${id}-hover`, type: "line",
-    paint: { "line-color": "#1a1a19", "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 2, 0] },
-  }, firstSymbol);
-  map.addLayer({
-    ...base, id: `${id}-pinned`, type: "line",
-    paint: { "line-color": "#7a3db8", "line-width": ["case", ["boolean", ["feature-state", "pinned"], false], 3, 0] },
-  }, firstSymbol);
-  map.addLayer({
-    ...base, id: `${id}-selected`, type: "line",
-    paint: { "line-color": "#eb6834", "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 3, 0] },
+    ...base, id: `${id}-mark`, type: "line",
+    paint: {
+      "line-color": ["case", flag("selected"), "#eb6834", flag("pinned"), "#7a3db8", "#1a1a19"],
+      "line-width": ["case", flag("selected"), 3, flag("pinned"), 3, flag("hover"), 2, 0],
+    },
   }, firstSymbol);
   for (const layer of HIT[id]) {
     map.on("mousemove", layer, onHover);
@@ -443,7 +462,7 @@ function addOverlayLayers() {
     map.addLayer({
       id: `ov-${k}`, type: "line", source: "ov", "source-layer": k, layout: { visibility: "none", "line-join": "round" },
       paint: { "line-color": "#1a1a19", "line-opacity": 0.8, "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.8, 14, 2.2] },
-    }, "da-hover");
+    }, "da-mark");
     map.addLayer({
       id: `ov-${k}-label`, type: "symbol", source: "ov", "source-layer": `${k}_label`, minzoom: o.labelMinzoom,
       layout: {
@@ -487,20 +506,12 @@ function applyView() {
   for (const id of ["da", "da16"]) {
     if (!map.getSource(id)) continue;
     const vis = id === src ? "visible" : "none";
-    for (const l of ["fill", "sup", "line", "hover", "pinned", "selected", ...(id === "da" ? ["nocmp"] : [])]) {
+    for (const l of ["fill", "sup", "line", "mark", ...(id === "da" ? ["nocmp"] : [])]) {
       map.setLayoutProperty(`${id}-${l}`, "visibility", l === "nocmp" && view !== "change" ? "none" : vis);
     }
   }
-  if (view === "change") {
-    map.setPaintProperty("da-fill", "fill-color", changeColor(m));
-    map.setFilter("da-fill", comparable(m));
-    map.setFilter("da-sup", notPublished(m));
-  } else {
-    map.setPaintProperty(`${src}-fill`, "fill-color", levelColor(m));
-    // A suppressed value is absent from the tiles.
-    map.setFilter(`${src}-fill`, ["has", m]);
-    map.setFilter(`${src}-sup`, ["!", ["has", m]]);
-  }
+  map.setPaintProperty(`${src}-fill`, "fill-color", fillColor());
+  paintView();
   changeBy.hidden = view !== "change";
   renderLegend();
   // A kept class survives a change of measure or census, not a change of classes
@@ -517,8 +528,8 @@ let mapMoved = false; // keep the default whole-city framing out of links until 
 function writeHash() {
   const h = new URLSearchParams({ m: select.value, y: view });
   if (view === "change") h.set("c", changeBy.value);
-  if (current) h.set("da", current.props.dauid);
-  if (pinned) h.set("vs", pinned.props.dauid);
+  if (current) h.set("da", current.dauid);
+  if (pinned) h.set("vs", pinned.dauid);
   if (overlay !== "none") h.set("o", overlay);
   if (hashParams.has("diag")) h.set("diag", "");
   if (mapMoved || camera.center) {
@@ -534,7 +545,7 @@ async function setView(next) {
   applyView();
   const toSrc = sourceOf(view);
   if (fromSrc === toSrc) {
-    if (current) showDetails(current.props, current.lngLat, current.note);
+    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
     return;
   }
   // Different boundary set: outlines and search messages refer to the old one.
@@ -545,17 +556,17 @@ async function setView(next) {
   setStatus("");
   if (!carry) return;
   // Carry the selected DA across only when its boundary is the same in both years.
-  const { props, lngLat, note } = carry;
-  if (props.rel !== 1) {
-    setStatus(`DA ${props.dauid}'s boundary changed between 2016 and 2021, so it has no direct counterpart. Click a DA to see its figures.`);
+  const { dauid, lngLat, note } = carry;
+  if (figures[fromSrc].props(dauid)?.rel !== 1) {
+    setStatus(`DA ${dauid}'s boundary changed between 2016 and 2021, so it has no direct counterpart. Click a DA to see its figures.`);
     return;
   }
   await idle();
   if (view !== next) return; // toggled again while waiting
-  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], props.dauid] });
+  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
   if (!f) return;
-  select_(toSrc, [props.dauid]);
-  showDetails(f.properties, lngLat, note);
+  select_(toSrc, [dauid]);
+  showDetails(toSrc, dauid, lngLat, note);
 }
 
 // ---- hover + details --------------------------------------------------------
@@ -566,7 +577,7 @@ tooltip.hidden = true;
 document.body.append(tooltip);
 
 let hover = null; // { source, id }
-let current = null; // { props, lngLat, note, source } of the shown DA
+let current = null; // { source, dauid, lngLat, note } of the shown DA
 // Not closeOnClick: its map click handler runs after the layer's and would
 // close the popup that a click on another DA has just filled.
 const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false, closeOnClick: false });
@@ -596,11 +607,17 @@ function tooltipText(p) {
   return `${v} · DA ${p.dauid}, in ${p.nbhd}`;
 }
 
+// The tooltip line for a tile feature; just its number until its figures are here.
+function featureText(f) {
+  const p = propsOf(f.source, f.id);
+  return p && figures[f.source].has(select.value) ? tooltipText(p) : `DA ${f.id}`;
+}
+
 function onHover(e) {
   const f = e.features[0];
   setHover(f.source, f.id);
   map.getCanvas().style.cursor = "pointer";
-  tooltip.textContent = tooltipText(f.properties);
+  tooltip.textContent = featureText(f);
   tooltip.style.transform = `translate(${e.originalEvent.clientX + 14}px, ${e.originalEvent.clientY + 14}px)`;
   tooltip.hidden = narrow.matches;
 }
@@ -617,7 +634,7 @@ function onClick(e) {
   clearSelection();
   // Keep the clicked DA outlined, so its borders show in snapshots too.
   select_(f.source, [f.id]);
-  showDetails(f.properties, e.lngLat);
+  showDetails(f.source, f.id, e.lngLat);
 }
 
 // DAs have no names; show the City of Toronto neighbourhood that covers most of it.
@@ -691,7 +708,7 @@ function detailsModel(p, note) {
   return {
     note,
     compare: compareModel(p),
-    pinnedHere: pinned?.props.dauid === p.dauid,
+    pinnedHere: pinned?.dauid === p.dauid,
     dist: distModel(p),
     heading: `DA ${p.dauid}${view === "2016" ? " (2016 boundary)" : ""}`,
     sub: placeLine(p),
@@ -760,11 +777,12 @@ function distHTML(d) {
 
 // ---- compare with a pinned DA -------------------------------------------------
 
-let pinned = null; // { props, source }
+let pinned = null; // { source, dauid }
 
 function compareModel(p) {
-  if (!pinned || pinned.props.dauid === p.dauid) return null;
-  const q = pinned.props;
+  if (!pinned || pinned.dauid === p.dauid || pinned.source !== sourceOf(view)) return null;
+  const q = propsOf(pinned.source, pinned.dauid);
+  if (!q) return null;
   const m = select.value, money = isMoney(m);
   const change = view === "change", pts = change && byPoints();
   const val = (x, k) => {
@@ -790,15 +808,15 @@ function compareModel(p) {
 }
 
 function setPin(next) {
-  if (pinned) map.setFeatureState({ source: pinned.source, sourceLayer: "da", id: pinned.props.dauid }, { pinned: false });
+  if (pinned) map.setFeatureState({ source: pinned.source, sourceLayer: "da", id: pinned.dauid }, { pinned: false });
   pinned = next;
-  if (pinned) map.setFeatureState({ source: pinned.source, sourceLayer: "da", id: pinned.props.dauid }, { pinned: true });
+  if (pinned) map.setFeatureState({ source: pinned.source, sourceLayer: "da", id: pinned.dauid }, { pinned: true });
   const chip = $("pinchip");
   chip.hidden = !pinned;
   chip.innerHTML = pinned
-    ? `<span>Comparing with <strong>DA ${escapeHTML(pinned.props.dauid)}</strong>, ${escapeHTML(pinned.props.nbhd)}. ${narrow.matches ? "Tap" : "Click"} another DA.</span> <button type="button" class="unpin">Unpin</button>`
+    ? `<span>Comparing with <strong>DA ${escapeHTML(pinned.dauid)}</strong>, ${escapeHTML(propsOf(pinned.source, pinned.dauid)?.nbhd ?? "")}. ${narrow.matches ? "Tap" : "Click"} another DA.</span> <button type="button" class="unpin">Unpin</button>`
     : "";
-  if (current) showDetails(current.props, current.lngLat, current.note);
+  if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
   else writeHash();
 }
 
@@ -806,23 +824,23 @@ function setPin(next) {
 // boundary is the same in both.
 async function carryPin(toSrc) {
   if (!pinned || pinned.source === toSrc) return;
-  const { props } = pinned;
+  const { source, dauid } = pinned;
   setPin(null);
-  if (props.rel !== 1) {
-    showToast(`Unpinned DA ${props.dauid}: its boundary changed between 2016 and 2021.`, 5000);
+  if (figures[source].props(dauid)?.rel !== 1) {
+    showToast(`Unpinned DA ${dauid}: its boundary changed between 2016 and 2021.`, 5000);
     return;
   }
   await idle();
-  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], props.dauid] });
+  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
   if (sourceOf(view) !== toSrc) return; // toggled back while waiting
-  if (f) setPin({ props: f.properties, source: toSrc });
-  else showToast(`Unpinned DA ${props.dauid}: it isn't loaded at this zoom. Zoom in and pin it again.`, 5000);
+  if (f) setPin({ source: toSrc, dauid });
+  else showToast(`Unpinned DA ${dauid}: it isn't loaded at this zoom. Zoom in and pin it again.`, 5000);
 }
 
 document.addEventListener("click", (e) => {
   if (e.target.closest(".unpin")) return setPin(null);
   if (!e.target.closest(".pinbtn") || !current) return;
-  setPin(pinned?.props.dauid === current.props.dauid ? null : { props: current.props, source: sourceOf(view) });
+  setPin(pinned?.dauid === current.dauid ? null : { source: current.source, dauid: current.dauid });
   // On phones the sheet covers most of the map; get it out of the way so the
   // second DA can be tapped. The pin chip says what to do next.
   if (pinned && narrow.matches) closeDetails();
@@ -855,7 +873,20 @@ function detailsHTML(d) {
     </div>`;
 }
 
-function showDetails(props, lngLat, note) {
+// Opens a DA's details once its group's figures are here; a later call for
+// another DA (or the same one in a new view) supersedes a pending one.
+let detailsToken = 0;
+async function showDetails(source, dauid, lngLat, note) {
+  const token = ++detailsToken;
+  try {
+    await figures[source].load(...groupOf(select.value));
+  } catch {
+    if (token === detailsToken) showToast("Couldn't load this DA's figures. Check your connection and try again.");
+    return;
+  }
+  if (token !== detailsToken) return;
+  const props = propsOf(source, dauid);
+  if (!props) return;
   const html = detailsHTML(detailsModel(props, note));
   if (narrow.matches) {
     popup.remove();
@@ -868,7 +899,7 @@ function showDetails(props, lngLat, note) {
     // clear `current`; so only add it when it isn't already showing.
     if (!popup.isOpen()) popup.addTo(map);
   }
-  current = { props, lngLat, note };
+  current = { source, dauid, lngLat, note };
   writeHash();
 }
 
@@ -905,7 +936,7 @@ async function openLinkedDA(dauid) {
     };
     for (const f of parts) walk(f.geometry.coordinates);
     select_(source, [dauid]);
-    showDetails(parts[0].properties, { lng: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 });
+    showDetails(source, dauid, { lng: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 });
     return;
   }
   // Not in view (or dropped at this zoom): find it like a DA-number search.
@@ -924,7 +955,7 @@ async function pinLinkedDA(dauid) {
   const source = sourceOf(view);
   await idle();
   const [f] = map.querySourceFeatures(source, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
-  if (f) setPin({ props: f.properties, source });
+  if (f) setPin({ source, dauid });
   else showToast(`The link's pinned DA ${dauid} isn't loaded in this part of the map or at this zoom, so nothing is pinned.`, 5000);
 }
 
@@ -949,7 +980,7 @@ function centreDA() {
 const announce = (text) => (live.textContent = text);
 const centreText = () => {
   const f = centreDA();
-  return f ? tooltipText(f.properties) : "No dissemination area at the map centre.";
+  return f ? featureText(f) : "No dissemination area at the map centre.";
 };
 
 map.on("moveend", () => {
@@ -973,8 +1004,8 @@ canvas.addEventListener("keydown", (e) => {
     if (!f) return announce("No dissemination area at the map centre.");
     clearSelection();
     select_(f.source, [f.id]);
-    showDetails(f.properties, map.getCenter());
-    announce(`Opened ${tooltipText(f.properties)}.`);
+    showDetails(f.source, f.id, map.getCenter());
+    announce(`Opened ${featureText(f)}.`);
   }
 });
 
@@ -995,11 +1026,11 @@ map.once("style.load", () => {
 map.on("load", () => {
   select.addEventListener("change", () => {
     applyView();
-    if (current) showDetails(current.props, current.lngLat, current.note);
+    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
   });
   changeBy.addEventListener("change", () => {
     applyView();
-    if (current) showDetails(current.props, current.lngLat, current.note);
+    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
   });
   for (const r of document.querySelectorAll("input[name=year]")) {
     r.addEventListener("change", () => r.checked && setView(r.value));
@@ -1116,7 +1147,7 @@ async function goTo(hit, kind) {
   }
   setStatus("");
   const [lng, lat] = hit.point ?? das[0].point;
-  showDetails(f.properties, { lng, lat }, kind === "da" ? null : `Search result: ${label}`);
+  showDetails(source, das[0].dauid, { lng, lat }, kind === "da" ? null : `Search result: ${label}`);
 }
 
 function renderChoices(res) {
@@ -1235,12 +1266,13 @@ const CREDITS = [
 ];
 
 function snapshotDetails() {
-  return current ? detailsModel(current.props, current.note) : null;
+  const p = current && propsOf(current.source, current.dauid);
+  return p ? detailsModel(p, current.note) : null;
 }
 
 function snapshotLabel() {
-  if (!current) return null;
-  const p = current.props;
+  const p = current && propsOf(current.source, current.dauid);
+  if (!p) return null;
   const what = view === "change" ? `${MEASURES[select.value].short}, change` : `${MEASURES[select.value].short}, ${refYear(select.value, view)}`;
   return {
     lngLat: current.lngLat,
@@ -1416,7 +1448,7 @@ dlg.addEventListener("close", () => {
 dlg.querySelector(".snap-actions").addEventListener("click", async (e) => {
   const act = e.target.closest("button")?.dataset.act;
   if (!act || !snap?.blob) return;
-  const name = `toronto-income-${view}-${current ? `DA${current.props.dauid}-` : ""}${select.value}.png`;
+  const name = `toronto-income-${view}-${current ? `DA${current.dauid}-` : ""}${select.value}.png`;
   if (act === "again") {
     dlg.close();
     startSnip();
