@@ -10,7 +10,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const MB = 1024 * 1024;
-const ZOOM_LIMIT = 1.5 * MB;
+const ZOOM_LIMIT = 2 * MB;
 const FILE_LIMIT = 25 * MB; // Workers static assets: largest single file
 const COUNT_LIMIT = 20000; // Workers Free: files per deployed version
 

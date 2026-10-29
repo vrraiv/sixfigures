@@ -160,6 +160,22 @@ def assign_neighbourhoods(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 POINTS_BREAKS = [-20, -10, -3, 3, 10, 20]
 
 
+def class_breaks(v: pd.Series) -> tuple[np.ndarray, bool]:
+    """[min, q1/6 ... q5/6, max] over the pooled DA values. When a sixth or more
+    of DAs are exactly 0 (no condos, no new dwellings), quantiles would repeat 0:
+    then the first class is 0 alone and the other five split the positive values
+    ([0, smallest positive, q1/5 ... q4/5, max]). method="nearest" keeps every
+    break an actual DA value."""
+    if (v == 0).mean() >= 1 / N_CLASSES:
+        q = np.quantile(v[v > 0], np.linspace(0, 1, N_CLASSES), method="nearest")
+        q, zero_class = np.concatenate([[0], q]), True
+    else:
+        q, zero_class = np.quantile(v, np.linspace(0, 1, N_CLASSES + 1), method="nearest"), False
+    if len(set(q)) != len(q):
+        print(f"  WARNING: duplicate breaks: {q}")
+    return q, zero_class
+
+
 def write_geojson(gdf: gpd.GeoDataFrame, path: Path):
     path.unlink(missing_ok=True)
     gdf.to_file(path, driver="GeoJSON", engine="pyogrio",
@@ -222,11 +238,7 @@ def main():
     print("\nclass counts under pooled breaks, and change summary:")
     comparables = {}
     for m in MEASURES:
-        both = pd.concat([gdf[m], g16[m]]).dropna()
-        # method="nearest" keeps every break an actual DA value
-        q = np.quantile(both, np.linspace(0, 1, N_CLASSES + 1), method="nearest")
-        if len(set(q)) != len(q):
-            print(f"  WARNING: duplicate breaks for {m}: {q}")
+        q, zero_class = class_breaks(pd.concat([gdf[m], g16[m]]).dropna())
         comparable = same & gdf[m].notna() & gdf[f"v16_{m}"].notna()
         comparables[m] = comparable
         d = (gdf[m] - gdf[f"v16_{m}"])[comparable]
@@ -239,6 +251,7 @@ def main():
             "label": label(CHARS_2021, m),
             "label_2016": label(census2016.CHARS_2016, m),
             "breaks": [num(x) for x in q],
+            **({"zero_class": True} if zero_class else {}),
             "y2021": year_stats(gdf[m], city[m], unit),
             "y2016": year_stats(g16[m], city16[m], unit),
             "change": {

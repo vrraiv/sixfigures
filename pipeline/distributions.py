@@ -9,13 +9,19 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from measures import MEASURES
+from measures import CENSUS_DATED, MEASURES
 
-# Annual-average CPI for the two income years, from table 18-10-0005-01
-# (pipeline/cpi.py writes it). Census incomes are for the calendar year before
-# each census, so 2015 incomes are restated in 2020 dollars.
+# Annual-average CPI from table 18-10-0005-01 (pipeline/cpi.py writes it).
+# Census incomes are for the calendar year before each census, so 2015 incomes
+# are restated in 2020 dollars; dwelling values and shelter costs are dated by
+# census, so 2016 figures are restated in 2021 dollars.
 CPI = json.loads((Path(__file__).parent / "cpi.json").read_text())
 CPI_FACTOR = round(CPI["2020"] / CPI["2015"], 4)
+CPI_FACTOR_CENSUS = round(CPI["2021"] / CPI["2016"], 4)
+
+
+def cpi_factor(m: str) -> float:
+    return CPI_FACTOR_CENSUS if m in CENSUS_DATED else CPI_FACTOR
 
 # Histogram bin widths (measures.py): about 20-35 bins between the 1st and 99th
 # percentiles. Change bins put zero on a bin edge, and the class breaks fall on
@@ -37,18 +43,18 @@ def histogram(v: pd.Series, width: int, lo: int | None = None, hi: int | None = 
 
 
 def real_change(gdf: pd.DataFrame, m: str) -> pd.Series:
-    """2021 median minus the 2016 median restated in 2020 dollars."""
-    return gdf[m] - gdf[f"v16_{m}"] * CPI_FACTOR
+    """2021 Census figure minus the 2016 Census figure restated in the later year's dollars."""
+    return gdf[m] - gdf[f"v16_{m}"] * cpi_factor(m)
 
 
 def add_distributions(breaks: dict, gdf: pd.DataFrame, g16: pd.DataFrame, comparable: dict):
-    """Add the CPI factor, real-dollar change stats and histograms to breaks.
+    """Add the CPI factors, real-dollar change stats and histograms to breaks.
 
     `comparable[m]` is the boolean mask of 2021 DAs with a change for measure m.
     Change histograms are keyed like the page's change-basis menu: "real",
     "dollars" and "points" (percentile rank) for money, "pp" and "points" for rates.
     """
-    breaks["cpi"] = {**CPI, "factor": CPI_FACTOR}
+    breaks["cpi"] = {**CPI, "factor": CPI_FACTOR, "factor_census": CPI_FACTOR_CENSUS}
     for m, spec in MEASURES.items():
         c = comparable[m]
         diff = (gdf[m] - gdf[f"v16_{m}"])[c]

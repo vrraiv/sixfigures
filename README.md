@@ -7,16 +7,19 @@ intersection to jump to its DA.
 
 ## Measures
 
-The measure menu has three sections:
+The measure menu has six sections:
 
 | Section | Measures | Unit |
 |---|---|---|
 | Income | Median household income, total and after tax; median individual income (recipients 15+), total and after tax; average household income | dollars, income years 2015 and 2020 |
 | Low income and transfers | People in low income (LIM-AT prevalence); share of total income from government transfers | percent, income years 2015 and 2020 |
-| Housing | Renter households (share of private households); households spending 30% or more of income on shelter costs (owners and tenants with income) | percent, 2016 and 2021 Census |
+| Housing | Renter households (share of private households); households spending 30% or more of income on shelter costs (owners and tenants with income); owner households and tenant households spending 30% or more; tenant households in subsidized housing | percent, 2016 and 2021 Census |
+| Housing costs and values | Median value of owned dwellings; median monthly shelter costs of owners; of renters | dollars, 2016 and 2021 Census |
+| Dwellings | Single-detached houses; apartments in buildings of 5+ storeys; condominiums (each a share of occupied private dwellings); dwellings built in the five years before the census (2011–2016, 2016–2021); built in 1960 or before; households in housing not suitable for their size | percent, 2016 and 2021 Census |
+| People | Bachelor's degree or higher (aged 25–64); moved in the past year; in the past five years; immigrated in the five years before the census; aged 0–14; aged 65 and over | percent, 2016 and 2021 Census |
 
 The popup and the pinned comparison list the measures in the current section. Rates
-are published with one decimal; renter and shelter-cost shares are computed from
+are published with one decimal; shares such as renters, condominiums or movers are computed from
 StatCan's counts (`pipeline/measures.py`, which lists every characteristic by ID and
 name). A rate's change is in percentage points (pp), not restated for inflation.
 
@@ -24,10 +27,13 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
 
 - **2016 / 2021** show each census on its own DA boundaries (3,702 and 3,743 DAs). Both
   use one colour scale (6 quantile classes over 2016 and 2021 DAs pooled), so a colour
-  means the same value in either year. The 2016 tiles load on first use.
-- **Change** (2021 boundaries) shows, for each DA, the change in an income measure in
-  2020 dollars (the default: 2015 incomes × 1.0935, Toronto's all-items CPI 128.3 → 140.3,
-  table 18-10-0005-01, from `pipeline/cpi.json`) or in nominal dollars; the change in a
+  means the same value in either year. Where a sixth or more of DAs are at exactly 0%
+  (condominiums, subsidized housing, new dwellings and others), 0% is the first class
+  and the other five split the rest. The 2016 tiles load on first use.
+- **Change** (2021 boundaries) shows, for each DA, the change in a dollar measure after
+  inflation (the default: 2015 incomes × 1.0935 in 2020 dollars, Toronto's all-items CPI
+  128.3 → 140.3; 2016 dwelling values and shelter costs × 1.1015 in 2021 dollars, CPI
+  131.0 → 144.3; table 18-10-0005-01, from `pipeline/cpi.json`) or in nominal dollars; the change in a
   rate in percentage points; or the change in its percentile rank (points),
   on a red-grey-blue scale centred on zero. Red always means the value fell, which for
   low income or shelter costs means fewer people affected. Only DAs whose boundary is identical in both censuses are compared, per
@@ -187,16 +193,28 @@ match the popups, dollars rounded to whole dollars, rates to one decimal):
   - For `lim_at` (% of people in low income, LIM-AT) and `transfers` (% of total
     income from government transfers): `<m>_2020`, `<m>_2020_pctl`, `<m>_2015`,
     `<m>_2015_pctl`, `<m>_change` (percentage points) and `<m>_change_pctl`.
-  - For `renter` (% of private households renting) and `shelter30` (% of owner and
-    tenant households with income spending 30%+ of it on shelter): the same columns,
-    suffixed by census year: `<m>_2021`, `<m>_2021_pctl`, `<m>_2016`, `<m>_2016_pctl`,
-    `<m>_change`, `<m>_change_pctl`.
+  - For the census-dated rates `renter` (% of private households renting), `shelter30`
+    (% of owner and tenant households with income spending 30%+ of it on shelter),
+    `owner30`, `tenant30` (the same among owners, tenants), `subsidized` (% of tenant
+    households in subsidized housing), `detached`, `apt5`, `condo` (% of occupied private
+    dwellings that are single-detached, apartments in 5+ storey buildings,
+    condominiums), `built_new`, `built_old` (% built in the five years before the
+    census, in 1960 or before), `crowded` (% of households in housing not suitable for
+    their size), `degree` (% of people aged 25–64 with a bachelor's degree or higher),
+    `moved1`, `moved5` (% who moved in the past year, five years), `imm_recent` (% who
+    immigrated in the five years before the census), `age0_14`, `age65` (% of the
+    population): the same columns, suffixed by census year: `<m>_2021`,
+    `<m>_2021_pctl`, `<m>_2016`, `<m>_2016_pctl`, `<m>_change`, `<m>_change_pctl`.
+  - For `value` (median value of owned dwellings), `own_cost` and `rent` (median
+    monthly shelter costs of owners, renters): `<m>_2021`, `<m>_2021_pctl`, `<m>_2016`,
+    `<m>_2016_pctl`, `<m>_change` (nominal dollars), `<m>_change_real` (2021 dollars,
+    2016 value × `factor_census` in `breaks.json`) and `<m>_change_pctl`.
   - Empty cells: suppressed or not published, or (for the 2015/2016 and change
     columns) no boundary-identical 2016 DA.
 - `/data/toronto_da_income_2016.csv`: 3,702 DAs on 2016 boundaries: `dauid`, `nbhd_id`,
   `nbhd`, `nbhd2`, `pop16`, `hh`, `same_boundary_2021`, and for each measure its 2016
-  Census value and percentile (`<m>_2015`, `<m>_2015_pctl`; `renter_2016`,
-  `shelter30_2016` and their `_pctl`).
+  Census value and percentile (`<m>_2015`, `<m>_2015_pctl` for the income measures,
+  `<m>_2016`, `<m>_2016_pctl` for the rest).
 
 ## Data caveats
 
@@ -209,8 +227,9 @@ match the popups, dollars rounded to whole dollars, rates to one decimal):
 - **Housing shares are estimates from the 25% sample, with randomly rounded counts.**
   In small DAs this makes them noisy (a renter share can move several points by
   rounding alone), and a computed share is capped at 100%.
-- **Inflation.** The default change is in 2020 dollars using Toronto's annual-average
-  all-items CPI (prices rose 9.4%, 2015 → 2020). It is one price index for everyone; it
+- **Inflation.** The default change is in 2020 dollars for incomes and 2021 dollars for
+  dwelling values and shelter costs, using Toronto's annual-average all-items CPI
+  (prices rose 9.4%, 2015 → 2020, and 10.1%, 2016 → 2021). It is one price index for everyone; it
   doesn't reflect each household's own costs (rent especially). The nominal option shows
   unadjusted dollars, where a DA whose income merely kept pace with prices still gains.
 - **Percentile change** compares a DA's rank among Toronto DAs in each census; each
