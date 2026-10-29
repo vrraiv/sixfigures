@@ -284,3 +284,10 @@ a { color: var(--accent); }
 }
 .map-wrap:not(.pointing):has(.maplibregl-canvas:focus-visible) .crosshair { display: block; }
 .maplibregl-canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+/* ---- diagnostics overlay (#diag) ---- */
+.diag {
+  position: fixed; left: 8px; top: 8px; z-index: 9; margin: 0; max-width: calc(100vw - 16px);
+  padding: 6px 8px; border-radius: 6px; background: rgba(26, 26, 25, 0.88); color: #fff;
+  font: 11px/1.4 ui-monospace, Consolas, monospace; white-space: pre-wrap; pointer-events: none;
+}
