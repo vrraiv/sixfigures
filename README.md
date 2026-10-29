@@ -56,6 +56,9 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   click. A kept class survives a change of measure, a switch between 2016 and 2021 and
   between real and nominal dollars; it is cleared on a switch between the census and
   change views or to or from percentile points, where the classes differ.
+- **Diagnostics.** Adding `diag` to the hash (`/#diag`) overlays the graphics driver, load
+  timings, frame times and the raw mouse-wheel events, for reporting problems from a
+  machine without developer tools.
 - **Old links** keep working: `c=real` or `c=dollars` on a rate measure opens its
   percentage-point change (`c=pp`).
 - **Pin to compare.** "Pin to compare" in the popup outlines that DA in purple; clicking

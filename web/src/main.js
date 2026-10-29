@@ -177,6 +177,8 @@ const map = new maplibregl.Map({
   attributionControl: { compact: true },
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+// /#diag overlays the graphics driver, frame times, wheel events and load timings.
+if (hashParams.has("diag")) import("./diag.js").then((d) => d.diagnostics(map));
 
 // ---- colour expressions -----------------------------------------------------
 
@@ -515,6 +517,7 @@ function writeHash() {
   if (current) h.set("da", current.props.dauid);
   if (pinned) h.set("vs", pinned.props.dauid);
   if (overlay !== "none") h.set("o", overlay);
+  if (hashParams.has("diag")) h.set("diag", "");
   if (mapMoved || camera.center) {
     const { lng, lat } = map.getCenter();
     h.set("at", `${map.getZoom().toFixed(2)}/${lat.toFixed(5)}/${lng.toFixed(5)}`);
