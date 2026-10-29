@@ -37,6 +37,7 @@ const DIVERGING = ["#8f1c1c", "#d9403f", "#f2a39b", "#f0efec", "#9ec5f4", "#3987
 // dollars) or "rate" (percent; a change is in percentage points). stat names the
 // city-wide figure. dated: "census" for figures StatCan dates by census year
 // rather than income year. cerb: 2020 values are moved by pandemic benefits.
+// monthly: dollars per month, shown whole rather than in thousands.
 const MEASURES = {
   med_hh_tot: { group: "income", unit: "money", stat: "median", short: "Household, total", long: "Median total household income" },
   med_hh_at: { group: "income", unit: "money", stat: "median", short: "Household, after tax", long: "Median after-tax household income" },
@@ -51,8 +52,8 @@ const MEASURES = {
   tenant30: { group: "housing", unit: "rate", stat: "share", dated: "census", short: "Tenants, costs 30%+", long: "Tenant households spending 30%+ of income on shelter" },
   subsidized: { group: "housing", unit: "rate", stat: "share", dated: "census", short: "Subsidized tenants", long: "Tenant households in subsidized housing" },
   value: { group: "costs", unit: "money", stat: "median", dated: "census", short: "Dwelling value", long: "Median value of owned dwellings" },
-  own_cost: { group: "costs", unit: "money", stat: "median", dated: "census", short: "Owner costs, monthly", long: "Median monthly shelter costs of owners" },
-  rent: { group: "costs", unit: "money", stat: "median", dated: "census", short: "Rent, monthly", long: "Median monthly shelter costs of renters" },
+  own_cost: { group: "costs", unit: "money", stat: "median", dated: "census", monthly: true, short: "Owner costs, monthly", long: "Median monthly shelter costs of owners" },
+  rent: { group: "costs", unit: "money", stat: "median", dated: "census", monthly: true, short: "Rent, monthly", long: "Median monthly shelter costs of renters" },
   detached: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Single-detached", long: "Single-detached houses" },
   apt5: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Apartments, 5+ storeys", long: "Apartments in buildings of 5+ storeys" },
   condo: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Condominiums", long: "Condominium dwellings" },
@@ -97,9 +98,11 @@ const fmtPP = (v) => (v == null ? "—" : `${sign(v)}${Math.abs(v).toFixed(1)} p
 const fmtPPShort = (v) => `${sign(v)}${+Math.abs(v).toFixed(1)} pp`;
 const isMoney = (m) => MEASURES[m].unit === "money";
 const fmtVal = (m, v) => (isMoney(m) ? fmtMoney(v) : fmtPct(v));
-const fmtAxis = (m) => (isMoney(m) ? fmtK : fmtPctShort);
+// Monthly costs are in whole dollars; other money in thousands.
+const fmtMoneyShort = (m) => (MEASURES[m].monthly ? fmtMoney : fmtK);
+const fmtAxis = (m) => (isMoney(m) ? fmtMoneyShort(m) : fmtPctShort);
 const fmtDiff = (m, v) => (isMoney(m) ? fmtSignedMoney(v) : fmtPP(v));
-const fmtDiffShort = (m) => (isMoney(m) ? fmtSignedK : fmtPPShort);
+const fmtDiffShort = (m) => (isMoney(m) ? (MEASURES[m].monthly ? fmtSignedMoney : fmtSignedK) : fmtPPShort);
 const ordinal = (n) => {
   const s = ["th", "st", "nd", "rd"], v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -155,7 +158,10 @@ const cpiOf = (m) => (MEASURES[m].dated === "census" ? breaks.cpi.factor_census 
 // breaks.json from before cpi.py had no geography (it was Canada); never let a
 // stale cached copy stop the page from loading.
 const cpiName = `${(breaks.cpi.geography ?? "Canada").split(",")[0]} CPI`;
-const inflationPct = (m) => Math.round((cpiOf(m) - 1) * 1000) / 10;
+const inflationPct = (m) => {
+  const [a, b] = [refYear(m, "2016"), refYear(m, "2021")];
+  return (breaks.cpi[b] / breaks.cpi[a] * 100 - 100).toFixed(1);
+};
 const dollarsOf = (m) => `${refYear(m, "2021")} dollars`;
 // "2015 incomes restated in 2020 dollars", "2016 medians restated in 2021 dollars"
 const restated = (m) => `${refYear(m, "2016")} ${GROUPS[MEASURES[m].group].noun} restated in ${dollarsOf(m)}`;
@@ -248,7 +254,7 @@ function legendModel() {
     const items = DIVERGING.map((color, i) => ({
       color,
       label: i === 0 ? `Less than ${f(s[0])}` : i === DIVERGING.length - 1 ? `${f(s.at(-1))} or more`
-        : s[i - 1] < 0 && s[i] > 0 ? `Within ${pts ? `±${s[i]} pts` : money ? `±${fmtK(s[i])}` : `±${s[i]} pp`}` : `${f(s[i - 1])} to ${f(s[i])}`,
+        : s[i - 1] < 0 && s[i] > 0 ? `Within ${pts ? `±${s[i]} pts` : money ? `±${fmtMoneyShort(m)(s[i])}` : `±${s[i]} pp`}` : `${f(s[i - 1])} to ${f(s[i])}`,
     }));
     const c = meta.change;
     items.push({ pattern: "dots", label: `Boundary changed since 2016 (${c.boundary_changed} DAs)` });

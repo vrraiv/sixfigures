@@ -229,7 +229,7 @@ match the popups, dollars rounded to whole dollars, rates to one decimal):
   rounding alone), and a computed share is capped at 100%.
 - **Inflation.** The default change is in 2020 dollars for incomes and 2021 dollars for
   dwelling values and shelter costs, using Toronto's annual-average all-items CPI
-  (prices rose 9.4%, 2015 → 2020, and 10.1%, 2016 → 2021). It is one price index for everyone; it
+  (prices rose 9.4%, 2015 → 2020, and 10.2%, 2016 → 2021). It is one price index for everyone; it
   doesn't reflect each household's own costs (rent especially). The nominal option shows
   unadjusted dollars, where a DA whose income merely kept pace with prices still gains.
 - **Percentile change** compares a DA's rank among Toronto DAs in each census; each
