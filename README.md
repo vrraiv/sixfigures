@@ -56,6 +56,10 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   click. A kept class survives a change of measure, a switch between 2016 and 2021 and
   between real and nominal dollars; it is cleared on a switch between the census and
   change views or to or from percentile points, where the classes differ.
+- **Wheel zoom** is linear and bounded (`web/src/wheel.js`): a mouse notch zooms the same
+  whether the driver sends it as one event or a smooth-scroll stream of thirty, a frame
+  applies at most a quarter of a level, and input that piles up while tiles load is
+  dropped rather than applied late, so the zoom stops when the wheel does.
 - **Diagnostics.** Adding `diag` to the hash (`/#diag`) overlays the graphics driver, load
   timings, frame times and the raw mouse-wheel events, for reporting problems from a
   machine without developer tools.
