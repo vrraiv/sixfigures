@@ -190,19 +190,18 @@ def derive_shares(wide: pd.DataFrame) -> pd.DataFrame:
     return out.drop(columns=[c for c in out.columns if c.startswith("n_")])
 
 
-# Where too few owner or tenant households answered, the 2016 profile publishes 0
-# where 2021 has a suppression marker: a median dwelling value or rent of $0 is
-# not a value. Those DAs' other figures for the same households are unpublished
-# too. key -> measures from the same households.
-UNPUBLISHED_ZERO_2016 = {"value": ["value", "own_cost", "owner30"], "rent": ["rent", "tenant30", "subsidized"]}
+# Where too few owner or tenant households answered, the 2016 profile publishes a
+# median of 0 where 2021 has a suppression marker: a dwelling value, owner cost or
+# rent of $0 is not a value. Percentages for the same households are kept as
+# published; 2021 also publishes 0% for many of them.
+UNPUBLISHED_ZERO_2016 = ["value", "own_cost", "rent"]
 
 
 def null_unpublished_2016(wide: pd.DataFrame) -> pd.DataFrame:
-    """Null the 2016 owner and tenant figures published as 0 (see above), and the
-    published percentages above 100."""
+    """Null the 2016 medians published as $0 (see above), and the published
+    percentages above 100."""
     out = wide.copy()
-    for key, ms in UNPUBLISHED_ZERO_2016.items():
-        out.loc[out[key] == 0, ms] = None
+    out[UNPUBLISHED_ZERO_2016] = out[UNPUBLISHED_ZERO_2016].where(out[UNPUBLISHED_ZERO_2016] != 0)
     pct = [m for m in out if m in MEASURES and MEASURES[m]["unit"] == "rate" and m not in SHARES]
     out[pct] = out[pct].where(~(out[pct] > 100))
     return out

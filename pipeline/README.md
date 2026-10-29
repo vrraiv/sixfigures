@@ -113,11 +113,12 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
   flag-1 DAs get 2016 values (`v16_*`, `p16_*`) in the 2021 tiles; the browser computes
   the change from them. 2021 DAs: 3,606 flag 1, 70 flag 3, 67 flag 4.
 - **2016 zeros:** where too few owner or tenant households answered, the 2016 profile
-  publishes 0 rather than a suppression marker (2021 uses `x` or `..`): a median dwelling
-  value or rent of $0. `measures.null_unpublished_2016` nulls those, and the owner or
-  tenant figures from the same households (owner costs and `owner30`; `tenant30` and
-  `subsidized`). 278 DAs lose their owner figures and 1,288 their tenant figures. It
-  also nulls published percentages above 100 (one 2016 `owner30` of 150).
+  publishes a median of 0 rather than a suppression marker (2021 uses `x` or `..`): a
+  dwelling value, owner cost or rent of $0. `measures.null_unpublished_2016` nulls
+  those (278, 278 and 1,288 DAs). Percentages for the same households (`owner30`,
+  `tenant30`, `subsidized`) are kept as published, 0% included, as in 2021, which also
+  publishes 0% for many DAs whose median rent it suppresses. It also nulls published
+  percentages above 100 (one 2016 `owner30` of 150).
 - **Zero class:** when a sixth or more of the pooled DA values are exactly 0, quantile
   breaks would repeat 0, so `build.class_breaks` makes 0 its own class and splits the
   positive values into fifths; `breaks.json` marks those measures `zero_class`.
