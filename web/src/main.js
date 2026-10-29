@@ -2,6 +2,7 @@ import * as maplibregl from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { compose, grabMap, toBlob } from "./snapshot.js";
+import { wheelZoom } from "./wheel.js";
 import "./style.css";
 
 // Vector tiles are static files unpacked from the .pmtiles archives at build time
@@ -177,6 +178,8 @@ const map = new maplibregl.Map({
   attributionControl: { compact: true },
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+// Bounded, linear wheel zoom in place of MapLibre's (see wheel.js).
+wheelZoom(map);
 // /#diag overlays the graphics driver, frame times, wheel events and load timings.
 if (hashParams.has("diag")) import("./diag.js").then((d) => d.diagnostics(map));
 

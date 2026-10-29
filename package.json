@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/check-size.mjs",
     "preview": "vite preview",
-    "test": "node --test web/src/search.test.mjs",
+    "test": "node --test web/src/search.test.mjs web/src/wheel.test.mjs",
     "deploy": "vite build && wrangler deploy"
   },
   "devDependencies": {
