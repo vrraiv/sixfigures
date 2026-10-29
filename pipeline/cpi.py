@@ -1,4 +1,6 @@
-"""Fetch the annual-average CPI used to restate 2015 incomes in 2020 dollars.
+"""Fetch the annual-average CPI used to restate 2016 Census dollar figures in
+2021 Census terms: 2015 incomes in 2020 dollars, 2016 dwelling values and
+shelter costs in 2021 dollars.
 
 Source: Statistics Canada table 18-10-0005-01, Consumer Price Index, annual
 average, not seasonally adjusted (2002=100), read through the Web Data Service
@@ -22,7 +24,7 @@ WDS = "https://www150.statcan.gc.ca/t1/wds/rest/"
 PID = 18100005  # table 18-10-0005-01
 TABLE = "18-10-0005-01"
 PRODUCT = "All-items"
-YEARS = ("2015", "2020")  # census income years: 2016 Census -> 2015, 2021 Census -> 2020
+YEARS = ("2015", "2016", "2020", "2021")  # income years 2015 -> 2020; census years 2016 -> 2021
 OUT = Path(__file__).parent / "cpi.json"
 
 
@@ -75,8 +77,9 @@ def main():
         **{y: values[y] for y in YEARS},
     }
     OUT.write_text(json.dumps(cpi, indent=2) + "\n")
-    print(f"wrote {OUT}: {args.geo} {YEARS[0]} {values[YEARS[0]]} -> {YEARS[1]} {values[YEARS[1]]}"
-          f" (x{values[YEARS[1]] / values[YEARS[0]]:.4f})")
+    for a, b in (("2015", "2020"), ("2016", "2021")):
+        print(f"{args.geo} {a} {values[a]} -> {b} {values[b]} (x{values[b] / values[a]:.4f})")
+    print(f"wrote {OUT}")
 
 
 if __name__ == "__main__":

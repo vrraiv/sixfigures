@@ -37,6 +37,7 @@ const DIVERGING = ["#8f1c1c", "#d9403f", "#f2a39b", "#f0efec", "#9ec5f4", "#3987
 // dollars) or "rate" (percent; a change is in percentage points). stat names the
 // city-wide figure. dated: "census" for figures StatCan dates by census year
 // rather than income year. cerb: 2020 values are moved by pandemic benefits.
+// monthly: dollars per month, shown whole rather than in thousands.
 const MEASURES = {
   med_hh_tot: { group: "income", unit: "money", stat: "median", short: "Household, total", long: "Median total household income" },
   med_hh_at: { group: "income", unit: "money", stat: "median", short: "Household, after tax", long: "Median after-tax household income" },
@@ -47,8 +48,30 @@ const MEASURES = {
   transfers: { group: "low", unit: "rate", stat: "share", cerb: true, short: "Income from transfers", long: "Share of income from government transfers" },
   renter: { group: "housing", unit: "rate", stat: "share", dated: "census", short: "Renter households", long: "Renter households" },
   shelter30: { group: "housing", unit: "rate", stat: "share", dated: "census", short: "Shelter costs 30%+", long: "Households spending 30%+ of income on shelter" },
+  owner30: { group: "housing", unit: "rate", stat: "share", dated: "census", short: "Owners, costs 30%+", long: "Owner households spending 30%+ of income on shelter" },
+  tenant30: { group: "housing", unit: "rate", stat: "share", dated: "census", short: "Tenants, costs 30%+", long: "Tenant households spending 30%+ of income on shelter" },
+  subsidized: { group: "housing", unit: "rate", stat: "share", dated: "census", short: "Subsidized tenants", long: "Tenant households in subsidized housing" },
+  value: { group: "costs", unit: "money", stat: "median", dated: "census", short: "Dwelling value", long: "Median value of owned dwellings" },
+  own_cost: { group: "costs", unit: "money", stat: "median", dated: "census", monthly: true, short: "Owner costs, monthly", long: "Median monthly shelter costs of owners" },
+  rent: { group: "costs", unit: "money", stat: "median", dated: "census", monthly: true, short: "Rent, monthly", long: "Median monthly shelter costs of renters" },
+  detached: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Single-detached", long: "Single-detached houses" },
+  apt5: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Apartments, 5+ storeys", long: "Apartments in buildings of 5+ storeys" },
+  condo: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Condominiums", long: "Condominium dwellings" },
+  built_new: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Built in past 5 years", long: "Dwellings built in the five years before the census" },
+  built_old: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Built 1960 or before", long: "Dwellings built in 1960 or before" },
+  crowded: { group: "dwellings", unit: "rate", stat: "share", dated: "census", short: "Not suitable (crowded)", long: "Households in housing not suitable for their size" },
+  degree: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Bachelor's+, aged 25–64", long: "Adults 25–64 with a bachelor's degree or higher" },
+  moved1: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Moved in past year", long: "People who moved in the past year" },
+  moved5: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Moved in past 5 years", long: "People who moved in the past five years" },
+  imm_recent: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Recent immigrants", long: "Immigrants who arrived in the five years before the census" },
+  age0_14: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Aged 0–14", long: "Children aged 0 to 14" },
+  age65: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Aged 65+", long: "People aged 65 and over" },
 };
-const GROUPS = { income: { col: "Income" }, low: { col: "Share" }, housing: { col: "Share" } };
+// col: the details table's value column; noun: what the group's figures are.
+const GROUPS = {
+  income: { col: "Income", noun: "incomes" }, low: { col: "Share", noun: "shares" }, housing: { col: "Share", noun: "shares" },
+  costs: { col: "Median", noun: "medians" }, dwellings: { col: "Share", noun: "shares" }, people: { col: "Share", noun: "shares" },
+};
 const YEARS = {
   2016: { source: "da16", income: "2015", census: "2016 Census", pop: "pop16" },
   2021: { source: "da", income: "2020", census: "2021 Census", pop: "pop21" },
@@ -75,9 +98,11 @@ const fmtPP = (v) => (v == null ? "—" : `${sign(v)}${Math.abs(v).toFixed(1)} p
 const fmtPPShort = (v) => `${sign(v)}${+Math.abs(v).toFixed(1)} pp`;
 const isMoney = (m) => MEASURES[m].unit === "money";
 const fmtVal = (m, v) => (isMoney(m) ? fmtMoney(v) : fmtPct(v));
-const fmtAxis = (m) => (isMoney(m) ? fmtK : fmtPctShort);
+// Monthly costs are in whole dollars; other money in thousands.
+const fmtMoneyShort = (m) => (MEASURES[m].monthly ? fmtMoney : fmtK);
+const fmtAxis = (m) => (isMoney(m) ? fmtMoneyShort(m) : fmtPctShort);
 const fmtDiff = (m, v) => (isMoney(m) ? fmtSignedMoney(v) : fmtPP(v));
-const fmtDiffShort = (m) => (isMoney(m) ? fmtSignedK : fmtPPShort);
+const fmtDiffShort = (m) => (isMoney(m) ? (MEASURES[m].monthly ? fmtSignedMoney : fmtSignedK) : fmtPPShort);
 const ordinal = (n) => {
   const s = ["th", "st", "nd", "rd"], v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -96,17 +121,21 @@ if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
 // The change-basis menu depends on the measure's unit. wantBasis is the last
 // basis asked for, so "real" comes back after a visit to a rate measure.
+// Money is restated in the later year's dollars: 2020 for incomes, 2021 for
+// figures dated by census.
 const BASES = {
-  money: [["real", "Change in 2020 dollars (inflation-adjusted)"], ["dollars", "Change in nominal dollars"], ["points", "Change in percentile rank"]],
-  rate: [["pp", "Change in pp (percentage points)"], ["points", "Change in percentile rank"]],
+  money: (m) => [["real", `Change in ${refYear(m, "2021")} dollars (inflation-adjusted)`], ["dollars", "Change in nominal dollars"], ["points", "Change in percentile rank"]],
+  rate: () => [["pp", "Change in pp (percentage points)"], ["points", "Change in percentile rank"]],
 };
 let wantBasis = ["real", "dollars", "pp", "points"].includes(hashParams.get("c")) ? hashParams.get("c") : "real";
 function syncChangeBy() {
-  const opts = BASES[MEASURES[select.value].unit];
+  const m = select.value;
+  const opts = BASES[MEASURES[m].unit](m);
   const v = opts.some(([k]) => k === wantBasis) ? wantBasis : opts[0][0];
-  if (changeBy.dataset.unit !== MEASURES[select.value].unit) {
+  const key = `${MEASURES[m].unit}:${refYear(m, "2021")}`;
+  if (changeBy.dataset.unit !== key) {
     changeBy.innerHTML = opts.map(([k, t]) => `<option value="${k}">${t}</option>`).join("");
-    changeBy.dataset.unit = MEASURES[select.value].unit;
+    changeBy.dataset.unit = key;
   }
   changeBy.value = v;
 }
@@ -123,12 +152,20 @@ document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 if (narrow.matches) $("legend").open = false;
 
 const breaks = await fetch(`/breaks.json?v=${__BREAKS_VERSION__}`).then((r) => r.json());
-// 2015 dollars -> 2020 dollars (annual-average CPI, table 18-10-0005-01; see breaks.json).
-const CPI = breaks.cpi.factor;
+// 2015 dollars -> 2020 dollars for incomes, 2016 -> 2021 for census-dated figures
+// (annual-average CPI, table 18-10-0005-01; see breaks.json).
+const cpiOf = (m) => (MEASURES[m].dated === "census" ? breaks.cpi.factor_census : breaks.cpi.factor);
 // breaks.json from before cpi.py had no geography (it was Canada); never let a
 // stale cached copy stop the page from loading.
 const cpiName = `${(breaks.cpi.geography ?? "Canada").split(",")[0]} CPI`;
-const inflationPct = Math.round((CPI - 1) * 1000) / 10;
+const inflationPct = (m) => {
+  const [a, b] = [refYear(m, "2016"), refYear(m, "2021")];
+  return (breaks.cpi[b] / breaks.cpi[a] * 100 - 100).toFixed(1);
+};
+const dollarsOf = (m) => `${refYear(m, "2021")} dollars`;
+// "2015 incomes restated in 2020 dollars", "2016 medians restated in 2021 dollars"
+const restated = (m) => `${refYear(m, "2016")} ${GROUPS[MEASURES[m].group].noun} restated in ${dollarsOf(m)}`;
+const cerbNote = (m) => (MEASURES[m].group === "income" ? " 2020 incomes include pandemic benefits (CERB)." : "");
 
 const sourceOf = (v) => (v === "2016" ? "da16" : "da");
 const yearOf = (v) => (v === "2016" ? "2016" : "2021");
@@ -152,14 +189,14 @@ function step(value, stops, colors) {
 // Pooled 2016+2021 quantile breaks: a colour means the same value in both years.
 const levelColor = (m) => step(["get", m], breaks.measures[m].breaks.slice(1, -1), COLORS);
 
-// Dollar figures in the change view are in 2020 dollars unless "nominal" is
+// Dollar figures in the change view are in real dollars unless "nominal" is
 // chosen (also while a rate measure is shown, for its group's money rows).
 const realDollars = () => changeBy.value !== "dollars";
 const byPoints = () => changeBy.value === "points";
 
 function changeValue(m) {
   if (byPoints()) return ["-", ["get", `pct_${m}`], ["get", `p16_${m}`]];
-  if (isMoney(m) && realDollars()) return ["-", ["get", m], ["*", ["get", `v16_${m}`], CPI]];
+  if (isMoney(m) && realDollars()) return ["-", ["get", m], ["*", ["get", `v16_${m}`], cpiOf(m)]];
   return ["-", ["get", m], ["get", `v16_${m}`]];
 }
 const changeStops = (m) => breaks.measures[m].change[byPoints() ? "points" : "value"];
@@ -169,7 +206,7 @@ const changeStops = (m) => breaks.measures[m].change[byPoints() ? "points" : "va
 function valueChange(p, k) {
   if (p.rel !== 1 || p[k] == null || p[`v16_${k}`] == null) return null;
   if (!isMoney(k)) return Math.round((p[k] - p[`v16_${k}`]) * 10) / 10;
-  return Math.round(p[k] - p[`v16_${k}`] * (realDollars() ? CPI : 1));
+  return Math.round(p[k] - p[`v16_${k}`] * (realDollars() ? cpiOf(k) : 1));
 }
 const changeColor = (m) => step(changeValue(m), changeStops(m), DIVERGING);
 
@@ -217,7 +254,7 @@ function legendModel() {
     const items = DIVERGING.map((color, i) => ({
       color,
       label: i === 0 ? `Less than ${f(s[0])}` : i === DIVERGING.length - 1 ? `${f(s.at(-1))} or more`
-        : s[i - 1] < 0 && s[i] > 0 ? `Within ${pts ? `±${s[i]} pts` : money ? `±${fmtK(s[i])}` : `±${s[i]} pp`}` : `${f(s[i - 1])} to ${f(s[i])}`,
+        : s[i - 1] < 0 && s[i] > 0 ? `Within ${pts ? `±${s[i]} pts` : money ? `±${fmtMoneyShort(m)(s[i])}` : `±${s[i]} pp`}` : `${f(s[i - 1])} to ${f(s[i])}`,
     }));
     const c = meta.change;
     items.push({ pattern: "dots", label: `Boundary changed since 2016 (${c.boundary_changed} DAs)` });
@@ -229,32 +266,35 @@ function legendModel() {
     const cerb = d.cerb ? " 2020 incomes include one-off pandemic benefits (CERB), so much of this change reflects 2020 alone." : "";
     return {
       title: pts ? `Change in percentile rank, ${lc(d.long)}, ${years}`
-        : `Change in ${lc(d.long)}, ${years}${real ? ", in 2020 dollars" : money ? "" : ", in percentage points"}`,
+        : `Change in ${lc(d.long)}, ${years}${real ? `, in ${dollarsOf(m)}` : money ? "" : ", in percentage points"}`,
       items,
       footer: pts ? `Median DA change: ${fmtPts(c.median_points)}`
         : !money ? `${city}: ${fmtPct(y16)} → ${fmtPct(y21)} (${fmtPP(Math.round((y21 - y16) * 10) / 10)})`
-          : real ? `${city}: ${fmtMoney(Math.round(y16 * CPI))} → ${fmtMoney(y21)} in 2020 dollars (${fmtSignedMoney(Math.round(y21 - y16 * CPI))})`
+          : real ? `${city}: ${fmtMoney(Math.round(y16 * cpiOf(m)))} → ${fmtMoney(y21)} in ${dollarsOf(m)} (${fmtSignedMoney(Math.round(y21 - y16 * cpiOf(m)))})`
             : `${city}: ${fmtMoney(y16)} → ${fmtMoney(y21)} (${fmtSignedMoney(y21 - y16)})`,
       note: (pts ? "Percentile = rank among Toronto DAs within each census."
         : !money ? "pp = percentage points: 12% → 15% is +3 pp. Red: the share fell; blue: it rose."
-          : real ? `2015 incomes restated in 2020 dollars: prices rose ${inflationPct}% (${cpiName}, annual averages).`
-            : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct}%, 2015 → 2020).`) + cerb,
+          : real ? `${restated(m)}: prices rose ${inflationPct(m)}% (${cpiName}, annual averages).`
+            : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct(m)}%, ${years}).`) + cerb,
     };
   }
   const y = YEARS[view];
   const stats = meta[`y${view}`];
   const b = meta.breaks;
   const fa = fmtAxis(m);
+  // zero_class: a sixth or more of DAs are exactly 0, so the first class is 0 alone.
   const items = COLORS.map((color, i) => ({
     color,
-    label: i === 0 ? `Under ${fa(b[1])}` : i === COLORS.length - 1 ? `${fa(b[i])} and over` : `${fa(b[i])} – ${fa(b[i + 1])}`,
+    label: i === 0 ? (meta.zero_class ? fa(0) : `Under ${fa(b[1])}`) : i === COLORS.length - 1 ? `${fa(b[i])} and over` : `${fa(b[i])} – ${fa(b[i + 1])}`,
   }));
   items.push({ pattern: "hatch", label: `Suppressed (${stats.suppressed} DAs)` });
   return {
     title: d.dated === "census" ? `${d.long}, ${y.census}` : `${d.long}, ${y.income} (${y.census})`,
     items,
     footer: money ? `City of Toronto ${d.stat}: ${fmtMoney(stats.city)}` : `City of Toronto as a whole: ${fmtPct(stats.city)}`,
-    note: `Classes split 2016 and 2021 DAs combined into sixths, so a colour means the same ${money ? "dollars" : "share"} in both years.`,
+    note: meta.zero_class
+      ? `DAs at 0% form the first class; the rest of 2016 and 2021 DAs combined are split into fifths, so a colour means the same share in both years.`
+      : `Classes split 2016 and 2021 DAs combined into sixths, so a colour means the same ${money ? "dollars" : "share"} in both years.`,
   };
 }
 
@@ -543,7 +583,7 @@ function tooltipText(p) {
   if (view === "change") {
     if (p.rel !== 1) v = "Boundary changed";
     else if (p[m] == null || p[`v16_${m}`] == null) v = "Not published";
-    else v = `${fmtDiff(m, valueChange(p, m))}${isMoney(m) && realDollars() ? " (2020 $)" : ""} · ${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])}`;
+    else v = `${fmtDiff(m, valueChange(p, m))}${isMoney(m) && realDollars() ? ` (${refYear(m, "2021")} $)` : ""} · ${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])}`;
   } else {
     v = p[m] == null ? "Suppressed" : fmtVal(m, p[m]);
   }
@@ -614,8 +654,8 @@ function detailsModel(p, note) {
       text: !money
         ? `Change in percentage points (pp): 12% → 15% is +3 pp.${d.cerb ? " 2020 incomes include one-off pandemic benefits (CERB), which raised transfer income and lowered low-income rates that year." : ""}`
         : realDollars()
-          ? `"Real chg" is the change after inflation: 2015 incomes × ${CPI} (prices rose ${inflationPct}%, ${cpiName}). 2020 incomes include pandemic benefits (CERB).`
-          : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct}%, 2015 → 2020). 2020 incomes include pandemic benefits (CERB).`,
+          ? `"Real chg" is the change after inflation: ${refYear(m, "2016")} ${GROUPS[d.group].noun} × ${cpiOf(m)} (prices rose ${inflationPct(m)}%, ${cpiName}).${cerbNote(m)}`
+          : `Nominal dollars, not adjusted for inflation (prices rose ${inflationPct(m)}%, ${refYear(m, "2016")} → ${refYear(m, "2021")}).${cerbNote(m)}`,
     });
     lines.push({ text: `Population 2021: ${fmtCount(p.pop21)} · Households: ${fmtCount(p.hh)}` });
   } else {
@@ -635,7 +675,7 @@ function detailsModel(p, note) {
       const pctl = `${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])} in percentile rank`;
       lines.push({
         text: money
-          ? `Since 2016: ${fmtSignedMoney(v - v16)} (from ${fmtMoney(v16)}), ${fmtSignedMoney(Math.round(v - v16 * CPI))} after inflation, ${pctl}.`
+          ? `Since 2016: ${fmtSignedMoney(v - v16)} (from ${fmtMoney(v16)}), ${fmtSignedMoney(Math.round(v - v16 * cpiOf(m)))} after inflation, ${pctl}.`
           : `Since 2016: ${fmtPP(Math.round((v - v16) * 10) / 10)} (from ${fmtPct(v16)}), ${pctl}.${d.cerb ? " 2020 includes one-off pandemic benefits (CERB)." : ""}`,
       });
     }
@@ -669,7 +709,7 @@ function distModel(p) {
     const pts = byPoints();
     const value = pts ? (valueChange(p, m) == null ? null : p[`pct_${m}`] - p[`p16_${m}`]) : valueChange(p, m);
     if (value == null) return null;
-    const unit = pts ? " (percentile points)" : !money ? " (percentage points)" : realDollars() ? " (2020 dollars)" : "";
+    const unit = pts ? " (percentile points)" : !money ? " (percentage points)" : realDollars() ? ` (${dollarsOf(m)})` : "";
     return {
       hist: meta.hist.change[changeBy.value],
       value,
@@ -738,8 +778,8 @@ function compareModel(p) {
       const a = val(q, k), b = val(p, k);
       return { label: d.short, selected: k === m, cells: [fmt(k, a), fmt(k, b), a == null || b == null ? "—" : diff(k, b - a)] };
     }),
-    note: !change ? `${money ? "Incomes" : "Shares"}, ${refYear(m, view)}.`
-      : `Change ${years}, ${pts ? "in percentile points" : !money ? "in percentage points" : realDollars() ? "in 2020 dollars" : "in nominal dollars"}.`,
+    note: !change ? `${GROUPS[MEASURES[m].group].noun.replace(/^./, (c) => c.toUpperCase())}, ${refYear(m, view)}.`
+      : `Change ${years}, ${pts ? "in percentile points" : !money ? "in percentage points" : realDollars() ? `in ${dollarsOf(m)}` : "in nominal dollars"}.`,
   };
 }
 

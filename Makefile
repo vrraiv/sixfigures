@@ -49,9 +49,11 @@ tiles: $(PMTILES) $(PMTILES16)
 
 $(PMTILES): $(GEOJSON)
 $(PMTILES16): $(GEOJSON16)
+# No tile size limit: with one, tippecanoe drops DAs from the whole-city view
+# rather than exceed 500 KB a tile. scripts/check-size.mjs budgets the result.
 $(PMTILES) $(PMTILES16):
 	@command -v tippecanoe >/dev/null || { echo "tippecanoe not found; see pipeline/README.md"; exit 1; }
-	tippecanoe -o $@ -l da -zg --drop-densest-as-needed --coalesce-smallest-as-needed --force $<
+	tippecanoe -o $@ -l da -zg --no-tile-size-limit --force $<
 	@ls -l $@
 
 # Neighbourhood, ward and (if lfsa000b21a_e.zip was downloaded) FSA outlines and

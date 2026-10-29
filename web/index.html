@@ -7,7 +7,7 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="Income, low income, renting and shelter costs by census dissemination area, City of Toronto: 2016 and 2021 censuses and the change between them." />
+    <meta name="description" content="Income, low income, housing costs, dwellings and population by census dissemination area, City of Toronto: 2016 and 2021 censuses and the change between them." />
   </head>
   <body>
     <header class="bar">
@@ -38,6 +38,30 @@
           <optgroup label="Housing">
             <option value="renter">Renter households</option>
             <option value="shelter30">Households spending 30%+ of income on shelter</option>
+            <option value="owner30">Owners spending 30%+ of income on shelter</option>
+            <option value="tenant30">Tenants spending 30%+ of income on shelter</option>
+            <option value="subsidized">Tenants in subsidized housing</option>
+          </optgroup>
+          <optgroup label="Housing costs and values">
+            <option value="value">Median value of owned dwellings</option>
+            <option value="own_cost">Median monthly shelter costs of owners</option>
+            <option value="rent">Median monthly shelter costs of renters</option>
+          </optgroup>
+          <optgroup label="Dwellings">
+            <option value="detached">Single-detached houses</option>
+            <option value="apt5">Apartments in buildings of 5+ storeys</option>
+            <option value="condo">Condominium dwellings</option>
+            <option value="built_new">Dwellings built in the past 5 years</option>
+            <option value="built_old">Dwellings built in 1960 or before</option>
+            <option value="crowded">Households in housing not suitable for their size</option>
+          </optgroup>
+          <optgroup label="People">
+            <option value="degree">Bachelor's degree or higher (aged 25–64)</option>
+            <option value="moved1">Moved in the past year</option>
+            <option value="moved5">Moved in the past 5 years</option>
+            <option value="imm_recent">Recent immigrants (past 5 years)</option>
+            <option value="age0_14">Children aged 0–14</option>
+            <option value="age65">People aged 65 and over</option>
           </optgroup>
         </select>
       </label>
@@ -50,7 +74,7 @@
       </fieldset>
       <label class="measure changeby">
         <span class="visually-hidden">Show change as</span>
-        <!-- options set by main.js: dollars for incomes, percentage points for rates -->
+        <!-- options set by main.js: dollars for money measures, percentage points for rates -->
         <select id="changeby" hidden>
           <option value="real">Change in 2020 dollars (inflation-adjusted)</option>
           <option value="dollars">Change in nominal dollars</option>

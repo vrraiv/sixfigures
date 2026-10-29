@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from distributions import CPI_FACTOR, real_change
+from distributions import CPI_FACTOR, CPI_FACTOR_CENSUS, real_change
 from measures import MEASURES, years
 
 WEB_DATA = Path(__file__).parent.parent / "web" / "public" / "data"
@@ -52,4 +52,4 @@ def write_csvs(gdf: pd.DataFrame, g16: pd.DataFrame, out: Path = WEB_DATA):
     for name, df in (("toronto_da_income_2021.csv", d21), ("toronto_da_income_2016.csv", d16)):
         path = out / name
         _ints(df.sort_values("dauid")).to_csv(path, index=False, lineterminator="\n")
-        print(f"wrote {path} ({path.stat().st_size / 1e3:.0f} kB, {len(df):,} rows; real change at x{CPI_FACTOR})")
+        print(f"wrote {path} ({path.stat().st_size / 1e3:.0f} kB, {len(df):,} rows; real change at x{CPI_FACTOR} for incomes, x{CPI_FACTOR_CENSUS} for census-dated dollars)")

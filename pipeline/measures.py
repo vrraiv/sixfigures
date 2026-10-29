@@ -24,6 +24,34 @@ CHARS_2021 = {
     "n_shelter30": (1467, "Spending 30% or more of income on shelter costs"),
     "pop21": (1, "Population, 2021"),
     "hh": (50, "Total - Private households by household size - 100% data"),
+    "value": (1488, "Median value of dwellings ($)"),
+    "own_cost": (1486, "Median monthly shelter costs for owned dwellings ($)"),
+    "rent": (1494, "Median monthly shelter costs for rented dwellings ($)"),
+    "owner30": (1484, "% of owner households spending 30% or more of its income on shelter costs"),
+    "tenant30": (1492, "% of tenant households spending 30% or more of its income on shelter costs"),
+    "subsidized": (1491, "% of tenant households in subsidized housing"),
+    "n_struct": (41, "Total - Occupied private dwellings by structural type of dwelling - 100% data"),
+    "n_detached": (42, "Single-detached house"),
+    "n_apt5": (47, "Apartment in a building that has five or more storeys"),
+    "n_condo_tot": (1418, "Total - Occupied private dwellings by condominium status - 25% sample data"),
+    "n_condo": (1419, "Condominium"),
+    "n_period": (1440, "Total - Occupied private dwellings by period of construction - 25% sample data"),
+    "n_built_old": (1441, "1960 or before"),
+    "n_built_new": (1448, "2016 to 2021"),
+    "n_suit": (1437, "Total - Private households by housing suitability - 25% sample data"),
+    "n_crowded": (1439, "Not suitable"),
+    "age0_14": (35, "0 to 14 years"),
+    "age65": (37, "65 years and over"),
+    "n_degree_tot": (2014, "Total - Highest certificate, diploma or degree for the population aged 25 to 64 years "
+                           "in private households - 25% sample data"),
+    "n_degree": (2024, "Bachelor's degree or higher"),
+    "n_mob1": (1974, "Total - Mobility status 1 year ago - 25% sample data"),
+    "n_moved1": (1976, "Movers"),
+    "n_mob5": (1983, "Total - Mobility status 5 years ago - 25% sample data"),
+    "n_moved5": (1985, "Movers"),
+    "n_imm_tot": (1527, "Total - Immigrant status and period of immigration for the population in private households "
+                        "- 25% sample data"),
+    "n_imm_recent": (1536, "2016 to 2021"),
 }
 CHARS_2016 = {
     "med_hh_tot": (742, "Median total income of households in 2015 ($)"),
@@ -41,18 +69,62 @@ CHARS_2016 = {
     "n_shelter30": (1669, "Spending 30% or more of income on shelter costs"),
     "pop16": (1, "Population, 2016"),
     "hh": (51, "Total - Private households by household size - 100% data"),
+    "value": (1676, "Median value of dwellings ($)"),
+    "own_cost": (1674, "Median monthly shelter costs for owned dwellings ($)"),
+    "rent": (1681, "Median monthly shelter costs for rented dwellings ($)"),
+    "owner30": (1673, "% of owner households spending 30% or more of its income on shelter costs"),
+    "tenant30": (1680, "% of tenant households spending 30% or more of its income on shelter costs"),
+    "subsidized": (1679, "% of tenant households in subsidized housing"),
+    "n_struct": (41, "Total - Occupied private dwellings by structural type of dwelling - 100% data"),
+    "n_detached": (42, "Single-detached house"),
+    "n_apt5": (43, "Apartment in a building that has five or more storeys"),
+    "n_condo_tot": (1621, "Total - Occupied private dwellings by condominium status - 25% sample data"),
+    "n_condo": (1622, "Condominium"),
+    "n_period": (1643, "Total - Occupied private dwellings by period of construction - 25% sample data"),
+    "n_built_old": (1644, "1960 or before"),
+    "n_built_new": (1650, "2011 to 2016"),
+    "n_suit": (1640, "Total - Private households by housing suitability - 25% sample data"),
+    "n_crowded": (1642, "Not suitable"),
+    "age0_14": (35, "0 to 14 years"),
+    "age65": (37, "65 years and over"),
+    "n_degree_tot": (1698, "Total - Highest certificate, diploma or degree for the population aged 25 to 64 years "
+                           "in private households - 25% sample data"),
+    "n_degree": (1707, "University certificate, diploma or degree at bachelor level or above"),
+    "n_mob1": (2230, "Total - Mobility status 1 year ago - 25% sample data"),
+    "n_moved1": (2232, "Movers"),
+    "n_mob5": (2239, "Total - Mobility status 5 years ago - 25% sample data"),
+    "n_moved5": (2241, "Movers"),
+    "n_imm_tot": (1140, "Total - Immigrant status and period of immigration for the population in private households "
+                        "- 25% sample data"),
+    "n_imm_recent": (1149, "2011 to 2016"),
 }
 
 # Shares computed from two counts: key -> (numerator, denominator, label).
 SHARES = {
     "renter": ("n_renter", "n_tenure", "Renter households (% of private households)"),
     "shelter30": ("n_shelter30", "n_shelter", "Households spending 30% or more of income on shelter costs (%)"),
+    "detached": ("n_detached", "n_struct", "Single-detached houses (% of occupied private dwellings)"),
+    "apt5": ("n_apt5", "n_struct", "Apartments in buildings of five or more storeys (% of occupied private dwellings)"),
+    "condo": ("n_condo", "n_condo_tot", "Condominium dwellings (% of occupied private dwellings)"),
+    "built_new": ("n_built_new", "n_period", "Dwellings built in the five years before the census (%)"),
+    "built_old": ("n_built_old", "n_period", "Dwellings built in 1960 or before (%)"),
+    "crowded": ("n_crowded", "n_suit", "Households in housing not suitable for their size (%)"),
+    "degree": ("n_degree", "n_degree_tot", "Bachelor's degree or higher, aged 25 to 64 (%)"),
+    "moved1": ("n_moved1", "n_mob1", "Moved in the past year (% of population aged 1+)"),
+    "moved5": ("n_moved5", "n_mob5", "Moved in the past five years (% of population aged 5+)"),
+    "imm_recent": ("n_imm_recent", "n_imm_tot", "Immigrated in the five years before the census (% of population)"),
 }
 
-# unit: "money" (dollars; change can be restated in 2020 dollars) or "rate"
-# (percent, one decimal; change in percentage points). Figures refer to the
-# income year (2015, 2020) except the housing shares, which StatCan dates by
-# census (2016, 2021); see years().
+# Labels for characteristics whose profile name is ambiguous on its own.
+LABELS = {
+    "age0_14": "Population aged 0 to 14 (%)",
+    "age65": "Population aged 65 and over (%)",
+}
+
+# unit: "money" (dollars; change can be restated in the later year's dollars)
+# or "rate" (percent, one decimal; change in percentage points). Income figures
+# refer to the income year (2015, 2020); the rest are dated by census (2016,
+# 2021); see years().
 # width / change_width: histogram bins; change: the six change-class breaks
 # (dollars or percentage points), symmetric round numbers centred on zero.
 _MEDIAN_CHANGE = {"hh": [-20000, -10000, -2000, 2000, 10000, 20000], "ind": [-10000, -5000, -1000, 1000, 5000, 10000]}
@@ -66,9 +138,29 @@ MEASURES = {
     "transfers": {"unit": "rate", "width": 2, "change_width": 1, "change": [-10, -5, -1, 1, 5, 10]},
     "renter": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -2, 2, 10, 20]},
     "shelter30": {"unit": "rate", "width": 2, "change_width": 1, "change": [-20, -10, -3, 3, 10, 20]},
+    "owner30": {"unit": "rate", "width": 2, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "tenant30": {"unit": "rate", "width": 2, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "subsidized": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "value": {"unit": "money", "width": 100000, "change_width": 50000, "change": [-400000, -200000, -50000, 50000, 200000, 400000]},
+    "own_cost": {"unit": "money", "width": 100, "change_width": 100, "change": [-500, -250, -50, 50, 250, 500]},
+    "rent": {"unit": "money", "width": 100, "change_width": 50, "change": [-500, -250, -50, 50, 250, 500]},
+    "detached": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "apt5": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "condo": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "built_new": {"unit": "rate", "width": 2, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "built_old": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "crowded": {"unit": "rate", "width": 2, "change_width": 1, "change": [-20, -10, -3, 3, 10, 20]},
+    "degree": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "moved1": {"unit": "rate", "width": 2, "change_width": 1, "change": [-20, -10, -3, 3, 10, 20]},
+    "moved5": {"unit": "rate", "width": 5, "change_width": 2, "change": [-20, -10, -3, 3, 10, 20]},
+    "imm_recent": {"unit": "rate", "width": 1, "change_width": 1, "change": [-20, -10, -3, 3, 10, 20]},
+    "age0_14": {"unit": "rate", "width": 1, "change_width": 1, "change": [-10, -5, -1, 1, 5, 10]},
+    "age65": {"unit": "rate", "width": 2, "change_width": 1, "change": [-10, -5, -1, 1, 5, 10]},
 }
 MONEY = [m for m, s in MEASURES.items() if s["unit"] == "money"]
-CENSUS_DATED = ["renter", "shelter30"]
+# Figures that refer to the income year (2015, 2020); all others are dated by census.
+INCOME_DATED = ["med_hh_tot", "med_hh_at", "med_ind_tot", "med_ind_at", "avg_hh_tot", "lim_at", "transfers"]
+CENSUS_DATED = [m for m in MEASURES if m not in INCOME_DATED]
 
 
 def years(m: str) -> tuple[str, str]:
@@ -82,7 +174,7 @@ def targets(chars: dict) -> dict:
 
 
 def label(chars: dict, m: str) -> str:
-    return SHARES[m][2] if m in SHARES else chars[m][1]
+    return SHARES[m][2] if m in SHARES else LABELS.get(m, chars[m][1])
 
 
 def derive_shares(wide: pd.DataFrame) -> pd.DataFrame:
@@ -96,6 +188,23 @@ def derive_shares(wide: pd.DataFrame) -> pd.DataFrame:
         d = out[den].where(out[den] > 0)
         out[m] = (out[num] / d * 100).clip(upper=100).round(1)
     return out.drop(columns=[c for c in out.columns if c.startswith("n_")])
+
+
+# Where too few owner or tenant households answered, the 2016 profile publishes a
+# median of 0 where 2021 has a suppression marker: a dwelling value, owner cost or
+# rent of $0 is not a value. Percentages for the same households are kept as
+# published; 2021 also publishes 0% for many of them.
+UNPUBLISHED_ZERO_2016 = ["value", "own_cost", "rent"]
+
+
+def null_unpublished_2016(wide: pd.DataFrame) -> pd.DataFrame:
+    """Null the 2016 medians published as $0 (see above), and the published
+    percentages above 100."""
+    out = wide.copy()
+    out[UNPUBLISHED_ZERO_2016] = out[UNPUBLISHED_ZERO_2016].where(out[UNPUBLISHED_ZERO_2016] != 0)
+    pct = [m for m in out if m in MEASURES and MEASURES[m]["unit"] == "rate" and m not in SHARES]
+    out[pct] = out[pct].where(~(out[pct] > 100))
+    return out
 
 
 def derive_city_shares(city: pd.Series) -> pd.Series:

@@ -112,6 +112,16 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
   DAs from one 2016 DA (each 2021 DA wholly inside it, checked), 4 = many-to-many. Only
   flag-1 DAs get 2016 values (`v16_*`, `p16_*`) in the 2021 tiles; the browser computes
   the change from them. 2021 DAs: 3,606 flag 1, 70 flag 3, 67 flag 4.
+- **2016 zeros:** where too few owner or tenant households answered, the 2016 profile
+  publishes a median of 0 rather than a suppression marker (2021 uses `x` or `..`): a
+  dwelling value, owner cost or rent of $0. `measures.null_unpublished_2016` nulls
+  those (278, 278 and 1,288 DAs). Percentages for the same households (`owner30`,
+  `tenant30`, `subsidized`) are kept as published, 0% included, as in 2021, which also
+  publishes 0% for many DAs whose median rent it suppresses. It also nulls published
+  percentages above 100 (one 2016 `owner30` of 150).
+- **Zero class:** when a sixth or more of the pooled DA values are exactly 0, quantile
+  breaks would repeat 0, so `build.class_breaks` makes 0 its own class and splits the
+  positive values into fifths; `breaks.json` marks those measures `zero_class`.
 - **Percentile rank** `pct_<measure>`: share of non-null DAs with an equal or lower value
   (`rank(method="max", pct=True) × 100`, rounded, floor 1).
 
@@ -135,16 +145,18 @@ page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
    all) and add it to `CHARS_2021` and `CHARS_2016` in `measures.py` by ID **and** name;
    both must match, since some names repeat (2021 has "Government transfers (%)" for
    both 2020 and 2019 income). A share computed from counts goes in `SHARES`.
-2. Add it to `MEASURES` (unit, histogram widths, change breaks) and, for census-dated
-   figures, to `CENSUS_DATED`.
+2. Add it to `MEASURES` (unit, histogram widths, change breaks) and, if it refers to
+   the income year (2015, 2020) rather than the census year, to `INCOME_DATED`.
 3. Add it to `MEASURES` in `web/src/main.js` and to the menu in `web/index.html`.
 4. `make data`. The cached extracts in `pipeline/out/` are re-streamed automatically
    when they lack a characteristic. Check the class counts that `build.py` prints.
 
-Each measure adds roughly a tenth to the size of every 2021 tile. The browser fetches only the tiles in
+Each measure adds to the size of every 2021 tile. The browser fetches only the tiles in
 view, so `npm run build` (`scripts/check-size.mjs`) budgets the 2021 tile set at its
-heaviest zoom level, the most any view could need: it fails above 1.5 MB (0.95 MB at
-zoom 13 with nine measures).
+heaviest zoom level, the most any view could need: it fails above 2 MB (0.95 MB at
+zoom 13 with nine measures; 1.76 MB with 27, for a first load of about 2.75 MB).
+The tiles are built with `--no-tile-size-limit`: under tippecanoe's default 500 KB
+limit, 27 measures made it drop about 1,500 of the 3,743 DAs at zooms 9 and 10.
 
 ## Row counts (2026-10-26 build; characteristics as of 2026-10-27)
 
