@@ -18,11 +18,6 @@
     </nav>
     <header class="bar">
       <h1>Toronto neighbourhoods <span class="sub">2011, 2016 and 2021 censuses</span></h1>
-      <label class="measure">
-        <span class="visually-hidden">Measure</span>
-        <!-- options set by insights.js -->
-        <select id="measure"></select>
-      </label>
     </header>
 
     <main class="insights">
@@ -31,9 +26,16 @@
           <h2 id="glance-h">The city at a glance</h2>
           <label class="toggle"><input type="checkbox" id="real" /> Dollar figures in 2021 terms</label>
         </div>
-        <p class="ins-lede">City of Toronto figures in each census, as Statistics Canada publishes them. Choose a measure to see its neighbourhoods below.</p>
+        <p class="ins-lede">City of Toronto figures in each census, as Statistics Canada publishes them. Tap a measure to see its neighbourhoods below.</p>
         <div id="cards" class="cards"></div>
       </section>
+
+      <!-- The measure for the two sections below; it stays in view while they scroll. -->
+      <div class="measure-bar" id="measure-bar">
+        <label for="measure">Neighbourhoods by</label>
+        <!-- options set by insights.js -->
+        <select id="measure"></select>
+      </div>
 
       <section class="ins-section" aria-labelledby="rank-h">
         <div class="ins-head">

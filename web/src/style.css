@@ -313,6 +313,19 @@ body.with-nav { grid-template-rows: auto auto 1fr auto; }
 /* ---- the Insights page: a scrolling document rather than a full-screen map ---- */
 body.doc { display: block; height: auto; }
 .insights { max-width: 1120px; margin: 0 auto; padding: 8px 16px 32px; }
+/* The measure picker for the neighbourhood sections, pinned while they scroll. */
+.measure-bar {
+  position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 12px -16px 0; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--rule);
+  backdrop-filter: blur(4px); scroll-margin-top: 0;
+}
+.measure-bar label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.measure-bar select {
+  /* min-width 0: a select is otherwise as wide as its longest option */
+  flex: 1 1 260px; min-width: 0; width: 100%; max-width: 460px; font: inherit; font-size: 15px; padding: 7px 10px; color: var(--ink);
+  background: #fff; border: 1px solid var(--accent); border-radius: 6px;
+}
+.measure-bar select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ins-section { padding: 20px 0 8px; border-bottom: 1px solid var(--rule); }
 .ins-section:last-of-type { border-bottom: 0; }
 .ins-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
