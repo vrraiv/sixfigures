@@ -1,0 +1,198 @@
+{
+ "retrieved": "2026-10-30",
+ "files": {
+  "toronto_permits_active.csv": 67879899,
+  "toronto_permits_cleared_2000_2016.csv": 155623064,
+  "toronto_permits_cleared_2017.csv": 151408210
+ },
+ "excluded": {
+  "26 256637 BLD": "100,000 units on a change of use from a cafe to an arcade",
+  "98 200593 000": "2,500 units on a retail building",
+  "00 363746 CMB": "sprinkler shop drawings repeating the 642 units of 99 101936 COM next door",
+  "05 112606 BLD": "3-storey building F repeating Kilgour Estate's 201 units (05 112570 BLD)",
+  "05 112611 BLD": "3-storey building E repeating Kilgour Estate's 201 units (05 112570 BLD)",
+  "05 131293 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)",
+  "05 131307 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)",
+  "05 131312 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)"
+ },
+ "repeats_removed": {
+  "trade or partial permit number": {
+   "permits": 11,
+   "units": 502
+  },
+  "same application number": {
+   "permits": 118,
+   "units": 916
+  },
+  "batch repeating its total": {
+   "permits": 29,
+   "units": 322
+  },
+  "companion at the same address": {
+   "permits": 7,
+   "units": 596
+  }
+ },
+ "permits_with_units": 84476,
+ "placed_share_of_units_created_by_issue_year": {
+  "2000": 0.891,
+  "2001": 0.888,
+  "2002": 0.878,
+  "2003": 0.903,
+  "2004": 0.912,
+  "2005": 0.953,
+  "2006": 0.973,
+  "2007": 0.999,
+  "2008": 0.998,
+  "2009": 0.923,
+  "2010": 0.939,
+  "2011": 0.996,
+  "2012": 0.966,
+  "2013": 0.993,
+  "2014": 0.997,
+  "2015": 0.992,
+  "2016": 0.937,
+  "2017": 0.936,
+  "2018": 1.0,
+  "2019": 0.942,
+  "2020": 0.972,
+  "2021": 0.997,
+  "2022": 0.993,
+  "2023": 0.98,
+  "2024": 1.0,
+  "2025": 0.991,
+  "2026": 1.0
+ },
+ "census_check": {
+  "households 2011-2016 lag 0": {
+   "permits": 65571,
+   "census": 66530,
+   "pearson": 0.882,
+   "spearman": 0.638
+  },
+  "households 2011-2016 lag 1": {
+   "permits": 68212,
+   "census": 66530,
+   "pearson": 0.87,
+   "spearman": 0.638
+  },
+  "households 2011-2016 lag 2": {
+   "permits": 69498,
+   "census": 66530,
+   "pearson": 0.833,
+   "spearman": 0.575
+  },
+  "households 2011-2016 lag 3": {
+   "permits": 69964,
+   "census": 66530,
+   "pearson": 0.678,
+   "spearman": 0.471
+  },
+  "households 2016-2021 lag 0": {
+   "permits": 83604,
+   "census": 48090,
+   "pearson": 0.901,
+   "spearman": 0.59
+  },
+  "households 2016-2021 lag 1": {
+   "permits": 93593,
+   "census": 48090,
+   "pearson": 0.913,
+   "spearman": 0.57
+  },
+  "households 2016-2021 lag 2": {
+   "permits": 93221,
+   "census": 48090,
+   "pearson": 0.92,
+   "spearman": 0.502
+  },
+  "households 2016-2021 lag 3": {
+   "permits": 87018,
+   "census": 48090,
+   "pearson": 0.892,
+   "spearman": 0.443
+  },
+  "dwellings 2011-2016 lag 0": {
+   "permits": 65571,
+   "census": 71206,
+   "pearson": 0.927,
+   "spearman": 0.723
+  },
+  "dwellings 2011-2016 lag 1": {
+   "permits": 68212,
+   "census": 71206,
+   "pearson": 0.913,
+   "spearman": 0.685
+  },
+  "dwellings 2011-2016 lag 2": {
+   "permits": 69498,
+   "census": 71206,
+   "pearson": 0.883,
+   "spearman": 0.602
+  },
+  "dwellings 2011-2016 lag 3": {
+   "permits": 69964,
+   "census": 71206,
+   "pearson": 0.745,
+   "spearman": 0.489
+  },
+  "dwellings 2016-2021 lag 0": {
+   "permits": 83604,
+   "census": 74181,
+   "pearson": 0.927,
+   "spearman": 0.754
+  },
+  "dwellings 2016-2021 lag 1": {
+   "permits": 93593,
+   "census": 74181,
+   "pearson": 0.925,
+   "spearman": 0.739
+  },
+  "dwellings 2016-2021 lag 2": {
+   "permits": 93221,
+   "census": 74181,
+   "pearson": 0.921,
+   "spearman": 0.66
+  },
+  "dwellings 2016-2021 lag 3": {
+   "permits": 87018,
+   "census": 74181,
+   "pearson": 0.888,
+   "spearman": 0.604
+  }
+ },
+ "cma_check": {
+  "2018": {
+   "city": 21481,
+   "cma": 41116
+  },
+  "2019": {
+   "city": 16213,
+   "cma": 36088
+  },
+  "2020": {
+   "city": 24870,
+   "cma": 47546
+  },
+  "2021": {
+   "city": 23637,
+   "cma": 58472
+  },
+  "2022": {
+   "city": 13597,
+   "cma": 42837
+  },
+  "2023": {
+   "city": 15567,
+   "cma": 46205
+  },
+  "2024": {
+   "city": 21451,
+   "cma": 44564
+  },
+  "2025": {
+   "city": 17399,
+   "cma": 37468
+  }
+ }
+}

@@ -9,7 +9,8 @@ Cloudflare bot challenge that often rejects non-browser clients with HTTP 403.
 We try a plain download, verify the result is a real zip, and otherwise print
 the URLs to fetch manually in a browser. A challenge page is never saved.
 
-City of Toronto Open Data (neighbourhoods, address points, intersections, wards):
+City of Toronto Open Data (neighbourhoods, address points, intersections, wards,
+building permits):
 resource URLs are resolved through the CKAN package_show API at download time.
 The portal intermittently returns 504 error pages, so each download is retried
 with backoff and checked for the expected leading bytes before it is kept.
@@ -105,6 +106,14 @@ TORONTO = {
     "toronto_intersections_4326.csv": (
         "intersection-file-city-of-toronto", "Centreline Intersection - 4326.csv", b"_id,"),
     "toronto_wards_4326.geojson": ("city-wards", "City Wards Data - 4326.geojson", b"{"),
+    # Building permits (permits.py): 150 MB, 156 MB and 68 MB, refreshed daily
+    # upstream; delete them to fetch the current files.
+    "toronto_permits_cleared_2017.csv": (
+        "building-permits-cleared-permits", "Cleared Building Permits since 2017.csv", b"_id,"),
+    "toronto_permits_cleared_2000_2016.csv": (
+        "building-permits-cleared-permits", "Cleared Permits 2000 to 2016", b'"PERMIT_NUM"'),
+    "toronto_permits_active.csv": (
+        "building-permits-active-permits", "building-permits-active-permits.csv", b"_id,"),
 }
 
 
