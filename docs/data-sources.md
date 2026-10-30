@@ -49,7 +49,7 @@ drivers is a conditional forecast, and has to be scored and labelled that way.
 
 | Source | Table | Years | Geography | Role | Origin | Check after ingest |
 |---|---|---|---|---|---|---|
-| Population estimates, July 1 | 17-10-0155 | 2001-2025 | CSD (Toronto C) | City anchor | known to origin year | 2016 and 2021 within 3% of census counts |
+| Population estimates, July 1 | 17-10-0155 | 2001-2025 | CSD (Toronto C) | City anchor | known to origin year | 3.3-4.4% above the census counts in 2011, 2016 and 2021 (the estimates adjust for census undercoverage) |
 | Income of individuals (T1 Family File, from tax records): median income by source | 11-10-0239 | 1976-2024 | CMA (Toronto) | City anchor (income after 2020) | known | 2015 and 2020 move with the census medians |
 | Labour force characteristics, 3-month moving average | 14-10-0459 | 2011-2026 | CMA | City anchor | known | 2021 unemployment near census |
 | Building permits by type of structure and work | 34-10-0292 | 2018-2026 | CMA (the 66 geographies are CMAs) | City anchor | oracle in backtest | sum of City permits within the CMA total |
@@ -72,9 +72,10 @@ it's worth an enquiry, but the plan doesn't depend on it.
 |---|---|---|---|---|---|---|
 | Cleared building permits | `building-permits-cleared-permits` (since 2017; 2000-2016 file) | 2000-today, daily | address (`GEO_ID`) to DA and neighbourhood | Annual driver: dwelling units created and lost | oracle in backtest | GEO_ID match rate to address points per year; units summed by census interval vs census dwelling change |
 | Active building permits | `building-permits-active-permits` | today | address | Live driver (units in the pipe) | known for the live forecast | as above |
-| Development applications | `development-applications` | daily (date range to check) | coordinates (X, Y) | Live driver (proposed projects) | known | 26,648 applications; **no unit count field**, units only in the free-text description, so a parser and a match rate |
+| Development applications | `development-applications` | 2008-today, daily | coordinates (X, Y; NAD27 MTM 10, EPSG:2019) | Live driver (proposed projects) | known | 8,622 applications in 26,648 rows (one per address); **no unit count field**, units only in the free-text description, so a parser and a match rate |
 | Apartment building registration | `apartment-building-registration` | monthly | address | Annual driver (purpose-built rental stock: units, year built) | known | units vs census renter households by neighbourhood |
-| Affordable and social housing units | `active-affordable-and-social-housing-units`, `upcoming-and-recently-completed-affordable-housing-unit` | quarterly | address | Driver (subsidized tenants) | known for current stock | vs the subsidized-tenant share |
+| Social and affordable housing units | `active-affordable-and-social-housing-units` | quarterly, 2020-2026 | city-wide totals only | Not usable by neighbourhood | | |
+| Affordable rental housing pipeline | `upcoming-and-recently-completed-affordable-housing-units` | current snapshot (no dates) | coordinates | Driver (subsidized tenants) | today only | 277 projects; no history, so no backtest use |
 | Demolition and replacement of rental units | `demolition-and-replacement-of-rental-housing-units` | quarterly | address | Driver (rental loss) | oracle in backtest | addresses match |
 | Neighbourhood crime rates | `neighbourhood-crime-rates` | 2014-2025 | 158 neighbourhoods | Annual driver (exploratory) | known | 158 neighbourhoods, one row each |
 | Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | postal code | Exploratory | today only | 8,713 registrations; no history, so no backtest use |
