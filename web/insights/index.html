@@ -62,6 +62,53 @@
           <figcaption id="strip-caption"></figcaption>
         </figure>
       </section>
+
+      <section class="ins-section" aria-labelledby="spread-h">
+        <div class="ins-head">
+          <h2 id="spread-h">How the neighbourhoods spread out</h2>
+          <label class="toggle" id="spread-real-wrap"><input type="checkbox" id="spread-real" checked /> After inflation (2021 dollars)</label>
+        </div>
+        <p class="ins-lede" id="spread-lede"></p>
+        <div id="spread" class="spread"></div>
+        <ul class="year-key" id="spread-key"></ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="corr-h">
+        <div class="ins-head">
+          <h2 id="corr-h">What goes with what</h2>
+          <div class="seg" id="corr-year" role="group" aria-label="Census"></div>
+        </div>
+        <p class="ins-lede" id="corr-lede"></p>
+        <div class="corr-wrap">
+          <div id="corr-grid" class="corr-grid"></div>
+          <ol id="corr-list" class="corr-list"></ol>
+        </div>
+        <ul class="corr-key" id="corr-key"></ul>
+        <figure class="scatter" id="scatter-fig">
+          <figcaption id="scatter-caption"></figcaption>
+          <div id="scatter"></div>
+        </figure>
+      </section>
+
+      <section class="ins-section" aria-labelledby="shift-h">
+        <div class="ins-head">
+          <h2 id="shift-h">Relationships that changed</h2>
+          <div class="seg" id="shift-pair" role="group" aria-label="Between censuses"></div>
+        </div>
+        <p class="ins-lede" id="shift-lede"></p>
+        <label class="toggle shift-only"><input type="checkbox" id="shift-only" /> Only pairs with the selected measure</label>
+        <ol id="shift-list" class="shift-list"></ol>
+        <ul class="year-key" id="shift-key"></ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="gap-h">
+        <div class="ins-head">
+          <h2 id="gap-h">The gap between neighbourhoods</h2>
+        </div>
+        <p class="ins-lede" id="gap-lede"></p>
+        <ol id="gap-list" class="gap-list"></ol>
+        <ul class="year-key" id="gap-key"></ul>
+      </section>
       <div id="tip" class="tip" role="tooltip" hidden></div>
     </main>
 
