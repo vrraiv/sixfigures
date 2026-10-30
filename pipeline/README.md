@@ -148,6 +148,20 @@ Listing pages:
 downloads usually get HTTP 403. `download.py` detects this, never saves the challenge
 page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
 
+Building permits (downloaded 2026-10-30), for the forecast model: the City's cleared
+permits 2000-2016 and since 2017 and its active permits (Open Data, through CKAN;
+`download.py`). `make permits` runs `pipeline/permits.py`, which keeps one row per
+permit, counts units created on building permits and units lost on those and on
+demolition permits, places each permit by address in a 2021 DA and the figures files'
+neighbourhood, and writes `pipeline/permits/by_nbhd.csv` (committed: units by
+neighbourhood, year issued and year completed) and `pipeline/out/permits_by_da.csv`.
+GEO_ID alone places 30-90% of a year's units, because towers get new addresses; the
+address-string and nearest-number fallbacks bring every issue year since 2000 to at
+least 87%. Completion years are rough: the 2000-2016 file has no permit closed in 2007,
+and thousands of old permits were closed administratively in 2025-2026.
+`pipeline/permits/manifest.json` holds the run's checks against census household change
+and the CMA's permits in StatCan table 34-10-0292.
+
 ## Processing notes
 
 - **Encoding:** the profile CSV is Latin-1, not UTF-8.

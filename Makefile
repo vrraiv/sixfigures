@@ -35,7 +35,13 @@ NHS11     := pipeline/out/toronto_nhs_2011.csv
 TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_points_4326.csv \
              $(RAW)/toronto_intersections_4326.csv $(RAW)/toronto_wards_4326.geojson
 
-.PHONY: data download tiles search overlays deps clean cpi breaks
+# City building permits, and their units by neighbourhood and year (a model input,
+# not part of the site)
+PERMITRAW := $(RAW)/toronto_permits_cleared_2000_2016.csv $(RAW)/toronto_permits_cleared_2017.csv \
+             $(RAW)/toronto_permits_active.csv
+PERMITS   := pipeline/permits/by_nbhd.csv
+
+.PHONY: data download tiles search overlays deps clean cpi breaks permits
 
 data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS) $(INSIGHTS)
 
@@ -46,7 +52,7 @@ download:
 	$(PYTHON) pipeline/download.py
 
 $(STATCAN) $(TORONTO) $(RAW)/98-316-XWE2011001-1501.zip $(RAW)/gda_000b11a_e.zip \
-$(RAW)/2016_92-156_DALand_ADsup_csv.zip $(NHSIVT11):
+$(RAW)/2016_92-156_DALand_ADsup_csv.zip $(NHSIVT11) $(PERMITRAW):
 	$(PYTHON) pipeline/download.py
 
 $(NHS11): $(NHSIVT11) pipeline/nhs2011.py pipeline/measures.py
@@ -66,6 +72,14 @@ $(GEOM11) $(FIGURES11) $(BREAKS11) &: $(STATCAN11) $(NHS11) $(BREAKS) $(RAW)/tor
 # extracts in pipeline/out, the figures files' neighbourhood assignment, the city values).
 $(INSIGHTS): $(FIGURES) $(FIGURES11) $(BREAKS) $(BREAKS11) $(NHS11) pipeline/insights.py pipeline/measures.py pipeline/cpi.json
 	$(PYTHON) pipeline/insights.py
+
+permits: $(PERMITS)
+
+# Units created and lost on permits, placed by address in 2021 DAs and the
+# figures files' neighbourhoods; checked against census household change
+$(PERMITS): $(PERMITRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b21a_e.zip $(FIGURES) $(FIGURES11) \
+            pipeline/permits.py
+	$(PYTHON) pipeline/permits.py
 
 # build.py also applies cpi.json and writes the CSVs, but a change to those alone
 # only needs `make breaks`, not a rebuild of the GeoJSON and tiles.

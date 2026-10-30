@@ -26,6 +26,8 @@ pipeline/out/
 !web/public/data/*.csv
 *.tab
 *.ivt
+# the permit totals by neighbourhood pipeline/permits.py writes
+!pipeline/permits/*.csv
 # office documents
 *.docx
 *.xlsx
