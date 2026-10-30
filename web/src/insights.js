@@ -112,9 +112,10 @@ function renderCards() {
   const html = Object.keys(GROUPS).map((g) => {
     const cards = measures.filter((m) => MEASURES[m].group === g).map((m) => {
       const now = city(m, "2021");
-      // Dollar changes are always after inflation, as in the changes section.
-      const d = now - restate(m, city(m, "2016"), "2016", "2021");
-      const change = `<span class="card-delta">${fmtChange(m, d)} since ${refYear(m, "2016")}${isMoney(m) ? ", after inflation" : ""}</span>`;
+      // The toggle sets both the sparkline and the change: as published, or in 2021 terms.
+      const real = state.real && isMoney(m);
+      const d = now - (real ? restate(m, city(m, "2016"), "2016", "2021") : city(m, "2016"));
+      const change = `<span class="card-delta">${fmtChange(m, d)} since ${refYear(m, "2016")}${real ? ", after inflation" : ""}</span>`;
       const years = YEARS.map((y) => refYear(m, y));
       const aria = `${MEASURES[m].long}: ${YEARS.map((y) => `${refYear(m, y)} ${fmt(m, city(m, y))}`).join(", ")}`;
       return `<button type="button" class="card" data-m="${m}" aria-pressed="${m === state.m}" aria-label="${escapeHTML(aria)}">
@@ -133,7 +134,7 @@ $("cards").addEventListener("click", (e) => {
   const c = e.target.closest(".card");
   if (!c) return;
   setMeasure(c.dataset.m);
-  $("rank-h").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("measure-bar").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 $("real").checked = state.real;
 $("real").addEventListener("change", (e) => {
