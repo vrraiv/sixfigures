@@ -87,7 +87,7 @@ def extract() -> pd.DataFrame:
     return pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
 
 
-def load_nhs() -> tuple[pd.DataFrame, pd.Series]:
+def load_nhs(keep_counts: bool = False) -> tuple[pd.DataFrame, pd.Series]:
     """The NHS measures by DA (GNR >= 50% nulled) and the city's values (the CSD row)."""
     if not NHS_CSV.exists():
         sys.exit(f"{NHS_CSV} is missing: run pipeline/nhs2011.py (see its docstring)")
@@ -107,10 +107,10 @@ def load_nhs() -> tuple[pd.DataFrame, pd.Series]:
     das[UNPUBLISHED_ZERO_2016] = das[UNPUBLISHED_ZERO_2016].where(das[UNPUBLISHED_ZERO_2016] != 0)
     print(f"NHS: medians of $0 nulled: {zero}")
     city = derive_shares(csd[NHS_KEYS].astype(float), NHS_SHARES).iloc[0]
-    return derive_shares(das, NHS_SHARES), city
+    return derive_shares(das, NHS_SHARES, keep_counts=keep_counts), city
 
 
-def load_2011():
+def load_2011(keep_counts: bool = False):
     """Returns (gdf of 2011 Toronto DAs with values, city-wide values)."""
     long = extract()
     print("\n2011 matched characteristics (Topic: name):")
@@ -129,10 +129,10 @@ def load_2011():
         wide[total] = wide[parts].sum(axis=1, min_count=len(parts))
     # City-wide shares from the DA counts (100% data: exact but for random rounding).
     city = derive_shares(wide.sum(min_count=1).to_frame().T, PROFILE_SHARES).iloc[0]
-    wide = derive_shares(wide, PROFILE_SHARES)
+    wide = derive_shares(wide, PROFILE_SHARES, keep_counts=keep_counts)
     if len(wide) != EXPECTED_DAS:
         sys.exit(f"2011 DA count {len(wide)} != {EXPECTED_DAS}")
-    nhs, city_nhs = load_nhs()
+    nhs, city_nhs = load_nhs(keep_counts)
     missing = wide.index.difference(nhs.index)
     print(f"NHS: {len(missing)} of the {len(wide):,} DAs are not in the NHS table (nulled)")
     wide = wide.join(nhs, how="left")

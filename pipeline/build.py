@@ -93,7 +93,7 @@ def extract() -> pd.DataFrame:
     return pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
 
 
-def pivot(long: pd.DataFrame):
+def pivot(long: pd.DataFrame, keep_counts: bool = False):
     print("\nmatched characteristics (CHARACTERISTIC_ID: name):")
     found = set(zip(long.CHARACTERISTIC_ID, long.CHARACTERISTIC_NAME))
     for (i, name), key in TARGETS.items():
@@ -123,7 +123,7 @@ def pivot(long: pd.DataFrame):
         sys.exit(f"{dups} duplicate DA x characteristic rows")
     wide = da.pivot(index="ALT_GEO_CODE", columns="key", values="value")
     wide.index.name = "DAUID"
-    return derive_shares(wide[list(TARGETS.values())]), city
+    return derive_shares(wide[list(TARGETS.values())], keep_counts=keep_counts), city
 
 
 def assign_neighbourhoods(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:

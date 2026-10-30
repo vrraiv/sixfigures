@@ -5,7 +5,8 @@
 Streams pipeline/raw/NHSprofile_Can_PR_CD_CSD_DA.IVT (the Beyond 20/20 table
 download.py fetches; 59,408 geographies x 2,620 characteristics) with pyivt and
 keeps, for the geographies in census division 3520 (the CD, the City of Toronto
-CSD and its DAs), the characteristics measures.NHS_2011 names, Total sex. One
+CSD and its DAs), the characteristics measures.NHS_2011 names and the income
+groups in measures.INCOME_GROUPS (columns b<ID>), Total sex. One
 row per geography: geo_code, level, dq (StatCan's five-digit data-quality flag;
 the fourth digit is 1 where the global non-response rate was 50% or more), gnr
 (that rate, %), then one column per measure key; a suppressed cell (x) is empty.
@@ -26,7 +27,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyivt
 
-from measures import NHS_2011
+from measures import INCOME_GROUPS, NHS_2011
 
 HERE = Path(__file__).parent
 IVT = HERE / "raw" / "NHSprofile_Can_PR_CD_CSD_DA.IVT"
@@ -51,6 +52,9 @@ def main() -> int:
         if not found.startswith(name):
             sys.exit(f"characteristic {cid} is {found!r}, not {name!r} ({key}); check measures.NHS_2011")
     by_id = {cid: key for key, (cid, _) in NHS_2011.items()}
+    # Income groups for insights.py's interpolated neighbourhood medians, as b<ID>.
+    for ids, _ in INCOME_GROUPS["2011"].values():
+        by_id.update({cid: f"b{cid}" for cid in ids})
     print(f"{IVT.name}: {counts[0]:,} geographies x {counts[1]:,} characteristics; keeping {len(by_id)} for CD {TORONTO_CD}")
 
     t0, rows, geos = time.time(), 0, {}

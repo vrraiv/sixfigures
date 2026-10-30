@@ -11,6 +11,18 @@ from the 2011 Census, and the rest from the 2011 National Household Survey (the 
 long form that year; income year 2010), whose DA table StatCan issued only to universities
 as a Beyond 20/20 file (see `pipeline/README.md`).
 
+A third page, `/insights/`, summarises the City's 158 neighbourhoods across the 2011,
+2016 and 2021 censuses: the city's figure for every measure in each census, the ten
+highest and lowest neighbourhoods for a chosen measure and census, and the biggest
+rises and falls between any two censuses (dollar changes after inflation, Toronto CPI).
+`pipeline/insights.py` computes the neighbourhood figures from the DAs, one method for
+all three years: shares from summed counts, income medians interpolated from pooled
+income groups (except 2011 household income, whose DA groups are incomplete), other
+medians as the median of the DA medians on the measure's own base. Against the City's
+official 2021 neighbourhood profile, shares and averages typically agree to within 0.3%
+(the worst cases differ by 4–6%), household income medians by a typical 2.4% with the
+same top-ten neighbourhoods, and rent and dwelling value medians by a typical 2–3%.
+
 ## Measures
 
 The measure menu has six sections:

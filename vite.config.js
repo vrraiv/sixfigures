@@ -32,14 +32,15 @@ export default defineConfig({
     __TILES__: JSON.stringify(TILES),
     __BREAKS_VERSION__: JSON.stringify(version("web/public/breaks.json")),
     __BREAKS_2011_VERSION__: JSON.stringify(version("web/public/breaks_2011.json")),
+    __INSIGHTS_VERSION__: JSON.stringify(version("web/public/insights.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),
   },
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Two pages: / (2016 and 2021) and /2011/.
-    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html" } },
+    // Three pages: / (2016 and 2021), /2011/ and /insights/.
+    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling" } },

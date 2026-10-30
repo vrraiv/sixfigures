@@ -20,6 +20,7 @@ PMTILES16 := web/public/toronto_da_2016.pmtiles
 PMTILES11 := web/public/toronto_da_2011.pmtiles
 BREAKS    := web/public/breaks.json
 BREAKS11  := web/public/breaks_2011.json
+INSIGHTS  := web/public/insights.json
 SEARCH    := web/public/search.json
 OVERLAYS  := web/public/overlays.pmtiles
 CORR      := $(RAW)/2021_92-156-X_DALand_ADsup.zip
@@ -36,7 +37,7 @@ TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_p
 
 .PHONY: data download tiles search overlays deps clean cpi breaks
 
-data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS)
+data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS) $(INSIGHTS)
 
 deps:
 	$(PYTHON) -m pip install -r pipeline/requirements.txt
@@ -60,6 +61,11 @@ $(PROFILE11): $(RAW)/98-316-XWE2011001-1501.zip
 $(GEOM11) $(FIGURES11) $(BREAKS11) &: $(STATCAN11) $(NHS11) $(BREAKS) $(RAW)/toronto_neighbourhoods_4326.geojson \
                                       pipeline/census2011.py pipeline/measures.py pipeline/figures.py
 	$(PYTHON) pipeline/census2011.py
+
+# The Insights page: the 158 neighbourhoods in each census, from the DAs (the profile
+# extracts in pipeline/out, the figures files' neighbourhood assignment, the city values).
+$(INSIGHTS): $(FIGURES) $(FIGURES11) $(BREAKS) $(BREAKS11) $(NHS11) pipeline/insights.py pipeline/measures.py pipeline/cpi.json
+	$(PYTHON) pipeline/insights.py
 
 # build.py also applies cpi.json and writes the CSVs, but a change to those alone
 # only needs `make breaks`, not a rebuild of the GeoJSON and tiles.
