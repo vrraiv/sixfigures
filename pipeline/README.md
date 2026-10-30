@@ -152,7 +152,8 @@ Building permits (downloaded 2026-10-30), for the forecast model: the City's cle
 permits 2000-2016 and since 2017 and its active permits (Open Data, through CKAN;
 `download.py`). `make permits` runs `pipeline/permits.py`, which keeps one row per
 permit, counts units created on building permits and units lost on those and on
-demolition permits, places each permit by address in a 2021 DA and the figures files'
+demolition permits, counts a project's units once where companion permits repeat them
+(about 2,300 units), places each permit by address in a 2021 DA and the figures files'
 neighbourhood, and writes `pipeline/permits/by_nbhd.csv` (committed: units by
 neighbourhood, year issued and year completed) and `pipeline/out/permits_by_da.csv`.
 GEO_ID alone places 30-90% of a year's units, because towers get new addresses; the
@@ -160,7 +161,9 @@ address-string and nearest-number fallbacks bring every issue year since 2000 to
 least 87%. Completion years are rough: the 2000-2016 file has no permit closed in 2007,
 and thousands of old permits were closed administratively in 2025-2026.
 `pipeline/permits/manifest.json` holds the run's checks against census household change
-and the CMA's permits in StatCan table 34-10-0292.
+and the CMA's permits in StatCan table 34-10-0292. The dwelling check reads total private
+dwellings from the raw 2011, 2016 and 2021 profiles once and caches them in
+`pipeline/out/toronto_dwellings.csv`.
 
 ## Processing notes
 

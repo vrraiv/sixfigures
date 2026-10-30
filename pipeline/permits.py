@@ -30,6 +30,11 @@ Rules:
     on demolition permits. Plumbing, drain, mechanical and fire permits repeat
     their building permit's count, so they are left out
   - EXCLUDE lists permits whose unit counts are wrong on their face
+  - a project's count copied onto its companion permits counts once: trade and
+    partial permit numbers; several permits under one application number;
+    batch permits (B01, B02, ...) each carrying the batch total; an
+    amendment or sprinkler permit at the same address with the same count.
+    Buildings of one project that each carry its total are in EXCLUDE
   - a permit is placed by its GEO_ID (an address point ID); failing that, by
     its address string; failing that, by the nearest address point on the same
     street with the same parity within NEAREST numbers; failing that, between
@@ -43,10 +48,12 @@ Rules:
     2021 figures file's assignment (as in insights.py), so the permit totals
     and the census figures share a footprint.
 """
+import csv
 import datetime as dt
 import json
 import re
 import sys
+import zipfile
 from pathlib import Path
 
 import geopandas as gpd
@@ -57,6 +64,7 @@ HERE = Path(__file__).parent
 RAW = HERE / "raw"
 OUT = HERE / "permits"
 DA_OUT = HERE / "out" / "permits_by_da.csv"
+DWELLINGS = HERE / "out" / "toronto_dwellings.csv"  # cache of the profiles' dwelling counts
 FIGURES = HERE.parent / "web" / "public" / "data" / "figures"
 BOUNDARY = f"zip://{(RAW / 'lda_000b21a_e.zip').as_posix()}!lda_000b21a_e.shp"
 ADDRESSES = RAW / "toronto_address_points_4326.csv"
@@ -83,7 +91,19 @@ EXCLUDE = {
     "26 256637 BLD": "100,000 units on a change of use from a cafe to an arcade",
     "98 200593 000": "2,500 units on a retail building",
     "00 363746 CMB": "sprinkler shop drawings repeating the 642 units of 99 101936 COM next door",
+    # Buildings of one project, each carrying the project's total
+    "05 112606 BLD": "3-storey building F repeating Kilgour Estate's 201 units (05 112570 BLD)",
+    "05 112611 BLD": "3-storey building E repeating Kilgour Estate's 201 units (05 112570 BLD)",
+    "05 131293 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)",
+    "05 131307 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)",
+    "05 131312 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)",
 }
+# Permit number suffixes of trade and partial permits (plumbing, HVAC, drains,
+# fire and shoring, partial), whose unit counts repeat their building permit's
+COMPANION_SUFFIX = {"PLB", "HVA", "DRN", "FSU", "SHO", "PRT"}
+# Descriptions of permits that amend or accompany another one
+COMPANION = re.compile(r"(?i)\b(alter (the )?(plans?|application)|partial permit|shop drawings?|sprinkler|fire alarm"
+                       r"|structure permit only|in conjunction with|cost included in)\b")
 NEAREST = 20  # house numbers
 FAR = 200  # widest gap between two same-neighbourhood numbers that brackets a permit
 STREET_SHARE = 0.9  # a street this much in one neighbourhood places a permit with no usable number
@@ -127,6 +147,56 @@ def dedupe(df: pd.DataFrame) -> pd.DataFrame:
     one["issued"] = first_issued
     print(f"permits after dropping {', '.join(sorted(DROP_STATUS))} and keeping one row each: "
           f"{len(one):,} (from {df.PERMIT_NUM.nunique():,}); units created {one.created.sum():,.0f}, lost {one.lost.sum():,.0f}")
+    return one
+
+
+def companions(one: pd.DataFrame) -> pd.DataFrame:
+    """Zero the units created that repeat another permit's: one project's count
+    copied onto its companion permits (see COMPANION and the rules below)."""
+    one = one.copy()
+    base, suffix = one.index.str[:9], one.index.str[10:]
+    addr = one.STREET_NUM.str.strip() + " " + one.STREET_NAME.str.strip()
+    year = one.issued.dt.year
+    removed = {}
+
+    def drop(mask, rule):
+        mask = mask & (one.created > 0)
+        removed[rule] = (int(mask.sum()), float(one.created[mask].sum()))
+        for k, v in one.created[mask].nlargest(5).items():
+            print(f"    {rule}: {k} {v:,.0f} {str(one.at[k, 'DESCRIPTION'])[:80]!r}")
+        one.loc[mask, "created"] = 0
+
+    # Trade and partial permits filed under a building permit's type
+    drop(pd.Series(suffix.isin(COMPANION_SUFFIX), index=one.index), "trade or partial permit number")
+    # One application number, several permits (BLD and CMB, say): the project's
+    # count once, on the permit that carries the most (on a tie, not the amendment)
+    batch = pd.Series(suffix.str.match(r"B\d\d$"), index=one.index)
+    u = one[(one.created > 0) & ~batch]
+    score = u.created - 0.5 * u.DESCRIPTION.fillna("").str.contains(COMPANION, regex=True)
+    keep = score.groupby(base[(one.created > 0) & ~batch]).idxmax()
+    drop(pd.Series(one.index.isin(u.index) & ~one.index.isin(keep), index=one.index), "same application number")
+    # Batch permits (B01, B02, ...) that each repeat the batch's total: every
+    # permit carries the same count, and it equals the number of permits (13
+    # permits of 13 units: one house each). Equal blocks of a different size
+    # (12 buildings of 10 stacked townhouses) are real.
+    b = one[batch & (one.created > 0)]
+    g = b.groupby(b.index.str[:9]).created.agg(["size", "nunique", "max"])
+    rep = g[(g["nunique"] == 1) & (g["max"] > 1) & (g["size"] == g["max"])].index
+    first = b[b.index.str[:9].isin(rep)].groupby(lambda i: i[:9]).head(1).index
+    drop(pd.Series(base.isin(rep) & batch & ~one.index.isin(first), index=one.index), "batch repeating its total")
+    # A companion (alteration, sprinkler, partial permit ...) at the same address
+    # within three years carrying the same count, within 5%
+    big = one[one.created >= 10].assign(addr=addr, year=year).reset_index()
+    pairs = big.merge(big, on="addr")
+    pairs = pairs[(pairs.PERMIT_NUM_x != pairs.PERMIT_NUM_y) & ((pairs.year_x - pairs.year_y).abs() <= 3)
+                  & ((pairs.created_x - pairs.created_y).abs() <= 0.05 * pairs[["created_x", "created_y"]].max(axis=1))
+                  & pairs.DESCRIPTION_x.fillna("").str.contains(COMPANION, regex=True)
+                  & ~pairs.DESCRIPTION_y.fillna("").str.contains(COMPANION, regex=True)]
+    drop(pd.Series(one.index.isin(pairs.PERMIT_NUM_x), index=one.index), "companion at the same address")
+    for rule, (n, units) in removed.items():
+        print(f"  repeated units removed, {rule}: {n:,} permits, {units:,.0f} units")
+    print(f"units created after removing repeats: {one.created.sum():,.0f}")
+    one.attrs["repeats"] = {k: {"permits": n, "units": round(u)} for k, (n, u) in removed.items()}
     return one
 
 
@@ -230,32 +300,76 @@ def aggregate(p: pd.DataFrame, by: str) -> pd.DataFrame:
     return out
 
 
-def households() -> pd.DataFrame:
-    """Census households by neighbourhood (columns 2011, 2016, 2021)."""
-    out = {}
-    for y in ("2011", "2016", "2021"):
-        c = json.loads((FIGURES / y / "common.json").read_text())
-        out[int(y)] = pd.Series(c["hh"], index=c["nbhd_id"], dtype=float).groupby(level=0).sum()
-    return pd.DataFrame(out)
+def dwellings() -> pd.DataFrame:
+    """Total private dwellings (occupied or not) by DA, 2011, 2016 and 2021, from
+    the raw profiles (the extracts keep only occupied dwellings). Streams the
+    profiles once and caches Toronto's rows in DWELLINGS."""
+    if DWELLINGS.exists():
+        return pd.read_csv(DWELLINGS, dtype={"DAUID": str})
+    rows = []
+    with zipfile.ZipFile(RAW / "98-401-X2021006_Ontario_eng_CSV.zip") as z, \
+            z.open("98-401-X2021006_English_CSV_data_Ontario.csv") as f:
+        for line in f:
+            if b',4,"Total private dwellings"' in line and b'"2021S05123520' in line:
+                r = next(csv.reader([line.decode("latin-1")]))
+                rows.append((2021, r[2], float(r[11])))
+    with zipfile.ZipFile(RAW / "98-401-X2016044_ONTARIO_eng_CSV.zip") as z, \
+            z.open("98-401-X2016044_ONTARIO_English_CSV_data.csv") as f:
+        for line in f:
+            if line.startswith(b'2016,"3520') and b'"Total private dwellings"' in line:
+                r = next(csv.reader([line.decode("latin-1")]))
+                if len(r[1]) == 8:
+                    rows.append((2016, r[1], float(r[11])))
+    with open(RAW / "98-316-XWE2011001-1501-ONT.csv", "rb") as f:
+        for line in f:
+            if line.startswith(b"3520") and b",Total private dwellings," in line:
+                r = next(csv.reader([line.decode("latin-1")]))
+                if len(r[0]) == 8 and r[6] not in ("", "x", "..", "..."):
+                    rows.append((2011, r[0], float(r[6])))
+    d = pd.DataFrame(rows, columns=["year", "DAUID", "dwellings"])
+    d.to_csv(DWELLINGS, index=False, lineterminator="\n")
+    return d
+
+
+def census_counts() -> dict:
+    """Households and total private dwellings by neighbourhood: {measure: frame
+    with columns 2011, 2016, 2021}, each year's DAs in that year's figures file's
+    neighbourhoods."""
+    dw = dwellings()
+    out = {"households": {}, "dwellings": {}}
+    for y in (2011, 2016, 2021):
+        c = json.loads((FIGURES / str(y) / "common.json").read_text())
+        nb = pd.Series(c["nbhd_id"], index=c["dauid"])
+        out["households"][y] = pd.Series(c["hh"], index=c["nbhd_id"], dtype=float).groupby(level=0).sum()
+        d = dw[dw.year == y].set_index("DAUID").dwellings
+        out["dwellings"][y] = d.groupby(d.index.map(nb)).sum()
+        print(f"  {y}: {d.sum():,.0f} private dwellings in {len(d):,} DAs; {sum(x or 0 for x in c['hh']):,.0f} households")
+    return {k: pd.DataFrame(v) for k, v in out.items()}
 
 
 def check_census(nb: pd.DataFrame) -> dict:
     """Net units issued over each census interval, lagged, against the change in
-    households: citywide, and as a correlation across the 158 neighbourhoods.
-    Censuses are in May, so interval Y0-Y1 takes permits issued in years
-    Y0+lag .. Y1-1+lag."""
-    hh = households()
+    total private dwellings and in households: citywide, and as correlations
+    across the 158 neighbourhoods (Pearson on counts, which a few tower-heavy
+    neighbourhoods dominate, and Spearman on ranks). Censuses are in May, so
+    interval Y0-Y1 takes permits issued in years Y0+lag .. Y1-1+lag."""
+    print("\ncensus counts (each year's DAs):")
+    counts = census_counts()
     iss = nb[nb.basis == "issued"].pivot_table(index="nbhd_id", columns="year", values="net", aggfunc="sum", fill_value=0)
     res = {}
-    print("\nnet units issued vs change in census households (city; Pearson r across neighbourhoods):")
-    for y0, y1 in ((2011, 2016), (2016, 2021)):
-        d = hh[y1] - hh[y0]
-        for lag in (0, 1, 2, 3):
-            yrs = [y for y in range(y0 + lag, y1 + lag) if y in iss.columns]
-            s = iss[yrs].sum(axis=1).reindex(d.index, fill_value=0)
-            r = np.corrcoef(s, d)[0, 1]
-            res[f"{y0}-{y1} lag {lag}"] = {"permits": round(float(s.sum())), "households": round(float(d.sum())), "r": round(float(r), 3)}
-            print(f"  {y0}-{y1}, issued {yrs[0]}-{yrs[-1]}: permits {s.sum():8,.0f}  households {d.sum():8,.0f}  r {r:.2f}")
+    for name, t in counts.items():
+        print(f"\nnet units issued vs change in census {name} (city; Pearson and Spearman across neighbourhoods):")
+        for y0, y1 in ((2011, 2016), (2016, 2021)):
+            d = (t[y1] - t[y0]).dropna()
+            for lag in (0, 1, 2, 3):
+                yrs = [y for y in range(y0 + lag, y1 + lag) if y in iss.columns]
+                s = iss[yrs].sum(axis=1).reindex(d.index, fill_value=0)
+                r, rho = s.corr(d), s.rank().corr(d.rank())  # Spearman without scipy
+                res[f"{name} {y0}-{y1} lag {lag}"] = {
+                    "permits": round(float(s.sum())), "census": round(float(d.sum())),
+                    "pearson": round(float(r), 3), "spearman": round(float(rho), 3)}
+                print(f"  {y0}-{y1}, issued {yrs[0]}-{yrs[-1]}: permits {s.sum():8,.0f}  {name} {d.sum():8,.0f}  "
+                      f"r {r:.2f}  rho {rho:.2f}")
     return res
 
 
@@ -282,7 +396,7 @@ def check_cma(nb: pd.DataFrame) -> dict:
 
 def main() -> int:
     raw = load()
-    one = dedupe(raw)
+    one = companions(dedupe(raw))
     a = addresses()
     p = place(one, a)
 
@@ -311,6 +425,7 @@ def main() -> int:
         "retrieved": dt.date.today().isoformat(),
         "files": {n: (RAW / n).stat().st_size for n in FILES.values()},
         "excluded": EXCLUDE,
+        "repeats_removed": one.attrs["repeats"],
         "permits_with_units": int(len(p)),
         "placed_share_of_units_created_by_issue_year": {int(k): round(v, 3) for k, v in placed_share.loc[2000:].items()},
         "census_check": check_census(nb),

@@ -8,17 +8,40 @@
  "excluded": {
   "26 256637 BLD": "100,000 units on a change of use from a cafe to an arcade",
   "98 200593 000": "2,500 units on a retail building",
-  "00 363746 CMB": "sprinkler shop drawings repeating the 642 units of 99 101936 COM next door"
+  "00 363746 CMB": "sprinkler shop drawings repeating the 642 units of 99 101936 COM next door",
+  "05 112606 BLD": "3-storey building F repeating Kilgour Estate's 201 units (05 112570 BLD)",
+  "05 112611 BLD": "3-storey building E repeating Kilgour Estate's 201 units (05 112570 BLD)",
+  "05 131293 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)",
+  "05 131307 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)",
+  "05 131312 BLD": "a building repeating 45 York Mills' 81 townhouses (05 131252 BLD)"
  },
- "permits_with_units": 84481,
+ "repeats_removed": {
+  "trade or partial permit number": {
+   "permits": 11,
+   "units": 502
+  },
+  "same application number": {
+   "permits": 118,
+   "units": 916
+  },
+  "batch repeating its total": {
+   "permits": 29,
+   "units": 322
+  },
+  "companion at the same address": {
+   "permits": 7,
+   "units": 596
+  }
+ },
+ "permits_with_units": 84476,
  "placed_share_of_units_created_by_issue_year": {
-  "2000": 0.895,
-  "2001": 0.897,
-  "2002": 0.876,
-  "2003": 0.905,
-  "2004": 0.913,
-  "2005": 0.954,
-  "2006": 0.975,
+  "2000": 0.891,
+  "2001": 0.888,
+  "2002": 0.878,
+  "2003": 0.903,
+  "2004": 0.912,
+  "2005": 0.953,
+  "2006": 0.973,
   "2007": 0.999,
   "2008": 0.998,
   "2009": 0.923,
@@ -41,45 +64,101 @@
   "2026": 1.0
  },
  "census_check": {
-  "2011-2016 lag 0": {
+  "households 2011-2016 lag 0": {
    "permits": 65571,
-   "households": 66530,
-   "r": 0.882
+   "census": 66530,
+   "pearson": 0.882,
+   "spearman": 0.638
   },
-  "2011-2016 lag 1": {
+  "households 2011-2016 lag 1": {
    "permits": 68212,
-   "households": 66530,
-   "r": 0.87
+   "census": 66530,
+   "pearson": 0.87,
+   "spearman": 0.638
   },
-  "2011-2016 lag 2": {
+  "households 2011-2016 lag 2": {
    "permits": 69498,
-   "households": 66530,
-   "r": 0.833
+   "census": 66530,
+   "pearson": 0.833,
+   "spearman": 0.575
   },
-  "2011-2016 lag 3": {
+  "households 2011-2016 lag 3": {
    "permits": 69964,
-   "households": 66530,
-   "r": 0.678
+   "census": 66530,
+   "pearson": 0.678,
+   "spearman": 0.471
   },
-  "2016-2021 lag 0": {
+  "households 2016-2021 lag 0": {
    "permits": 83604,
-   "households": 48090,
-   "r": 0.901
+   "census": 48090,
+   "pearson": 0.901,
+   "spearman": 0.59
   },
-  "2016-2021 lag 1": {
+  "households 2016-2021 lag 1": {
    "permits": 93593,
-   "households": 48090,
-   "r": 0.913
+   "census": 48090,
+   "pearson": 0.913,
+   "spearman": 0.57
   },
-  "2016-2021 lag 2": {
+  "households 2016-2021 lag 2": {
    "permits": 93221,
-   "households": 48090,
-   "r": 0.92
+   "census": 48090,
+   "pearson": 0.92,
+   "spearman": 0.502
   },
-  "2016-2021 lag 3": {
+  "households 2016-2021 lag 3": {
    "permits": 87018,
-   "households": 48090,
-   "r": 0.892
+   "census": 48090,
+   "pearson": 0.892,
+   "spearman": 0.443
+  },
+  "dwellings 2011-2016 lag 0": {
+   "permits": 65571,
+   "census": 71206,
+   "pearson": 0.927,
+   "spearman": 0.723
+  },
+  "dwellings 2011-2016 lag 1": {
+   "permits": 68212,
+   "census": 71206,
+   "pearson": 0.913,
+   "spearman": 0.685
+  },
+  "dwellings 2011-2016 lag 2": {
+   "permits": 69498,
+   "census": 71206,
+   "pearson": 0.883,
+   "spearman": 0.602
+  },
+  "dwellings 2011-2016 lag 3": {
+   "permits": 69964,
+   "census": 71206,
+   "pearson": 0.745,
+   "spearman": 0.489
+  },
+  "dwellings 2016-2021 lag 0": {
+   "permits": 83604,
+   "census": 74181,
+   "pearson": 0.927,
+   "spearman": 0.754
+  },
+  "dwellings 2016-2021 lag 1": {
+   "permits": 93593,
+   "census": 74181,
+   "pearson": 0.925,
+   "spearman": 0.739
+  },
+  "dwellings 2016-2021 lag 2": {
+   "permits": 93221,
+   "census": 74181,
+   "pearson": 0.921,
+   "spearman": 0.66
+  },
+  "dwellings 2016-2021 lag 3": {
+   "permits": 87018,
+   "census": 74181,
+   "pearson": 0.888,
+   "spearman": 0.604
   }
  },
  "cma_check": {
