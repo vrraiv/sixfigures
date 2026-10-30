@@ -34,7 +34,7 @@ from build import assign_neighbourhoods
 from distributions import histogram
 from exports import PLACE, _ints
 from figures import GEOMETRY, write_year
-from measures import AGE_SUMS_2011, CHARS_2011, INCOME_DATED, MEASURES, NHS_2011, SHARES, SHARES_2011, derive_shares, label
+from measures import AGE_SUMS_2011, CHARS_2011, INCOME_DATED, MEASURES, NHS_2011, SHARES, SHARES_2011, UNPUBLISHED_ZERO_2016, derive_shares, label
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -101,6 +101,11 @@ def load_nhs() -> tuple[pd.DataFrame, pd.Series]:
           f"{int(das[NHS_KEYS].isna().any(axis=1).sum())} with a suppressed (x) figure")
     das = das[NHS_KEYS].astype(float)
     das[low] = float("nan")
+    # As in 2016: a median dwelling value, owner cost or rent of $0 marks a DA
+    # with too few owner or renter households for a figure, not a value.
+    zero = (das[UNPUBLISHED_ZERO_2016] == 0).sum().to_dict()
+    das[UNPUBLISHED_ZERO_2016] = das[UNPUBLISHED_ZERO_2016].where(das[UNPUBLISHED_ZERO_2016] != 0)
+    print(f"NHS: medians of $0 nulled: {zero}")
     city = derive_shares(csd[NHS_KEYS].astype(float), NHS_SHARES).iloc[0]
     return derive_shares(das, NHS_SHARES), city
 
