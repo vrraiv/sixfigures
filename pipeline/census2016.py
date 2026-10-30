@@ -67,7 +67,7 @@ def extract() -> pd.DataFrame:
     return pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
 
 
-def load_2016():
+def load_2016(keep_counts: bool = False):
     """Returns (gdf of 2016 Toronto DAs with values, city-wide CSD values)."""
     long = extract()
     print("\n2016 matched characteristics (Member ID: name):")
@@ -85,7 +85,7 @@ def load_2016():
     da = long[(long.GEO_LEVEL == "4") & long.ALT_GEO_CODE.str.startswith(TORONTO_CSD)]
     if da.duplicated(["GEO_CODE", "key"]).any():
         sys.exit("duplicate 2016 DA x characteristic rows")
-    wide = derive_shares(da.pivot(index="GEO_CODE", columns="key", values="value")[list(TARGETS.values())])
+    wide = derive_shares(da.pivot(index="GEO_CODE", columns="key", values="value")[list(TARGETS.values())], keep_counts=keep_counts)
     wide = null_unpublished_2016(wide)
     wide.index.name = "DAUID"
     if len(wide) != EXPECTED_DAS:

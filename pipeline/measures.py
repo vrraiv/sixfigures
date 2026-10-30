@@ -166,6 +166,42 @@ NHS_2011 = {
     "n_imm_tot": (16, "Total population in private households by immigrant status and period of immigration"),
     "n_imm_recent": (25, "2006 to 2011"),
 }
+# Income groups for the Insights page's neighbourhood medians, which are
+# interpolated from the DAs' pooled counts (a median of DA medians is off by 5%
+# or more in mixed neighbourhoods). Per census and measure: the leaf groups'
+# characteristic IDs (2021 CHARACTERISTIC_ID, 2016 Member ID, 2011 NHS ID) and
+# their edges in $1,000s, one more than the IDs; the last group is open-ended.
+# Individual groups count people 15+ with income (the medians' "recipients").
+_K = lambda *e: [x * 1000 if x is not None else None for x in e]
+_HH_FINE = _K(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 125, 150, 200, None)
+_HH_FINE_AT = _K(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 125, 150, None)
+_HH_NHS = _K(0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 125, 150, None)
+_HH_NHS_AT = _K(0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 125, None)
+_IND_NHS = _K(0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 125, None)
+_IND_NHS_AT = _K(0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100, None)
+INCOME_GROUPS = {
+    "2021": {
+        "med_hh_tot": ([*range(261, 276), 277, 278, 279, 280], _HH_FINE),
+        "med_hh_at": ([*range(282, 297), 298, 299, 300], _HH_FINE_AT),
+        "med_ind_tot": ([*range(158, 168), 169, 170], _K(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, None)),
+        "med_ind_at": ([*range(174, 184), 185, 186], _K(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, None)),
+    },
+    "2016": {
+        "med_hh_tot": ([*range(760, 775), 776, 777, 778, 779], _HH_FINE),
+        "med_hh_at": ([*range(781, 796), 797, 798, 799], _HH_FINE_AT),
+        "med_ind_tot": ([*range(695, 705), 706, 707], _K(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, None)),
+        "med_ind_at": ([*range(712, 720), 721, 722, 723], _K(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None)),
+    },
+    "2011": {
+        "med_hh_tot": ([*range(2555, 2568)], _HH_NHS),
+        "med_hh_at": ([*range(2569, 2579), 2580, 2581], _HH_NHS_AT),
+        "med_ind_tot": ([*range(2233, 2243), 2244, 2245], _IND_NHS),
+        "med_ind_at": ([*range(2287, 2298)], _IND_NHS_AT),
+    },
+}
+for _y, _ms in INCOME_GROUPS.items():
+    for _m, (_ids, _edges) in _ms.items():
+        assert len(_edges) == len(_ids) + 1, (_y, _m)
 AGE_SUMS_2011 = {
     "n_age0_14": ["n_age0_4", "n_age5_9", "n_age10_14"],
     "n_age65": ["n_age65_69", "n_age70_74", "n_age75_79", "n_age80_84", "n_age85"],
@@ -254,8 +290,9 @@ def label(chars: dict, m: str) -> str:
     return SHARES[m][2] if m in SHARES else LABELS.get(m, chars[m][1])
 
 
-def derive_shares(wide: pd.DataFrame, shares: dict = SHARES) -> pd.DataFrame:
-    """Add the `shares` columns (percent, one decimal) and drop the n_ counts.
+def derive_shares(wide: pd.DataFrame, shares: dict = SHARES, keep_counts: bool = False) -> pd.DataFrame:
+    """Add the `shares` columns (percent, one decimal) and drop the n_ counts
+    (insights.py keeps them, to aggregate shares to neighbourhoods).
 
     Census counts are randomly rounded to multiples of 5, so in a small DA the
     numerator can exceed the denominator: clip to 100. No households -> null.
@@ -264,7 +301,7 @@ def derive_shares(wide: pd.DataFrame, shares: dict = SHARES) -> pd.DataFrame:
     for m, (num, den, _) in shares.items():
         d = out[den].where(out[den] > 0)
         out[m] = (out[num] / d * 100).clip(upper=100).round(1)
-    return out.drop(columns=[c for c in out.columns if c.startswith("n_")])
+    return out if keep_counts else out.drop(columns=[c for c in out.columns if c.startswith("n_")])
 
 
 # Where too few owner or tenant households answered, the 2016 profile publishes a

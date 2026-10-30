@@ -299,7 +299,7 @@ a { color: var(--accent); }
   font: 11px/1.4 ui-monospace, Consolas, monospace; white-space: pre-wrap; pointer-events: none;
 }
 
-/* ---- site navigation: a small centred wordmark linking the two maps ---- */
+/* ---- site navigation: a small centred wordmark linking the pages ---- */
 .wordmark {
   display: flex; justify-content: center; align-items: baseline; gap: 14px;
   padding: 6px 16px; font-size: 12px; color: var(--ink-3); background: var(--surface); border-bottom: 1px solid var(--rule);
@@ -309,3 +309,75 @@ a { color: var(--accent); }
 .wordmark a:hover { background: #eef4fc; color: var(--accent); }
 .wordmark a[aria-current="page"] { color: var(--accent); font-weight: 600; }
 body.with-nav { grid-template-rows: auto auto 1fr auto; }
+
+/* ---- the Insights page: a scrolling document rather than a full-screen map ---- */
+body.doc { display: block; height: auto; }
+.insights { max-width: 1120px; margin: 0 auto; padding: 8px 16px 32px; }
+.ins-section { padding: 20px 0 8px; border-bottom: 1px solid var(--rule); }
+.ins-section:last-of-type { border-bottom: 0; }
+.ins-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ins-head h2 { font-size: 18px; font-weight: 650; margin: 0; }
+.ins-lede { margin: 6px 0 14px; color: var(--ink-2); font-size: 13px; max-width: 70ch; }
+.toggle { font-size: 13px; color: var(--ink-2); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+
+.seg { display: inline-flex; border: 1px solid #c9c9c3; border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 13px; padding: 5px 12px; border: 0; background: #fff; color: var(--ink-2); cursor: pointer; }
+.seg button + button { border-left: 1px solid #c9c9c3; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+.seg button:focus-visible, .card:focus-visible, .insights a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 1. cards */
+.card-group { margin-bottom: 14px; }
+.card-group h3, .rank-col h3 { font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); margin: 0 0 6px; }
+.card-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px; }
+.card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
+  font: inherit; color: var(--ink); background: #fff; border: 1px solid var(--rule); border-radius: 8px;
+  padding: 8px 10px; cursor: pointer;
+}
+.card:hover { border-color: #b9cfe9; background: #f7faff; }
+.card[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.card-name { font-size: 12px; color: var(--ink-2); }
+.card-value { font-size: 20px; font-weight: 650; }
+.card .spark { margin-top: 2px; overflow: visible; }
+.card-years { display: flex; justify-content: space-between; width: 120px; font-size: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.card-delta { font-size: 11px; color: var(--ink-2); }
+
+/* 2-3. ranked lists */
+.ranks { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.rank-list, .change-list { list-style: none; margin: 0; padding: 0; }
+.rank-list li, .change-list li {
+  display: grid; align-items: center; gap: 8px; padding: 3px 0; font-size: 13px;
+  border-bottom: 1px solid #f0f0ec;
+}
+.rank-list li { grid-template-columns: 22px minmax(0, 1.3fr) minmax(60px, 1fr) 58px 34px; }
+.change-list li { grid-template-columns: minmax(0, 1.3fr) minmax(80px, 1fr) 64px; }
+.rank-list .rk { color: var(--ink-3); font-variant-numeric: tabular-nums; text-align: right; }
+.insights .nm { color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.insights .nm:hover { color: var(--accent); text-decoration: underline; }
+.vl { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+.move { font-size: 11px; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+.barcell { position: relative; height: 14px; }
+.bar-fill { position: absolute; left: 0; top: 2px; bottom: 2px; background: #2a78d6; border-radius: 0 4px 4px 0; }
+.city-mark { position: absolute; top: -1px; bottom: -1px; width: 2px; margin-left: -1px; background: var(--ink); }
+.dumbbell { position: relative; height: 14px; }
+.db-line { position: absolute; top: 6px; height: 2px; }
+.db-dot { position: absolute; top: 3px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
+.db-from { background: var(--surface); border: 2px solid #9a9a93; box-sizing: border-box; }
+.none { color: var(--ink-3); }
+.strip { margin: 18px 0 0; }
+.strip svg { display: block; width: 100%; height: 140px; }
+.strip figcaption { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+
+.tip {
+  position: fixed; left: 0; top: 0; z-index: 20; pointer-events: none; max-width: 260px;
+  padding: 6px 8px; border-radius: 6px; background: rgba(26, 26, 25, 0.92); color: #fff; font-size: 12px; line-height: 1.35;
+}
+.doc .foot { font-size: 11px; }
+.doc .foot p { margin: 0 0 6px; }
+
+@media (max-width: 760px) {
+  .ranks { grid-template-columns: 1fr; gap: 12px; }
+  .insights { padding: 4px 16px 24px; }
+  .card-value { font-size: 18px; }
+}

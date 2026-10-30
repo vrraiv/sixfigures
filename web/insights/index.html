@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto Neighbourhood Insights</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="Toronto's 158 neighbourhoods in the 2011, 2016 and 2021 censuses: city-wide figures, the highest and lowest neighbourhoods, and the biggest changes, for income, housing, dwellings and people." />
+  </head>
+  <body class="with-nav doc">
+    <nav class="wordmark" aria-label="Site">
+      <a href="/">2016 · 2021</a>
+      <span class="brand">Toronto by DA</span>
+      <a href="/2011/">2011</a>
+      <a href="/insights/" aria-current="page">Insights</a>
+    </nav>
+    <header class="bar">
+      <h1>Toronto neighbourhoods <span class="sub">2011, 2016 and 2021 censuses</span></h1>
+      <label class="measure">
+        <span class="visually-hidden">Measure</span>
+        <!-- options set by insights.js -->
+        <select id="measure"></select>
+      </label>
+    </header>
+
+    <main class="insights">
+      <section class="ins-section" aria-labelledby="glance-h">
+        <div class="ins-head">
+          <h2 id="glance-h">The city at a glance</h2>
+          <label class="toggle"><input type="checkbox" id="real" /> Dollar figures in 2021 terms</label>
+        </div>
+        <p class="ins-lede">City of Toronto figures in each census, as Statistics Canada publishes them. Choose a measure to see its neighbourhoods below.</p>
+        <div id="cards" class="cards"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rank-h">
+        <div class="ins-head">
+          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
+          <div class="seg" id="rank-year" role="group" aria-label="Census"></div>
+        </div>
+        <p class="ins-lede" id="rank-lede"></p>
+        <div class="ranks">
+          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
+        </div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="change-h">
+        <div class="ins-head">
+          <h2 id="change-h">Biggest changes</h2>
+          <div class="seg" id="change-pair" role="group" aria-label="Between censuses"></div>
+        </div>
+        <p class="ins-lede" id="change-lede"></p>
+        <div class="ranks">
+          <div class="rank-col"><h3>Rose most</h3><ol id="change-up" class="change-list"></ol></div>
+          <div class="rank-col"><h3>Fell most</h3><ol id="change-down" class="change-list"></ol></div>
+        </div>
+        <figure class="strip">
+          <div id="strip"></div>
+          <figcaption id="strip-caption"></figcaption>
+        </figure>
+      </section>
+      <div id="tip" class="tip" role="tooltip" hidden></div>
+    </main>
+
+    <footer class="foot">
+      <p class="downloads" id="method"></p>
+      Statistics Canada, Census Profiles, 2016 and 2021 Censuses of Population (98-401-X2016044, 98-401-X2021006) and
+      2011 Census of Population (98-316-XWE2011001); National Household Survey, 2011, semi-custom profile for dissemination
+      areas (99-014-X2011007), from the University of Toronto Map and Data Library's deposit on Borealis; Consumer Price
+      Index, Toronto (18-10-0005-01). Contains information licensed under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      Neighbourhoods: City of Toronto Open Data; contains information licensed under the
+      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/insights.js"></script>
+  </body>
+</html>
