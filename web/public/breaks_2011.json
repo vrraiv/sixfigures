@@ -692,16 +692,16 @@
       ],
       "y2011": {
         "city": 401400.0,
-        "median_of_das": 439753.0,
-        "n": 3399,
-        "suppressed": 286
+        "median_of_das": 449084.0,
+        "n": 3217,
+        "suppressed": 468
       },
       "hist": {
         "2011": {
           "lo": 0,
           "width": 100000,
           "counts": [
-            184,
+            2,
             81,
             203,
             873,
@@ -750,16 +750,16 @@
       ],
       "y2011": {
         "city": 1304.0,
-        "median_of_das": 1221.0,
-        "n": 3399,
-        "suppressed": 286
+        "median_of_das": 1267.0,
+        "n": 3220,
+        "suppressed": 465
       },
       "hist": {
         "2011": {
           "lo": 0,
           "width": 100,
           "counts": [
-            179,
+            0,
             0,
             0,
             1,
@@ -809,16 +809,16 @@
       ],
       "y2011": {
         "city": 1001.0,
-        "median_of_das": 890.0,
-        "n": 3399,
-        "suppressed": 286
+        "median_of_das": 1001.0,
+        "n": 2449,
+        "suppressed": 1236
       },
       "hist": {
         "2011": {
           "lo": 0,
           "width": 100,
           "counts": [
-            951,
+            1,
             5,
             12,
             25,
