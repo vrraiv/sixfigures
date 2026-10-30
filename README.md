@@ -5,6 +5,12 @@ Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the chang
 between them. Hover for values, click for detail, or search for a Toronto address or
 intersection to jump to its DA.
 
+A second page, `/2011/`, shows the 2011 Census on its own DA boundaries (3,685 DAs),
+coloured on the same classes as the main map. It has the measures the 2011 short form
+collected (dwelling types and ages); the rest of the 2011 long form was the National
+Household Survey, which StatCan published for DAs only as a Beyond 20/20 table
+(see `pipeline/README.md`), and is not on the page yet.
+
 ## Measures
 
 The measure menu has six sections:
@@ -63,9 +69,9 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
 - **Map detail** for machines that draw the map in software (a browser with graphics
   acceleration switched off by policy, an old integrated chip). Medium and low draw on a
   canvas at 0.8 or 0.67 pixels per CSS pixel, a basemap without the fills and minor roads
-  that show least under the DA colours, DA outlines from z12 only, and in place of the
-  hover outline a filtered copy of the tiles that outlines only the open, found and pinned
-  DAs. Under SwiftShader on four cores a frame went
+  that show least under the DA colours, DA outlines from z12 only, the hovered DA paled rather
+  than outlined, and a filtered copy of the tiles that outlines only the open, found and
+  pinned DAs. Under SwiftShader on four cores a frame went
   from 91 ms at full to about 32 at medium and 27 at low. Chosen by `q=auto|full|medium|low`
   in the hash or the footer's "Map detail" buttons; auto measures the first frames after
   load, at rest and then repainting, and takes medium when a repainted frame runs over
@@ -245,6 +251,10 @@ match the popups, dollars rounded to whole dollars, rates to one decimal):
   `nbhd`, `nbhd2`, `pop16`, `hh`, `same_boundary_2021`, and for each measure its 2016
   Census value and percentile (`<m>_2015`, `<m>_2015_pctl` for the income measures,
   `<m>_2016`, `<m>_2016_pctl` for the rest).
+- `/data/toronto_da_income_2011.csv` (linked from the 2011 page): 3,685 DAs on 2011
+  boundaries: `dauid`, `nbhd_id`, `nbhd`, `nbhd2`, `pop11`, `hh`, `same_boundary_2016`
+  (1 if the DA is identical in 2016), and `<m>_2011`, `<m>_2011_pctl` for `detached`,
+  `apt5`, `age0_14` and `age65`.
 
 ## Data caveats
 

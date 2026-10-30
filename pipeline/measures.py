@@ -99,6 +99,40 @@ CHARS_2016 = {
     "n_imm_recent": (1149, "2011 to 2016"),
 }
 
+# 2011 Census, 100% (short-form) data only: the profile has no characteristic
+# IDs, so rows are matched by (Topic, Characteristic with its indent stripped).
+# The 2011 profile gives ages in five-year groups, not the 0-14 and 65+ shares
+# that 2016 and 2021 publish; census2011.py sums them (AGE_SUMS_2011). Income,
+# tenure, shelter costs, dwelling values, education, mobility, immigration and
+# the rest of the long form were the National Household Survey in 2011; those
+# come from the NHS Profile (census2011.py) when it is readable.
+_DW11 = "Household and dwelling characteristics"
+CHARS_2011 = {
+    "pop11": ("Population and dwelling counts", "Population in 2011"),
+    "hh": (_DW11, "Total number of private households by household size"),
+    "n_age_tot": ("Age characteristics", "Total population by age groups"),
+    "n_age0_4": ("Age characteristics", "0 to 4 years"),
+    "n_age5_9": ("Age characteristics", "5 to 9 years"),
+    "n_age10_14": ("Age characteristics", "10 to 14 years"),
+    "n_age65_69": ("Age characteristics", "65 to 69 years"),
+    "n_age70_74": ("Age characteristics", "70 to 74 years"),
+    "n_age75_79": ("Age characteristics", "75 to 79 years"),
+    "n_age80_84": ("Age characteristics", "80 to 84 years"),
+    "n_age85": ("Age characteristics", "85 years and over"),
+    "n_struct": (_DW11, "Total number of occupied private dwellings by structural type of dwelling"),
+    "n_detached": (_DW11, "Single-detached house"),
+    "n_apt5": (_DW11, "Apartment, building that has five or more storeys"),
+}
+AGE_SUMS_2011 = {
+    "n_age0_14": ["n_age0_4", "n_age5_9", "n_age10_14"],
+    "n_age65": ["n_age65_69", "n_age70_74", "n_age75_79", "n_age80_84", "n_age85"],
+}
+# Shares the 2011 profile doesn't publish as percentages (2016 and 2021 do).
+SHARES_2011 = {
+    "age0_14": ("n_age0_14", "n_age_tot", "Population aged 0 to 14 (%)"),
+    "age65": ("n_age65", "n_age_tot", "Population aged 65 and over (%)"),
+}
+
 # Shares computed from two counts: key -> (numerator, denominator, label).
 SHARES = {
     "renter": ("n_renter", "n_tenure", "Renter households (% of private households)"),
@@ -177,14 +211,14 @@ def label(chars: dict, m: str) -> str:
     return SHARES[m][2] if m in SHARES else LABELS.get(m, chars[m][1])
 
 
-def derive_shares(wide: pd.DataFrame) -> pd.DataFrame:
-    """Add the SHARES columns (percent, one decimal) and drop the n_ counts.
+def derive_shares(wide: pd.DataFrame, shares: dict = SHARES) -> pd.DataFrame:
+    """Add the `shares` columns (percent, one decimal) and drop the n_ counts.
 
     Census counts are randomly rounded to multiples of 5, so in a small DA the
     numerator can exceed the denominator: clip to 100. No households -> null.
     """
     out = wide.copy()
-    for m, (num, den, _) in SHARES.items():
+    for m, (num, den, _) in shares.items():
         d = out[den].where(out[den] > 0)
         out[m] = (out[num] / d * 100).clip(upper=100).round(1)
     return out.drop(columns=[c for c in out.columns if c.startswith("n_")])

@@ -47,6 +47,26 @@ STATCAN = {
         "https://www12.statcan.gc.ca/census-recensement/2021/geo/aip-pia/"
         "correspondence-correspondance/files-fichiers/2021_92-156-X_DALand_ADsup.zip"
     ),
+    # 2011 Census Profile, dissemination areas, all of Canada (one CSV per province;
+    # the Makefile unzips the Ontario one), 2011 DA boundaries, 2016<->2011 correspondence
+    "98-316-XWE2011001-1501.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2011/dp-pd/prof/details/"
+        "download-telecharger/comprehensive/comp_download.cfm?LANG=E&CTLG=98-316-XWE2011001&FMT=CSV1501"
+    ),
+    "gda_000b11a_e.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/"
+        "files-fichiers/gda_000b11a_e.zip"
+    ),
+    "2016_92-156_DALand_ADsup_csv.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2011/geo/ref/"
+        "files-fichiers/2016/2016_92-156_DALand_ADsup_csv.zip"
+    ),
+}
+# The 2011 NHS Profile for DAs was never a StatCan CSV download (its comprehensive
+# files stop at census tracts); the Data Liberation Initiative copy on Borealis
+# (Scholars Portal) has it as one Beyond 20/20 table, public, 395 MB.
+BOREALIS = {
+    "NHSprofile_Can_PR_CD_CSD_DA.IVT": "https://borealisdata.ca/api/access/datafile/16487",
 }
 # Optional: only the FSA overlay (overlays.py) uses it, so a failed download is
 # reported but doesn't fail the run.
@@ -110,6 +130,14 @@ def main() -> int:
         print(f"fetch   {name}")
         if not fetch(url, dest, b"PK"):
             (optional if name in STATCAN_OPTIONAL else missing).append((name, url))
+    for name, url in BOREALIS.items():
+        dest = RAW / name
+        if dest.exists() and dest.stat().st_size > 1 << 20:
+            print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   {name}")
+        if not fetch(url, dest, b"", attempts=3):
+            missing.append((name, url))
     for name, (package, resource, magic) in TORONTO.items():
         dest = RAW / name
         if dest.exists() and dest.open("rb").read(len(magic)) == magic:
