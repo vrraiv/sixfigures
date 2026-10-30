@@ -10,5 +10,8 @@
   // Static assets only: no Worker script. Headers come from web/public/_headers.
   "assets": {
     "directory": "./web/dist"
-  }
+  },
+  // Pull-request builds run `wrangler preview`, which needs this block; empty
+  // means previews use the settings above.
+  "previews": {}
 }
