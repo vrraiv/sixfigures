@@ -170,6 +170,7 @@ a { color: var(--accent); }
   text-decoration: underline; cursor: pointer;
 }
 .foot .detail button[aria-pressed="true"] { font-weight: 600; text-decoration: none; }
+.foot .detail-note { font-weight: 600; color: #c2410c; }
 
 @media (max-width: 640px) {
   .bar { padding: 8px 16px; }

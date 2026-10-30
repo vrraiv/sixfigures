@@ -273,7 +273,7 @@ export function diagnostics(map) {
       `renderer: ${renderer}`,
       `cpu threads: ${navigator.hardwareConcurrency ?? "?"} · cpu index: ${cpuIndex} · dpr: ${devicePixelRatio} · ${innerWidth}×${innerHeight} of ${screen.width}×${screen.height} · link: ${link}`,
       `load: style ${at("style")} · basemap ${at("basemap")} · DA tiles ${at("tiles")} · first idle ${at("idle")}`,
-      `detail: ${detail.low ? "low" : "full"} (${detail.source || "default"}${detail.measured ? `, frames at rest ${detail.measured.rest.toFixed(0)} ms, repainting ${detail.measured.repaint == null ? "not timed: throttled" : `${detail.measured.repaint.toFixed(0)} ms`}` : ""}) · canvas ${map.getCanvas().width}×${map.getCanvas().height}`,
+      `detail: ${detail.level} (${detail.mode}, ${detail.source || "not measured"}${detail.measured ? `, frames at rest ${detail.measured.rest.toFixed(0)} ms, repainting ${detail.measured.repaint == null ? "not timed: throttled" : `${detail.measured.repaint.toFixed(0)} ms`}` : ""}) · canvas ${map.getCanvas().width}×${map.getCanvas().height}`,
       "fetched:",
       ...network(),
       `frames: avg ${avg.toFixed(0)} ms, worst ${worst.toFixed(0)} ms (last 60) · worst ${worst10.toFixed(0)} ms (last 10 s)`,
