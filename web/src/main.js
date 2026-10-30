@@ -185,7 +185,14 @@ const map = new maplibregl.Map({
   style: STYLE,
   ...camera,
   attributionControl: { compact: true },
+  // North stays up: no compass to put it back, and a right-button or two-finger
+  // drag that rotated the map by accident could not be undone.
+  dragRotate: false,
+  pitchWithRotate: false,
+  touchPitch: false,
 });
+map.touchZoomRotate.disableRotation();
+map.keyboard.disableRotation();
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 // Bounded, linear wheel zoom in place of MapLibre's (see wheel.js).
 wheelZoom(map);

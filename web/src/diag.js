@@ -75,6 +75,47 @@ export function diagnostics(map) {
     renderer = `error: ${e.message}`;
   }
 
+  // How long the graphics card takes per frame, from a timer query around each
+  // of MapLibre's paint passes (EXT_disjoint_timer_query_webgl2, where the driver
+  // offers it). The main thread's own time is in the profile; this is the GPU's.
+  const gpu = []; // { t, ms }
+  let gpuState = "no timer query";
+  try {
+    const gl = map.painter.context.gl;
+    const ext = gl.getExtension("EXT_disjoint_timer_query_webgl2");
+    if (ext) {
+      gpuState = "";
+      let pending = null;
+      const P = Object.getPrototypeOf(map.painter);
+      const paint = P.render;
+      P.render = function (...args) {
+        if (pending) {
+          if (gl.getQueryParameter(pending.q, gl.QUERY_RESULT_AVAILABLE)) {
+            if (!gl.getParameter(ext.GPU_DISJOINT_EXT)) gpu.push({ t: pending.t, ms: gl.getQueryParameter(pending.q, gl.QUERY_RESULT) / 1e6 });
+            gl.deleteQuery(pending.q);
+            pending = null;
+            while (gpu.length > 600) gpu.shift();
+          }
+          if (pending) return paint.apply(this, args); // one query in flight at a time
+        }
+        const q = gl.createQuery();
+        gl.beginQuery(ext.TIME_ELAPSED_EXT, q);
+        try {
+          return paint.apply(this, args);
+        } finally {
+          gl.endQuery(ext.TIME_ELAPSED_EXT);
+          pending = { q, t: performance.now() };
+        }
+      };
+    }
+  } catch (e) {
+    gpuState = `timer error: ${e.message}`;
+  }
+  const gpuStats = (from) => {
+    const xs = gpu.filter((g) => g.t >= from).map((g) => g.ms).sort((a, b) => a - b);
+    return xs.length ? `median ${xs[xs.length >> 1].toFixed(1)} ms, worst ${xs[xs.length - 1].toFixed(1)} ms over ${xs.length} frames` : gpuState || "no frames yet";
+  };
+
   // A fixed piece of arithmetic, timed: how fast this machine runs JavaScript on
   // one thread. About 45 ms on a fast 2024 desktop; the number is only useful
   // against another machine's.
@@ -128,12 +169,32 @@ export function diagnostics(map) {
       profileLines = [`profile: ${e.message}`];
       return;
     }
-    profileEnds = performance.now() + PROFILE_MS;
+    const from = performance.now();
+    profileEnds = from + PROFILE_MS;
     setTimeout(async () => {
       const trace = await profiler.stop();
       profiler = null;
-      profileLines = summarize(trace);
+      profileLines = [...during(from, performance.now()), ...summarize(trace)];
     }, PROFILE_MS);
+  }
+  // What happened while the profile ran, kept on screen after it: frames shown,
+  // long tasks, slow input and GPU time are otherwise gone from the rolling
+  // lines by the time a photo is taken.
+  function during(from, to) {
+    const secs = (to - from) / 1000;
+    const shown = frames.filter((f) => f.t >= from && f.t <= to);
+    const worstFrame = Math.max(0, ...shown.map((f) => f.dt));
+    const lt = longTasks.filter((l) => l.t >= from && l.t <= to);
+    const ltSum = lt.reduce((a, l) => a + l.ms, 0);
+    const ins = inputs.filter((i) => i.t >= from && i.t <= to);
+    const slowest = ins.reduce((a, b) => (b.total > (a?.total ?? 0) ? b : a), null);
+    return [
+      `during the profile (${secs.toFixed(0)} s):`,
+      `  frames shown: ${shown.length} (${(shown.length / secs).toFixed(0)} per s), worst gap ${worstFrame.toFixed(0)} ms`,
+      `  long tasks: ${lt.length}, ${(ltSum / 1000).toFixed(1)} s in all, longest ${Math.max(0, ...lt.map((l) => l.ms)).toFixed(0)} ms`,
+      `  slow input events: ${ins.length}${slowest ? `, slowest ${slowest.name} waited ${slowest.delay.toFixed(0)} ms, shown after ${slowest.total.toFixed(0)} ms` : ""}`,
+      `  gpu per frame: ${gpuStats(from)}`,
+    ];
   }
   function summarize(trace) {
     const { frames: fr, stacks, samples, resources } = trace;
@@ -215,6 +276,7 @@ export function diagnostics(map) {
       `frames: avg ${avg.toFixed(0)} ms, worst ${worst.toFixed(0)} ms (last 60) · worst ${worst10.toFixed(0)} ms (last 10 s)`,
       `long tasks: ${longTasks.length} total, ${lt10.length} in last 10 s, longest ${ltWorst.toFixed(0)} ms · last: ${longTasks.slice(-5).map((l) => l.ms.toFixed(0)).join("/") || "—"}`,
       `input (last 10 s): ${in10.length} slow events · slowest ${slowest ? `${slowest.name} waited ${slowest.delay.toFixed(0)} ms, shown after ${slowest.total.toFixed(0)} ms` : "—"}`,
+      `gpu per frame (last 10 s): ${gpuStats(now - 10000)}`,
       `zoom: ${map.getZoom().toFixed(2)}${map.isZooming() ? " (zooming)" : ""} · wheel events: ${wheels.length} total, ${lastSec} in last 1 s`,
       `last wheel deltas: ${tail || "—"}`,
       `gaps between them (ms): ${gaps || "—"}`,

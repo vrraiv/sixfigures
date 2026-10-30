@@ -64,8 +64,10 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   timings, frame and input times, long tasks and the raw mouse-wheel events, for reporting
   problems from a machine without developer tools. Pressing `p` samples the main thread
   for 20 s and lists where the time went (the `Document-Policy: js-profiling` header in
-  `web/public/_headers` allows it); `b` and `d` hide the basemap or the DA layers, to
-  feel which side a slow drag comes from.
+  `web/public/_headers` allows it), with what happened meanwhile: frames shown, long
+  tasks, slow input and the graphics card's time per frame (a GPU timer query, where the
+  driver has one); `b` and `d` hide the basemap or the DA layers, to feel which side a
+  slow drag comes from.
 - **Old links** keep working: `c=real` or `c=dollars` on a rate measure opens its
   percentage-point change (`c=pp`).
 - **Pin to compare.** "Pin to compare" in the popup outlines that DA in purple; clicking
