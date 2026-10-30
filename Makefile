@@ -67,22 +67,6 @@ $(GEOM11) $(FIGURES11) $(BREAKS11) &: $(STATCAN11) $(NHS11) $(BREAKS) $(RAW)/tor
 $(INSIGHTS): $(FIGURES) $(FIGURES11) $(BREAKS) $(BREAKS11) $(NHS11) pipeline/insights.py pipeline/measures.py pipeline/cpi.json
 	$(PYTHON) pipeline/insights.py
 
-# City housing stock and pipeline by neighbourhood (model inputs, not part of the
-# site): apartment registrations, rental demolitions, development applications,
-# the affordable rental pipeline
-CITYRAW := $(RAW)/toronto_apartment_buildings.csv $(RAW)/toronto_rental_demolition.csv \
-           $(RAW)/toronto_development_applications.csv $(RAW)/toronto_affordable_pipeline_4326.csv
-CITY    := pipeline/city/manifest.json
-.PHONY: city
-
-city: $(CITY)
-
-$(CITYRAW):
-	$(PYTHON) pipeline/download.py
-
-$(CITY): $(CITYRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b21a_e.zip $(FIGURES) pipeline/city_layers.py
-	$(PYTHON) pipeline/city_layers.py
-
 # build.py also applies cpi.json and writes the CSVs, but a change to those alone
 # only needs `make breaks`, not a rebuild of the GeoJSON and tiles.
 $(GEOJSON) $(GEOJSON16) $(GEOM) $(GEOM16) $(BREAKS) $(FIGURES) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
@@ -127,6 +111,22 @@ $(SEARCH): $(RAW)/lda_000b21a_e.zip $(RAW)/lda_000b16a_e.zip $(CORR) \
            $(RAW)/toronto_address_points_4326.csv $(RAW)/toronto_intersections_4326.csv \
            pipeline/search_index.py
 	$(PYTHON) pipeline/search_index.py
+
+# City housing stock and pipeline by neighbourhood (model inputs, not part of the
+# site): apartment registrations, rental demolitions, development applications,
+# the affordable rental pipeline
+CITYRAW := $(RAW)/toronto_apartment_buildings.csv $(RAW)/toronto_rental_demolition.csv \
+           $(RAW)/toronto_development_applications.csv $(RAW)/toronto_affordable_pipeline_4326.csv
+CITY    := pipeline/city/manifest.json
+.PHONY: city
+
+city: $(CITY)
+
+$(CITYRAW):
+	$(PYTHON) pipeline/download.py
+
+$(CITY): $(CITYRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b21a_e.zip $(FIGURES) pipeline/city_layers.py
+	$(PYTHON) pipeline/city_layers.py
 
 clean:
 	rm -rf pipeline/out
