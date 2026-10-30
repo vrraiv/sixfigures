@@ -13,6 +13,11 @@ import { cfg, initDetail, detailControls } from "./quality.js";
 import { $, BOUNDS, COLORS, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource } from "./common.js";
 
 const YEAR = "2011", SRC = "da11";
+// The NHS (the 2011 long form) asked about 2010 income; its other figures are dated 2011.
+const INCOME_YEAR = "2010";
+const refYear = (m) => (MEASURES[m].dated === "census" ? YEAR : INCOME_YEAR);
+const fromNHS = (m) => breaks.measures[m].source === "nhs";
+const sourceName = (m) => (fromNHS(m) ? "2011 National Household Survey" : "2011 Census");
 const breaks = await fetch(`/breaks_2011.json?v=${__BREAKS_2011_VERSION__}`).then((r) => r.json());
 // The measures this census has, in the catalogue's order and sections.
 const measures = Object.keys(MEASURES).filter((m) => m in breaks.measures);
@@ -96,7 +101,7 @@ function renderLegend() {
     label: i === 0 ? (meta.zero_class ? fa(0) : `Under ${fa(b[1])}`) : i === COLORS.length - 1 ? `${fa(b[i])} and over` : `${fa(b[i])} – ${fa(b[i + 1])}`,
   }));
   items.push({ pattern: "hatch", label: `Suppressed (${stats.suppressed} DAs)` });
-  $("legend-title").textContent = `${d.long}, ${YEAR} Census`;
+  $("legend-title").textContent = fromNHS(m) ? `${d.long}, ${refYear(m)} (2011 NHS)` : `${d.long}, ${YEAR} Census`;
   $("legend-items").innerHTML = items
     .map((it) => `<li><span class="swatch${it.pattern ? ` ${it.pattern}` : ""}"${it.color ? ` style="background:${it.color}"` : ""}></span>${it.label}</li>`)
     .join("");
@@ -258,20 +263,20 @@ function detailsHTML(p) {
   const rows = groupOf(m).map((k) => `<tr class="${k === m ? "sel" : ""}"><th scope="row">${MEASURES[k].short}</th><td>${fmtVal(k, p[k])}</td><td>${p[`pct_${k}`] == null ? "—" : ordinal(p[`pct_${k}`])}</td></tr>`).join("");
   const stats = meta[`y${YEAR}`], v = p[m];
   const lines = [];
-  if (v != null) lines.push({ text: `${v >= stats.city ? "Above" : "Below"} the ${YEAR} ${money ? `city ${d.stat}` : `city-wide ${d.stat}`} of ${fmtVal(m, stats.city)} for this measure.` });
+  if (v != null) lines.push({ text: `${v >= stats.city ? "Above" : "Below"} the ${refYear(m)} ${money ? `city ${d.stat}` : `city-wide ${d.stat}`} of ${fmtVal(m, stats.city)} for this measure.` });
   else lines.push({ note: true, text: "This measure is suppressed for this DA by Statistics Canada (small population or data-quality rules). It is shown hatched, not as zero." });
   if (p.rel !== 1) lines.push({ note: true, text: "This DA's boundary was redrawn for the 2016 Census, so its 2016 and 2021 figures can't be compared directly." });
   lines.push({ text: `Population ${YEAR}: ${fmtCount(p.pop11)} · Households: ${fmtCount(p.hh)}` });
   const dist = v == null ? "" : distHTML({
     hist: meta.hist[YEAR], value: v, ref: stats.city, fmt: fmtAxis(m), zero: money ? "$0" : "0%", max: money ? Infinity : 100,
-    caption: `${d.long} across ${fmtCount(stats.n)} Toronto DAs, ${YEAR}. This DA in orange; the line marks the ${money ? `city ${d.stat}` : "city as a whole"} (${fmtVal(m, stats.city)}).`,
+    caption: `${d.long} across ${fmtCount(stats.n)} Toronto DAs, ${refYear(m)}. This DA in orange; the line marks the ${money ? `city ${d.stat}` : "city as a whole"} (${fmtVal(m, stats.city)}).`,
   });
   return `<h2>DA ${escapeHTML(p.dauid)} (2011 boundary)</h2>
     <p class="place">${escapeHTML(p.nbhd2 ? `Mostly ${p.nbhd}, partly ${p.nbhd2}` : `${p.nbhd} (City neighbourhood ${p.nbhd_id})`)}</p>
     <table class="dt"><thead><tr><th></th><th>${GROUPS[d.group].col}</th><th>Percentile</th></tr></thead><tbody>${rows}</tbody></table>
     ${dist}
     ${lines.map((l) => `<p class="${l.note ? "note" : "cmp"}">${escapeHTML(l.text)}</p>`).join("")}
-    <p class="fine">Percentile = share of Toronto DAs with an equal or lower value in the 2011 Census. DAs have no official names; the neighbourhood shown is the City of Toronto neighbourhood covering most of the DA.</p>
+    <p class="fine">Percentile = share of Toronto DAs with an equal or lower value in the ${sourceName(m)}${fromNHS(m) && refYear(m) !== YEAR ? `, income year ${refYear(m)}` : ""}. DAs have no official names; the neighbourhood shown is the City of Toronto neighbourhood covering most of the DA.</p>
     <div class="detail-actions"><button type="button" class="copylink">Copy link to this DA</button></div>`;
 }
 

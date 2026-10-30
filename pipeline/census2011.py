@@ -10,8 +10,11 @@ has no characteristic IDs or DGUIDs: Geo_Code is the 8-digit DAUID, rows are
 matched by (Topic, Characteristic) with the indent stripped, Flag_total carries
 the suppression markers (x, F, ...), and Total is the count. It holds only the
 100% (short-form) data; the long form was the voluntary National Household
-Survey that year, whose DA figures StatCan published only as a Beyond 20/20
-table (NHSprofile_Can_PR_CD_CSD_DA.IVT, in pipeline/raw).
+Survey (NHS) that year, income year 2010, whose DA table (a Beyond 20/20 file)
+pipeline/nhs2011.py reads into pipeline/out/toronto_nhs_2011.csv: the rest of
+the main map's measures come from there. StatCan suppresses NHS figures where
+the global non-response rate (GNR) was 50% or more; those DAs are nulled here
+too. The city's NHS values are the Toronto CSD row, as published.
 
 Colour classes come from web/public/breaks.json, the pooled 2016+2021 quantiles,
 so a colour means the same value on the 2011 page as on the main map. The
@@ -31,7 +34,7 @@ from build import assign_neighbourhoods
 from distributions import histogram
 from exports import PLACE, _ints
 from figures import GEOMETRY, write_year
-from measures import AGE_SUMS_2011, CHARS_2011, MEASURES, SHARES, SHARES_2011, derive_shares, label
+from measures import AGE_SUMS_2011, CHARS_2011, INCOME_DATED, MEASURES, NHS_2011, SHARES, SHARES_2011, derive_shares, label
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -43,15 +46,20 @@ BOUNDARY = f"zip://{(RAW / 'gda_000b11a_e.zip').as_posix()}!gda_000b11a_e.shp"
 CORR_ZIP = RAW / "2016_92-156_DALand_ADsup_csv.zip"
 CORR_CSV = "2016_92-156_DAland_ADsup.csv"
 EXTRACT = OUT / "toronto_profile_2011_long.csv"
+NHS_CSV = OUT / "toronto_nhs_2011.csv"  # nhs2011.py
 
 TORONTO_CSD = "3520005"
 EXPECTED_DAS = 3685
 PREFIX = b"3520"  # Toronto CD = CSD (checked against the boundary file)
 TARGETS = {(t, c): k for k, (t, c) in CHARS_2011.items()}
 NAME_BYTES = [c.encode("latin-1") for _, c in TARGETS]
-# Shares the 2011 profile supports (counts for the rest are NHS, not here).
-SHARES_ALL = {**SHARES_2011, **{m: s for m, s in SHARES.items() if s[0] in CHARS_2011}}
+# Shares by source: the profile's counts, the NHS's counts.
+PROFILE_SHARES = {**SHARES_2011, **{m: s for m, s in SHARES.items() if s[0] in CHARS_2011}}
+NHS_SHARES = {m: s for m, s in SHARES.items() if s[0] in NHS_2011}
+SHARES_ALL = {**PROFILE_SHARES, **NHS_SHARES}
+NHS_KEYS = list(NHS_2011)
 REL_SAME = 1
+GNR_FLAG = 3  # digit of the NHS data-quality flag that is 1 where GNR >= 50%
 
 
 def extract() -> pd.DataFrame:
@@ -79,6 +87,24 @@ def extract() -> pd.DataFrame:
     return pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
 
 
+def load_nhs() -> tuple[pd.DataFrame, pd.Series]:
+    """The NHS measures by DA (GNR >= 50% nulled) and the city's values (the CSD row)."""
+    if not NHS_CSV.exists():
+        sys.exit(f"{NHS_CSV} is missing: run pipeline/nhs2011.py (see its docstring)")
+    nhs = pd.read_csv(NHS_CSV, dtype={"geo_code": str, "level": str, "dq": str})
+    csd = nhs[nhs.geo_code == TORONTO_CSD]
+    if len(csd) != 1:
+        sys.exit(f"{NHS_CSV.name}: expected one row for CSD {TORONTO_CSD}")
+    das = nhs[nhs.level == "DA AD"].set_index("geo_code")
+    low = das.dq.str[GNR_FLAG] == "1"
+    print(f"\nNHS: {len(das):,} Toronto DAs in the table; {int(low.sum())} with a GNR of 50% or more (nulled), "
+          f"{int(das[NHS_KEYS].isna().any(axis=1).sum())} with a suppressed (x) figure")
+    das = das[NHS_KEYS].astype(float)
+    das[low] = float("nan")
+    city = derive_shares(csd[NHS_KEYS].astype(float), NHS_SHARES).iloc[0]
+    return derive_shares(das, NHS_SHARES), city
+
+
 def load_2011():
     """Returns (gdf of 2011 Toronto DAs with values, city-wide values)."""
     long = extract()
@@ -97,10 +123,15 @@ def load_2011():
     for total, parts in AGE_SUMS_2011.items():
         wide[total] = wide[parts].sum(axis=1, min_count=len(parts))
     # City-wide shares from the DA counts (100% data: exact but for random rounding).
-    city = derive_shares(wide.sum(min_count=1).to_frame().T, SHARES_ALL).iloc[0]
-    wide = derive_shares(wide, SHARES_ALL)
+    city = derive_shares(wide.sum(min_count=1).to_frame().T, PROFILE_SHARES).iloc[0]
+    wide = derive_shares(wide, PROFILE_SHARES)
     if len(wide) != EXPECTED_DAS:
         sys.exit(f"2011 DA count {len(wide)} != {EXPECTED_DAS}")
+    nhs, city_nhs = load_nhs()
+    missing = wide.index.difference(nhs.index)
+    print(f"NHS: {len(missing)} of the {len(wide):,} DAs are not in the NHS table (nulled)")
+    wide = wide.join(nhs, how="left")
+    city = pd.concat([city, city_nhs])
 
     gdf = gpd.read_file(BOUNDARY, engine="pyogrio", where=f"CSDUID = '{TORONTO_CSD}'", columns=["DAUID", "CSDUID"])[["DAUID", "geometry"]]
     if set(gdf.DAUID) != set(wide.index):
@@ -140,7 +171,8 @@ def main():
         v = gdf[m].dropna()
         breaks["measures"][m] = {
             "unit": b["unit"],
-            "label": SHARES_ALL[m][2] if m in SHARES_ALL else label(CHARS_2011, m),
+            "label": SHARES_ALL[m][2] if m in SHARES_ALL else label(NHS_2011 if m in NHS_2011 else CHARS_2011, m),
+            "source": "nhs" if m in NHS_SHARES or m in NHS_2011 else "census",
             "breaks": b["breaks"],
             **({"zero_class": True} if b.get("zero_class") else {}),
             "y2011": {"city": round(float(city[m]), 1), "median_of_das": round(float(v.median()), 1),
@@ -164,8 +196,9 @@ def main():
     d11 = gdf[PLACE + ["pop11", "hh"]].copy()
     d11["same_boundary_2016"] = gdf["rel"].astype(int)
     for m in measures:
-        d11[f"{m}_2011"] = gdf[m]
-        d11[f"{m}_2011_pctl"] = gdf[f"pct_{m}"]
+        yr = "2010" if m in INCOME_DATED else "2011"  # NHS income refers to 2010
+        d11[f"{m}_{yr}"] = gdf[m]
+        d11[f"{m}_{yr}_pctl"] = gdf[f"pct_{m}"]
     csv_path = WEB / "data" / "toronto_da_income_2011.csv"
     _ints(d11.sort_values("dauid")).to_csv(csv_path, index=False, lineterminator="\n")
     print(f"wrote {csv_path} ({csv_path.stat().st_size / 1e3:.0f} kB, {len(d11):,} rows)")
