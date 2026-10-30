@@ -3,7 +3,7 @@
 An interactive choropleth of income, low income and housing across the City of
 Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the change
 between them. Hover for values, click for detail, or search for a Toronto address or
-intersection to jump to its DA.
+intersection to jump to its DA. Live site at http://sixfigures.vikramrai.com/. 
 
 A second page, `/2011/`, shows the 2011 Census on its own DA boundaries (3,685 DAs),
 coloured on the same classes as the main map. It has the measures the 2011 short form
