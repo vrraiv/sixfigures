@@ -63,9 +63,9 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
 - **Map detail** for machines that draw the map in software (a browser with graphics
   acceleration switched off by policy, an old integrated chip). Medium and low draw on a
   canvas at 0.8 or 0.67 pixels per CSS pixel, a basemap without the fills and minor roads
-  that show least under the DA colours, DA outlines from z12 only, and in place of the
-  hover outline a filtered copy of the tiles that outlines only the open, found and pinned
-  DAs. Under SwiftShader on four cores a frame went
+  that show least under the DA colours, DA outlines from z12 only, the hovered DA paled rather
+  than outlined, and a filtered copy of the tiles that outlines only the open, found and
+  pinned DAs. Under SwiftShader on four cores a frame went
   from 91 ms at full to about 32 at medium and 27 at low. Chosen by `q=auto|full|medium|low`
   in the hash or the footer's "Map detail" buttons; auto measures the first frames after
   load, at rest and then repainting, and takes medium when a repainted frame runs over

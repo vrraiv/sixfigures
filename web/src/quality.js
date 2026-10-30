@@ -13,10 +13,12 @@
 // measures again at once.
 
 export const LEVELS = {
-  full: { ratio: null, prune: false, lineMinzoom: 0, hover: true },
-  medium: { ratio: 0.8, prune: true, lineMinzoom: 12, hover: false },
-  low: { ratio: 0.67, prune: true, lineMinzoom: 12, hover: false },
+  full: { ratio: null, prune: false, lineMinzoom: 0, outline: true },
+  medium: { ratio: 0.8, prune: true, lineMinzoom: 12, outline: false },
+  low: { ratio: 0.67, prune: true, lineMinzoom: 12, outline: false },
 };
+// outline: the highlight layer that outlines every DA on hover (a pass over all
+// of them each frame); without it the hovered DA pales instead.
 export const detail = { level: "full", mode: "auto", source: "", measured: null };
 // mode: "auto" or "chosen"; source: how the level was arrived at: "link",
 // "kept", "measured", "measuring", "throttled" or "" (not yet).
@@ -73,13 +75,17 @@ export function applyBasemap(map, pruned) {
 // refresh period, or a browser's throttling of a covered tab) and then while
 // the map repaints every frame: a few ms to 33 on a graphics card, hundreds in
 // software. Only a slow repaint over a normal rest interval means slow drawing.
-export function calibrate(map, frames = 8) {
+// The rest sample waits for the map to be still and loaded, and starts over if
+// a drag or a tile arrival repaints it meanwhile; if that keeps happening for
+// `patience` ms the result is { rest, repaint: null }.
+export function calibrate(map, frames = 8, patience = 15000) {
   const gaps = (repaint) => new Promise((resolve) => {
     const xs = [];
     let last = null;
     const tick = (t) => {
       if (last != null) xs.push(t - last);
       last = t;
+      if (!repaint && (map.isMoving() || !map.loaded())) { resolve(null); return; } // disturbed: try again
       if (xs.length >= frames) {
         xs.shift(); // the first interval is a warm-up
         xs.sort((a, b) => a - b);
@@ -91,7 +97,17 @@ export function calibrate(map, frames = 8) {
     };
     requestAnimationFrame(tick);
   });
-  return gaps(false).then(async (rest) => ({ rest, repaint: rest < THROTTLED_MS ? await gaps(true) : null }));
+  const still = () => new Promise((r) => (map.loaded() && !map.isMoving() ? r() : map.once("idle", r)));
+  return (async () => {
+    const until = performance.now() + patience;
+    let rest = null;
+    while (rest == null && performance.now() < until) {
+      await still();
+      rest = await gaps(false);
+    }
+    if (rest == null) return { rest: null, repaint: null }; // never still long enough
+    return { rest, repaint: rest < THROTTLED_MS ? await gaps(true) : null };
+  })();
 }
 export const THROTTLED_MS = 70; // a rest interval over this is a throttled tab, not a display
 

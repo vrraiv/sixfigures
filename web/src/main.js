@@ -368,7 +368,10 @@ let focusKey = null; // classes differ between level and change views and bases
 function applyFocus() {
   const k = previewCls ?? focusCls;
   const src = sourceOf(view);
-  map.setPaintProperty(`${src}-fill`, "fill-opacity", k == null ? 0.85 : ["case", ["==", CLS, k], 0.9, 0.12]);
+  const opacity = k == null ? 0.85 : ["case", ["==", CLS, k], 0.9, 0.12];
+  // Without the outline layer the hovered DA pales instead: a state change on
+  // the fill, which costs nothing per frame.
+  map.setPaintProperty(`${src}-fill`, "fill-opacity", cfg().outline ? opacity : ["case", ["boolean", ["feature-state", "hover"], false], 0.45, opacity]);
   // The hatched and dotted fills cover every DA; opacity picks out theirs.
   const dim = k == null ? 0.9 : 0.3;
   map.setPaintProperty(`${src}-sup`, "fill-opacity", ["case", ["==", CLS, SUPPRESSED], dim, 0]);
@@ -553,7 +556,7 @@ function applyView() {
 // frame.
 function syncMark() {
   const src = sourceOf(view);
-  const full = cfg().hover;
+  const full = cfg().outline;
   for (const id of ["da", "da16"]) {
     if (map.getLayer(`${id}-mark`)) map.setLayoutProperty(`${id}-mark`, "visibility", full && id === src ? "visible" : "none");
     if (map.getLayer(`${id}-hl`)) map.setLayoutProperty(`${id}-hl`, "visibility", !full && id === src ? "visible" : "none");
@@ -585,6 +588,7 @@ function applyDetail() {
     if (map.getLayer(`${id}-line`)) map.setLayerZoomRange(`${id}-line`, c.lineMinzoom, 24);
   }
   syncMark();
+  if (map.getLayer(`${sourceOf(view)}-fill`)) applyFocus();
   for (const b of document.querySelectorAll("#detail button")) {
     b.setAttribute("aria-pressed", String(detail.mode === "auto" ? b.value === "auto" : b.value === detail.level));
   }
@@ -597,7 +601,7 @@ function detailNote() {
   const { level, mode, source, measured } = detail;
   if (mode === "chosen") return `${level[0].toUpperCase()}${level.slice(1)} detail, chosen here. Auto measures this device instead.`;
   if (source === "measuring") return "Auto: measuring how fast this device draws the map…";
-  if (source === "throttled") return "Auto: could not measure (the tab was in the background); full detail for now.";
+  if (source === "throttled") return "Auto: could not measure (the tab was in the background, or the map never held still); full detail for now. If the map feels slow, choose medium or low.";
   if (source === "kept" && level !== "full") return `Auto: ${level} detail, as measured on an earlier visit. This device draws the map slowly.`;
   if (level === "full") return "Auto: full detail. Medium and low are for machines that draw the map slowly.";
   const ms = measured?.repaint ? ` (about ${Math.round(measured.repaint)} ms a frame at full detail)` : "";
@@ -605,7 +609,6 @@ function detailNote() {
 }
 
 function setDetail(level, mode, source) {
-  if (!LEVELS[level].hover) setHover(null, null);
   detail.level = level;
   detail.mode = mode;
   detail.source = source;
@@ -621,15 +624,20 @@ async function autoDetail() {
   detail.source = "measuring";
   detail.level = "full"; // measured at full detail, whatever was on
   applyDetail();
-  // A hidden or covered tab gets no frames to time.
-  if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
-  detail.measured = await calibrate(map);
-  const level = levelFor(detail.measured);
-  if (level) setDetail(level, "auto", "measured");
-  else {
-    detail.source = "throttled";
-    applyDetail();
+  // A hidden or covered tab gets no frames to time; a covered one may not
+  // say so, so a throttled reading gets a second try before it stands.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
+    detail.measured = await calibrate(map);
+    const level = levelFor(detail.measured);
+    if (level) {
+      setDetail(level, "auto", "measured");
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 3000));
   }
+  detail.source = "throttled";
+  applyDetail();
 }
 for (const b of document.querySelectorAll("#detail button")) {
   b.addEventListener("click", () => (b.value === "auto" ? autoDetail() : setDetail(b.value, "chosen", "chosen")));
@@ -700,7 +708,6 @@ popup.on("close", () => {
 });
 
 function setHover(source, id) {
-  if (!cfg().hover && id != null) return; // no hover outline below full detail (the tooltip stays)
   if (hover?.source === source && hover?.id === id) return;
   if (hover) map.setFeatureState({ source: hover.source, sourceLayer: "da", id: hover.id }, { hover: false });
   hover = id == null ? null : { source, id };
