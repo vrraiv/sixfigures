@@ -101,6 +101,17 @@ CKAN = "https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/package_sho
 # local name -> (package id, resource name, expected leading bytes)
 TORONTO = {
     "toronto_neighbourhoods_4326.geojson": ("neighbourhoods", "Neighbourhoods - 4326.geojson", b"{"),
+    # Housing stock and pipeline (city_layers.py), refreshed daily to quarterly
+    # upstream; delete them to fetch the current files.
+    "toronto_apartment_buildings.csv": (
+        "apartment-building-registration", "Apartment Building Registration Data.csv", b"_id,"),
+    "toronto_rental_demolition.csv": (
+        "demolition-and-replacement-of-rental-housing-units", "Rental Demolition and Replacement.csv", b"_id,"),
+    "toronto_affordable_pipeline_4326.csv": (
+        "upcoming-and-recently-completed-affordable-housing-units",
+        "Affordable Rental Housing Pipeline - 4326.csv", b"_id,"),
+    "toronto_development_applications.csv": (
+        "development-applications", "Development Applications.csv", b"_id,"),
     "toronto_address_points_4326.csv": (
         "address-points-municipal-toronto-one-address-repository", "Address Points - 4326.csv", b"_id,"),
     "toronto_intersections_4326.csv": (

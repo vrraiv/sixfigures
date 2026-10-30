@@ -136,5 +136,21 @@ $(SEARCH): $(RAW)/lda_000b21a_e.zip $(RAW)/lda_000b16a_e.zip $(CORR) \
            pipeline/search_index.py
 	$(PYTHON) pipeline/search_index.py
 
+# City housing stock and pipeline by neighbourhood (model inputs, not part of the
+# site): apartment registrations, rental demolitions, development applications,
+# the affordable rental pipeline
+CITYRAW := $(RAW)/toronto_apartment_buildings.csv $(RAW)/toronto_rental_demolition.csv \
+           $(RAW)/toronto_development_applications.csv $(RAW)/toronto_affordable_pipeline_4326.csv
+CITY    := pipeline/city/manifest.json
+.PHONY: city
+
+city: $(CITY)
+
+$(CITYRAW):
+	$(PYTHON) pipeline/download.py
+
+$(CITY): $(CITYRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b21a_e.zip $(FIGURES) pipeline/city_layers.py
+	$(PYTHON) pipeline/city_layers.py
+
 clean:
 	rm -rf pipeline/out

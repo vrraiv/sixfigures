@@ -35,6 +35,8 @@ pipeline/out/
 *.xlsx
 *.pptx
 *.pdf
+# the housing layers by neighbourhood pipeline/city_layers.py writes
+!pipeline/city/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---

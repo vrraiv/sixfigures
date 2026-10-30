@@ -153,6 +153,18 @@ through the portal's CKAN `package_show` API (the portal intermittently returns 
 The address points are refreshed daily by the City; `search.json` is a snapshot of the
 2026-10-26 file.
 
+Housing stock and pipeline (downloaded 2026-10-30), for the forecast model: apartment
+building registrations (3,611 buildings, 328,273 units), rental demolition and
+replacement approvals (165, from 2017), development applications (8,622 from 2008, one
+row per address) and the affordable rental housing pipeline (277 projects, no dates, so
+a snapshot only). `make city` runs `pipeline/city_layers.py`, which places each record
+in a 2021 DA and the figures files' neighbourhood (by address for the first two, by
+coordinates for the others; development applications' X, Y are NAD27 MTM 10,
+EPSG:2019), reads unit counts from the development applications' descriptions, and
+writes `pipeline/city/*.csv` (committed) and `pipeline/city/manifest.json` with match
+rates and checks. The City's quarterly social and affordable housing counts have no
+geography, so they aren't used.
+
 Listing pages:
 - Profile: https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/download-telecharger.cfm?Lang=E
   → "Comprehensive download files" → "Canada, provinces, territories, CDs, CSDs and DAs – Ontario only" → CSV.
