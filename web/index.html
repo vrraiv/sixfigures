@@ -157,9 +157,11 @@
       data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
       <a href="https://github.com/vrraiv/sixfigures">Source</a>
       <p class="detail" id="detail">Map detail:
-        <button type="button" value="full" aria-pressed="true">full</button> ·
+        <button type="button" value="auto" aria-pressed="true">auto</button> ·
+        <button type="button" value="full" aria-pressed="false">full</button> ·
+        <button type="button" value="medium" aria-pressed="false">medium</button> ·
         <button type="button" value="low" aria-pressed="false">low</button>
-        <span class="detail-note">— low is for machines that draw the map slowly: a smaller, simpler map.</span></p>
+        <span class="detail-note" id="detail-note" role="status"></span></p>
     </footer>
 
     <script type="module" src="/src/main.js"></script>

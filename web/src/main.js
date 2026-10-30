@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { compose, grabMap, toBlob } from "./snapshot.js";
 import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
-import { detail, initDetail, remember, applyBasemap, calibrate, isSlow, RATIO, LINE_MINZOOM } from "./quality.js";
+import { LEVELS, detail, cfg, initDetail, remember, forget, applyBasemap, calibrate, levelFor } from "./quality.js";
 import "./style.css";
 
 // Vector tiles are static files unpacked from the .pmtiles archives at build time
@@ -118,7 +118,7 @@ const select = $("measure");
 const changeBy = $("changeby");
 // The URL hash keeps the view shareable: #m=<measure>&y=<view>&c=<change basis>
 // &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&o=<boundary overlay>
-// &at=<zoom>/<lat>/<lng>. q=low or q=full picks the map detail (quality.js).
+// &at=<zoom>/<lat>/<lng>. q=auto|full|medium|low picks the map detail (quality.js).
 const hashParams = new URLSearchParams(location.hash.slice(1));
 initDetail(hashParams);
 if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
@@ -192,7 +192,7 @@ const map = new maplibregl.Map({
   dragRotate: false,
   pitchWithRotate: false,
   touchPitch: false,
-  ...(detail.low ? { pixelRatio: RATIO } : {}),
+  ...(cfg().ratio ? { pixelRatio: cfg().ratio } : {}),
 });
 map.touchZoomRotate.disableRotation();
 map.keyboard.disableRotation();
@@ -546,33 +546,69 @@ function applyView() {
 // ---- map detail (quality.js) ------------------------------------------------
 
 // The highlight outline draws every DA's edges at width 0 to be ready for a
-// hover; in low detail it exists only while a DA is pinned or open.
+// hover; below full detail it exists only while a DA is pinned or open.
 function syncMark() {
-  const show = !detail.low || pinned || current;
+  const show = cfg().hover || pinned || current;
   for (const id of ["da", "da16"]) {
     if (map.getLayer(`${id}-mark`)) map.setLayoutProperty(`${id}-mark`, "visibility", show && id === sourceOf(view) ? "visible" : "none");
   }
 }
 
 function applyDetail() {
-  map.setPixelRatio(detail.low ? RATIO : devicePixelRatio);
-  applyBasemap(map, detail.low);
+  const c = cfg();
+  map.setPixelRatio(c.ratio ?? devicePixelRatio);
+  applyBasemap(map, c.prune);
   for (const id of ["da", "da16"]) {
-    if (map.getLayer(`${id}-line`)) map.setLayerZoomRange(`${id}-line`, detail.low ? LINE_MINZOOM : 0, 24);
+    if (map.getLayer(`${id}-line`)) map.setLayerZoomRange(`${id}-line`, c.lineMinzoom, 24);
   }
   syncMark();
-  for (const b of document.querySelectorAll("#detail button")) b.setAttribute("aria-pressed", String((b.value === "low") === detail.low));
+  for (const b of document.querySelectorAll("#detail button")) {
+    b.setAttribute("aria-pressed", String(detail.mode === "auto" ? b.value === "auto" : b.value === detail.level));
+  }
+  $("detail-note").textContent = detailNote();
 }
 
-function setDetail(low, source) {
-  if (low) setHover(null, null);
-  detail.low = low;
+// The line beside the buttons: what is on and why, so an automatic switch is
+// not silent.
+function detailNote() {
+  const { level, mode, source, measured } = detail;
+  if (mode === "chosen") return `${level[0].toUpperCase()}${level.slice(1)} detail, chosen here. Auto measures this device instead.`;
+  if (source === "measuring") return "Auto: measuring how fast this device draws the map…";
+  if (source === "throttled") return "Auto: could not measure (the tab was in the background); full detail for now.";
+  if (source === "kept" && level !== "full") return `Auto: ${level} detail, as measured on an earlier visit. This device draws the map slowly.`;
+  if (level === "full") return "Auto: full detail. Medium and low are for machines that draw the map slowly.";
+  const ms = measured?.repaint ? ` (about ${Math.round(measured.repaint)} ms a frame at full detail)` : "";
+  return `Auto switched to ${level} detail: this device draws the map slowly${ms}.`;
+}
+
+function setDetail(level, mode, source) {
+  if (!LEVELS[level].hover) setHover(null, null);
+  detail.level = level;
+  detail.mode = mode;
   detail.source = source;
-  remember(low, source === "measured");
+  remember(level, mode);
   applyDetail();
 }
+
+// Measures the device and applies what it calls for; the auto button and, with
+// nothing chosen or kept, the first idle after loading.
+async function autoDetail() {
+  forget();
+  detail.mode = "auto";
+  detail.source = "measuring";
+  applyDetail();
+  // A hidden or covered tab gets no frames to time.
+  if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
+  detail.measured = await calibrate(map);
+  const level = levelFor(detail.measured);
+  if (level) setDetail(level, "auto", "measured");
+  else {
+    detail.source = "throttled";
+    applyDetail();
+  }
+}
 for (const b of document.querySelectorAll("#detail button")) {
-  b.addEventListener("click", () => setDetail(b.value === "low", "chosen"));
+  b.addEventListener("click", () => (b.value === "auto" ? autoDetail() : setDetail(b.value, "chosen", "chosen")));
 }
 
 let mapMoved = false; // keep the default whole-city framing out of links until the map moves
@@ -640,7 +676,7 @@ popup.on("close", () => {
 });
 
 function setHover(source, id) {
-  if (detail.low && id != null) return; // no hover outline in low detail (the tooltip stays)
+  if (!cfg().hover && id != null) return; // no hover outline below full detail (the tooltip stays)
   if (hover?.source === source && hover?.id === id) return;
   if (hover) map.setFeatureState({ source: hover.source, sourceLayer: "da", id: hover.id }, { hover: false });
   hover = id == null ? null : { source, id };
@@ -1077,14 +1113,9 @@ map.once("style.load", () => {
   applyDetail();
 });
 
-// With no choice made or kept, the first frames after loading decide: a map
-// drawn in software takes hundreds of ms a frame and gets low detail.
-map.once("load", () => map.once("idle", async () => {
-  if (detail.source) return;
-  // A hidden or covered tab gets no frames to time.
-  if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
-  detail.measured = await calibrate(map);
-  if (isSlow(detail.measured)) setDetail(true, "measured");
+// With nothing chosen or kept, the first frames after loading decide.
+map.once("load", () => map.once("idle", () => {
+  if (detail.mode === "auto" && !detail.source) autoDetail();
 }));
 
 map.on("load", () => {

@@ -60,14 +60,16 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   whether the driver sends it as one event or a smooth-scroll stream of thirty, a frame
   applies at most a quarter of a level, and input that piles up while tiles load is
   dropped rather than applied late, so the zoom stops when the wheel does.
-- **Low detail** for machines that draw the map in software (a browser with graphics
-  acceleration switched off by policy, an old integrated chip): a canvas at 0.6 pixels per
-  CSS pixel, a basemap without the fills and minor roads that show least under the DA
-  colours, DA outlines from z13 only, and the highlight outline only while a DA is pinned
-  or open. Under SwiftShader on four cores a frame went from 91 ms to 25. Chosen by `q=low`
-  or `q=full` in the hash, by the footer's "Map detail" buttons (both kept for later
-  visits), or by measuring the first frames after load, which switches it on when a frame
-  takes over 60 ms.
+- **Map detail** for machines that draw the map in software (a browser with graphics
+  acceleration switched off by policy, an old integrated chip). Medium and low draw on a
+  canvas at 0.8 or 0.67 pixels per CSS pixel, a basemap without the fills and minor roads
+  that show least under the DA colours, DA outlines from z12 only, and the highlight
+  outline only while a DA is pinned or open. Under SwiftShader on four cores a frame went
+  from 91 ms at full to about 32 at medium and 27 at low. Chosen by `q=auto|full|medium|low`
+  in the hash or the footer's "Map detail" buttons; auto measures the first frames after
+  load, at rest and then repainting, and takes medium when a repainted frame runs over
+  30 ms past the display's interval, low over 90 ms. A chosen level is kept, a measured one
+  for a week; the line beside the buttons says which is on and why.
 - **Diagnostics.** Adding `diag` to the hash (`/#diag`) overlays the graphics driver, load
   timings, frame and input times, long tasks and the raw mouse-wheel events, for reporting
   problems from a machine without developer tools. Pressing `p` samples the main thread
