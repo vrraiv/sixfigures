@@ -5,11 +5,11 @@ Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the chang
 between them. Hover for values, click for detail, or search for a Toronto address or
 intersection to jump to its DA.
 
-A second page, `/2011/`, shows the 2011 Census on its own DA boundaries (3,685 DAs),
-coloured on the same classes as the main map. It has the measures the 2011 short form
-collected (dwelling types and ages); the rest of the 2011 long form was the National
-Household Survey, which StatCan published for DAs only as a Beyond 20/20 table
-(see `pipeline/README.md`), and is not on the page yet.
+A second page, `/2011/`, shows 2011 on its own DA boundaries (3,685 DAs), coloured on
+the same classes as the main map, with the main map's measures: dwelling types and ages
+from the 2011 Census, and the rest from the 2011 National Household Survey (the voluntary
+long form that year; income year 2010), whose DA table StatCan issued only to universities
+as a Beyond 20/20 file (see `pipeline/README.md`).
 
 ## Measures
 
@@ -253,8 +253,10 @@ match the popups, dollars rounded to whole dollars, rates to one decimal):
   `<m>_2016`, `<m>_2016_pctl` for the rest).
 - `/data/toronto_da_income_2011.csv` (linked from the 2011 page): 3,685 DAs on 2011
   boundaries: `dauid`, `nbhd_id`, `nbhd`, `nbhd2`, `pop11`, `hh`, `same_boundary_2016`
-  (1 if the DA is identical in 2016), and `<m>_2011`, `<m>_2011_pctl` for `detached`,
-  `apt5`, `age0_14` and `age65`.
+  (1 if the DA is identical in 2016), and for each measure its value and percentile
+  (`<m>_2010`, `<m>_2010_pctl` for the income measures, `<m>_2011`, `<m>_2011_pctl` for
+  the rest). Empty cells: suppressed, a global non-response rate of 50% or more, or a DA
+  absent from the NHS table.
 
 ## Data caveats
 
