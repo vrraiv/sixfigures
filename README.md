@@ -61,8 +61,11 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   applies at most a quarter of a level, and input that piles up while tiles load is
   dropped rather than applied late, so the zoom stops when the wheel does.
 - **Diagnostics.** Adding `diag` to the hash (`/#diag`) overlays the graphics driver, load
-  timings, frame times and the raw mouse-wheel events, for reporting problems from a
-  machine without developer tools.
+  timings, frame and input times, long tasks and the raw mouse-wheel events, for reporting
+  problems from a machine without developer tools. Pressing `p` samples the main thread
+  for 20 s and lists where the time went (the `Document-Policy: js-profiling` header in
+  `web/public/_headers` allows it); `b` and `d` hide the basemap or the DA layers, to
+  feel which side a slow drag comes from.
 - **Old links** keep working: `c=real` or `c=dollars` on a rate measure opens its
   percentage-point change (`c=pp`).
 - **Pin to compare.** "Pin to compare" in the popup outlines that DA in purple; clicking

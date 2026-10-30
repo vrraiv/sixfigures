@@ -34,6 +34,8 @@ export default defineConfig({
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),
   },
   build: { outDir: "dist", emptyOutDir: true },
+  // As web/public/_headers does in production, for the #diag profiler.
+  preview: { headers: { "Document-Policy": "js-profiling" } },
   // index.html preloads the opening view's DA tiles and figures; it needs the tile
   // source and the figures version for that.
   plugins: [{
