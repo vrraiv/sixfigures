@@ -421,6 +421,26 @@ function renderCorr() {
     + `<span class="wide-only">The rows and columns of the selected measure are outlined. </span><span class="narrow-only">Here: ${escapeHTML(MEASURES[m].long.toLowerCase())} against each other measure. </span>Choose a pair to see its neighbourhoods.`;
   renderScatter();
 }
+// The explorer's axis menus: every measure, grouped as in the measure bar.
+for (const id of ["sc-x", "sc-y"]) {
+  const sel = $(id);
+  for (const g of Object.keys(GROUPS)) {
+    const og = document.createElement("optgroup");
+    og.label = GROUP_NAMES[g];
+    og.innerHTML = measures.filter((m) => MEASURES[m].group === g).map((m) => `<option value="${m}">${escapeHTML(MEASURES[m].long)}</option>`).join("");
+    sel.append(og);
+  }
+  sel.addEventListener("change", () => {
+    state[id === "sc-x" ? "sx" : "sy"] = sel.value;
+    renderCorr();
+    writeHash();
+  });
+}
+$("sc-swap").addEventListener("click", () => {
+  [state.sx, state.sy] = [state.sy, state.sx];
+  renderCorr();
+  writeHash();
+});
 const pickPair = (e) => {
   const b = e.target.closest("[data-a]");
   if (!b) return;
@@ -446,6 +466,13 @@ function renderScatter() {
     state.sy = best;
   }
   const a = state.sx, b = state.sy, va = val(a, y), vb = val(b, y), v = c[a][b];
+  $("sc-x").value = a;
+  $("sc-y").value = b;
+  seg($("sc-year"), YEARS.map((yy) => [yy, yy]), y, (k) => {
+    state.corrYear = k;
+    renderCorr();
+    writeHash();
+  });
   const idx = nbhd.map((_, i) => i).filter((i) => va[i] != null && vb[i] != null);
   const ext = (vs) => {
     const s = idx.map((i) => vs[i]).sort((p, q) => p - q);
@@ -458,12 +485,18 @@ function renderScatter() {
     const t = `${escapeHTML(nbhd[i].name)}<br>${escapeHTML(shortName(a))}: <b>${fmt(a, va[i])}</b><br>${escapeHTML(shortName(b))}: <b>${fmt(b, vb[i])}</b>`;
     return `<a class="sc-dot" href="${mapLink(a, y, i)}" style="left:${px(va[i]).toFixed(2)}%;bottom:${py(vb[i]).toFixed(2)}%" data-tip="${t}" aria-label="${escapeHTML(nbhd[i].name)}"></a>`;
   }).join("");
+  // Gridlines and ticks at quarters of each axis; the top end is the 99th percentile.
+  const q = [0, 0.25, 0.5, 0.75, 1];
+  const grid = q.slice(1, -1).map((f) => `<span class="sc-gx" style="left:${f * 100}%"></span><span class="sc-gy" style="bottom:${f * 100}%"></span>`).join("");
+  const yt = q.map((f) => `<span class="sc-ytick" style="bottom:${f * 100}%">${fmtShort(b, ya + f * (yb - ya))}${f === 1 ? "+" : ""}</span>`).join("");
+  const xt = q.map((f) => `<span style="left:${f * 100}%">${fmtShort(a, xa + f * (xb - xa))}${f === 1 ? "+" : ""}</span>`).join("");
   $("scatter").innerHTML = `<div class="sc-y">${escapeHTML(MEASURES[b].long)}, ${refYear(b, y)}</div>
-    <div class="sc-box"><span class="sc-ytick top">${fmtShort(b, yb)}${"+"}</span><span class="sc-ytick bot">${fmtShort(b, ya)}</span>${dots}</div>
-    <div class="sc-xticks"><span>${fmtShort(a, xa)}</span><span>${fmtShort(a, xb)}+</span></div>
+    <div class="sc-box">${grid}${yt}${dots}</div>
+    <div class="sc-xticks">${xt}</div>
     <div class="sc-x">${escapeHTML(MEASURES[a].long)}, ${refYear(a, y)}</div>`;
-  $("scatter-caption").innerHTML = `<b>${escapeHTML(shortName(a))}</b> against <b>${escapeHTML(shortName(b))}</b>, ${y} census: `
-    + `${v ? `correlation ${fmtR(v.r)} across ${v.n} neighbourhoods` : "too few neighbourhoods with both"}. Each dot is a neighbourhood; open one on the map.`;
+  const stat = a === b ? "the same measure on both axes; pick two different ones" : v ? `correlation <b>${fmtR(v.r)}</b> across ${v.n} neighbourhoods` : "too few neighbourhoods with both";
+  $("scatter-caption").innerHTML = `${y} census: ${stat}. `
+    + `Each dot is a neighbourhood; open one on the map. Pick any two measures, or choose a cell above.`;
 }
 
 // ---- 6. relationships that changed -------------------------------------------------------

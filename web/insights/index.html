@@ -87,6 +87,13 @@
         </div>
         <ul class="corr-key" id="corr-key"></ul>
         <figure class="scatter" id="scatter-fig">
+          <h3 class="sub-h">Compare any two measures</h3>
+          <div class="sc-controls">
+            <label class="sc-pick"><span>Across</span><select id="sc-x"></select></label>
+            <button type="button" class="sc-swap" id="sc-swap" aria-label="Swap the two measures" title="Swap the axes">⇄</button>
+            <label class="sc-pick"><span>Up</span><select id="sc-y"></select></label>
+            <div class="seg" id="sc-year" role="group" aria-label="Census"></div>
+          </div>
           <figcaption id="scatter-caption"></figcaption>
           <div id="scatter"></div>
         </figure>
