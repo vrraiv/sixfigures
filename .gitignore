@@ -24,6 +24,8 @@ pipeline/out/
 *.CSV
 # ...except the CSV downloads served by the site (pipeline/exports.py)
 !web/public/data/*.csv
+# ...and the housing layers by neighbourhood pipeline/city_layers.py writes
+!pipeline/city/*.csv
 *.tab
 *.ivt
 # office documents

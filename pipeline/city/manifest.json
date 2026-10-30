@@ -1,0 +1,118 @@
+{
+  "built": "2026-10-30",
+  "files": {
+    "apartments": {
+      "name": "toronto_apartment_buildings.csv",
+      "bytes": 1562199,
+      "retrieved": "2026-10-30"
+    },
+    "demolitions": {
+      "name": "toronto_rental_demolition.csv",
+      "bytes": 40308,
+      "retrieved": "2026-10-30"
+    },
+    "development": {
+      "name": "toronto_development_applications.csv",
+      "bytes": 14086499,
+      "retrieved": "2026-10-30"
+    },
+    "affordable": {
+      "name": "toronto_affordable_pipeline_4326.csv",
+      "bytes": 54996,
+      "retrieved": "2026-10-30"
+    }
+  },
+  "checks": {
+    "apartments": {
+      "records": 3611,
+      "placed": 0.9972,
+      "units_placed": 0.9968,
+      "method": {
+        "address": 3601,
+        "unplaced": 10
+      },
+      "units": 328273,
+      "renter_households_2021": 558172,
+      "units_vs_renters_2021": {
+        "r": 0.751,
+        "rho": 0.807
+      },
+      "social_tchc_units_vs_subsidized_renters_2021": {
+        "r": 0.925,
+        "rho": 0.909
+      },
+      "subsidized_renters_2021": 73486,
+      "social_tchc_units": 67534
+    },
+    "demolitions": {
+      "records": 165,
+      "placed": 0.9939,
+      "lost_total_placed": 0.9653,
+      "method": {
+        "address": 160,
+        "nearest": 4,
+        "unplaced": 1
+      },
+      "lost": 6792,
+      "replaced": 6899
+    },
+    "development": {
+      "records": 8622,
+      "placed": 0.9945,
+      "years": [
+        2008,
+        2026
+      ],
+      "by_type": {
+        "CD": {
+          "applications": 1106,
+          "with_units": 807,
+          "units": 206433.0,
+          "share_with_units": 0.73
+        },
+        "OZ": {
+          "applications": 2781,
+          "with_units": 1662,
+          "units": 783647.0,
+          "share_with_units": 0.598
+        },
+        "PL": {
+          "applications": 172,
+          "with_units": 44,
+          "units": 2403.0,
+          "share_with_units": 0.256
+        },
+        "SA": {
+          "applications": 4276,
+          "with_units": 1502,
+          "units": 475740.0,
+          "share_with_units": 0.351
+        },
+        "SB": {
+          "applications": 287,
+          "with_units": 64,
+          "units": 56741.0,
+          "share_with_units": 0.223
+        }
+      },
+      "oz_sa_units_2010_16_vs_permits_created_2013_21": {
+        "r": 0.869,
+        "rho": 0.758,
+        "proposed": 282114,
+        "permits": 161725
+      }
+    },
+    "affordable": {
+      "records": 277,
+      "placed": 1.0,
+      "homes": {
+        "affordable": 22532,
+        "market_rent_controlled": 8922,
+        "rgi": 3387,
+        "supportive": 2628
+      },
+      "supportive_equal_to_rgi": 46,
+      "with_supportive": 47
+    }
+  }
+}
