@@ -1,6 +1,10 @@
 # Rebuild everything from raw downloads:  make data
 # Run from WSL/Linux/macOS (tippecanoe has no native Windows build).
 PYTHON ?= python3
+# pipeline/nhs2011.py needs pyivt (a Rust extension, with the legacy member-field
+# fix; see pipeline/README.md). Point this at a Python that has it, e.g. a WSL venv:
+#   make PYIVT_PYTHON="wsl -e /home/me/pyivt/.venv/bin/python" pipeline/out/toronto_nhs_2011.csv
+PYIVT_PYTHON ?= $(PYTHON)
 
 RAW       := pipeline/raw
 GEOJSON   := pipeline/out/toronto_da.geojson
@@ -24,6 +28,9 @@ STATCAN   := $(RAW)/98-401-X2021006_Ontario_eng_CSV.zip $(RAW)/lda_000b21a_e.zip
 # 2011: the DA profile zip holds one CSV per province (Deflate64: unzip, not Python)
 PROFILE11 := $(RAW)/98-316-XWE2011001-1501-ONT.csv
 STATCAN11 := $(PROFILE11) $(RAW)/gda_000b11a_e.zip $(RAW)/2016_92-156_DALand_ADsup_csv.zip
+# the NHS (2011 long form) DA table, a Beyond 20/20 file, and Toronto's rows of it
+NHSIVT11  := $(RAW)/NHSprofile_Can_PR_CD_CSD_DA.IVT
+NHS11     := pipeline/out/toronto_nhs_2011.csv
 TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_points_4326.csv \
              $(RAW)/toronto_intersections_4326.csv $(RAW)/toronto_wards_4326.geojson
 
@@ -38,16 +45,19 @@ download:
 	$(PYTHON) pipeline/download.py
 
 $(STATCAN) $(TORONTO) $(RAW)/98-316-XWE2011001-1501.zip $(RAW)/gda_000b11a_e.zip \
-$(RAW)/2016_92-156_DALand_ADsup_csv.zip $(RAW)/NHSprofile_Can_PR_CD_CSD_DA.IVT:
+$(RAW)/2016_92-156_DALand_ADsup_csv.zip $(NHSIVT11):
 	$(PYTHON) pipeline/download.py
+
+$(NHS11): $(NHSIVT11) pipeline/nhs2011.py pipeline/measures.py
+	$(PYIVT_PYTHON) pipeline/nhs2011.py
 
 $(PROFILE11): $(RAW)/98-316-XWE2011001-1501.zip
 	unzip -o -q $< '*-ONT.csv' -d $(RAW)
 	touch $@
 
-# 2011 Census (short form) on 2011 DAs, for the /2011/ page; its colour classes
-# come from breaks.json.
-$(GEOM11) $(FIGURES11) $(BREAKS11) &: $(STATCAN11) $(BREAKS) $(RAW)/toronto_neighbourhoods_4326.geojson \
+# 2011 Census (short form) and NHS (long form) on 2011 DAs, for the /2011/ page;
+# its colour classes come from breaks.json.
+$(GEOM11) $(FIGURES11) $(BREAKS11) &: $(STATCAN11) $(NHS11) $(BREAKS) $(RAW)/toronto_neighbourhoods_4326.geojson \
                                       pipeline/census2011.py pipeline/measures.py pipeline/figures.py
 	$(PYTHON) pipeline/census2011.py
 

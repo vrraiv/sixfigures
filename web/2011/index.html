@@ -8,7 +8,7 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="Dwellings and population by census dissemination area, City of Toronto, 2011 Census, on the same colour scale as the 2016 and 2021 map." />
+    <meta name="description" content="Income, low income, housing, dwellings and people by census dissemination area, City of Toronto, 2011 Census and National Household Survey, on the same colour scale as the 2016 and 2021 map." />
   </head>
   <body class="with-nav">
     <nav class="wordmark" aria-label="Site">
@@ -53,7 +53,7 @@
         };
         var h = location.hash, m = /[#&]m=([a-z0-9_]+)/.exec(h), y = "2011";
         link("/data/figures/" + y + "/common.json?v=" + fv);
-        link("/data/figures/" + y + "/" + (m ? m[1] : "detached") + ".json?v=" + fv);
+        link("/data/figures/" + y + "/" + (m ? m[1] : "med_hh_tot") + ".json?v=" + fv);
         var el = document.getElementById("map");
         if (!t || !el || !el.clientWidth || !el.clientHeight || /[#&]at=/.test(h)) return;
         var b = t.bounds, p = 24, n;
@@ -80,8 +80,10 @@
       <p class="downloads">Download the data:
         <a href="/data/toronto_da_income_2011.csv" download>2011 DAs (CSV)</a> ·
         <a href="https://github.com/vrraiv/sixfigures#data-downloads">column guide</a></p>
-      Statistics Canada, Census Profile, 2011 Census of Population (98-316-XWE2011001); 2011 dissemination area
-      cartographic boundary file (92-160-X); 2016 dissemination area correspondence file (92-156-X).
+      Statistics Canada, Census Profile, 2011 Census of Population (98-316-XWE2011001); National Household Survey, 2011,
+      semi-custom profile for dissemination areas (99-014-X2011007), from the University of Toronto Map and Data Library's
+      deposit on Borealis; 2011 dissemination area cartographic boundary file (92-160-X); 2016 dissemination area
+      correspondence file (92-156-X).
       Contains information licensed under the
       <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
       Neighbourhoods: City of Toronto Open Data; contains information licensed under the

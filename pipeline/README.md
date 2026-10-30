@@ -83,10 +83,22 @@ Data Library's deposit of it on Borealis (Scholars Portal) is public, as one zip
 Beyond 20/20 table; `download.py` fetches the zip, checks its MD5 and extracts the table.
 A second Borealis deposit (hdl:10864/11372, file 16487) has the same table unzipped, but
 that copy is corrupt as deposited (the first 386 MB of 395 MB are zeros; only the
-dictionaries and footnotes at the end survive) and no reader opens it. Reading the table:
-Beyond 20/20 Browser opens it; `pyivt` 0.0.5 (PyPI) reads its metadata but `to_arrow()`
-fails on the geography field `_Sort` (`pipeline/nhs_probe.py` reproduces this); `canivt`
-0.5.0 (R) misreads the geography count as 256 (it is 59,408). Not wired in yet.
+dictionaries and footnotes at the end survive) and no reader opens it.
+
+`pipeline/nhs2011.py` streams the table with `pyivt` and writes Toronto's rows
+(`pipeline/out/toronto_nhs_2011.csv`: the CD, the CSD and 3,665 DAs, the characteristics
+in `measures.NHS_2011`); `census2011.py` joins them to the profile's DAs. pyivt 0.0.5
+on PyPI cannot read this older table (its `_Sort` and `_Decimals` member fields;
+`to_arrow()` stops with "referenced member text is not a byte vector" and
+`pipeline/nhs_probe.py` reproduces it); the fix is a small patch to pyivt's
+`members.rs`, sent upstream. pyivt is a Rust extension, so on a machine without a
+Rust toolchain build it under WSL and run `nhs2011.py` there (`make PYIVT_PYTHON="wsl -e
+/home/<user>/pyivt/.venv/bin/python" ...`); the script imports only pyivt and pyarrow.
+Beyond 20/20 Browser opens the table too; `canivt` 0.5.0 (R) does not read it in
+practice (it takes the geography count for 256, recovers no geography codes, and declines
+the 155.6 M-cell grid). The NHS DA figures follow StatCan's own rule: DAs whose global
+non-response rate was 50% or more (266 of them; the table's data-quality flag) are
+nulled, and 20 of the 3,685 DAs are absent from the table altogether.
 
 | File | Size | URL |
 |---|---|---|

@@ -3,7 +3,12 @@
 build.py, census2016.py, distributions.py, exports.py and refresh.py all take
 their measure lists from here; web/src/main.js has the matching labels.
 """
-import pandas as pd
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # only annotations use pandas, so nhs2011.py can run where only pyivt is installed
+    import pandas as pd
 
 # Characteristics read from each profile: key -> (ID, name after strip). The ID
 # is CHARACTERISTIC_ID (2021) or Member ID (2016). Both must match, since some
@@ -122,6 +127,44 @@ CHARS_2011 = {
     "n_struct": (_DW11, "Total number of occupied private dwellings by structural type of dwelling"),
     "n_detached": (_DW11, "Single-detached house"),
     "n_apt5": (_DW11, "Apartment, building that has five or more storeys"),
+}
+# The 2011 long form: the voluntary National Household Survey, income year 2010.
+# Characteristic ID (the member ordinal of the DA table's "2011 NHS" dimension)
+# and the start of its name; Total sex. Where a measure is a share, the counts.
+NHS_2011 = {
+    "med_hh_tot": (2583, "Median household total income $"),
+    "med_hh_at": (2585, "Median after-tax household income $"),
+    "med_ind_tot": (2246, "Median income $"),  # population 15+ with income
+    "med_ind_at": (2298, "Median after-tax income $"),
+    "avg_hh_tot": (2584, "Average household total income $"),
+    "lim_at": (2456, "Prevalence of low income in 2010 based on after-tax low-income measure %"),
+    "transfers": (2340, "Government transfer payments %"),
+    "n_tenure": (2513, "Total number of private households by tenure"),
+    "n_renter": (2515, "Renter"),
+    "n_shelter": (2538, "Total number of owner and tenant households with household total income greater than zero, "
+                        "in non-farm, non-reserve private dwellings by shelter-cost-to-income ratio"),
+    "n_shelter30": (2540, "Spending 30% or more of household total income on shelter costs"),
+    "owner30": (2544, "% of owner households spending 30% or more of household total income on shelter costs"),
+    "tenant30": (2551, "% of tenant households spending 30% or more of household total income on shelter costs"),
+    "subsidized": (2550, "% of tenant households in subsidized housing"),
+    "value": (2547, "Median value of dwellings ($)"),
+    "own_cost": (2545, "Median monthly shelter costs for owned dwellings ($)"),
+    "rent": (2552, "Median monthly shelter costs for rented dwellings ($)"),
+    "n_condo_tot": (2517, "Total number of private households by condominium status"),
+    "n_condo": (2518, "Part of a condominium development"),
+    "n_period": (2494, "Total number of occupied private dwellings by period of construction"),
+    "n_built_old": (2495, "1960 or before"),
+    "n_built_new": (2500, "2006 to 2011"),
+    "n_suit": (2535, "Total number of private households by housing suitability"),
+    "n_crowded": (2537, "Not suitable"),
+    "n_degree_tot": (1801, "Total population aged 25 to 64 years by highest certificate, diploma or degree"),
+    "n_degree": (1808, "University certificate, diploma or degree at bachelor level or above"),
+    "n_mob1": (1717, "Total - Mobility status 1 year ago"),
+    "n_moved1": (1719, "Movers"),
+    "n_mob5": (1744, "Total - Mobility status 5 years ago"),
+    "n_moved5": (1746, "Movers"),
+    "n_imm_tot": (16, "Total population in private households by immigrant status and period of immigration"),
+    "n_imm_recent": (25, "2006 to 2011"),
 }
 AGE_SUMS_2011 = {
     "n_age0_14": ["n_age0_4", "n_age5_9", "n_age10_14"],
