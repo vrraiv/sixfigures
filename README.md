@@ -19,8 +19,9 @@ rises and falls between any two censuses (dollar changes after inflation, Toront
 all three years: shares from summed counts, income medians interpolated from pooled
 income groups (except 2011 household income, whose DA groups are incomplete), other
 medians as the median of the DA medians on the measure's own base. Against the City's
-official 2021 neighbourhood profile, shares and averages agree to within 0.3%, and
-household income medians to a typical 2.4%, with the same top-ten neighbourhoods.
+official 2021 neighbourhood profile, shares and averages typically agree to within 0.3%
+(the worst cases differ by 4–6%), household income medians by a typical 2.4% with the
+same top-ten neighbourhoods, and rent and dwelling value medians by a typical 2–3%.
 
 ## Measures
 
