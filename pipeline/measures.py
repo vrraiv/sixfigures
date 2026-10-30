@@ -202,6 +202,74 @@ INCOME_GROUPS = {
 for _y, _ms in INCOME_GROUPS.items():
     for _m, (_ids, _edges) in _ms.items():
         assert len(_edges) == len(_ids) + 1, (_y, _m)
+# The 2006 Census DA profile (94-581-XCB2006002, a Beyond 20/20 table; the last
+# mandatory long form; income year 2005): characteristic ID (member ordinal) and
+# the start of its label. Raw cells only: profile2006.py extracts them, and the
+# measures are derived once 2006 DAs can be placed in neighbourhoods.
+CHARS_2006 = {
+    "pop06": (1, "Population, 2006"),
+    "hh": (128, "Total number of private households by household size"),
+    "n_age_tot": (2, "Total population by sex and age groups"),
+    **{f"n_m{a}": (i, f"{a.replace('_', ' to ')} years") for i, a in zip((4, 5, 6), ("0_4", "5_9", "10_14"))},
+    **{f"n_f{a}": (i, f"{a.replace('_', ' to ')} years") for i, a in zip((23, 24, 25), ("0_4", "5_9", "10_14"))},
+    **{f"n_m{a}": (i, f"{a.replace('_', ' to ')} years") for i, a in zip((17, 18, 19, 20), ("65_69", "70_74", "75_79", "80_84"))},
+    **{f"n_f{a}": (i, f"{a.replace('_', ' to ')} years") for i, a in zip((36, 37, 38, 39), ("65_69", "70_74", "75_79", "80_84"))},
+    "n_m85": (21, "85 years and over"),
+    "n_f85": (40, "85 years and over"),
+    "n_tenure": (101, "Total number of occupied private dwellings by housing tenure"),
+    "n_renter": (103, "Rented"),
+    "n_period": (109, "Total number of occupied private dwellings by period of construction"),
+    "n_built_pre46": (110, "Period of construction, before 1946"),
+    "n_built_46_60": (111, "Period of construction, 1946 to 1960"),
+    "n_built_new": (118, "Period of construction, 2001 to 2006"),
+    "n_struct": (119, "Total number of occupied private dwellings by structural type of dwelling"),
+    "n_detached": (120, "Single-detached house"),
+    "n_apt5": (124, "Apartment, building that has five or more storeys"),
+    "n_mob1": (451, "Total - Mobility status 1 year ago"),
+    "n_moved1": (453, "Movers"),
+    "n_mob5": (460, "Total - Mobility status 5 years ago"),
+    "n_moved5": (462, "Movers"),
+    "n_imm_tot": (474, "Total population by immigrant status and place of birth"),
+    "n_imm_recent": (553, "2001 to 2006"),
+    "n_degree_tot": (1248, "Total population 25 to 64 years by highest certificate, diploma or degree"),
+    "n_degree": (1256, "University certificate or degree"),
+    "med_ind_tot": (1583, "Median income $"),
+    "med_ind_at": (1648, "Median after-tax income $"),
+    "med_hh_tot": (2000, "Median household income $"),
+    "avg_hh_tot": (2001, "Average household income $"),
+    "med_hh_at": (2030, "Median after-tax household income $"),
+    "n_tenant_hh": (2049, "Tenant-occupied private non-farm, non-reserve dwellings"),
+    "avg_rent": (2050, "Average gross rent $"),
+    "n_tenant30": (2051, "Tenant-occupied households spending 30% or more"),
+    "n_owner_hh": (2053, "Owner-occupied private non-farm, non-reserve dwellings"),
+    "avg_value": (2054, "Average value of dwelling $"),
+    "avg_own_cost": (2055, "Average owner major payments $"),
+    "n_owner30": (2056, "Owner households spending 30% or more"),
+    "lico_at": (1981, "Prevalence of low income after tax in 2005 %"),
+}
+# How each of the maps' measures stands in 2006, against 2011-2021:
+#   same: the same concept (same universe; dollars are 2005 income-year or 2006 census-year)
+#   near: shelter-cost shares, whose 2006 base includes households with zero or
+#         negative income (excluded from 2016 on)
+#   differs: published only as a different statistic (averages, or the LICO
+#         low-income line instead of LIM-AT); not to be compared
+#   missing: not in the 2006 profile
+COMPARABLE_2006 = {
+    **dict.fromkeys(["med_hh_tot", "med_hh_at", "med_ind_tot", "med_ind_at", "avg_hh_tot", "renter", "detached",
+                     "apt5", "built_new", "built_old", "degree", "moved1", "moved5", "imm_recent", "age0_14", "age65"], "same"),
+    **dict.fromkeys(["shelter30", "owner30", "tenant30"], "near"),
+    **dict.fromkeys(["lim_at", "value", "own_cost", "rent"], "differs"),
+    **dict.fromkeys(["transfers", "subsidized", "condo", "crowded"], "missing"),
+}
+# 2006 income groups for neighbourhood medians, as INCOME_GROUPS (IDs, edges in $).
+INCOME_GROUPS_2006 = {
+    "med_hh_tot": ([*range(1989, 2000)], _K(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None)),
+    "med_hh_at": ([*range(2019, 2030)], _K(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None)),
+    "med_ind_tot": ([*range(1567, 1583)], _K(0, 1, 3, 5, 7, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, None)),
+    "med_ind_at": ([*range(1633, 1648)], _K(0, 1, 3, 5, 7, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, None)),
+}
+for _m, (_ids, _edges) in INCOME_GROUPS_2006.items():
+    assert len(_edges) == len(_ids) + 1, ("2006", _m)
 AGE_SUMS_2011 = {
     "n_age0_14": ["n_age0_4", "n_age5_9", "n_age10_14"],
     "n_age65": ["n_age65_69", "n_age70_74", "n_age75_79", "n_age80_84", "n_age85"],
@@ -271,6 +339,7 @@ MEASURES = {
     "age65": {"unit": "rate", "width": 2, "change_width": 1, "change": [-10, -5, -1, 1, 5, 10]},
 }
 MONEY = [m for m, s in MEASURES.items() if s["unit"] == "money"]
+assert set(COMPARABLE_2006) == set(MEASURES), set(MEASURES) ^ set(COMPARABLE_2006)
 # Figures that refer to the income year (2015, 2020); all others are dated by census.
 INCOME_DATED = ["med_hh_tot", "med_hh_at", "med_ind_tot", "med_ind_at", "avg_hh_tot", "lim_at", "transfers"]
 CENSUS_DATED = [m for m in MEASURES if m not in INCOME_DATED]

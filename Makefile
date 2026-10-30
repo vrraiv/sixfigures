@@ -32,6 +32,10 @@ STATCAN11 := $(PROFILE11) $(RAW)/gda_000b11a_e.zip $(RAW)/2016_92-156_DALand_ADs
 # the NHS (2011 long form) DA table, a Beyond 20/20 file, and Toronto's rows of it
 NHSIVT11  := $(RAW)/NHSprofile_Can_PR_CD_CSD_DA.IVT
 NHS11     := pipeline/out/toronto_nhs_2011.csv
+# 2006 Census DA profile (Beyond 20/20) and Toronto's rows of it; joining 2006
+# DAs to neighbourhoods waits for the 2006 boundaries and correspondence (www12)
+PROFILEIVT06 := $(RAW)/94-581-XCB2006002.IVT
+PROFILE06    := pipeline/out/toronto_profile_2006.csv
 TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_points_4326.csv \
              $(RAW)/toronto_intersections_4326.csv $(RAW)/toronto_wards_4326.geojson
 
@@ -51,6 +55,12 @@ $(RAW)/2016_92-156_DALand_ADsup_csv.zip $(NHSIVT11):
 
 $(NHS11): $(NHSIVT11) pipeline/nhs2011.py pipeline/measures.py
 	$(PYIVT_PYTHON) pipeline/nhs2011.py
+
+$(PROFILEIVT06):
+	$(PYTHON) pipeline/download.py
+
+$(PROFILE06): $(PROFILEIVT06) pipeline/profile2006.py pipeline/measures.py
+	$(PYIVT_PYTHON) pipeline/profile2006.py
 
 $(PROFILE11): $(RAW)/98-316-XWE2011001-1501.zip
 	unzip -o -q $< '*-ONT.csv' -d $(RAW)
