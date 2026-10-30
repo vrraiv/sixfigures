@@ -18,6 +18,14 @@
   Cache-Control: no-cache
   Document-Policy: js-profiling
 
+/2011/
+  Cache-Control: no-cache
+  Document-Policy: js-profiling
+
+/2011/index.html
+  Cache-Control: no-cache
+  Document-Policy: js-profiling
+
 /data/figures/*
   Cache-Control: public, max-age=31536000, immutable
 

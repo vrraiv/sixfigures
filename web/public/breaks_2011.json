@@ -1,0 +1,211 @@
+{
+  "classes": 6,
+  "method": "quantile, pooled 2016+2021 (breaks.json)",
+  "measures": {
+    "detached": {
+      "unit": "rate",
+      "label": "Single-detached houses (% of occupied private dwellings)",
+      "breaks": [
+        0.0,
+        0.2,
+        11.3,
+        30.4,
+        57.9,
+        82.9,
+        100.0
+      ],
+      "zero_class": true,
+      "y2011": {
+        "city": 26.3,
+        "median_of_das": 31.0,
+        "n": 3663,
+        "suppressed": 22
+      },
+      "hist": {
+        "2011": {
+          "lo": 0,
+          "width": 5,
+          "counts": [
+            912,
+            227,
+            223,
+            171,
+            140,
+            131,
+            115,
+            91,
+            122,
+            94,
+            118,
+            119,
+            114,
+            110,
+            99,
+            146,
+            153,
+            142,
+            166,
+            270
+          ]
+        }
+      }
+    },
+    "apt5": {
+      "unit": "rate",
+      "label": "Apartments in buildings of five or more storeys (% of occupied private dwellings)",
+      "breaks": [
+        0.0,
+        0.9,
+        33.8,
+        62.1,
+        83.3,
+        98.1,
+        100.0
+      ],
+      "zero_class": true,
+      "y2011": {
+        "city": 41.0,
+        "median_of_das": 0.0,
+        "n": 3663,
+        "suppressed": 22
+      },
+      "hist": {
+        "2011": {
+          "lo": 0,
+          "width": 5,
+          "counts": [
+            2575,
+            16,
+            25,
+            24,
+            33,
+            36,
+            32,
+            48,
+            46,
+            35,
+            49,
+            37,
+            46,
+            50,
+            53,
+            67,
+            63,
+            68,
+            83,
+            277
+          ]
+        }
+      }
+    },
+    "age0_14": {
+      "unit": "rate",
+      "label": "Population aged 0 to 14 (%)",
+      "breaks": [
+        0.0,
+        9.9,
+        12.3,
+        14.1,
+        15.9,
+        18.6,
+        39.2
+      ],
+      "y2011": {
+        "city": 15.3,
+        "median_of_das": 14.7,
+        "n": 3665,
+        "suppressed": 20
+      },
+      "hist": {
+        "2011": {
+          "lo": 0,
+          "width": 1,
+          "counts": [
+            9,
+            14,
+            31,
+            50,
+            53,
+            41,
+            67,
+            66,
+            105,
+            120,
+            180,
+            218,
+            294,
+            329,
+            342,
+            301,
+            300,
+            246,
+            175,
+            153,
+            127,
+            104,
+            72,
+            55,
+            46,
+            42,
+            28,
+            97
+          ]
+        }
+      }
+    },
+    "age65": {
+      "unit": "rate",
+      "label": "Population aged 65 and over (%)",
+      "breaks": [
+        0.0,
+        10.7,
+        13.6,
+        16.0,
+        18.8,
+        23.2,
+        100.0
+      ],
+      "y2011": {
+        "city": 14.4,
+        "median_of_das": 13.4,
+        "n": 3665,
+        "suppressed": 20
+      },
+      "hist": {
+        "2011": {
+          "lo": 0,
+          "width": 2,
+          "counts": [
+            12,
+            68,
+            151,
+            297,
+            429,
+            519,
+            471,
+            421,
+            330,
+            237,
+            177,
+            149,
+            97,
+            82,
+            55,
+            24,
+            26,
+            16,
+            17,
+            10,
+            12,
+            7,
+            11,
+            11,
+            4,
+            5,
+            27
+          ]
+        }
+      }
+    }
+  }
+}

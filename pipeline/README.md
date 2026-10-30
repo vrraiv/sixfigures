@@ -14,6 +14,14 @@
    files in `web/public/data/figures/<year>/`.
 3. `tippecanoe` – writes `web/public/toronto_da.pmtiles` and `toronto_da_2016.pmtiles`
    from the geometry-only GeoJSON.
+   - `pipeline/census2011.py` does the same for the 2011 Census on its own: streams the
+     Ontario 2011 DA profile, computes the dwelling-type and age shares, joins the 2011
+     boundaries, flags DAs kept unchanged in 2016, and writes
+     `pipeline/out/toronto_da_2011_geom.geojson` (geometry and DA numbers only),
+     `web/public/data/figures/2011/` (the figures the page joins to the tiles, through
+     `figures.py`), `web/public/breaks_2011.json` (the colour classes are copied from
+     `breaks.json`) and `web/public/data/toronto_da_income_2011.csv`; `tippecanoe` then
+     writes `toronto_da_2011.pmtiles` for the `/2011/` page.
 4. `pipeline/search_index.py` – writes `web/public/search.json` (address/intersection → DA
    lookup) and `pipeline/out/search_sample.json` for `npm test`.
 5. `pipeline/overlays.py` + `tippecanoe` – boundary overlays in `web/public/overlays.pmtiles`:
@@ -62,6 +70,34 @@ Then install tippecanoe (below).
 | `98-401-X2016044_ONTARIO_eng_CSV.zip` – Census Profile 2016, CDs/CSDs/DAs, Ontario only | 567,028,559 B (4.70 GB CSV inside) | https://www12.statcan.gc.ca/census-recensement/2016/dp-pd/prof/details/download-telecharger/comp/GetFile.cfm?Lang=E&FILETYPE=CSV&GEONO=044_ONTARIO |
 | `lda_000b16a_e.zip` – 2016 DA cartographic boundary file, shapefile, English | 92,584,383 B | https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/files-fichiers/2016/lda_000b16a_e.zip |
 | `2021_92-156-X_DALand_ADsup.zip` – 2021↔2016 DA correspondence with land-area share | 628,586 B | https://www12.statcan.gc.ca/census-recensement/2021/geo/aip-pia/correspondence-correspondance/files-fichiers/2021_92-156-X_DALand_ADsup.zip |
+
+2011 Census (downloaded 2026-10-29). The 2011 DA profile is one zip for all of Canada with a
+CSV per province (Deflate64: Python's `zipfile` can't open it; the Makefile uses `unzip`). Its
+CSV has no characteristic IDs, so `measures.CHARS_2011` matches rows by Topic and
+Characteristic. Only the short form is in it: the 2011 long form was the voluntary
+National Household Survey (NHS), and StatCan's NHS Profile comprehensive downloads stop at
+census tracts. The DA-level NHS Profile exists as one Beyond 20/20 table in the Data
+Liberation Initiative copy on Borealis (Scholars Portal), public; `download.py` fetches it.
+Reading it needs an IVT reader (`pyivt` on PyPI, or the `canivt` R package); not wired in yet.
+
+| File | Size | URL |
+|---|---|---|
+| `98-316-XWE2011001-1501.zip` – Census Profile 2011, dissemination areas, Canada (15 provincial CSVs; `-ONT.csv` is 891,059,541 B, 9.4 M rows) | 155,904,986 B | https://www12.statcan.gc.ca/census-recensement/2011/dp-pd/prof/details/download-telecharger/comprehensive/comp_download.cfm?LANG=E&CTLG=98-316-XWE2011001&FMT=CSV1501 |
+| `gda_000b11a_e.zip` – 2011 DA cartographic boundary file, shapefile, English (EPSG:4269) | 150,420,759 B | https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/files-fichiers/gda_000b11a_e.zip |
+| `2016_92-156_DALand_ADsup_csv.zip` – 2016↔2011 DA correspondence with land-area share | 427,653 B | https://www12.statcan.gc.ca/census-recensement/2011/geo/ref/files-fichiers/2016/2016_92-156_DALand_ADsup_csv.zip |
+| `NHSprofile_Can_PR_CD_CSD_DA.IVT` – NHS Profile 2011, Canada/PR/CD/CSD/DA, Beyond 20/20 | 394,820,739 B | https://borealisdata.ca/api/access/datafile/16487 (dataset hdl:10864/11372) |
+
+Listing pages: 2011 profile https://www12.statcan.gc.ca/census-recensement/2011/dp-pd/prof/details/download-telecharger/comprehensive/comp-csv-tab-dwnld-tlchrgr.cfm?Lang=E ;
+NHS profile (no DA level) https://www12.statcan.gc.ca/nhs-enm/2011/dp-pd/prof/details/download-telecharger/comprehensive/comp-csv-tab-nhs-enm.cfm?Lang=E ;
+2011 boundaries https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/bound-limit-2011-eng.cfm ;
+2016 correspondence https://www12.statcan.gc.ca/census-recensement/2011/geo/ref/cor-eng.cfm (a form; the file names
+are `2016_92-156_<DA_AD|DALand_ADsup|DB_ID>_<csv|txt>.zip`).
+
+2011 figures: Toronto 3,685 DAs (population 2,615,060, as published); the 2016↔2011
+correspondence has 3,671 2016 DAs with flag 1 (same DA) and 31 with flag 3 (split from a
+2011 DA), none many-to-many. The profile suppresses 20 DAs (`..`, 8; `x`, 12). Ages come
+as five-year groups, summed to 0–14 and 65+ (`measures.AGE_SUMS_2011`); city-wide shares
+are computed from the DA counts.
 
 Listing pages: 2016 profile https://www12.statcan.gc.ca/census-recensement/2016/dp-pd/prof/details/download-telecharger/comp/page_dl-tc.cfm?Lang=E ;
 2016 boundaries https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/bound-limit-2016-eng.cfm ;

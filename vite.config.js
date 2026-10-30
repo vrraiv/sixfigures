@@ -21,6 +21,7 @@ const FIGURES_VERSION = versionAll("web/public/data/figures");
 const TILES = {
   da: await extractTiles("web/public/toronto_da.pmtiles", "da"),
   da16: await extractTiles("web/public/toronto_da_2016.pmtiles", "da16"),
+  da11: await extractTiles("web/public/toronto_da_2011.pmtiles", "da11"),
   // Optional (`make overlays`): without the file the boundary control stays hidden.
   ov: await extractTiles("web/public/overlays.pmtiles", "ov"),
 };
@@ -30,16 +31,22 @@ export default defineConfig({
   define: {
     __TILES__: JSON.stringify(TILES),
     __BREAKS_VERSION__: JSON.stringify(version("web/public/breaks.json")),
+    __BREAKS_2011_VERSION__: JSON.stringify(version("web/public/breaks_2011.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),
   },
-  build: { outDir: "dist", emptyOutDir: true },
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    // Two pages: / (2016 and 2021) and /2011/.
+    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html" } },
+  },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling" } },
   // index.html preloads the opening view's DA tiles and figures; it needs the tile
   // source and the figures version for that.
   plugins: [{
     name: "da-tiles-in-html",
-    transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION)),
+    transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION)),
   }],
 });

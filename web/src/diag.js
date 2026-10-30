@@ -23,7 +23,7 @@ export function diagnostics(map) {
   map.once("load", mark("basemap"));
   map.once("idle", mark("idle"));
   map.on("sourcedata", (e) => {
-    if (e.sourceId === "da" && e.isSourceLoaded) mark("tiles")();
+    if (/^da/.test(e.sourceId) && e.isSourceLoaded) mark("tiles")(); // da, da16 or the 2011 page's da11
   });
 
   // Main-thread frame intervals: a long interval means the page was busy
