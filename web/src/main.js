@@ -189,8 +189,12 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 // Bounded, linear wheel zoom in place of MapLibre's (see wheel.js).
 wheelZoom(map);
-// /#diag overlays the graphics driver, frame times, wheel events and load timings.
-if (hashParams.has("diag")) import("./diag.js").then((d) => d.diagnostics(map));
+// /#diag overlays the graphics driver, frame and input times, wheel events, load
+// timings and a main-thread profile, and exposes the map for console measurements.
+if (hashParams.has("diag")) {
+  globalThis.__map = map;
+  import("./diag.js").then((d) => d.diagnostics(map));
+}
 
 // ---- colouring ----------------------------------------------------------------
 // Each DA's legend class is worked out here and attached to its tile feature as
@@ -415,9 +419,13 @@ function addSourceLayers(id) {
   const under = map.getLayer(OVERLAY_FIRST) ? OVERLAY_FIRST : firstSymbol;
   // The three fills share a layout and have no filter, so MapLibre builds their
   // geometry once per tile; feature state decides which shows where (applyFocus).
-  map.addLayer({ ...base, id: `${id}-fill`, type: "fill", paint: { "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0.85 } }, under);
-  map.addLayer({ ...base, id: `${id}-sup`, type: "fill", paint: { "fill-pattern": "hatch", "fill-opacity": 0 } }, under);
-  if (id === "da") map.addLayer({ ...base, id: "da-nocmp", type: "fill", paint: { "fill-pattern": "dots", "fill-opacity": 0 } }, under);
+  // No fill-antialias: it would draw every DA edge once more per fill layer,
+  // and the line layer below outlines them anyway.
+  const fill = { ...base, type: "fill", paint: { "fill-antialias": false } };
+  const paint = (p) => ({ ...fill.paint, ...p });
+  map.addLayer({ ...fill, id: `${id}-fill`, paint: paint({ "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0.85 }) }, under);
+  map.addLayer({ ...fill, id: `${id}-sup`, paint: paint({ "fill-pattern": "hatch", "fill-opacity": 0 }) }, under);
+  if (id === "da") map.addLayer({ ...fill, id: "da-nocmp", paint: paint({ "fill-pattern": "dots", "fill-opacity": 0 }) }, under);
   map.addLayer({
     ...base, id: `${id}-line`, type: "line",
     paint: { "line-color": "#ffffff", "line-opacity": 0.7, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 14, 1] },
