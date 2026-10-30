@@ -14,6 +14,7 @@ resource URLs are resolved through the CKAN package_show API at download time.
 The portal intermittently returns 504 error pages, so each download is retried
 with backoff and checked for the expected leading bytes before it is kept.
 """
+import hashlib
 import json
 import shutil
 import sys
@@ -62,11 +63,19 @@ STATCAN = {
         "files-fichiers/2016/2016_92-156_DALand_ADsup_csv.zip"
     ),
 }
-# The 2011 NHS Profile for DAs was never a StatCan CSV download (its comprehensive
-# files stop at census tracts); the Data Liberation Initiative copy on Borealis
-# (Scholars Portal) has it as one Beyond 20/20 table, public, 395 MB.
+# The 2011 NHS Profile for DAs was never a StatCan product (StatCan did not release
+# DA-level NHS data; its comprehensive files stop at census tracts). A semi-custom
+# tabulation went to universities through the Data Liberation Initiative, and the
+# University of Toronto's deposit on Borealis (Scholars Portal) is public: one
+# Beyond 20/20 table, zipped, 102 MB. Another Borealis deposit (hdl:10864/11372,
+# file 16487) holds the same table unzipped, but that copy is corrupt as deposited:
+# all but the last 8.5 MB of its 395 MB are zeros, and no reader opens it.
+# local name -> (zip URL, MD5 of the zip as Borealis records it)
 BOREALIS = {
-    "NHSprofile_Can_PR_CD_CSD_DA.IVT": "https://borealisdata.ca/api/access/datafile/16487",
+    "NHSprofile_Can_PR_CD_CSD_DA.IVT": (
+        "https://borealisdata.ca/api/access/datafile/7750",  # doi:10.5683/SP3/8BFD0R
+        "56fa06ade0708b35c102e6a895cb3145",
+    ),
 }
 # Optional: only the FSA overlay (overlays.py) uses it, so a failed download is
 # reported but doesn't fail the run.
@@ -113,6 +122,27 @@ def fetch(url: str, dest: Path, magic: bytes, attempts: int = 1) -> bool:
     return False
 
 
+def md5(path: Path) -> str:
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def fetch_zipped(url: str, dest: Path, digest: str) -> bool:
+    """Download the zip holding `dest`, check its MD5, and extract `dest` from it."""
+    z = dest.with_suffix(".zip")
+    if not (z.exists() and zipfile.is_zipfile(z)) and not fetch(url, z, b"PK", attempts=3):
+        return False
+    if md5(z) != digest:
+        print(f"  {z.name} does not match the repository's MD5 ({digest}); re-download it")
+        return False
+    with zipfile.ZipFile(z) as f:
+        f.extract(dest.name, dest.parent)
+    return dest.exists()
+
+
 def ckan_url(package: str, resource: str) -> str:
     with urllib.request.urlopen(urllib.request.Request(CKAN + package, headers=UA), timeout=60) as r:
         res = json.load(r)["result"]["resources"]
@@ -130,13 +160,14 @@ def main() -> int:
         print(f"fetch   {name}")
         if not fetch(url, dest, b"PK"):
             (optional if name in STATCAN_OPTIONAL else missing).append((name, url))
-    for name, url in BOREALIS.items():
+    for name, (url, digest) in BOREALIS.items():
         dest = RAW / name
-        if dest.exists() and dest.stat().st_size > 1 << 20:
+        # Beyond 20/20 tables start with 02 00 20 00 or 04 00 20 00.
+        if dest.exists() and dest.open("rb").read(4) in (b"\x02\x00\x20\x00", b"\x04\x00\x20\x00"):
             print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   {name}")
-        if not fetch(url, dest, b"", attempts=3):
+        if not fetch_zipped(url, dest, digest):
             missing.append((name, url))
     for name, (package, resource, magic) in TORONTO.items():
         dest = RAW / name
