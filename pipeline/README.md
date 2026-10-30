@@ -75,17 +75,25 @@ Then install tippecanoe (below).
 CSV per province (Deflate64: Python's `zipfile` can't open it; the Makefile uses `unzip`). Its
 CSV has no characteristic IDs, so `measures.CHARS_2011` matches rows by Topic and
 Characteristic. Only the short form is in it: the 2011 long form was the voluntary
-National Household Survey (NHS), and StatCan's NHS Profile comprehensive downloads stop at
-census tracts. The DA-level NHS Profile exists as one Beyond 20/20 table in the Data
-Liberation Initiative copy on Borealis (Scholars Portal), public; `download.py` fetches it.
-Reading it needs an IVT reader (`pyivt` on PyPI, or the `canivt` R package); not wired in yet.
+National Household Survey (NHS), and StatCan never released NHS data for DAs (its NHS
+Profile downloads stop at census tracts). A semi-custom DA tabulation (product
+99-014-X2011007, "all GNRs": every DA, each with its non-response quality flag) went to
+universities through the Data Liberation Initiative, and the University of Toronto Map and
+Data Library's deposit of it on Borealis (Scholars Portal) is public, as one zipped
+Beyond 20/20 table; `download.py` fetches the zip, checks its MD5 and extracts the table.
+A second Borealis deposit (hdl:10864/11372, file 16487) has the same table unzipped, but
+that copy is corrupt as deposited (the first 386 MB of 395 MB are zeros; only the
+dictionaries and footnotes at the end survive) and no reader opens it. Reading the table:
+Beyond 20/20 Browser opens it; `pyivt` 0.0.5 (PyPI) reads its metadata but `to_arrow()`
+fails on the geography field `_Sort` (`pipeline/nhs_probe.py` reproduces this); `canivt`
+0.5.0 (R) misreads the geography count as 256 (it is 59,408). Not wired in yet.
 
 | File | Size | URL |
 |---|---|---|
 | `98-316-XWE2011001-1501.zip` – Census Profile 2011, dissemination areas, Canada (15 provincial CSVs; `-ONT.csv` is 891,059,541 B, 9.4 M rows) | 155,904,986 B | https://www12.statcan.gc.ca/census-recensement/2011/dp-pd/prof/details/download-telecharger/comprehensive/comp_download.cfm?LANG=E&CTLG=98-316-XWE2011001&FMT=CSV1501 |
 | `gda_000b11a_e.zip` – 2011 DA cartographic boundary file, shapefile, English (EPSG:4269) | 150,420,759 B | https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/files-fichiers/gda_000b11a_e.zip |
 | `2016_92-156_DALand_ADsup_csv.zip` – 2016↔2011 DA correspondence with land-area share | 427,653 B | https://www12.statcan.gc.ca/census-recensement/2011/geo/ref/files-fichiers/2016/2016_92-156_DALand_ADsup_csv.zip |
-| `NHSprofile_Can_PR_CD_CSD_DA.IVT` – NHS Profile 2011, Canada/PR/CD/CSD/DA, Beyond 20/20 | 394,820,739 B | https://borealisdata.ca/api/access/datafile/16487 (dataset hdl:10864/11372) |
+| `NHSprofile_Can_PR_CD_CSD_DA.zip` – NHS semi-custom profile 2011, Canada/PR/CD/CSD/DA, Beyond 20/20 (`.IVT` inside, 394,820,739 B; 59,408 geographies × 2,620 characteristics) | 101,809,139 B, MD5 56fa06ade0708b35c102e6a895cb3145 | https://borealisdata.ca/api/access/datafile/7750 (dataset doi:10.5683/SP3/8BFD0R) |
 
 Listing pages: 2011 profile https://www12.statcan.gc.ca/census-recensement/2011/dp-pd/prof/details/download-telecharger/comprehensive/comp-csv-tab-dwnld-tlchrgr.cfm?Lang=E ;
 NHS profile (no DA level) https://www12.statcan.gc.ca/nhs-enm/2011/dp-pd/prof/details/download-telecharger/comprehensive/comp-csv-tab-nhs-enm.cfm?Lang=E ;
