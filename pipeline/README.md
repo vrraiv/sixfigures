@@ -71,6 +71,22 @@ Then install tippecanoe (below).
 | `lda_000b16a_e.zip` – 2016 DA cartographic boundary file, shapefile, English | 92,584,383 B | https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/files-fichiers/2016/lda_000b16a_e.zip |
 | `2021_92-156-X_DALand_ADsup.zip` – 2021↔2016 DA correspondence with land-area share | 628,586 B | https://www12.statcan.gc.ca/census-recensement/2021/geo/aip-pia/correspondence-correspondance/files-fichiers/2021_92-156-X_DALand_ADsup.zip |
 
+2006 Census (downloaded 2026-10-30), for the forecast backtest: the DA profile
+(94-581-XCB2006002, the last mandatory long form; income year 2005) is one Beyond 20/20
+table in the Data Liberation Initiative's 2006 Profile Series deposit on Borealis
+(doi:10.5683/SP3/RFXZIF, file 27195, 237,696,851 B, MD5 cba104748aa71c675022b64f2b309e51,
+checked by `download.py`). `pipeline/profile2006.py` reads it with pyivt (as for the
+NHS, under WSL) and writes Toronto's CSD row and 3,556 DAs to
+`pipeline/out/toronto_profile_2006.csv`: the characteristics in `measures.CHARS_2006`
+and the income groups in `measures.INCOME_GROUPS_2006`. Its Toronto population is the
+published 2,503,281, and DA sums of the 100% counts are within 0.04-0.7% of the city.
+`measures.COMPARABLE_2006` records how each map measure stands in 2006: 16 the same
+concept; the three shelter-cost shares near (the 2006 base includes households with zero
+or negative income); low income (LICO, not LIM-AT) and dwelling value, owner costs and
+rent (published as averages) different; transfers, subsidized tenants, condominiums and
+crowding not in the profile. Placing 2006 DAs in neighbourhoods waits for the 2006 DA
+boundary file and the 2006-2011 DA correspondence, from www12 (a browser download).
+
 2011 Census (downloaded 2026-10-29). The 2011 DA profile is one zip for all of Canada with a
 CSV per province (Deflate64: Python's `zipfile` can't open it; the Makefile uses `unzip`). Its
 CSV has no characteristic IDs, so `measures.CHARS_2011` matches rows by Topic and

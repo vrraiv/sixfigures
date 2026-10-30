@@ -70,11 +70,21 @@ STATCAN = {
 # Beyond 20/20 table, zipped, 102 MB. Another Borealis deposit (hdl:10864/11372,
 # file 16487) holds the same table unzipped, but that copy is corrupt as deposited:
 # all but the last 8.5 MB of its 395 MB are zeros, and no reader opens it.
-# local name -> (zip URL, MD5 of the zip as Borealis records it)
+# local name -> (URL, MD5 as Borealis records it, whether the file is a zip holding it)
 BOREALIS = {
     "NHSprofile_Can_PR_CD_CSD_DA.IVT": (
         "https://borealisdata.ca/api/access/datafile/7750",  # doi:10.5683/SP3/8BFD0R
         "56fa06ade0708b35c102e6a895cb3145",
+        True,  # zipped
+    ),
+    # 2006 Census Profile, Canada to DAs (the last mandatory long form): a bare
+    # Beyond 20/20 table in the DLI's 2006 Profile Series deposit
+    # (doi:10.5683/SP3/RFXZIF, file 27195), 237,696,851 B. Sampled and fully
+    # checked intact (MD5 below), unlike the damaged 2011 NHS copy.
+    "94-581-XCB2006002.IVT": (
+        "https://borealisdata.ca/api/access/datafile/27195",
+        "cba104748aa71c675022b64f2b309e51",
+        False,  # the bare table
     ),
 }
 # Optional: only the FSA overlay (overlays.py) uses it, so a failed download is
@@ -143,6 +153,17 @@ def fetch_zipped(url: str, dest: Path, digest: str) -> bool:
     return dest.exists()
 
 
+def fetch_checked(url: str, dest: Path, digest: str) -> bool:
+    """Download a bare file to `dest` and keep it only if its MD5 matches."""
+    if not fetch(url, dest, b"", attempts=3):
+        return False
+    if md5(dest) != digest:
+        print(f"  {dest.name} does not match the repository's MD5 ({digest}); removed")
+        dest.unlink()
+        return False
+    return True
+
+
 def ckan_url(package: str, resource: str) -> str:
     with urllib.request.urlopen(urllib.request.Request(CKAN + package, headers=UA), timeout=60) as r:
         res = json.load(r)["result"]["resources"]
@@ -160,14 +181,14 @@ def main() -> int:
         print(f"fetch   {name}")
         if not fetch(url, dest, b"PK"):
             (optional if name in STATCAN_OPTIONAL else missing).append((name, url))
-    for name, (url, digest) in BOREALIS.items():
+    for name, (url, digest, zipped) in BOREALIS.items():
         dest = RAW / name
         # Beyond 20/20 tables start with 02 00 20 00 or 04 00 20 00.
         if dest.exists() and dest.open("rb").read(4) in (b"\x02\x00\x20\x00", b"\x04\x00\x20\x00"):
             print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   {name}")
-        if not fetch_zipped(url, dest, digest):
+        if not (fetch_zipped if zipped else fetch_checked)(url, dest, digest):
             missing.append((name, url))
     for name, (package, resource, magic) in TORONTO.items():
         dest = RAW / name
