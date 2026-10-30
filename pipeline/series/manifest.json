@@ -1,0 +1,82 @@
+{
+  "retrieved": "2026-10-30",
+  "tables": {
+    "17-10-0155": {
+      "title": "Population estimates, July 1, by census subdivision, 2021 boundaries",
+      "about": "Population estimates, July 1, City of Toronto (CSD, 2021 boundaries)",
+      "geography": "Toronto (C), Ontario",
+      "units": [
+        "Persons"
+      ],
+      "kept": {},
+      "released": "2026-01-14T08:30",
+      "rows": 25,
+      "file": "17-10-0155.csv",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710015501"
+    },
+    "11-10-0239": {
+      "title": "Income of individuals by age group, gender and income source, Canada, provinces and selected census metropolitan areas",
+      "about": "Income of individuals from the T1 Family File, Toronto CMA",
+      "geography": "Toronto, Ontario",
+      "units": [
+        "2024 constant dollars",
+        "Number"
+      ],
+      "kept": {
+        "Age group": [
+          "15 years and over"
+        ],
+        "Gender": [
+          "Total - Gender"
+        ]
+      },
+      "released": "2026-04-29T08:30",
+      "rows": 3695,
+      "file": "11-10-0239.csv",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1110023901"
+    },
+    "14-10-0459": {
+      "title": "Labour force characteristics by census metropolitan area, three-month moving average, seasonally adjusted",
+      "about": "Labour force, three-month moving average, Toronto CMA",
+      "geography": "Toronto, Ontario",
+      "units": [
+        "Percent",
+        "Persons in thousands"
+      ],
+      "kept": {
+        "Statistics": [
+          "Estimate"
+        ]
+      },
+      "released": "2026-10-09T08:30",
+      "rows": 2646,
+      "file": "14-10-0459.csv",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410045901"
+    },
+    "18-10-0005": {
+      "title": "Consumer Price Index, annual average, not seasonally adjusted",
+      "about": "Consumer price index, annual average, Toronto",
+      "geography": "Toronto, Ontario",
+      "units": [
+        "1992=100",
+        "2002=100"
+      ],
+      "kept": {},
+      "released": "2026-01-19T08:30",
+      "rows": 312,
+      "file": "18-10-0005.csv",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000501"
+    },
+    "34-10-0292": {
+      "title": "Building permits, by type of structure and type of work",
+      "about": "Building permits, Toronto CMA (City-level permits come from the City's data)",
+      "geography": "Toronto, Ontario",
+      "units": [],
+      "kept": {},
+      "released": "2026-10-14T08:30",
+      "rows": 2184,
+      "file": "34-10-0292.csv",
+      "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3410029201"
+    }
+  }
+}
