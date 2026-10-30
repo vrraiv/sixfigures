@@ -14,12 +14,25 @@ writes pipeline/city/:
                     replacements: nbhd_id, basis (approved: year of City Council
                     approval; permit: year the first rental demolition permit
                     was issued), year, applications, units lost and replaced
-                    by rent level
+                    by rent level, and units under the demolition permits
+                    (under_permit). On the permit basis all of an application's
+                    units go in its first permit's year, though a phased
+                    demolition's first permit may cover only some of them
   development.csv   development applications: nbhd_id, year submitted, type
                     (OZ rezoning, SA site plan, SB subdivision, CD condominium,
                     PL part lot), applications, applications with a unit count,
-                    units. A project moves through several types, so never sum
-                    across them; CD registers buildings already built
+                    and units three ways: on every application (units); without
+                    repeats (units_type_first: an application whose count
+                    repeats an earlier one of its family and type is a
+                    resubmission); once a family (units_project_first: its
+                    largest type total, in the year and neighbourhood of its
+                    earliest application with a count; this one can be summed
+                    across types). A family is the
+                    applications joined by PARENT_FOLDER_NUMBER, which links a
+                    site plan to its rezoning, or an old application to the one
+                    that superseded it. CD registers buildings already built.
+                    Descriptions, links and statuses are today's: a unit count
+                    is the latest revision's, which a backtest wouldn't have had
   affordable.csv    the affordable rental housing pipeline: nbhd_id, status,
                     projects and homes by kind. A snapshot: the file has no
                     dates, so it can't be used in a backtest
@@ -218,7 +231,8 @@ def demolitions(a: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             d[f"{k}_{lvl.lower().replace('-', '_')}"] = number(d[f"{lvl} {v}"])
     d["approved"] = pd.to_datetime(d["City Council Approval Date"], errors="coerce")
     d["permit"] = pd.to_datetime(d["Date the Rental Demolition Permit was Issued"], format="%m/%d/%Y", errors="coerce")
-    cols = [c for c in d.columns if c.startswith(("lost_", "replaced_"))]
+    d["under_permit"] = number(d["Rental Homes Subject to Rental Demolition Permit(s)"])
+    cols = [c for c in d.columns if c.startswith(("lost_", "replaced_"))] + ["under_permit"]
     detail = d[["RH File Number", "IBMS Address", "ward", "Type", "approved", "permit", *cols,
                 "DAUID", "nbhd_id", "method"]]
     rows = []
@@ -244,10 +258,39 @@ def development() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     apps["type"] = apps.APPLICATION_TYPE.str.strip()
     apps["year"] = pd.to_datetime(apps.DATE_SUBMITTED).dt.year
     apps["units"] = apps.DESCRIPTION.map(units)
-    detail = apps[["APPLICATION#", "type", "year", "PARENT_FOLDER_NUMBER", "units", "DAUID", "nbhd_id"]]
+    apps["family"] = families(apps)
+    # Within a family and type, a count that repeats an earlier one is a
+    # resubmission; different counts are phases (a site plan per building). A
+    # family's project total is its largest type total, placed at its earliest
+    # application with a count.
+    order = apps[apps.units.notna()].sort_values(["DATE_SUBMITTED", "APPLICATION#"])
+    keep = order.index[~order.duplicated(["family", "type", "units"])]
+    apps["units_type_first"] = apps.units.where(apps.index.isin(keep))
+    total = apps.groupby(["family", "type"]).units_type_first.sum().groupby("family").max()
+    first = order.drop_duplicates("family")
+    apps["units_project_first"] = np.nan
+    apps.loc[first.index, "units_project_first"] = first.family.map(total)
+    detail = apps[["APPLICATION#", "type", "year", "PARENT_FOLDER_NUMBER", "family", "units", "units_type_first",
+                   "units_project_first", "DAUID", "nbhd_id"]]
     p = apps[apps.nbhd_id.notna()].assign(applications=1, with_units=lambda x: x.units.notna().astype(int))
-    out = p.groupby(["nbhd_id", "year", "type"])[["applications", "with_units", "units"]].sum().reset_index()
+    out = (p.groupby(["nbhd_id", "year", "type"])
+           [["applications", "with_units", "units", "units_type_first", "units_project_first"]].sum().reset_index())
     return out, detail, apps
+
+
+def families(apps: pd.DataFrame) -> pd.Series:
+    """Each application's family: those joined by parent links, either way."""
+    root = {k: k for k in apps["APPLICATION#"]}
+
+    def find(k):
+        while root[k] != k:
+            root[k] = root[root[k]]
+            k = root[k]
+        return k
+    for k, parent in zip(apps["APPLICATION#"], apps.PARENT_FOLDER_NUMBER):
+        if parent in root:
+            root[find(k)] = find(parent)
+    return apps["APPLICATION#"].map(find)
 
 
 def affordable() -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -334,7 +377,8 @@ def main() -> int:
     dev, detail, apps = development()
     detail.to_csv(DETAIL / "city_development.csv", index=False)
     by_type = apps.groupby("type").agg(applications=("units", "size"), with_units=("units", "count"),
-                                       units=("units", "sum"))
+                                       units=("units", "sum"), units_type_first=("units_type_first", "sum"),
+                                       units_project_first=("units_project_first", "sum"))
     by_type["share_with_units"] = (by_type.with_units / by_type.applications).round(3)
     checks["development"] = {**rate(detail), "years": [int(apps.year.min()), int(apps.year.max())],
                              "by_type": json.loads(by_type.to_json(orient="index"))}
@@ -343,18 +387,18 @@ def main() -> int:
     for _, r in apps.nlargest(15, "units").iterrows():
         print(f"    {r.units:>7,.0f}  {r['APPLICATION#']}  {str(r.DESCRIPTION)[:110]}")
     if PERMITS.exists():
-        # Units proposed in rezoning and site plan applications against units
-        # later issued permits, by neighbourhood
+        # Units first proposed (once a project, outside condominium registration)
+        # against units later issued permits, by neighbourhood
         pm = pd.read_csv(PERMITS)
         pm = pm[(pm.basis == "issued") & pm.year.between(2013, 2021)].groupby("nbhd_id").created.sum()
-        pr = dev[dev.type.isin(["OZ", "SA"]) & dev.year.between(2010, 2016)].groupby("nbhd_id").units.sum()
-        checks["development"]["oz_sa_units_2010_16_vs_permits_created_2013_21"] = {
+        pr = dev[(dev.type != "CD") & dev.year.between(2010, 2016)].groupby("nbhd_id").units_project_first.sum()
+        checks["development"]["project_units_2010_16_vs_permits_created_2013_21"] = {
             **corr(pr, pm), "proposed": int(pr.sum()), "permits": int(pm.sum())}
-        print(f"  vs permits: {checks['development']['oz_sa_units_2010_16_vs_permits_created_2013_21']}")
+        print(f"  vs permits: {checks['development']['project_units_2010_16_vs_permits_created_2013_21']}")
 
     aff, detail = affordable()
     detail.to_csv(DETAIL / "city_affordable.csv", index=False)
-    checks["affordable"] = {**rate(detail), "homes": {k: int(detail[k].sum()) for k in
+    checks["affordable"] = {**rate(detail), "snapshot": "no dates in the file", "homes": {k: int(detail[k].sum()) for k in
                                                      ("affordable", "market_rent_controlled", "rgi", "supportive")},
                             "supportive_equal_to_rgi": int(((detail.supportive > 0)
                                                             & (detail.supportive == detail.rgi)).sum()),

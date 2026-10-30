@@ -68,43 +68,54 @@
           "applications": 1106,
           "with_units": 807,
           "units": 206433.0,
+          "units_type_first": 202510.0,
+          "units_project_first": 45335.0,
           "share_with_units": 0.73
         },
         "OZ": {
           "applications": 2781,
           "with_units": 1662,
           "units": 783647.0,
+          "units_type_first": 756450.0,
+          "units_project_first": 690880.0,
           "share_with_units": 0.598
         },
         "PL": {
           "applications": 172,
           "with_units": 44,
           "units": 2403.0,
+          "units_type_first": 2280.0,
+          "units_project_first": 278.0,
           "share_with_units": 0.256
         },
         "SA": {
           "applications": 4276,
           "with_units": 1502,
           "units": 475740.0,
+          "units_type_first": 471472.0,
+          "units_project_first": 190713.0,
           "share_with_units": 0.351
         },
         "SB": {
           "applications": 287,
           "with_units": 64,
           "units": 56741.0,
+          "units_type_first": 56741.0,
+          "units_project_first": 12686.0,
           "share_with_units": 0.223
         }
       },
-      "oz_sa_units_2010_16_vs_permits_created_2013_21": {
-        "r": 0.869,
-        "rho": 0.758,
-        "proposed": 282114,
+      "project_units_2010_16_vs_permits_created_2013_21": {
+        "r": 0.864,
+        "rho": 0.752,
+        "proposed": 231133,
         "permits": 161725
       }
     },
     "affordable": {
       "records": 277,
       "placed": 1.0,
+      "snapshot": "no dates in the file",
       "homes": {
         "affordable": 22532,
         "market_rent_controlled": 8922,
