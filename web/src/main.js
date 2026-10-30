@@ -545,13 +545,36 @@ function applyView() {
 
 // ---- map detail (quality.js) ------------------------------------------------
 
-// The highlight outline draws every DA's edges at width 0 to be ready for a
-// hover; below full detail it exists only while a DA is pinned or open.
+// The highlight outline (`-mark`) draws every DA's edges at width 0 to be
+// ready for a hover, which costs a pass over all of them each frame. Below
+// full detail it stays hidden and a second copy of the tiles (`-hl`, made on
+// first need) outlines only the selected (clicked or found) and pinned DAs
+// through a filter: each change re-reads the tiles on the worker, nothing per
+// frame.
 function syncMark() {
-  const show = cfg().hover || pinned || current;
+  const src = sourceOf(view);
+  const full = cfg().hover;
   for (const id of ["da", "da16"]) {
-    if (map.getLayer(`${id}-mark`)) map.setLayoutProperty(`${id}-mark`, "visibility", show && id === sourceOf(view) ? "visible" : "none");
+    if (map.getLayer(`${id}-mark`)) map.setLayoutProperty(`${id}-mark`, "visibility", full && id === src ? "visible" : "none");
+    if (map.getLayer(`${id}-hl`)) map.setLayoutProperty(`${id}-hl`, "visibility", !full && id === src ? "visible" : "none");
   }
+  if (full) return;
+  const orange = [...new Set(selected.filter((s) => s.source === src).map((s) => s.id))];
+  const purple = pinned?.source === src && !orange.includes(pinned.dauid) ? [pinned.dauid] : [];
+  if (!orange.length && !purple.length && !map.getLayer(`${src}-hl`)) return;
+  ensureHighlight(src);
+  map.setFilter(`${src}-hl`, ["in", ["get", "dauid"], ["literal", [...orange, ...purple]]]);
+  map.setPaintProperty(`${src}-hl`, "line-color", ["match", ["get", "dauid"], orange.length ? orange : "", "#eb6834", "#7a3db8"]);
+}
+
+function ensureHighlight(id) {
+  if (map.getSource(`${id}-hl`)) return;
+  map.addSource(`${id}-hl`, tileSource(TILES[id]));
+  map.addLayer({
+    id: `${id}-hl`, type: "line", source: `${id}-hl`, "source-layer": "da",
+    filter: ["in", ["get", "dauid"], ["literal", []]],
+    paint: { "line-color": "#eb6834", "line-width": 3 },
+  }, firstSymbol);
 }
 
 function applyDetail() {
@@ -596,6 +619,7 @@ async function autoDetail() {
   forget();
   detail.mode = "auto";
   detail.source = "measuring";
+  detail.level = "full"; // measured at full detail, whatever was on
   applyDetail();
   // A hidden or covered tab gets no frames to time.
   if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));

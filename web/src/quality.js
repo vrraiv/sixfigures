@@ -73,7 +73,7 @@ export function applyBasemap(map, pruned) {
 // refresh period, or a browser's throttling of a covered tab) and then while
 // the map repaints every frame: a few ms to 33 on a graphics card, hundreds in
 // software. Only a slow repaint over a normal rest interval means slow drawing.
-export function calibrate(map, frames = 6) {
+export function calibrate(map, frames = 8) {
   const gaps = (repaint) => new Promise((resolve) => {
     const xs = [];
     let last = null;
@@ -81,6 +81,7 @@ export function calibrate(map, frames = 6) {
       if (last != null) xs.push(t - last);
       last = t;
       if (xs.length >= frames) {
+        xs.shift(); // the first interval is a warm-up
         xs.sort((a, b) => a - b);
         resolve(xs[xs.length >> 1]);
         return;
