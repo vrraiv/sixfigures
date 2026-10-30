@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { compose, grabMap, toBlob } from "./snapshot.js";
 import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
+import { detail, initDetail, remember, applyBasemap, calibrate, isSlow, RATIO, LINE_MINZOOM } from "./quality.js";
 import "./style.css";
 
 // Vector tiles are static files unpacked from the .pmtiles archives at build time
@@ -117,8 +118,9 @@ const select = $("measure");
 const changeBy = $("changeby");
 // The URL hash keeps the view shareable: #m=<measure>&y=<view>&c=<change basis>
 // &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&o=<boundary overlay>
-// &at=<zoom>/<lat>/<lng>.
+// &at=<zoom>/<lat>/<lng>. q=low or q=full picks the map detail (quality.js).
 const hashParams = new URLSearchParams(location.hash.slice(1));
+initDetail(hashParams);
 if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
 // The change-basis menu depends on the measure's unit. wantBasis is the last
@@ -190,6 +192,7 @@ const map = new maplibregl.Map({
   dragRotate: false,
   pitchWithRotate: false,
   touchPitch: false,
+  ...(detail.low ? { pixelRatio: RATIO } : {}),
 });
 map.touchZoomRotate.disableRotation();
 map.keyboard.disableRotation();
@@ -521,10 +524,11 @@ function applyView() {
   for (const id of ["da", "da16"]) {
     if (!map.getSource(id)) continue;
     const vis = id === src ? "visible" : "none";
-    for (const l of ["fill", "sup", "line", "mark", ...(id === "da" ? ["nocmp"] : [])]) {
+    for (const l of ["fill", "sup", "line", ...(id === "da" ? ["nocmp"] : [])]) {
       map.setLayoutProperty(`${id}-${l}`, "visibility", l === "nocmp" && view !== "change" ? "none" : vis);
     }
   }
+  syncMark();
   map.setPaintProperty(`${src}-fill`, "fill-color", fillColor());
   paintView();
   changeBy.hidden = view !== "change";
@@ -539,8 +543,41 @@ function applyView() {
   writeHash();
 }
 
+// ---- map detail (quality.js) ------------------------------------------------
+
+// The highlight outline draws every DA's edges at width 0 to be ready for a
+// hover; in low detail it exists only while a DA is pinned or open.
+function syncMark() {
+  const show = !detail.low || pinned || current;
+  for (const id of ["da", "da16"]) {
+    if (map.getLayer(`${id}-mark`)) map.setLayoutProperty(`${id}-mark`, "visibility", show && id === sourceOf(view) ? "visible" : "none");
+  }
+}
+
+function applyDetail() {
+  map.setPixelRatio(detail.low ? RATIO : devicePixelRatio);
+  applyBasemap(map, detail.low);
+  for (const id of ["da", "da16"]) {
+    if (map.getLayer(`${id}-line`)) map.setLayerZoomRange(`${id}-line`, detail.low ? LINE_MINZOOM : 0, 24);
+  }
+  syncMark();
+  for (const b of document.querySelectorAll("#detail button")) b.setAttribute("aria-pressed", String((b.value === "low") === detail.low));
+}
+
+function setDetail(low, source) {
+  if (low) setHover(null, null);
+  detail.low = low;
+  detail.source = source;
+  remember(low, source === "measured");
+  applyDetail();
+}
+for (const b of document.querySelectorAll("#detail button")) {
+  b.addEventListener("click", () => setDetail(b.value === "low", "chosen"));
+}
+
 let mapMoved = false; // keep the default whole-city framing out of links until the map moves
 function writeHash() {
+  syncMark();
   const h = new URLSearchParams({ m: select.value, y: view });
   if (view === "change") h.set("c", changeBy.value);
   if (current) h.set("da", current.dauid);
@@ -603,6 +640,7 @@ popup.on("close", () => {
 });
 
 function setHover(source, id) {
+  if (detail.low && id != null) return; // no hover outline in low detail (the tooltip stays)
   if (hover?.source === source && hover?.id === id) return;
   if (hover) map.setFeatureState({ source: hover.source, sourceLayer: "da", id: hover.id }, { hover: false });
   hover = id == null ? null : { source, id };
@@ -1036,7 +1074,18 @@ map.once("style.load", () => {
   addSourceLayers("da");
   addOverlayLayers();
   applyView();
+  applyDetail();
 });
+
+// With no choice made or kept, the first frames after loading decide: a map
+// drawn in software takes hundreds of ms a frame and gets low detail.
+map.once("load", () => map.once("idle", async () => {
+  if (detail.source) return;
+  // A hidden or covered tab gets no frames to time.
+  if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
+  detail.measured = await calibrate(map);
+  if (isSlow(detail.measured)) setDetail(true, "measured");
+}));
 
 map.on("load", () => {
   select.addEventListener("change", () => {

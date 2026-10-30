@@ -164,6 +164,12 @@ a { color: var(--accent); }
   padding: 8px 16px; font-size: 11px; color: var(--ink-3);
   border-top: 1px solid var(--rule); background: var(--surface);
 }
+.foot .detail { margin: 6px 0 0; }
+.foot .detail button {
+  padding: 0; border: 0; background: none; font: inherit; color: inherit;
+  text-decoration: underline; cursor: pointer;
+}
+.foot .detail button[aria-pressed="true"] { font-weight: 600; text-decoration: none; }
 
 @media (max-width: 640px) {
   .bar { padding: 8px 16px; }
