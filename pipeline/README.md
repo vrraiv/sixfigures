@@ -84,8 +84,21 @@ published 2,503,281, and DA sums of the 100% counts are within 0.04-0.7% of the 
 concept; the three shelter-cost shares near (the 2006 base includes households with zero
 or negative income); low income (LICO, not LIM-AT) and dwelling value, owner costs and
 rent (published as averages) different; transfers, subsidized tenants, condominiums and
-crowding not in the profile. Placing 2006 DAs in neighbourhoods waits for the 2006 DA
-boundary file and the 2006-2011 DA correspondence, from www12 (a browser download).
+crowding not in the profile.
+
+`make census2006` runs `pipeline/census2006.py`, which places the 2006 DAs in the 158
+neighbourhoods and writes `pipeline/census/` (committed): `da_2006.csv` (each DA's
+neighbourhood), `nbhd_2006.csv` (the same and near measures by neighbourhood, aggregated
+as `insights.py` does, plus 2006's average rent, value and owner costs and LICO-AT under
+their own names) and `manifest.json` (checks, city values). It needs two files from
+www12, listed in `download.py` (usually a browser download, as for the other www12
+files): the 2006 DA boundary file `gda_000a06a_e.zip` (digital; the cartographic
+`gda_000b06a_e.zip` works too) and the 2011↔2006 DA correspondence
+`2011_92-156_DALand_ADsup_txt.zip`. All 3,519 DAs unchanged between 2006
+and 2011 land in the neighbourhood the 2011 figures give them. The profile stores
+suppressed statistics as 0; the script nulls them. 21 boundary DAs are not in the
+profile and 5 had their 100% data suppressed, so the DAs sum to 10,518 (0.4%) fewer
+people than the city; `das_without_counts` marks the 23 neighbourhoods affected.
 
 2011 Census (downloaded 2026-10-29). The 2011 DA profile is one zip for all of Canada with a
 CSV per province (Deflate64: Python's `zipfile` can't open it; the Makefile uses `unzip`). Its

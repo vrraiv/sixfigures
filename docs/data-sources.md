@@ -93,12 +93,13 @@ won't match.
 
 | Source | File | Years | Geography | Role | Status |
 |---|---|---|---|---|---|
-| 2006 Census Profile, Canada to DAs | `94-581-XCB2006002.IVT`, Borealis file 27195 (doi:10.5683/SP3/RFXZIF), 237,696,851 B, public | 2006 (income year 2005), mandatory long form | DA (2006 boundaries) | Target history: a fourth census, and the only pre-2016 one without the NHS's non-response gaps | Sampled at five offsets: data throughout, header signature valid (the damaged 2011 file was zeros). Full download and a pyivt read still to confirm |
-| 2006 DA boundaries; 2006-2011 DA correspondence | StatCan `www12` | 2006 | DA | Joins 2006 DAs to neighbourhoods and to 2011 | Bot challenge: manual browser download |
+| 2006 Census Profile, Canada to DAs | `94-581-XCB2006002.IVT`, Borealis file 27195 (doi:10.5683/SP3/RFXZIF), 237,696,851 B, public | 2006 (income year 2005), mandatory long form | DA (2006 boundaries) | Target history: a fourth census, and the only pre-2016 one without the NHS's non-response gaps | Sampled at five offsets: data throughout, header signature valid (the damaged 2011 file was zeros). Downloaded (MD5 checked) and read: 3,556 Toronto DAs (`pipeline/profile2006.py`) |
+| 2006 DA boundaries (`gda_000a06a_e.zip`, digital); 2011-2006 DA correspondence (`2011_92-156_DALand_ADsup_txt.zip`) | StatCan `www12` | 2006 | DA | Joins 2006 DAs to neighbourhoods; checks the join against 2011 | Manual browser download (bot challenge). Done: `pipeline/census2006.py` -> `pipeline/census/nbhd_2006.csv`; all 3,519 unchanged DAs match their 2011 neighbourhood |
 
 With 2006, the backtest can fit on two intervals (2006-2011, 2011-2016) and
-score the third. The 2006 profile has income in 2005 dollars; `cpi.json` would
-need 2005 and 2006.
+score the third. The 2006 profile has income in 2005 dollars, and rent, values
+and costs in 2006 dollars; `cpi.json` has neither year, but
+`pipeline/series/18-10-0005.csv` does.
 
 ### CMHC (manual export)
 
@@ -135,11 +136,10 @@ source allows). Every script prints its own checks, as the census scripts do.
 3. **City housing stock and pipeline** (`pipeline/city_layers.py`): apartment
    registration, affordable and social housing, rental demolition and
    replacement, development applications; same address matching.
-4. **2006 Census** (`pipeline/census2006.py`, after the downloads): the IVT
-   from Borealis read with the patched pyivt, the 2006 boundaries and
-   correspondence from `www12`, measures mapped as for 2011. Needs your OK
-   for the 238 MB Borealis download, and the two `www12` files fetched in a
-   browser.
+4. **2006 Census** (done: `pipeline/profile2006.py` reads the IVT with the
+   patched pyivt; `pipeline/census2006.py` places the DAs with the 2006
+   boundaries and aggregates the measures to neighbourhoods as `insights.py`
+   does for 2011-2021).
 5. **CMHC** (manual export once a year): rental zones and rents, with a
    zone-to-neighbourhood lookup.
 6. **Exploratory drivers** (crime rates, short-term rentals, transit): only if

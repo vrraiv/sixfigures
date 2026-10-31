@@ -10,9 +10,8 @@ and measures.INCOME_GROUPS_2006 name. One row per geography: geo_code (the DAUID
 or 3520005), level, label (StatCan's geography label, with its data-quality
 flags), then one column per key; a suppressed cell is empty.
 
-This stops at extraction. Assigning 2006 DAs to the City's neighbourhoods needs
-the 2006 DA boundary file and the 2006-2011 DA correspondence, which come from
-www12.statcan.gc.ca (a browser download: it has a bot challenge).
+This stops at extraction; census2006.py places the 2006 DAs in the City's
+neighbourhoods and derives the measures.
 
 pyivt needs the legacy member-field fix (see nhs2011.py); run it where that
 build is installed, e.g. under WSL:

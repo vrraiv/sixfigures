@@ -44,7 +44,7 @@ import zipfile
 import build
 import census2011
 import census2016
-from measures import INCOME_DATED, INCOME_GROUPS, MEASURES, NHS_2011, SHARES, SHARES_2011
+from measures import INCOME_DATED, INCOME_GROUPS, INCOME_GROUPS_2006, MEASURES, NHS_2011, SHARES, SHARES_2011
 
 HERE = Path(__file__).parent
 OUT_DIR = HERE / "out"
@@ -59,6 +59,8 @@ MIN_COVERAGE = 0.5
 # groups reproduce StatCan's city median: the 2011 NHS DA household groups are
 # sparse (they cover about 70% of households) and put it 8-10% high.
 GROUPS_TOLERANCE = 0.03
+# The income groups by year, with 2006 (census2006.py aggregates it here; not on the page).
+GROUPS = {**INCOME_GROUPS, "2006": INCOME_GROUPS_2006}
 
 # Base of each measure that isn't a share of counts: (method, weight column).
 # owners / renters are households by tenure (the profile's tenure counts).
@@ -95,6 +97,13 @@ def load(year: str) -> pd.DataFrame:
     wide = wide.join(nb.rename("nbhd_id"), how="left")
     if wide.nbhd_id.isna().any():
         sys.exit(f"{year}: {int(wide.nbhd_id.isna().sum())} DAs without a neighbourhood")
+    wide = tenure_bases(wide)
+    groups = income_groups(year)
+    return wide.join(groups, how="left")
+
+
+def tenure_bases(wide: pd.DataFrame) -> pd.DataFrame:
+    """Adds owners and renters (households by tenure), the bases of the owner and renter measures."""
     renters = wide["n_renter"]
     owners = wide["n_tenure"] - wide["n_renter"]
     # A DA without tenure counts (suppressed, or nulled for NHS non-response)
@@ -106,8 +115,7 @@ def load(year: str) -> pd.DataFrame:
     est = wide.hh * wide.nbhd_id.map(frac)
     wide["owners"] = owners.fillna(est)
     wide["renters"] = renters.fillna(wide.hh - est)
-    groups = income_groups(year)
-    return wide.join(groups, how="left")
+    return wide
 
 
 def income_groups(year: str) -> pd.DataFrame:
@@ -167,12 +175,12 @@ def interpolated_median(counts: np.ndarray, edges: list) -> float | None:
 
 
 def shares_for(year: str) -> dict:
-    return {**SHARES, **(SHARES_2011 if year == "2011" else {})}
+    return {**SHARES, **(SHARES_2011 if year in ("2006", "2011") else {})}
 
 
 def groups_check(wide: pd.DataFrame, year: str, m: str, published: float) -> float | None:
     """The city median interpolated from all DAs' income groups, as a fraction off the published one."""
-    ids, edges = INCOME_GROUPS[year][m]
+    ids, edges = GROUPS[year][m]
     est = interpolated_median(wide[wide[m].notna()][[f"b{i}" for i in ids]].sum().to_numpy(dtype=float), edges)
     return None if est is None else (est - published) / published
 
@@ -188,7 +196,7 @@ def aggregate(wide: pd.DataFrame, year: str, m: str, use_groups: bool = True) ->
     has = wide[m].notna() & b.notna()
     coverage = b[has].groupby(wide.nbhd_id[has]).sum().reindex(total.index, fill_value=0) / total
     hh_total = total
-    groups = INCOME_GROUPS[year].get(m) if use_groups else None
+    groups = GROUPS[year].get(m) if use_groups else None
     if groups:
         ids, edges = groups
         cols = [f"b{i}" for i in ids]

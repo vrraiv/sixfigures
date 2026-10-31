@@ -1,0 +1,286 @@
+{
+  "built": "2026-10-30",
+  "files": {
+    "toronto_profile_2006.csv": {
+      "bytes": 2035905
+    },
+    "gda_000a06a_e.zip": {
+      "bytes": 83677240
+    },
+    "2011_92-156_DALand_ADsup_txt.zip": {
+      "bytes": 788290
+    }
+  },
+  "dollars": {
+    "income": "2005",
+    "rent, value, owner costs": "2006"
+  },
+  "comparability": {
+    "med_hh_tot": "same",
+    "med_hh_at": "same",
+    "med_ind_tot": "same",
+    "med_ind_at": "same",
+    "avg_hh_tot": "same",
+    "renter": "same",
+    "shelter30": "near",
+    "owner30": "near",
+    "tenant30": "near",
+    "detached": "same",
+    "apt5": "same",
+    "built_new": "same",
+    "built_old": "same",
+    "degree": "same",
+    "moved1": "same",
+    "moved5": "same",
+    "imm_recent": "same",
+    "age0_14": "same",
+    "age65": "same"
+  },
+  "city": {
+    "med_hh_tot": 52833,
+    "med_hh_at": 46236,
+    "med_ind_tot": 24544,
+    "med_ind_at": 22545,
+    "avg_hh_tot": 80343,
+    "renter": 45.6,
+    "shelter30": 36.3,
+    "owner30": 27.7,
+    "tenant30": 46.6,
+    "detached": 27.3,
+    "apt5": 38.8,
+    "built_new": 6.2,
+    "built_old": 39.2,
+    "degree": 37.4,
+    "moved1": 15.6,
+    "moved5": 45.2,
+    "imm_recent": 10.8,
+    "age0_14": 16.4,
+    "age65": 14.1,
+    "avg_rent": 931,
+    "avg_value": 413574,
+    "avg_own_cost": 1312,
+    "lico_at": 19.4
+  },
+  "income_median_method": {
+    "med_hh_tot": {
+      "groups_vs_published_city_median": -0.0001,
+      "method": "groups"
+    },
+    "med_hh_at": {
+      "groups_vs_published_city_median": 0.0021,
+      "method": "groups"
+    },
+    "med_ind_tot": {
+      "groups_vs_published_city_median": 0.0049,
+      "method": "groups"
+    },
+    "med_ind_at": {
+      "groups_vs_published_city_median": 0.0078,
+      "method": "groups"
+    }
+  },
+  "min_coverage": 0.5,
+  "lowest_coverage": {
+    "med_hh_tot": 0.447,
+    "med_hh_at": 0.751,
+    "med_ind_tot": 0.725,
+    "med_ind_at": 0.725,
+    "avg_hh_tot": 0.447,
+    "renter": 0.751,
+    "shelter30": 0.751,
+    "owner30": 0.751,
+    "tenant30": 0.729,
+    "detached": 1.0,
+    "apt5": 1.0,
+    "built_new": 0.751,
+    "built_old": 0.751,
+    "degree": 0.751,
+    "moved1": 0.751,
+    "moved5": 0.751,
+    "imm_recent": 0.751,
+    "age0_14": 1.0,
+    "age65": 1.0,
+    "avg_rent": 0.348,
+    "avg_value": 0.911,
+    "avg_own_cost": 0.911,
+    "lico_at": 0.725
+  },
+  "checks": {
+    "population": {
+      "published": 2503281,
+      "csd_row": 2503281,
+      "sum_of_das": 2492763,
+      "gap": 10518,
+      "das_in_boundary": 3577,
+      "das_in_profile": 3556,
+      "das_not_in_profile": 21,
+      "das_short_form_suppressed": 5,
+      "pop_2011_of_das_without_2006_counts": 14832,
+      "households": {
+        "csd_row": 979330,
+        "sum_of_das": 975815
+      }
+    },
+    "assignment_vs_2011": {
+      "unchanged_das": 3519,
+      "same_neighbourhood": 1.0,
+      "split_das_children": 107,
+      "children_in_parent_neighbourhood": 0.972
+    },
+    "city_shares_csd_vs_pooled_das": {
+      "renter": {
+        "csd": 45.6,
+        "pooled_das": 45.4
+      },
+      "shelter30": {
+        "csd": 36.3,
+        "pooled_das": 36.1
+      },
+      "owner30": {
+        "csd": 27.7,
+        "pooled_das": 27.5
+      },
+      "tenant30": {
+        "csd": 46.6,
+        "pooled_das": 46.5
+      },
+      "detached": {
+        "csd": 27.3,
+        "pooled_das": 27.3
+      },
+      "apt5": {
+        "csd": 38.8,
+        "pooled_das": 38.6
+      },
+      "built_new": {
+        "csd": 6.2,
+        "pooled_das": 6.1
+      },
+      "built_old": {
+        "csd": 39.2,
+        "pooled_das": 39.1
+      },
+      "degree": {
+        "csd": 37.4,
+        "pooled_das": 37.3
+      },
+      "moved1": {
+        "csd": 15.6,
+        "pooled_das": 15.5
+      },
+      "moved5": {
+        "csd": 45.2,
+        "pooled_das": 45.1
+      },
+      "imm_recent": {
+        "csd": 10.8,
+        "pooled_das": 10.8
+      },
+      "age0_14": {
+        "csd": 16.4,
+        "pooled_das": 16.4
+      },
+      "age65": {
+        "csd": 14.1,
+        "pooled_das": 14.1
+      }
+    },
+    "vs_2011_neighbourhoods": {
+      "med_hh_tot": {
+        "n": 157,
+        "r": 0.911,
+        "rho": 0.866
+      },
+      "med_hh_at": {
+        "n": 158,
+        "r": 0.931,
+        "rho": 0.856
+      },
+      "med_ind_tot": {
+        "n": 158,
+        "r": 0.97,
+        "rho": 0.951
+      },
+      "med_ind_at": {
+        "n": 158,
+        "r": 0.968,
+        "rho": 0.945
+      },
+      "avg_hh_tot": {
+        "n": 157,
+        "r": 0.976,
+        "rho": 0.948
+      },
+      "renter": {
+        "n": 158,
+        "r": 0.967,
+        "rho": 0.963
+      },
+      "shelter30": {
+        "n": 158,
+        "r": 0.832,
+        "rho": 0.821
+      },
+      "owner30": {
+        "n": 158,
+        "r": 0.79,
+        "rho": 0.782
+      },
+      "tenant30": {
+        "n": 158,
+        "r": 0.36,
+        "rho": 0.373
+      },
+      "detached": {
+        "n": 158,
+        "r": 0.995,
+        "rho": 0.996
+      },
+      "apt5": {
+        "n": 158,
+        "r": 0.985,
+        "rho": 0.989
+      },
+      "built_new": {
+        "n": 158,
+        "r": 0.713,
+        "rho": 0.61
+      },
+      "built_old": {
+        "n": 158,
+        "r": 0.984,
+        "rho": 0.986
+      },
+      "degree": {
+        "n": 158,
+        "r": 0.975,
+        "rho": 0.972
+      },
+      "moved1": {
+        "n": 158,
+        "r": 0.868,
+        "rho": 0.803
+      },
+      "moved5": {
+        "n": 158,
+        "r": 0.88,
+        "rho": 0.858
+      },
+      "imm_recent": {
+        "n": 158,
+        "r": 0.907,
+        "rho": 0.886
+      },
+      "age0_14": {
+        "n": 158,
+        "r": 0.974,
+        "rho": 0.962
+      },
+      "age65": {
+        "n": 158,
+        "r": 0.953,
+        "rho": 0.947
+      }
+    }
+  }
+}
