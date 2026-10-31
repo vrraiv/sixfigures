@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto Housing Insights</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="Toronto's housing supply and rental market: building permits, development applications, rental demolitions, apartment buildings, the affordable rental pipeline, CMHC starts and rents, by year and by neighbourhood." />
+  </head>
+  <body class="with-nav doc">
+    <nav class="wordmark" aria-label="Site">
+      <a href="/">2016 · 2021</a>
+      <span class="brand">Toronto by DA</span>
+      <a href="/2011/">2011</a>
+      <a href="/insights/" aria-current="page">Insights</a>
+    </nav>
+    <header class="bar">
+      <h1>Housing Insights <span class="sub">New homes, applications, demolitions and rents in Toronto and its 158 neighbourhoods</span></h1>
+      <nav class="themes" aria-label="Insights">
+        <a href="/insights/">Census</a>
+        <a href="/insights/schools/">Schools</a>
+        <a href="/insights/housing/" aria-current="page">Housing</a>
+      </nav>
+    </header>
+
+    <main class="insights">
+      <section class="ins-section" aria-labelledby="glance-h">
+        <div class="ins-head">
+          <h2 id="glance-h">The city at a glance</h2>
+        </div>
+        <p class="ins-lede" id="glance-lede"></p>
+        <div id="cards" class="card-row"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="years-h">
+        <div class="ins-head">
+          <h2 id="years-h">Year by year</h2>
+        </div>
+        <div id="panels" class="panels"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="context-h">
+        <div class="ins-head">
+          <h2 id="context-h">The wider picture</h2>
+        </div>
+        <p class="ins-lede">Statistics Canada's series for the City or the Toronto metropolitan area (CMA): the latest figure, its change over one and five years, and its recent trend.</p>
+        <div class="tbl-wrap"><table class="tbl" id="context"></table></div>
+      </section>
+
+      <!-- The measure, period and units for the neighbourhood sections below. -->
+      <div class="measure-bar" id="measure-bar">
+        <label for="measure">Neighbourhoods by</label>
+        <select id="measure"></select>
+        <div class="seg" id="period" role="group" aria-label="Period"></div>
+        <label class="toggle" id="rate-wrap"><input type="checkbox" id="rate" /> Per 1,000 households</label>
+      </div>
+
+      <section class="ins-section" aria-labelledby="map-h">
+        <div class="ins-head">
+          <h2 id="map-h">Neighbourhoods on the map</h2>
+        </div>
+        <p class="ins-lede" id="map-lede"></p>
+        <figure class="nb-map" id="nb-map"></figure>
+        <ul class="corr-key" id="map-key"></ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rank-h">
+        <div class="ins-head">
+          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
+        </div>
+        <p class="ins-lede" id="rank-lede"></p>
+        <div class="ranks" id="rank-body">
+          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
+        </div>
+        <div id="conc" class="conc"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="corr-h">
+        <div class="ins-head">
+          <h2 id="corr-h">What goes with what</h2>
+        </div>
+        <p class="ins-lede" id="corr-lede"></p>
+        <div id="corr-body">
+          <ol id="census-list" class="corr-list shown"></ol>
+          <figure class="scatter" id="scatter-fig">
+            <figcaption id="scatter-caption"></figcaption>
+            <div id="scatter"></div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="cc-h">
+        <div class="ins-head">
+          <h2 id="cc-h">Permits and the census</h2>
+          <div class="seg-row">
+            <div class="seg" id="cc-span" role="group" aria-label="Censuses"></div>
+            <div class="seg" id="cc-lag" role="group" aria-label="Lag"></div>
+          </div>
+        </div>
+        <p class="ins-lede" id="cc-lede"></p>
+        <figure class="scatter"><div id="cc-scatter"></div></figure>
+        <div class="tbl-wrap"><table class="tbl" id="cc-table"></table></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="zones-h">
+        <div class="ins-head">
+          <h2 id="zones-h">Rents and vacancy by CMHC zone</h2>
+          <div class="seg" id="zone-key" role="group" aria-label="Figure"></div>
+        </div>
+        <p class="ins-lede" id="zones-lede"></p>
+        <div class="tbl-wrap"><table class="tbl heat" id="zones"></table></div>
+      </section>
+      <div id="tip" class="tip" role="tooltip" hidden></div>
+    </main>
+
+    <footer class="foot">
+      <p class="downloads" id="method-note"></p>
+      City of Toronto Open Data: building permits (cleared and active), development applications, rental housing
+      demolition and replacement, apartment building registration and the affordable rental housing pipeline; contains
+      information licensed under the <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
+      Canada Mortgage and Housing Corporation, Starts and Completions Survey and Rental Market Survey.
+      Statistics Canada, tables 17-10-0155, 18-10-0005, 14-10-0459, 11-10-0239 and 34-10-0292, and the 2011, 2016 and
+      2021 Censuses of Population, under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/housing.js"></script>
+  </body>
+</html>

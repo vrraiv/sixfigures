@@ -159,7 +159,7 @@ SCHOOLRAW := $(addprefix $(RAW)/schools/sif_,2017_18.xlsx 2018_19.xlsx 2019_20.x
              2021_22.xlsx 2022_23.xlsx 2023_24.xlsx 2024_25.xlsx)
 SCHOOLS   := pipeline/schools/manifest.json
 SCHOOLINS := web/public/schools.json
-.PHONY: schools school-insights
+.PHONY: schools school-insights housing-insights
 
 schools: $(SCHOOLS)
 
@@ -173,6 +173,16 @@ $(SCHOOLS): $(SCHOOLRAW) $(RAW)/lda_000b21a_e.zip pipeline/schools.py
 
 $(SCHOOLINS): $(SCHOOLS) $(RAW)/toronto_neighbourhoods_4326.geojson pipeline/school_insights.py
 	$(PYTHON) pipeline/school_insights.py
+
+# The Housing Insights page's housing.json, from the committed permits, City, CMHC and
+# StatCan outputs.
+HOUSINGINS := web/public/housing.json
+housing-insights: $(HOUSINGINS)
+
+# Its inputs aren't prerequisites: they are committed, and their own rules would rerun
+# build.py, permits.py, city_layers.py or a CMHC download. The script stops if one is missing.
+$(HOUSINGINS): pipeline/housing_insights.py pipeline/school_insights.py
+	$(PYTHON) pipeline/housing_insights.py
 
 # 2006 Census on the 158 neighbourhoods (a model input, not part of the site). The
 # profile extract ($(PROFILE06)) isn't a prerequisite, so this never needs pyivt.

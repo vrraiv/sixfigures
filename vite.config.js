@@ -34,14 +34,16 @@ export default defineConfig({
     __BREAKS_2011_VERSION__: JSON.stringify(version("web/public/breaks_2011.json")),
     __INSIGHTS_VERSION__: JSON.stringify(version("web/public/insights.json")),
     __SCHOOLS_VERSION__: JSON.stringify(version("web/public/schools.json")),
+    __HOUSING_VERSION__: JSON.stringify(version("web/public/housing.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),
   },
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Four pages: / (2016 and 2021), /2011/, /insights/ (census) and /insights/schools/.
-    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html" } },
+    // Five pages: / (2016 and 2021), /2011/, and the Insights pages /insights/ (census),
+    // /insights/schools/ and /insights/housing/.
+    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling" } },

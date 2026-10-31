@@ -31,6 +31,17 @@ results are from year to year, the biggest changes, correlations with the school
 student shares and with the 2021 Census, and a sortable table of every school. Its data
 is `web/public/schools.json` (`pipeline/school_insights.py`).
 
+Housing Insights, `/insights/housing/`, covers new homes and the rental market: the City's
+building permits (2000 on), development applications, rental demolitions, registered
+apartment buildings and affordable rental pipeline, CMHC's starts, completions, rents and
+vacancy, and StatCan's series for the City and CMA (population, prices, the labour force,
+income, metro permits). By neighbourhood it maps and ranks permits, applications,
+demolitions, the apartment stock, the affordable pipeline and household change, as counts
+or per 1,000 households, shows how concentrated new units are, correlates them with the
+2021 Census, compares net units on permits with census household change, and tabulates
+CMHC's rents and vacancy by zone. Its data is `web/public/housing.json`
+(`pipeline/housing_insights.py`).
+
 ## Measures
 
 The measure menu has six sections:
