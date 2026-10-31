@@ -206,6 +206,25 @@ and the CMA's permits in StatCan table 34-10-0292. The dwelling check reads tota
 dwellings from the raw 2011, 2016 and 2021 profiles once and caches them in
 `pipeline/out/toronto_dwellings.csv`.
 
+CMHC (a model input, not part of the site): `make cmhc` runs `download.py`, which adds new
+editions to `pipeline/raw/cmhc/`, then `pipeline/cmhc.py`, which writes `pipeline/cmhc/`
+(committed). `download.py` fetches the monthly starts, completions and under-construction
+tables by census subdivision (from January 2021; March 2021 is not on CMHC's server), the
+October Rental Market Survey summary through the Housing Market Information Portal's
+table export (the request the `cmhc` R package makes: by zone from 2010, for the City
+from 2006), and CMHC's 2017 zone boundaries from the bucket that package uses. Outputs:
+`starts_monthly.csv` and `starts_annual.csv` (City of Toronto; by dwelling type from 2023),
+`rms_city.csv` and `rms_zones.csv` (with CMHC's a-d quality grades), `zone_nbhd.csv`
+(each neighbourhood's 2021 renter households by zone) and `rms_nbhd.csv` (zone average
+rent and vacancy weighted by them). Checks in `manifest.json`: each month's figures add
+up to the year to date, later editions never revise them, the 17 zones add up to the
+City's units exactly and to its average rent within $3, and 2020-2025 starts (119,597)
+match the units on City permits issued in those years (116,521). The zone figures match
+CMHC's published 2025 Toronto tables. One zone boundary moved: in 2012 about 2,800 units
+went from Scarborough East to Scarborough Central, so before 2012 `rms_nbhd.csv` gives
+both zones' neighbourhoods their combined figure; the script stops if the units show
+another move (`ZONE_MOVES` in `cmhc.py`).
+
 ## Processing notes
 
 - **Encoding:** the profile CSV is Latin-1, not UTF-8.

@@ -1,0 +1,137 @@
+{
+  "built": "2026-10-30",
+  "raw": {
+    "scu": {
+      "files": 68,
+      "bytes": 8130270
+    },
+    "rms": {
+      "files": 36,
+      "bytes": 60931
+    }
+  },
+  "sources": {
+    "scu": "CMHC Housing Information Monthly, starts, completions and under construction by CSD",
+    "rms": "CMHC Rental Market Survey via the HMIP table export (2.1.31.3), October, row and apartment, all bedrooms",
+    "zones": "CMHC RMS 2017 zone boundaries (RMS2017_3.gdb, ZONE_2017)"
+  },
+  "checks": {
+    "starts": {
+      "editions": 68,
+      "first": "2021-01",
+      "last": "2026-09",
+      "missing_editions": [
+        "2021-03"
+      ],
+      "revisions_in_next_year_edition": {
+        "completions": {
+          "months_compared": 22,
+          "max_abs": 0.0
+        },
+        "starts": {
+          "months_compared": 22,
+          "max_abs": 0.0
+        },
+        "uc": {
+          "months_compared": 11,
+          "max_abs": 0.0
+        }
+      },
+      "months_sum_to_year_to_date_max_abs_diff": {
+        "starts": 0.0,
+        "completions": 0.0
+      },
+      "dwelling_types_sum_to_total_max_abs_diff": {
+        "starts": 0.0,
+        "completions": 0.0,
+        "uc": 0.0
+      },
+      "partial_year": "2026 to month 9",
+      "vs_permit_units_issued": {
+        "by_year": {
+          "2020": {
+            "starts": 20982,
+            "permit_units": 24870
+          },
+          "2021": {
+            "starts": 17959,
+            "permit_units": 23637
+          },
+          "2022": {
+            "starts": 20864,
+            "permit_units": 13597
+          },
+          "2023": {
+            "starts": 30516,
+            "permit_units": 15567
+          },
+          "2024": {
+            "starts": 18715,
+            "permit_units": 21451
+          },
+          "2025": {
+            "starts": 10561,
+            "permit_units": 17399
+          }
+        },
+        "total": {
+          "years": "2020-2025",
+          "starts": 119597,
+          "permit_units": 116521
+        }
+      }
+    },
+    "rms": {
+      "zone_years": [
+        2010,
+        2025
+      ],
+      "city_years": [
+        2006,
+        2025
+      ],
+      "units_zones_vs_city_max_abs_diff": 0.0,
+      "avg_rent_units_weighted_zones_vs_city_max_abs_diff": 2.8,
+      "suppressed_zone_years": {
+        "vacancy": 2,
+        "avg_rent": 0,
+        "units": 0
+      },
+      "zone_boundary_moves": {
+        "2012": [
+          10,
+          12
+        ]
+      }
+    },
+    "zone_nbhd": {
+      "das": 3743,
+      "das_95pct_in_one_zone": 3743,
+      "neighbourhoods": 158,
+      "neighbourhoods_in_one_zone_90pct": 152,
+      "zone_units_2021_vs_census_renters": {
+        "r": 0.758,
+        "units": 269975,
+        "renter_households": 558172
+      }
+    },
+    "rms_nbhd_withheld_avg_rent": {
+      "2010": 0,
+      "2011": 0,
+      "2012": 0,
+      "2013": 0,
+      "2014": 0,
+      "2015": 0,
+      "2016": 0,
+      "2017": 0,
+      "2018": 0,
+      "2019": 0,
+      "2020": 0,
+      "2021": 0,
+      "2022": 0,
+      "2023": 0,
+      "2024": 0,
+      "2025": 0
+    }
+  }
+}

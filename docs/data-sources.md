@@ -101,15 +101,23 @@ score the third. The 2006 profile has income in 2005 dollars, and rent, values
 and costs in 2006 dollars; `cpi.json` has neither year, but
 `pipeline/series/18-10-0005.csv` does.
 
-### CMHC (manual export)
+### CMHC (scripted: `download.py`, `pipeline/cmhc.py`)
 
 | Source | Where | Years | Geography | Role | Origin |
 |---|---|---|---|---|---|
-| Rental Market Survey: average rent, vacancy, universe by zone | Housing Market Information Portal (export) | annual (years to check) | CMHC zones within the city (count to check) | Annual driver for rent and tenant measures | known |
-| Starts, completions, under construction | [monthly CSD tables](https://www.cmhc-schl.gc.ca/en/professionals/housing-markets-data-and-research/housing-data/data-tables/housing-market-data/starts-completions-under-construction-census-subdivisions) | monthly | CSD (Toronto) | City anchor (new supply) | oracle in backtest |
+| Rental Market Survey (October): vacancy, availability, average and median rent, rent change, units, with quality grades | Housing Market Information Portal table export (table 2.1.31.3, a form POST) | zones 2010-2025; City 2006-2025 | the 17 CMHC zones in the City; the City | Annual driver for rent and tenant measures | known |
+| Starts, completions, under construction | [monthly CSD tables](https://www.cmhc-schl.gc.ca/en/professionals/housing-markets-data-and-research/housing-data/data-tables/housing-market-data/starts-completions-under-construction-census-subdivisions) | monthly, January 2021 on (2020 from the previous-year columns; March 2021 not online, rebuilt from year-to-date totals); by dwelling type from 2023 | CSD (Toronto) | City anchor (new supply) | oracle in backtest |
+| Survey zone boundaries (2017) | CMHC's RMS 2017 geodatabase, as hosted by the `cmhc` R package's author | 2017 (zone names unchanged 2010-2025) | zones | Zone-to-neighbourhood lookup | |
 
-Not found openly by census tract. Zones would need a zone-to-neighbourhood
-lookup.
+Zones are CMHC's: `zone_nbhd.csv` gives each neighbourhood's 2021 renter households
+by zone (152 of 158 sit at least 90% in one), and `rms_nbhd.csv` weights the zone
+figures by them, so neighbourhoods in one zone share a value. The survey covers
+purpose-built rental only (2021: 269,975 units against 558,172 renter households).
+The HMIP's census-tract and CMHC-neighbourhood breakdowns return server errors for
+this table, and zone figures stop before 2010 (metro and City totals only). The 2017
+boundaries hold from 2012: that year about 2,800 units moved from Scarborough East to
+Central, so 2010-2011 use the two zones combined. The export matches CMHC's published
+2025 Toronto tables.
 
 ### Not pursued
 
@@ -140,8 +148,10 @@ source allows). Every script prints its own checks, as the census scripts do.
    patched pyivt; `pipeline/census2006.py` places the DAs with the 2006
    boundaries and aggregates the measures to neighbourhoods as `insights.py`
    does for 2011-2021).
-5. **CMHC** (manual export once a year): rental zones and rents, with a
-   zone-to-neighbourhood lookup.
+5. **CMHC** (done: `make cmhc` fetches new editions and rebuilds
+   `pipeline/cmhc/`): City starts, completions and under construction by
+   month; rents and vacancy by zone and year, with a zone-to-neighbourhood
+   lookup.
 6. **Exploratory drivers** (crime rates, short-term rentals, transit): only if
    the first model leaves error that they could plausibly explain.
 

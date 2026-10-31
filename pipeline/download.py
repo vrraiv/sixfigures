@@ -14,13 +14,18 @@ building permits):
 resource URLs are resolved through the CKAN package_show API at download time.
 The portal intermittently returns 504 error pages, so each download is retried
 with backoff and checked for the expected leading bytes before it is kept.
+
+CMHC (starts by census subdivision, Rental Market Survey zones, zone boundaries): plain
+downloads, no bot challenge; see the CMHC section below.
 """
 import hashlib
 import json
+import re
 import shutil
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -137,6 +142,118 @@ TORONTO = {
 }
 
 
+# CMHC (cmhc.py), into pipeline/raw/cmhc/; past editions don't change, so files on disk are kept.
+#  - Starts, completions and under construction by census subdivision, monthly from
+#    January 2021 (Housing Information Monthly; no earlier edition is online)
+#  - Rental Market Survey summary (October) from the Housing Market Information Portal's
+#    table export, the same request the `cmhc` R package makes: by survey zone in the
+#    Toronto CMA (zones from 2010) and for the City as a whole (from 2006)
+#  - CMHC's 2017 survey-zone boundaries, a file geodatabase hosted (public, read-only) by
+#    the `cmhc` package's author: the S3 bucket below
+CMHC_DIR = RAW / "cmhc"
+CMHC_SCU = ("https://assets.cmhc-schl.gc.ca/sites/cmhc/professional/housing-markets-data-and-research/"
+            "housing-data-tables/housing-market-data/housing-information-monthly/"
+            "{y}/{month}/starts-completions-under-construction-{m:02d}-{yy:02d}-en.xlsx")
+CMHC_SCU_FIRST = (2021, 1)
+CMHC_SCU_GAPS = {(2021, 3)}  # not on CMHC's server under any name tried (cmhc.py fills it)
+HMIP_EXPORT = "https://www03.cmhc-schl.gc.ca/hmip-pimh/en/TableMapChart/ExportTable"
+HMIP_RMS = {  # local name -> (form fields without the year, first year)
+    "rms_zones": ({"TableId": "2.1.31.3", "GeographyId": "2270", "GeographyTypeId": "3"}, 2010),
+    "rms_city": ({"TableId": "2.1.31.3", "GeographyId": "3520005", "GeographyTypeId": "4", "MetId": "2270"}, 2006),
+}
+CMHC_GEO_BUCKET = "https://cmhc.s3.us-west-2.amazonaws.com"
+CMHC_GEO = "RMS2017_3.gdb"  # MET_2017, NBHD_2017 and ZONE_2017 layers
+MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august",
+          "september", "october", "november", "december"]
+
+
+def fetch_hmip(fields: dict, dest: Path) -> str:
+    """POST an HMIP table export; 'ok', 'none' (no data for that period) or 'failed'."""
+    body = urllib.parse.urlencode({**fields, "Frequency": "Annual", "exportType": "csv"}).encode()
+    try:
+        req = urllib.request.Request(HMIP_EXPORT, data=body, headers=UA)
+        with urllib.request.urlopen(req, timeout=300) as r:
+            text = r.read()
+    except Exception as e:
+        print(f"  failed: {e}")
+        return "failed"
+    if b"No data available" in text:
+        return "none"
+    if b"Rental Market Statistics Summary" not in text:
+        print("  unexpected content")
+        return "failed"
+    dest.write_bytes(text)
+    return "ok"
+
+
+def cmhc() -> list:
+    """Fetch the CMHC files; returns [(name, url)] that failed."""
+    missing = []
+    today = time.localtime()
+    scu = CMHC_DIR / "scu"
+    scu.mkdir(parents=True, exist_ok=True)
+    y, m = CMHC_SCU_FIRST
+    have, got, recent = 0, 0, []
+    while (y, m) < (today.tm_year, today.tm_mon):
+        dest = scu / f"scu-{y}-{m:02d}.xlsx"
+        if (y, m) in CMHC_SCU_GAPS:
+            pass
+        elif dest.exists() and zipfile.is_zipfile(dest):
+            have += 1
+        else:
+            url = CMHC_SCU.format(y=y, month=MONTHS[m - 1], m=m, yy=y % 100)
+            if fetch(url, dest, b"PK"):
+                got += 1
+            elif (today.tm_year * 12 + today.tm_mon) - (y * 12 + m) <= 2:
+                recent.append(f"{y}-{m:02d}")  # not published yet
+            else:
+                missing.append((dest.name, url))
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    print(f"ok      CMHC starts by CSD: {have} editions on disk, {got} fetched"
+          + (f"; not published yet: {', '.join(recent)}" if recent else ""))
+    rms = CMHC_DIR / "rms"
+    rms.mkdir(exist_ok=True)
+    for name, (fields, first) in HMIP_RMS.items():
+        have, got = 0, 0
+        for year in range(first, today.tm_year + 1):
+            dest = rms / f"{name}_{year}.csv"
+            if dest.exists():
+                have += 1
+                continue
+            status = fetch_hmip({**fields, "ForTimePeriod.Year": str(year)}, dest)
+            got += status == "ok"
+            if status == "failed" or (status == "none" and year < today.tm_year - 1):
+                missing.append((dest.name, f"{HMIP_EXPORT} (POST {fields}, year {year})"))
+        print(f"ok      CMHC {name}: {have} years on disk, {got} fetched")
+    gdb = CMHC_DIR / CMHC_GEO
+    if not (gdb / "gdb").exists():
+        print(f"fetch   {CMHC_GEO}")
+        try:
+            with urllib.request.urlopen(f"{CMHC_GEO_BUCKET}/?list-type=2&prefix={CMHC_GEO}/", timeout=60) as r:
+                listing = r.read().decode()
+            keys = re.findall(r"<Key>([^<]+)</Key>", listing)
+            if not keys or "<IsTruncated>true" in listing:
+                raise ValueError(f"unexpected bucket listing ({len(keys)} keys)")
+            # Only plain file names directly under the geodatabase folder
+            bad = [k for k in keys if not re.fullmatch(rf"{re.escape(CMHC_GEO)}/[A-Za-z0-9_.]+", k) or ".." in k]
+            if bad:
+                raise ValueError(f"unexpected keys in the bucket listing: {bad[:3]}")
+            tmp = CMHC_DIR / (CMHC_GEO + ".part")
+            shutil.rmtree(tmp, ignore_errors=True)
+            tmp.mkdir()
+            for key in keys:
+                name = key.split("/", 1)[1]
+                with urllib.request.urlopen(f"{CMHC_GEO_BUCKET}/{urllib.parse.quote(key)}", timeout=120) as r:
+                    (tmp / name).write_bytes(r.read())
+            tmp.replace(gdb)
+        except Exception as e:
+            print(f"  failed: {e}")
+            missing.append((CMHC_GEO, f"{CMHC_GEO_BUCKET}/{CMHC_GEO}/"))
+    else:
+        print(f"ok      {CMHC_GEO}")
+    return missing
+
+
 def fetch(url: str, dest: Path, magic: bytes, attempts: int = 1) -> bool:
     """Stream url to dest only if the body starts with `magic`."""
     tmp = dest.with_name(dest.name + ".part")
@@ -219,6 +336,7 @@ def main() -> int:
         print(f"fetch   {name}")
         if not (fetch_zipped if zipped else fetch_checked)(url, dest, digest):
             missing.append((name, url))
+    missing += cmhc()
     for name, (package, resource, magic) in TORONTO.items():
         dest = RAW / name
         if dest.exists() and dest.open("rb").read(len(magic)) == magic:
@@ -250,4 +368,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--cmhc" in sys.argv[1:]:  # only the CMHC files (make cmhc)
+        failed = cmhc()
+        for name, url in failed:
+            print(f"failed  {name}\n    {url}")
+        sys.exit(1 if failed else 0)
     sys.exit(main())

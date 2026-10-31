@@ -166,5 +166,14 @@ $(CENSUS06): $(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip $(
              $(FIGURES11) $(INSIGHTS) pipeline/census2006.py pipeline/insights.py
 	$(PYTHON) pipeline/census2006.py
 
+# CMHC starts, completions and under construction for the City, and the Rental Market
+# Survey by zone (model inputs, not part of the site). `download.py --cmhc` fetches new
+# editions each run, so `make cmhc` always runs.
+.PHONY: cmhc
+
+cmhc: $(GEOM)
+	$(PYTHON) pipeline/download.py --cmhc
+	$(PYTHON) pipeline/cmhc.py
+
 clean:
 	rm -rf pipeline/out
