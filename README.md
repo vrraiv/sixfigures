@@ -11,8 +11,9 @@ from the 2011 Census, and the rest from the 2011 National Household Survey (the 
 long form that year; income year 2010), whose DA table StatCan issued only to universities
 as a Beyond 20/20 file (see `pipeline/README.md`).
 
-Census Insights, `/insights/`, summarises the City's 158 neighbourhoods across the 2011,
-2016 and 2021 censuses: the city's figure for every measure in each census, the ten
+Census Insights, `/insights/`, summarises the City's 158 neighbourhoods across the 2006,
+2011, 2016 and 2021 censuses (2006 for the 19 measures its profile publishes on the same
+terms, from `pipeline/census2006.py`): the city's figure for every measure in each census, the ten
 highest and lowest neighbourhoods for a chosen measure and census, and the biggest
 rises and falls between any two censuses (dollar changes after inflation, Toronto CPI).
 `pipeline/insights.py` computes the neighbourhood figures from the DAs, one method for

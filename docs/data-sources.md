@@ -99,8 +99,7 @@ won't match.
 
 With 2006, the backtest can fit on two intervals (2006-2011, 2011-2016) and
 score the third. The 2006 profile has income in 2005 dollars, and rent, values
-and costs in 2006 dollars; `cpi.json` has neither year, but
-`pipeline/series/18-10-0005.csv` does.
+and costs in 2006 dollars; `cpi.json` has both years (added for Census Insights).
 
 ### CMHC (scripted: `download.py`, `pipeline/cmhc.py`)
 
