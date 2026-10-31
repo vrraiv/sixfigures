@@ -23,6 +23,8 @@ const state = {
   pair: PAIRS.find((p) => p.join("-") === hash.get("p")) ?? DEFAULT_PAIR,
   real: hash.get("real") === "1",
   spreadReal: hash.get("sr") !== "0",
+  mapYear: YEARS.includes(hash.get("my")) ? hash.get("my") : "2021",
+  mapChange: hash.get("mc") === "1",
   corrYear: YEARS.includes(hash.get("cy")) ? hash.get("cy") : "2021",
   shiftPair: PAIRS.find((p) => p.join("-") === hash.get("sp")) ?? DEFAULT_PAIR,
   shiftOnly: false,
@@ -34,6 +36,8 @@ const writeHash = () => {
   if (state.sx && state.sy) { h.set("sx", state.sx); h.set("sy", state.sy); }
   if (!state.spreadReal) h.set("sr", "0");
   if (state.real) h.set("real", "1");
+  h.set("my", state.mapYear);
+  if (state.mapChange) h.set("mc", "1");
   history.replaceState(null, "", `#${h}`);
 };
 
@@ -91,6 +95,7 @@ function setMeasure(m) {
   state.m = m;
   select.value = m;
   renderCards();
+  renderMap();
   renderRanks();
   renderChanges();
   renderSpread();
@@ -152,6 +157,67 @@ $("real").checked = state.real;
 $("real").addEventListener("change", (e) => {
   state.real = e.target.checked;
   renderCards();
+  writeHash();
+});
+
+// ---- the map: the neighbourhoods in one census, or the change from the one before ----------
+// A census is shaded in sixths of its own neighbourhoods (so the colours show standing,
+// not inflation); a change on the diverging ramp, red for a fall and blue for a rise,
+// in steps of the changes' own size, the middle step for changes close to none.
+const mapClasses = (vs, k) => {
+  const s = vs.filter((v) => v != null).sort((a, b) => a - b);
+  return [1, 2, 3, 4, 5].slice(0, k - 1).map((q) => quantile(s, q / k)).filter((e, i, a) => i === 0 || e > a[i - 1]);
+};
+function renderMap() {
+  const m = state.m, ys = yearsOf(m);
+  if (!ys.includes(state.mapYear)) state.mapYear = "2021";
+  const y = state.mapYear, i = ys.indexOf(y), prev = i > 0 ? ys[i - 1] : null;
+  const change = state.mapChange && prev != null;
+  seg($("map-year"), ys.map((yy) => [yy, refYear(m, yy) === yy ? yy : `${yy} (${refYear(m, yy)})`]), y, (k) => {
+    state.mapYear = k;
+    renderMap();
+    writeHash();
+  });
+  $("map-change").checked = state.mapChange;
+  $("map-change").disabled = prev == null;
+  const v1 = val(m, y), v0 = prev ? val(m, prev) : null;
+  const vs = change ? v1.map((v, k) => (v == null || v0[k] == null ? null : v - restate(m, v0[k], prev, y))) : v1;
+  let color, key;
+  if (change) {
+    const s = vs.filter((v) => v != null).map(Math.abs).sort((a, b) => a - b);
+    const [c1, c2, c3] = [0.2, 0.6, 0.9].map((q) => quantile(s, q));
+    const edges = [-c3, -c2, -c1, c1, c2, c3];
+    color = (v) => DIVERGING[edges.filter((e) => v >= e).length];
+    const f = (v) => fmtChangeShort(m, v).replace(/^[+−±]/, ""); // a size, unsigned
+    key = [`fell more than ${f(c3)}`, `fell ${f(c2)} to ${f(c3)}`, `fell ${f(c1)} to ${f(c2)}`,
+      `within ±${f(c1)}`, `rose ${f(c1)} to ${f(c2)}`, `rose ${f(c2)} to ${f(c3)}`, `rose more than ${f(c3)}`]
+      .map((t, k) => [DIVERGING[k], t]);
+  } else {
+    const b = mapClasses(vs, 6), pal = COLORS.slice(COLORS.length - b.length - 1);
+    color = (v) => pal[b.filter((e) => v >= e).length];
+    const e = [null, ...b, null];
+    key = pal.map((c, k) => [c, e[k] == null ? `under ${fmtShort(m, e[k + 1])}` : e[k + 1] == null ? `${fmtShort(m, e[k])} or more` : `${fmtShort(m, e[k])} to ${fmtShort(m, e[k + 1])}`]);
+  }
+  const shapes = nbhd.map((n, k) => {
+    const v = vs[k];
+    const t = change
+      ? `${escapeHTML(n.name)}<br>${refYear(m, prev)}: ${fmt(m, v0[k] == null ? null : restate(m, v0[k], prev, y))}${isMoney(m) && v0[k] != null ? ` (in ${refYear(m, y)} dollars)` : ""}<br>${refYear(m, y)}: ${fmt(m, v1[k])}<br>Change: <b>${fmtChange(m, v)}</b>`
+      : `${escapeHTML(n.name)}<br>${yearLabel(m, y)}: <b>${fmt(m, v)}</b>`;
+    return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : color(v)}" data-tip="${t}"/>`;
+  }).join("");
+  $("nb-map").innerHTML = `<svg viewBox="0 0 ${data.map.width} ${data.map.height}" role="img" aria-label="${escapeHTML(`Map of the 158 neighbourhoods: ${MEASURES[m].long.toLowerCase()}, ${change ? `change from ${refYear(m, prev)} to ${refYear(m, y)}` : yearLabel(m, y)}`)}">
+    <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
+    <g>${shapes}</g></svg>`;
+  $("map-key").innerHTML = key.map(([c, t]) => `<li><span class="key-sq" style="background:${c}"></span>${t}</li>`).join("")
+    + (vs.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No figure</li>` : "");
+  const unit = isMoney(m) ? `, the earlier figure in ${refYear(m, y)} dollars` : ", in percentage points";
+  $("map-lede").innerHTML = change
+    ? `${escapeHTML(MEASURES[m].long)}: the change from ${source(m, prev)} to ${source(m, y)}${unit}. Red fell, blue rose; the middle class is the fifth of neighbourhoods that changed least.${near06(m, [prev, y])}`
+    : `${escapeHTML(MEASURES[m].long)}, ${yearLabel(m, y)}, in sixths of the neighbourhoods: the darkest are the sixth with the highest figures in that census.${near06(m, [y])}`;
+}
+$("map-change").addEventListener("change", (e) => {
+  state.mapChange = e.target.checked;
+  renderMap();
   writeHash();
 });
 
@@ -539,6 +605,7 @@ $("method").textContent = "Neighbourhood figures combine the dissemination areas
   + "Correlations are Spearman rank correlations across the neighbourhoods with both figures; the gap is the 90th-percentile neighbourhood's figure over the 10th's.";
 
 renderCards();
+renderMap();
 renderRanks();
 renderChanges();
 $("spread-real").checked = state.spreadReal;

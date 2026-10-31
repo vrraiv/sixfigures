@@ -50,6 +50,7 @@ import zipfile
 import build
 import census2011
 import census2016
+from school_insights import paths
 from measures import INCOME_DATED, INCOME_GROUPS, INCOME_GROUPS_2006, MEASURES, NHS_2011, SHARES, SHARES_2011
 
 HERE = Path(__file__).parent
@@ -255,6 +256,8 @@ def main():
     nb = gpd.read_file(build.NEIGHBOURHOODS)[["AREA_SHORT_CODE", "geometry"]]
     pts = nb.to_crs(build.METRIC_CRS).representative_point().to_crs(4326)
     at = {int(c): [round(p.y, 5), round(p.x, 5)] for c, p in zip(nb.AREA_SHORT_CODE, pts)}
+    # outlines for the page's neighbourhood map, as on the School and Housing pages
+    shapes, proj = paths(ids)
     breaks = json.loads((WEB / "breaks.json").read_text())["measures"]
     breaks11 = json.loads((WEB / "breaks_2011.json").read_text())["measures"]
     data = {y: load(y) for y in YEARS}
@@ -269,7 +272,8 @@ def main():
         "income_years": {"2006": "2005", **INCOME_YEAR},
         "cpi": {y: CPI[y] for y in ["2005", "2006", "2010", "2011", "2015", "2016", "2020", "2021"]},
         "min_coverage": MIN_COVERAGE,
-        "nbhd": [{"id": i, "name": n, "at": at[i]} for i, n in nbhds],
+        "nbhd": [{"id": i, "name": n, "at": at[i], "path": p} for (i, n), p in zip(nbhds, shapes)],
+        "map": {"width": proj["width"], "height": proj["height"]},
         "measures": {},
     }
     print(f"\n{'measure':12s} " + "  ".join(f"{y}: shown/158, min cov" for y in YEARS))

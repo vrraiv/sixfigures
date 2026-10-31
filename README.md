@@ -15,7 +15,8 @@ Census Insights, `/insights/`, summarises the City's 158 neighbourhoods across t
 2011, 2016 and 2021 censuses (2006 for the 19 measures its profile publishes on the same
 terms, from `pipeline/census2006.py`): the city's figure for every measure in each census, the ten
 highest and lowest neighbourhoods for a chosen measure and census, and the biggest
-rises and falls between any two censuses (dollar changes after inflation, Toronto CPI).
+rises and falls between any two censuses (dollar changes after inflation, Toronto CPI), and
+a map of the neighbourhoods in any census or of the change from the census before.
 `pipeline/insights.py` computes the neighbourhood figures from the DAs, one method for
 all three years: shares from summed counts, income medians interpolated from pooled
 income groups (except 2011 household income, whose DA groups are incomplete), other
