@@ -96,6 +96,12 @@
         "vacancy": 2,
         "avg_rent": 0,
         "units": 0
+      },
+      "zone_boundary_moves": {
+        "2012": [
+          10,
+          12
+        ]
       }
     },
     "zone_nbhd": {

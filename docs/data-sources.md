@@ -114,7 +114,10 @@ by zone (152 of 158 sit at least 90% in one), and `rms_nbhd.csv` weights the zon
 figures by them, so neighbourhoods in one zone share a value. The survey covers
 purpose-built rental only (2021: 269,975 units against 558,172 renter households).
 The HMIP's census-tract and CMHC-neighbourhood breakdowns return server errors for
-this table, and zone figures stop before 2010 (metro and City totals only).
+this table, and zone figures stop before 2010 (metro and City totals only). The 2017
+boundaries hold from 2012: that year about 2,800 units moved from Scarborough East to
+Central, so 2010-2011 use the two zones combined. The export matches CMHC's published
+2025 Toronto tables.
 
 ### Not pursued
 

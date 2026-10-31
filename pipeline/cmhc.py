@@ -3,7 +3,7 @@ of the site): pipeline/cmhc/*.csv and pipeline/cmhc/manifest.json.
 
     python pipeline/cmhc.py
 
-Reads pipeline/raw/cmhc/, which download.py fills:
+Reads pipeline/raw/cmhc/, which `download.py --cmhc` fills:
   scu/scu-YYYY-MM.xlsx      Starts, completions and under construction by census
                             subdivision (Housing Information Monthly), from January 2021.
                             March 2021 is not on CMHC's server; its starts and completions
@@ -25,7 +25,15 @@ Writes:
                        the zone covering most of them)
   rms_nbhd.csv         each neighbourhood's zone average rent and vacancy by year, weighted
                        by those renter shares; withheld where suppressed zones hold more
-                       than half its weight
+                       than half its weight. Zones whose boundary moved (ZONE_MOVES: about
+                       2,800 units went from Scarborough East to Central in 2012) count
+                       as one, with their combined figures, before the move.
+
+The zone names are the same from 2010 to 2025. The script stops if the units show a
+boundary move it doesn't know (one zone gaining about what another loses); the 2022-2024
+swings (zone 2 lost 1,240 units in 2023 with no zone gaining them) are units entering and
+leaving the survey, not moves. CMHC's published 2025 Toronto tables (rmr-toronto-2025-en)
+match the export (Toronto Central average rent $2,163, units 36,100).
 
 Zones are CMHC's, not the City's neighbourhoods: a neighbourhood's figure is its zones'
 figure, so neighbourhoods in one zone get the same value. The survey covers purpose-built
@@ -65,6 +73,10 @@ TYPES = {"single": "single", "semi": "semi", "row": "row", "apt": "apt", "apartm
 ACTIVITIES = {"starts": "starts", "completions": "completions", "under construction": "uc"}
 RMS_COLS = ["vacancy", "availability", "avg_rent", "median_rent", "rent_change", "units"]
 MIN_WEIGHT = 0.5
+# Zone boundary moves seen in the units (one zone gains about what another loses in a
+# year): {first year on the 2017 boundaries: zones}. Before it, those zones are combined.
+ZONE_MOVES = {2012: (10, 12)}  # Scarborough Central +2,857 units, Scarborough East -2,815
+MOVE_UNITS = 1000
 XLSX = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 
 
@@ -269,6 +281,20 @@ def rms() -> tuple[pd.DataFrame, pd.DataFrame, gpd.GeoDataFrame, dict]:
     print(f"\nRMS zones {checks['zone_years']}, City {checks['city_years']}; zones vs City: units max diff "
           f"{checks['units_zones_vs_city_max_abs_diff']:.0f}, average rent max diff ${checks['avg_rent_units_weighted_zones_vs_city_max_abs_diff']}")
     print(f"suppressed zone-years: {checks['suppressed_zone_years']}")
+    # Boundary moves: a zone gaining and another losing over MOVE_UNITS units in one year,
+    # nearly offsetting. Each must be a known one, handled in by_nbhd.
+    d = zones.pivot(index="year", columns="zone_code", values="units").diff()
+    moves = {}
+    for year, row in d.iterrows():
+        gain, loss = row[row > MOVE_UNITS], row[row < -MOVE_UNITS]
+        for a, ga in gain.items():
+            for b, lb in loss.items():
+                if abs(ga + lb) < 0.1 * ga:
+                    moves[int(year)] = tuple(sorted((int(a), int(b))))
+    checks["zone_boundary_moves"] = {y: list(z) for y, z in moves.items()}
+    print(f"zone boundary moves found in the units: {moves}")
+    if moves != ZONE_MOVES:
+        sys.exit(f"zone boundary moves {moves} differ from the known {ZONE_MOVES}: check the zones and update ZONE_MOVES")
     return zones, city, city_geo, checks
 
 
@@ -310,6 +336,13 @@ def crosswalk(city_geo: gpd.GeoDataFrame, zones: pd.DataFrame) -> tuple[pd.DataF
 def by_nbhd(cw: pd.DataFrame, zones: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for year, z in zones.groupby("year"):
+        z = z.copy()
+        for first, codes in ZONE_MOVES.items():
+            if year < first:  # the zones' combined figures, weighted by units
+                g = z[z.zone_code.isin(codes)]
+                for m in ("avg_rent", "vacancy"):
+                    ok = g[m].notna()
+                    z.loc[g.index, m] = np.average(g[m][ok], weights=g.units[ok]) if ok.any() else np.nan
         zz = cw.merge(z[["zone_code", "avg_rent", "vacancy"]], on="zone_code")
         for nid, g in zz.groupby("nbhd_id"):
             row = {"year": year, "nbhd_id": nid}
@@ -326,6 +359,10 @@ def by_nbhd(cw: pd.DataFrame, zones: pd.DataFrame) -> pd.DataFrame:
 
 
 def main():
+    for f, how in ((GEOM21, "run pipeline/build.py (make data)"), (RAW / "RMS2017_3.gdb", "run pipeline/download.py --cmhc"),
+                   (FIGURES21 / "renter.json", "run pipeline/build.py")):
+        if not f.exists():
+            sys.exit(f"{f} missing: {how}")
     monthly, annual, sc = starts()
     checks = {"starts": sc}
     if PERMITS.exists():  # units on City permits issued in the year, against CMHC starts

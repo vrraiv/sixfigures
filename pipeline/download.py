@@ -234,6 +234,10 @@ def cmhc() -> list:
             keys = re.findall(r"<Key>([^<]+)</Key>", listing)
             if not keys or "<IsTruncated>true" in listing:
                 raise ValueError(f"unexpected bucket listing ({len(keys)} keys)")
+            # Only plain file names directly under the geodatabase folder
+            bad = [k for k in keys if not re.fullmatch(rf"{re.escape(CMHC_GEO)}/[A-Za-z0-9_.]+", k) or ".." in k]
+            if bad:
+                raise ValueError(f"unexpected keys in the bucket listing: {bad[:3]}")
             tmp = CMHC_DIR / (CMHC_GEO + ".part")
             shutil.rmtree(tmp, ignore_errors=True)
             tmp.mkdir()
@@ -364,4 +368,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--cmhc" in sys.argv[1:]:  # only the CMHC files (make cmhc)
+        failed = cmhc()
+        for name, url in failed:
+            print(f"failed  {name}\n    {url}")
+        sys.exit(1 if failed else 0)
     sys.exit(main())

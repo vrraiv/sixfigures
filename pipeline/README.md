@@ -219,7 +219,11 @@ from 2006), and CMHC's 2017 zone boundaries from the bucket that package uses. O
 rent and vacancy weighted by them). Checks in `manifest.json`: each month's figures add
 up to the year to date, later editions never revise them, the 17 zones add up to the
 City's units exactly and to its average rent within $3, and 2020-2025 starts (119,597)
-match the units on City permits issued in those years (116,521).
+match the units on City permits issued in those years (116,521). The zone figures match
+CMHC's published 2025 Toronto tables. One zone boundary moved: in 2012 about 2,800 units
+went from Scarborough East to Scarborough Central, so before 2012 `rms_nbhd.csv` gives
+both zones' neighbourhoods their combined figure; the script stops if the units show
+another move (`ZONE_MOVES` in `cmhc.py`).
 
 ## Processing notes
 
