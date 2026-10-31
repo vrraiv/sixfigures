@@ -80,7 +80,8 @@ $(GEOM11) $(FIGURES11) $(BREAKS11) &: $(STATCAN11) $(NHS11) $(BREAKS) $(RAW)/tor
 
 # The Insights page: the 158 neighbourhoods in each census, from the DAs (the profile
 # extracts in pipeline/out, the figures files' neighbourhood assignment, the city values).
-$(INSIGHTS): $(FIGURES) $(FIGURES11) $(BREAKS) $(BREAKS11) $(NHS11) pipeline/insights.py pipeline/measures.py pipeline/cpi.json
+$(INSIGHTS): $(FIGURES) $(FIGURES11) $(BREAKS) $(BREAKS11) $(NHS11) pipeline/insights.py pipeline/measures.py pipeline/cpi.json \
+             pipeline/school_insights.py
 	$(PYTHON) pipeline/insights.py
 
 permits: $(PERMITS)
