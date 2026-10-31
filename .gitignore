@@ -39,6 +39,8 @@ pipeline/out/
 !pipeline/city/*.csv
 # the 2006 Census by neighbourhood pipeline/census2006.py writes
 !pipeline/census/*.csv
+# CMHC starts and rental market tables pipeline/cmhc.py writes
+!pipeline/cmhc/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---
