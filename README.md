@@ -11,7 +11,7 @@ from the 2011 Census, and the rest from the 2011 National Household Survey (the 
 long form that year; income year 2010), whose DA table StatCan issued only to universities
 as a Beyond 20/20 file (see `pipeline/README.md`).
 
-A third page, `/insights/`, summarises the City's 158 neighbourhoods across the 2011,
+Census Insights, `/insights/`, summarises the City's 158 neighbourhoods across the 2011,
 2016 and 2021 censuses: the city's figure for every measure in each census, the ten
 highest and lowest neighbourhoods for a chosen measure and census, and the biggest
 rises and falls between any two censuses (dollar changes after inflation, Toronto CPI).
@@ -22,6 +22,14 @@ medians as the median of the DA medians on the measure's own base. Against the C
 official 2021 neighbourhood profile, shares and averages typically agree to within 0.3%
 (the worst cases differ by 4–6%), household income medians by a typical 2.4% with the
 same top-ten neighbourhoods, and rent and dwelling value medians by a typical 2–3%.
+
+School Insights, `/insights/schools/`, shows the Grade 3 and 6 EQAO results of the City's
+English public and Catholic elementary schools and its neighbourhoods for the test years
+2018, 2019 and 2022–2025 (2024 preliminary): the City's figures by year and board, a
+neighbourhood map, rankings, the spread of schools and neighbourhoods, how stable the
+results are from year to year, the biggest changes, correlations with the schools'
+student shares and with the 2021 Census, and a sortable table of every school. Its data
+is `web/public/schools.json` (`pipeline/school_insights.py`).
 
 ## Measures
 

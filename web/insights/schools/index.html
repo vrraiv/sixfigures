@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto School Insights</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="Grade 3 and 6 EQAO results for Toronto's public and Catholic elementary schools and its 158 neighbourhoods, 2018 to 2025: trends, maps, rankings, stability and what the results go with." />
+  </head>
+  <body class="with-nav doc">
+    <nav class="wordmark" aria-label="Site">
+      <a href="/">2016 · 2021</a>
+      <span class="brand">Toronto by DA</span>
+      <a href="/2011/">2011</a>
+      <a href="/insights/" aria-current="page">Insights</a>
+    </nav>
+    <header class="bar">
+      <h1>School Insights <span class="sub">Grade 3 and 6 test results in Toronto's elementary schools and neighbourhoods</span></h1>
+      <nav class="themes" aria-label="Insights">
+        <a href="/insights/">Census</a>
+        <a href="/insights/schools/" aria-current="page">Schools</a>
+      </nav>
+    </header>
+
+    <main class="insights">
+      <section class="ins-section" aria-labelledby="glance-h">
+        <div class="ins-head">
+          <h2 id="glance-h">The city at a glance</h2>
+        </div>
+        <p class="ins-lede" id="glance-lede"></p>
+        <div id="cards" class="card-row"></div>
+      </section>
+
+      <!-- The measure, test year and neighbourhood method for the sections below. -->
+      <div class="measure-bar" id="measure-bar">
+        <label for="measure">Results for</label>
+        <select id="measure"></select>
+        <div class="seg" id="year" role="group" aria-label="Test year"></div>
+        <div class="seg" id="method" role="group" aria-label="Neighbourhood figures from"></div>
+      </div>
+
+      <section class="ins-section" aria-labelledby="trend-h">
+        <div class="ins-head">
+          <h2 id="trend-h">Year by year</h2>
+        </div>
+        <p class="ins-lede" id="trend-lede"></p>
+        <figure class="trend" id="trend"></figure>
+        <ul class="year-key" id="trend-key"></ul>
+        <div class="tbl-wrap"><table class="tbl" id="trend-table"></table></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="map-h">
+        <div class="ins-head">
+          <h2 id="map-h">Neighbourhoods on the map</h2>
+          <label class="toggle"><input type="checkbox" id="map-schools" /> Show schools</label>
+        </div>
+        <p class="ins-lede" id="map-lede"></p>
+        <figure class="nb-map" id="nb-map"></figure>
+        <ul class="corr-key" id="map-key"></ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rank-h">
+        <div class="ins-head">
+          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
+        </div>
+        <p class="ins-lede" id="rank-lede"></p>
+        <div class="ranks">
+          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
+        </div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="spread-h">
+        <div class="ins-head">
+          <h2 id="spread-h">How the results spread out</h2>
+          <div class="seg" id="spread-unit" role="group" aria-label="Spread of"></div>
+        </div>
+        <p class="ins-lede" id="spread-lede"></p>
+        <div id="spread" class="spread"></div>
+        <figure class="hist" id="hist"></figure>
+        <ul class="year-key" id="hist-key"></ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="stab-h">
+        <div class="ins-head">
+          <h2 id="stab-h">How stable the results are</h2>
+        </div>
+        <p class="ins-lede" id="stab-lede"></p>
+        <div class="stab">
+          <div><h3 class="sub-h">Schools</h3><div class="tbl-wrap"><table class="tbl rtbl" id="stab-schools"></table></div></div>
+          <div><h3 class="sub-h">Neighbourhoods</h3><div class="tbl-wrap"><table class="tbl rtbl" id="stab-nbhd"></table></div></div>
+        </div>
+        <h3 class="sub-h">Change from one test year to the next</h3>
+        <p class="ins-lede" id="moves-lede"></p>
+        <div class="tbl-wrap"><table class="tbl" id="moves"></table></div>
+        <h3 class="sub-h">Nearest schools and schools inside</h3>
+        <p class="ins-lede" id="methods-lede"></p>
+        <div class="tbl-wrap"><table class="tbl" id="methods"></table></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="change-h">
+        <div class="ins-head">
+          <h2 id="change-h">Biggest changes</h2>
+          <div class="seg-row">
+            <div class="seg" id="change-unit" role="group" aria-label="Changes in"></div>
+            <div class="seg" id="change-pair" role="group" aria-label="Between"></div>
+          </div>
+        </div>
+        <p class="ins-lede" id="change-lede"></p>
+        <div class="ranks">
+          <div class="rank-col"><h3>Rose most</h3><ol id="change-up" class="change-list"></ol></div>
+          <div class="rank-col"><h3>Fell most</h3><ol id="change-down" class="change-list"></ol></div>
+        </div>
+        <figure class="strip">
+          <div id="strip"></div>
+          <figcaption id="strip-caption"></figcaption>
+        </figure>
+      </section>
+
+      <section class="ins-section" aria-labelledby="corr-h">
+        <div class="ins-head">
+          <h2 id="corr-h">What goes with what</h2>
+        </div>
+        <p class="ins-lede" id="corr-lede"></p>
+        <div class="tbl-wrap"><table class="tbl rtbl" id="corr-schools"></table></div>
+        <p class="tbl-note" id="corr-note"></p>
+        <h3 class="sub-h">Neighbourhoods and the 2021 Census</h3>
+        <p class="ins-lede" id="census-lede"></p>
+        <ol id="census-list" class="corr-list shown"></ol>
+        <figure class="scatter" id="scatter-fig">
+          <h3 class="sub-h">Compare</h3>
+          <div class="sc-controls">
+            <label class="sc-pick"><span>Across</span><select id="sc-x"></select></label>
+          </div>
+          <figcaption id="scatter-caption"></figcaption>
+          <div id="scatter"></div>
+          <ul class="year-key" id="scatter-key"></ul>
+        </figure>
+      </section>
+
+      <section class="ins-section" aria-labelledby="list-h">
+        <div class="ins-head">
+          <h2 id="list-h">Every school</h2>
+          <input type="search" id="list-filter" class="list-filter" placeholder="Filter by school or neighbourhood" aria-label="Filter schools" />
+        </div>
+        <p class="ins-lede" id="list-lede"></p>
+        <div class="tbl-wrap tall"><table class="tbl" id="list"></table></div>
+      </section>
+      <div id="tip" class="tip" role="tooltip" hidden></div>
+    </main>
+
+    <footer class="foot">
+      <p class="downloads" id="method-note"></p>
+      Ontario Ministry of Education, School Information and Student Demographics, 2017-18 to 2024-25 (2023-24 preliminary),
+      with EQAO results; contains information licensed under the
+      <a href="https://www.ontario.ca/page/open-government-licence-ontario">Open Government Licence – Ontario</a>.
+      Statistics Canada, Census Profile, 2021 Census of Population (98-401-X2021006), under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      Neighbourhoods: City of Toronto Open Data; contains information licensed under the
+      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/schools.js"></script>
+  </body>
+</html>
