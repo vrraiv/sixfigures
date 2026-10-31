@@ -1,0 +1,332 @@
+{
+  "built": "2026-10-31",
+  "primary_method": "nearest",
+  "files": {
+    "2017-18": {
+      "name": "sif_2017_18.xlsx",
+      "bytes": 1565910,
+      "retrieved": "2026-10-31",
+      "test_year": 2018,
+      "preliminary": false
+    },
+    "2018-19": {
+      "name": "sif_2018_19.xlsx",
+      "bytes": 1550796,
+      "retrieved": "2026-10-31",
+      "test_year": 2019,
+      "preliminary": false
+    },
+    "2019-20": {
+      "name": "sif_2019_20.xlsx",
+      "bytes": 1567330,
+      "retrieved": "2026-10-31",
+      "test_year": null,
+      "preliminary": false
+    },
+    "2020-21": {
+      "name": "sif_2020_21.xlsx",
+      "bytes": 1547704,
+      "retrieved": "2026-10-31",
+      "test_year": null,
+      "preliminary": false
+    },
+    "2021-22": {
+      "name": "sif_2021_22.xlsx",
+      "bytes": 1462006,
+      "retrieved": "2026-10-31",
+      "test_year": 2022,
+      "preliminary": false
+    },
+    "2022-23": {
+      "name": "sif_2022_23.xlsx",
+      "bytes": 1460629,
+      "retrieved": "2026-10-31",
+      "test_year": 2023,
+      "preliminary": false
+    },
+    "2023-24": {
+      "name": "sif_2023_24.xlsx",
+      "bytes": 1539519,
+      "retrieved": "2026-10-31",
+      "test_year": 2024,
+      "preliminary": true
+    },
+    "2024-25": {
+      "name": "sif_2024_25.xlsx",
+      "bytes": 1523903,
+      "retrieved": "2026-10-31",
+      "test_year": 2025,
+      "preliminary": false
+    }
+  },
+  "checks": {
+    "scales": {
+      "2017-18": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_academic": "fraction",
+        "g9_applied": "fraction",
+        "osslt": "fraction",
+        "low_income": "percent",
+        "no_degree": "percent",
+        "not_english": "percent",
+        "new_canada": "percent",
+        "special_ed": "percent",
+        "gifted": "percent"
+      },
+      "2018-19": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_academic": "fraction",
+        "g9_applied": "fraction",
+        "osslt": "fraction",
+        "low_income": "percent",
+        "no_degree": "percent",
+        "not_english": "percent",
+        "new_canada": "percent",
+        "special_ed": "percent",
+        "gifted": "percent"
+      },
+      "2019-20": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_academic": "fraction",
+        "g9_applied": "fraction",
+        "osslt": "fraction",
+        "low_income": "percent",
+        "no_degree": "percent",
+        "not_english": "percent",
+        "new_canada": "percent",
+        "special_ed": "percent",
+        "gifted": "percent"
+      },
+      "2020-21": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_academic": "fraction",
+        "g9_applied": "fraction",
+        "osslt": "fraction",
+        "low_income": "percent",
+        "no_degree": "percent",
+        "not_english": "percent",
+        "new_canada": "percent",
+        "special_ed": "percent",
+        "gifted": "percent"
+      },
+      "2021-22": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_math": "fraction",
+        "osslt": "fraction",
+        "low_income": "percent",
+        "no_degree": "percent",
+        "not_english": "percent",
+        "new_canada": "percent",
+        "special_ed": "percent",
+        "gifted": "percent"
+      },
+      "2022-23": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_math": "fraction",
+        "osslt": "fraction",
+        "low_income": "percent",
+        "no_degree": "percent",
+        "not_english": "percent",
+        "new_canada": "percent",
+        "special_ed": "percent",
+        "gifted": "percent"
+      },
+      "2023-24": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_math": "fraction",
+        "osslt": "fraction",
+        "low_income": "fraction",
+        "no_degree": "fraction",
+        "not_english": "fraction",
+        "new_canada": "fraction",
+        "special_ed": "fraction",
+        "gifted": "fraction"
+      },
+      "2024-25": {
+        "g3_read": "fraction",
+        "g3_write": "fraction",
+        "g3_math": "fraction",
+        "g6_read": "fraction",
+        "g6_write": "fraction",
+        "g6_math": "fraction",
+        "g9_math": "fraction",
+        "osslt": "fraction",
+        "low_income": "fraction",
+        "no_degree": "fraction",
+        "not_english": "fraction",
+        "new_canada": "fraction",
+        "special_ed": "fraction",
+        "gifted": "fraction"
+      }
+    },
+    "repeats": {
+      "2019-20": {
+        "schools": 4794,
+        "results_compared": 19611,
+        "differ": 0,
+        "present_in_one": 6
+      },
+      "2020-21": {
+        "schools": 4802,
+        "results_compared": 19608,
+        "differ": 0,
+        "present_in_one": 60
+      }
+    },
+    "coordinates": {
+      "filled_from_another_year": 25,
+      "still_missing": 154,
+      "schools_moving_over_500m": 45
+    },
+    "schools_changing_neighbourhood": [
+      "042108",
+      "702935",
+      "892475",
+      "901908",
+      "954683"
+    ],
+    "toronto_boards_unplaced": [
+      "2017-18 706078 Francis Libermann Catholic Elementary Catholic School (Elementary, Not applicable)",
+      "2017-18 748504 Msgr Fraser College (Midland North) (Secondary, Alternative)",
+      "2017-18 894621 Bendale Business & Technical Institute (Secondary, Vocational/Occupational)",
+      "2017-18 940518 Scarlett Heights Entrepreneurial Academy (Secondary, Not applicable)",
+      "2017-18 944025 St Andrew's Junior High School (Secondary, Junior High School)",
+      "2017-18 953725 Windfields Junior High School (Secondary, Junior High School)",
+      "2023-24 SC5601 Project Search Secondary School (Secondary, Alternative)"
+    ],
+    "scored_schools": {
+      "2018": {
+        "schools": 627,
+        "all_six": 416,
+        "any": 585
+      },
+      "2019": {
+        "schools": 627,
+        "all_six": 422,
+        "any": 589
+      },
+      "2022": {
+        "schools": 628,
+        "all_six": 434,
+        "any": 591
+      },
+      "2023": {
+        "schools": 628,
+        "all_six": 410,
+        "any": 585
+      },
+      "2024": {
+        "schools": 627,
+        "all_six": 411,
+        "any": 583
+      },
+      "2025": {
+        "schools": 626,
+        "all_six": 407,
+        "any": 581
+      }
+    },
+    "stability": {
+      "school_consecutive": {
+        "2018-2019": 0.773,
+        "2019-2022": 0.733,
+        "2022-2023": 0.812,
+        "2023-2024": 0.775,
+        "2024-2025": 0.788
+      },
+      "school_2019_2025": 0.669,
+      "nbhd_2019_2025": {
+        "nearest": 0.839,
+        "inside": 0.82
+      },
+      "nearest_vs_inside": {
+        "2018": 0.895,
+        "2019": 0.916,
+        "2022": 0.915,
+        "2023": 0.893,
+        "2024": 0.905,
+        "2025": 0.898
+      }
+    },
+    "inside_coverage": {
+      "2018": {
+        "covered": 142,
+        "two_or_more": 134
+      },
+      "2019": {
+        "covered": 141,
+        "two_or_more": 134
+      },
+      "2022": {
+        "covered": 140,
+        "two_or_more": 134
+      },
+      "2023": {
+        "covered": 141,
+        "two_or_more": 135
+      },
+      "2024": {
+        "covered": 141,
+        "two_or_more": 134
+      },
+      "2025": {
+        "covered": 141,
+        "two_or_more": 135
+      }
+    },
+    "vs_log_median_household_income_2021": {
+      "nearest": {
+        "2019": 0.556,
+        "2025": 0.58
+      },
+      "inside": {
+        "2019": 0.565,
+        "2025": 0.573
+      }
+    },
+    "school_score_vs_low_income_2025_r2": 0.269,
+    "city_score": {
+      "2018": 70.43,
+      "2019": 70.47,
+      "2022": 70.05,
+      "2023": 69.9,
+      "2024": 67.59,
+      "2025": 69.18
+    }
+  }
+}
