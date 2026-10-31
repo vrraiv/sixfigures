@@ -26,7 +26,8 @@ and writes pipeline/schools/:
                   g3_read ... g6_math are the six Grade 3 and 6 results (percent
                   at the provincial standard), score their mean, score_vs_city
                   the score less the City's that year (enrolment-weighted over
-                  the same schools)
+                  the same schools); preliminary marks 2024, from the
+                  Ministry's preliminary 2023-24 file
   manifest.json   files, retrieval dates and checks
 
 The score uses Grades 3 and 6 only: Grade 9 math was two tests (academic and
@@ -192,11 +193,11 @@ def load(year: str) -> tuple[pd.DataFrame, dict]:
 
 
 def place(df: pd.DataFrame) -> pd.DataFrame:
-    """Each school's 2021 DA and neighbourhood (point in polygon), within the City."""
-    pts = df.dropna(subset=["lat", "lon"]).drop_duplicates("school_number")
-    pts = gpd.GeoDataFrame(pts[["school_number"]], geometry=gpd.points_from_xy(pts.lon, pts.lat), crs=4326)
+    """Each row's 2021 DA and neighbourhood (point in polygon), for rows in the City."""
+    pts = df.dropna(subset=["lat", "lon"])
+    pts = gpd.GeoDataFrame(index=pts.index, geometry=gpd.points_from_xy(pts.lon, pts.lat), crs=4326)
     j = gpd.sjoin(pts.to_crs(METRIC_CRS), das(), predicate="within", how="inner")
-    return pd.DataFrame(j[["school_number", "DAUID", "nbhd_id"]])
+    return pd.DataFrame(j[["DAUID", "nbhd_id"]])
 
 
 def das() -> gpd.GeoDataFrame:
@@ -323,18 +324,21 @@ def main() -> int:
     checks["coordinates"] = {"filled_from_another_year": filled, "still_missing": int(s.lat.isna().sum()),
                              "schools_moving_over_500m": int((moved > 0.0045).sum())}
     print(f"coordinates: {checks['coordinates']}")
-    # A school is placed once, at its latest coordinates (a move is a rebuild or
-    # a holding site)
-    latest = s.dropna(subset=["lat", "lon"]).sort_values("yr").drop_duplicates("school_number", keep="last")
-    p = place(latest)
+    # Each school year is placed at that year's coordinates: a few schools move
+    # (a rebuild, a holding site)
+    frames_all = s
+    p = place(s)
+    s = s.join(p, how="inner")
+    moved = s.groupby("school_number").nbhd_id.nunique()
+    checks["schools_changing_neighbourhood"] = sorted(moved.index[moved > 1])
     # the two Toronto boards' schools left out: no coordinates in any year, or
     # outside the City
-    out = s[s.board.isin(["Toronto DSB", "Toronto CDSB"]) & ~s.school_number.isin(p.school_number)]
-    out = out.drop_duplicates("school_number")
+    out = frames_all[frames_all.board.isin(["Toronto DSB", "Toronto CDSB"])
+                     & ~frames_all.school_number.isin(s.school_number)].drop_duplicates("school_number")
     checks["toronto_boards_unplaced"] = [f"{r.school_year} {r.school_number} {r['name']} ({r.level}, {r.special})"
                                          for _, r in out.iterrows()]
     print(f"Toronto boards' schools not placed: {checks['toronto_boards_unplaced']}")
-    s = s.drop(columns="yr").merge(p, on="school_number", how="inner")
+    s = s.drop(columns="yr")
     s["nbhd_id"] = s.nbhd_id.astype(int)
     print(f"in the City: {s.school_number.nunique():,} schools; by board "
           f"{s.drop_duplicates('school_number').board.value_counts().head(6).to_dict()}")
@@ -368,7 +372,8 @@ def main() -> int:
     by["enrolment"] = by.enrolment.round().astype("Int64")
     for k in TESTS + ["score", "score_vs_city"]:
         by[k] = by[k].round(2)
-    by = by[["nbhd_id", "year", "method", "schools", "enrolment", *TESTS, "score", "score_vs_city"]]
+    by["preliminary"] = by.year.isin([FILES[y] for y in PRELIMINARY])
+    by = by[["nbhd_id", "year", "preliminary", "method", "schools", "enrolment", *TESTS, "score", "score_vs_city"]]
 
     # checks against what the exploration found
     wide = {m: by[by.method == m].pivot(index="nbhd_id", columns="year", values="score") for m in ("nearest", "inside")}

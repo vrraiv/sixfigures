@@ -152,20 +152,6 @@ $(CITYRAW):
 $(CITY): $(CITYRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b21a_e.zip $(FIGURES) pipeline/city_layers.py
 	$(PYTHON) pipeline/city_layers.py
 
-# 2006 Census on the 158 neighbourhoods (a model input, not part of the site). The
-# profile extract ($(PROFILE06)) isn't a prerequisite, so this never needs pyivt.
-CENSUS06 := pipeline/census/manifest.json
-.PHONY: census2006
-
-census2006: $(CENSUS06)
-
-$(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip:
-	$(PYTHON) pipeline/download.py
-
-$(CENSUS06): $(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip $(RAW)/toronto_neighbourhoods_4326.geojson \
-             $(FIGURES11) $(INSIGHTS) pipeline/census2006.py pipeline/insights.py
-	$(PYTHON) pipeline/census2006.py
-
 # School test results by school and neighbourhood (a model input, not part of the site).
 # It reads the committed 2021 figures files and insights.json without rebuilding them.
 SCHOOLRAW := $(addprefix $(RAW)/schools/sif_,2017_18.xlsx 2018_19.xlsx 2019_20.xlsx 2020_21.xlsx \
@@ -180,6 +166,20 @@ $(SCHOOLRAW):
 
 $(SCHOOLS): $(SCHOOLRAW) $(RAW)/lda_000b21a_e.zip pipeline/schools.py
 	$(PYTHON) pipeline/schools.py
+
+# 2006 Census on the 158 neighbourhoods (a model input, not part of the site). The
+# profile extract ($(PROFILE06)) isn't a prerequisite, so this never needs pyivt.
+CENSUS06 := pipeline/census/manifest.json
+.PHONY: census2006
+
+census2006: $(CENSUS06)
+
+$(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip:
+	$(PYTHON) pipeline/download.py
+
+$(CENSUS06): $(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip $(RAW)/toronto_neighbourhoods_4326.geojson \
+             $(FIGURES11) $(INSIGHTS) pipeline/census2006.py pipeline/insights.py
+	$(PYTHON) pipeline/census2006.py
 
 clean:
 	rm -rf pipeline/out

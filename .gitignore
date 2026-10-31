@@ -30,6 +30,8 @@ pipeline/out/
 *.ivt
 # the permit totals by neighbourhood pipeline/permits.py writes
 !pipeline/permits/*.csv
+# the school results by school and neighbourhood pipeline/schools.py writes
+!pipeline/schools/*.csv
 # office documents
 *.docx
 *.xlsx
@@ -39,8 +41,6 @@ pipeline/out/
 !pipeline/city/*.csv
 # the 2006 Census by neighbourhood pipeline/census2006.py writes
 !pipeline/census/*.csv
-# the school results by school and neighbourhood pipeline/schools.py writes
-!pipeline/schools/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---

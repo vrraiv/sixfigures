@@ -178,6 +178,20 @@ writes `pipeline/city/*.csv` (committed) and `pipeline/city/manifest.json` with 
 rates and checks. The City's quarterly social and affordable housing counts have no
 geography, so they aren't used.
 
+School test results (downloaded 2026-10-31), for the forecast model: Ontario's School
+Information and Student Demographics files, one per school year from 2017-18
+(data.ontario.ca, Open Government Licence - Ontario; `download.py` saves them to
+`pipeline/raw/schools/`). `make schools` runs `pipeline/schools.py`, which places each
+school by its coordinates in a 2021 DA and neighbourhood and writes
+`pipeline/schools/schools.csv` (committed: 828 schools in the City, every school year,
+with EQAO results and demographic shares), `pipeline/schools/by_nbhd.csv` (committed: the
+Grade 3 and 6 score by neighbourhood and test year, by the nearest schools to each DA and
+by the schools inside the neighbourhood) and `manifest.json` (checks). The files write
+shares as "62%", as integer percents and as fractions, sometimes in one column; the
+2019-20 and 2020-21 files repeat the 2018-19 results (no tests in the pandemic), which
+the script confirms value for value before dropping them, so the test years are 2018,
+2019 and 2022-2025. The 2023-24 file is preliminary. No attendance areas are published.
+
 Listing pages:
 - Profile: https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/download-telecharger.cfm?Lang=E
   → "Comprehensive download files" → "Canada, provinces, territories, CDs, CSDs and DAs – Ontario only" → CSV.
@@ -205,20 +219,6 @@ and thousands of old permits were closed administratively in 2025-2026.
 and the CMA's permits in StatCan table 34-10-0292. The dwelling check reads total private
 dwellings from the raw 2011, 2016 and 2021 profiles once and caches them in
 `pipeline/out/toronto_dwellings.csv`.
-
-School test results (downloaded 2026-10-31), for the forecast model: Ontario's School
-Information and Student Demographics files, one per school year from 2017-18
-(data.ontario.ca, Open Government Licence - Ontario; `download.py` saves them to
-`pipeline/raw/schools/`). `make schools` runs `pipeline/schools.py`, which places each
-school by its coordinates in a 2021 DA and neighbourhood and writes
-`pipeline/schools/schools.csv` (committed: 828 schools in the City, every school year,
-with EQAO results and demographic shares), `pipeline/schools/by_nbhd.csv` (committed: the
-Grade 3 and 6 score by neighbourhood and test year, by the nearest schools to each DA and
-by the schools inside the neighbourhood) and `manifest.json` (checks). The files write
-shares as "62%", as integer percents and as fractions, sometimes in one column; the
-2019-20 and 2020-21 files repeat the 2018-19 results (no tests in the pandemic), which
-the script confirms value for value before dropping them, so the test years are 2018,
-2019 and 2022-2025. The 2023-24 file is preliminary. No attendance areas are published.
 
 ## Processing notes
 

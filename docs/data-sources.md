@@ -116,7 +116,7 @@ lookup.
 
 | Source | Where | Years | Geography | Role | Origin |
 |---|---|---|---|---|---|
-| School Information and Student Demographics: enrolment, coordinates, EQAO results (share at the provincial standard in Grade 3 and 6 reading, writing and math, Grade 9 math, the Grade 10 literacy test), school demographics (low income, parents without a degree, language, special education) | [school-information-and-student-demographics](https://data.ontario.ca/en/dataset/school-information-and-student-demographics), one xlsx per school year, Open Government Licence - Ontario | school years 2017-18 to 2024-25; tests written 2018, 2019, 2022-2025 (2023-24 preliminary) | school (coordinates) | Target (elementary score); school demographics as drivers | known to the test year |
+| School Information and Student Demographics: enrolment, coordinates, EQAO results (share at the provincial standard in Grade 3 and 6 reading, writing and math, Grade 9 math, the Grade 10 literacy test), school demographics (low income, parents without a degree, language, special education) | [school-information-and-student-demographics](https://data.ontario.ca/en/dataset/school-information-and-student-demographics), one xlsx per school year, Open Government Licence - Ontario | school years 2017-18 to 2024-25; tests written 2018, 2019, 2022-2025 (2023-24 preliminary) | school (coordinates) | Target (elementary score); school demographics as drivers | test results known to the test year; low income and parents without a degree are census-derived (below) |
 
 No tests were written in 2020 or 2021: the 2019-20 and 2020-21 files repeat the
 2018-19 results (`schools.py` checks that they match value for value). Grade 9
@@ -131,6 +131,13 @@ the neighbourhood (140-142 of 158). The two correlate 0.89-0.92 by year. Between
 the 2019 and 2025 tests, neighbourhood scores correlate 0.84 (nearest) and 0.82
 (inside), schools 0.67; against the log of 2021 median household income, about
 0.56-0.58.
+
+The low-income and parents-without-a-degree shares are not annual: the Ministry
+derives them from Statistics Canada census data for the areas of students' postal
+codes. Their distribution changes in the 2022-23 file (low income tops out at 45%
+instead of about 70%, and many more schools sit at 10%), which suggests a switch from
+the 2016 to the 2021 Census; the Ministry's page doesn't name the vintage. A
+2016-to-2021 backtest should use only the files before 2022-23.
 
 ### Not pursued
 

@@ -213,6 +213,13 @@
       "still_missing": 154,
       "schools_moving_over_500m": 45
     },
+    "schools_changing_neighbourhood": [
+      "042108",
+      "702935",
+      "892475",
+      "901908",
+      "954683"
+    ],
     "toronto_boards_unplaced": [
       "2017-18 706078 Francis Libermann Catholic Elementary Catholic School (Elementary, Not applicable)",
       "2017-18 748504 Msgr Fraser College (Midland North) (Secondary, Alternative)",

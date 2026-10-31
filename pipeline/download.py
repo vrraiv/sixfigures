@@ -14,9 +14,6 @@ building permits):
 resource URLs are resolved through the CKAN package_show API at download time.
 The portal intermittently returns 504 error pages, so each download is retried
 with backoff and checked for the expected leading bytes before it is kept.
-
-Ontario (school information and test results, one xlsx per school year): fixed
-data.ontario.ca resource URLs, saved to pipeline/raw/schools/.
 """
 import hashlib
 import json
@@ -109,6 +106,23 @@ STATCAN_OPTIONAL = {
     ),
 }
 
+# Ontario's School Information and Student Demographics files (schools.py), one per
+# school year, English edition. data.ontario.ca adds a file each year (the 2023-24
+# one is preliminary); add its line here.
+SCHOOLS_DIR = RAW / "schools"
+ONTARIO = "https://data.ontario.ca/dataset/d85f68c5-fcb0-4b4d-aec5-3047db47dcd5/resource/"
+SCHOOLS = {
+    "sif_2017_18.xlsx": "3d8e7824-d033-4ca5-a5de-aa0dbec99002/download/sif_data_table_2017_2018_en.xlsx",
+    "sif_2018_19.xlsx": "bbbac037-b1c9-4b32-8f67-4fed1dfcac06/download/sif_data_table_2018_2019_en.xlsx",
+    "sif_2019_20.xlsx": "602a5186-67f5-4faf-94f3-7c61ffc4719a/download/sif_data_table_2019_2020_en.xlsx",
+    "sif_2020_21.xlsx": "600ab128-f50f-43a4-b4d4-97c39bb270b6/download/sif_data_table_2020_2021_en.xlsx",
+    "sif_2021_22.xlsx": "e0e90bd5-d662-401a-a6d2-60d69ac89d14/download/sif_data_table_2021_2022_en.xlsx",
+    "sif_2022_23.xlsx": "f95fc955-b1f0-4a2e-9b7f-cfa6eda37e0b/download/sif_data_table_2022_2023_en.xlsx",
+    "sif_2023_24.xlsx": "f381e1de-3aa8-4ae9-826a-20009a6f4a01/download/"
+                        "new_sif_data_table_2023_24prelim_en_january2026.xlsx",
+    "sif_2024_25.xlsx": "f75540ed-59eb-49ab-ac43-976d563b3a65/download/new_sif_data_2024_25_final_en_sep_2026.xlsx",
+}
+
 CKAN = "https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/package_show?id="
 # local name -> (package id, resource name, expected leading bytes)
 TORONTO = {
@@ -137,23 +151,6 @@ TORONTO = {
         "building-permits-cleared-permits", "Cleared Permits 2000 to 2016", b'"PERMIT_NUM"'),
     "toronto_permits_active.csv": (
         "building-permits-active-permits", "building-permits-active-permits.csv", b"_id,"),
-}
-
-# Ontario's School Information and Student Demographics files (schools.py), one per
-# school year, English edition. data.ontario.ca adds a file each year (the 2023-24
-# one is preliminary); add its line here.
-SCHOOLS_DIR = RAW / "schools"
-ONTARIO = "https://data.ontario.ca/dataset/d85f68c5-fcb0-4b4d-aec5-3047db47dcd5/resource/"
-SCHOOLS = {
-    "sif_2017_18.xlsx": "3d8e7824-d033-4ca5-a5de-aa0dbec99002/download/sif_data_table_2017_2018_en.xlsx",
-    "sif_2018_19.xlsx": "bbbac037-b1c9-4b32-8f67-4fed1dfcac06/download/sif_data_table_2018_2019_en.xlsx",
-    "sif_2019_20.xlsx": "602a5186-67f5-4faf-94f3-7c61ffc4719a/download/sif_data_table_2019_2020_en.xlsx",
-    "sif_2020_21.xlsx": "600ab128-f50f-43a4-b4d4-97c39bb270b6/download/sif_data_table_2020_2021_en.xlsx",
-    "sif_2021_22.xlsx": "e0e90bd5-d662-401a-a6d2-60d69ac89d14/download/sif_data_table_2021_2022_en.xlsx",
-    "sif_2022_23.xlsx": "f95fc955-b1f0-4a2e-9b7f-cfa6eda37e0b/download/sif_data_table_2022_2023_en.xlsx",
-    "sif_2023_24.xlsx": "f381e1de-3aa8-4ae9-826a-20009a6f4a01/download/"
-                        "new_sif_data_table_2023_24prelim_en_january2026.xlsx",
-    "sif_2024_25.xlsx": "f75540ed-59eb-49ab-ac43-976d563b3a65/download/new_sif_data_2024_25_final_en_sep_2026.xlsx",
 }
 
 
