@@ -32,7 +32,7 @@
 Separately:
 
 - `make cpi` – `pipeline/cpi.py` reads the annual-average all-items CPI for
-  "Toronto, Ontario" (or `--geo Canada`) for 2015 and 2020 from table 18-10-0005-01
+  "Toronto, Ontario" (or `--geo Canada`) for the income and census years 2005-2021 from table 18-10-0005-01
   through StatCan's Web Data Service (getCubeMetadata, then
   getDataFromCubePidCoordAndLatestNPeriods), writes `pipeline/cpi.json`, then runs
   `make breaks`. Last run 2026-10-26: Toronto 128.3 → 140.3 (×1.0935, vector v41695186);

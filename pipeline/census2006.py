@@ -1,4 +1,5 @@
-"""2006 Census on the City's 158 neighbourhoods (a model input, not part of the site):
+"""2006 Census on the City's 158 neighbourhoods (a model input; insights.py adds the comparable
+measures to the Census Insights page):
 pipeline/census/da_2006.csv (each 2006 DA's neighbourhood), pipeline/census/nbhd_2006.csv
 (the maps' measures by neighbourhood) and pipeline/census/manifest.json (checks, city values).
 

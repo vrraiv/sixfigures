@@ -25,6 +25,12 @@ A neighbourhood's figure is withheld when DAs holding less than half of the
 measure's base in it (households, owner or renter households, people) have one (suppression, and in 2011 the NHS's non-response rule).
 City values are StatCan's, from breaks.json and breaks_2011.json.
 
+2006 is added for the measures measures.COMPARABLE_2006 marks the same or near
+(comparability_2006 records which), from pipeline/census/nbhd_2006.csv and its
+manifest's city values (census2006.py, which aggregates the same way). That file
+isn't a make prerequisite: census2006.py reads insights.json, so it would be a
+cycle; rerun this after `make census2006`.
+
 Reads the cached profile extracts in pipeline/out (build.py, census2016.py,
 census2011.py and nhs2011.py write them) and the figures files for the DA to
 neighbourhood assignment.
@@ -51,6 +57,7 @@ OUT_DIR = HERE / "out"
 WEB = HERE.parent / "web" / "public"
 FIGURES = WEB / "data" / "figures"
 OUT = WEB / "insights.json"
+CENSUS06 = HERE / "census"
 CPI = json.loads((HERE / "cpi.json").read_text())
 YEARS = ["2011", "2016", "2021"]
 INCOME_YEAR = {"2011": "2010", "2016": "2015", "2021": "2020"}
@@ -252,10 +259,15 @@ def main():
     breaks11 = json.loads((WEB / "breaks_2011.json").read_text())["measures"]
     data = {y: load(y) for y in YEARS}
 
+    # 2006: the comparable measures (census2006.py)
+    nb06 = pd.read_csv(CENSUS06 / "nbhd_2006.csv").set_index("nbhd_id").reindex(ids)
+    man06 = json.loads((CENSUS06 / "manifest.json").read_text())
+    comparable06 = {m: c for m, c in man06["comparability"].items() if c in ("same", "near")}
+
     out = {
-        "years": YEARS,
-        "income_years": INCOME_YEAR,
-        "cpi": {y: CPI[y] for y in ["2010", "2011", "2015", "2016", "2020", "2021"]},
+        "years": ["2006", *YEARS],
+        "income_years": {"2006": "2005", **INCOME_YEAR},
+        "cpi": {y: CPI[y] for y in ["2005", "2006", "2010", "2011", "2015", "2016", "2020", "2021"]},
         "min_coverage": MIN_COVERAGE,
         "nbhd": [{"id": i, "name": n, "at": at[i]} for i, n in nbhds],
         "measures": {},
@@ -277,6 +289,12 @@ def main():
             v = v.reindex(ids)
             entry["values"][y] = [None if pd.isna(x) else (int(x) if MEASURES[m]["unit"] == "money" else float(x)) for x in v]
             line.append(f"{int(v.notna().sum()):3d}, {cov.reindex(ids).min():.2f}")
+        if m in comparable06:
+            entry["city"] = {"2006": man06["city"][m], **entry["city"]}
+            entry["values"] = {"2006": [None if pd.isna(x) else (int(x) if MEASURES[m]["unit"] == "money" else float(x)) for x in nb06[m]],
+                               **entry["values"]}
+            entry["comparability_2006"] = comparable06[m]
+            line.insert(0, f"{int(nb06[m].notna().sum()):3d}")
         out["measures"][m] = entry
         print(f"{m:12s} " + "      ".join(line))
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")

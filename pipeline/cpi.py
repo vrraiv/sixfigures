@@ -24,7 +24,7 @@ WDS = "https://www150.statcan.gc.ca/t1/wds/rest/"
 PID = 18100005  # table 18-10-0005-01
 TABLE = "18-10-0005-01"
 PRODUCT = "All-items"
-YEARS = ("2010", "2011", "2015", "2016", "2020", "2021")  # income years 2010, 2015, 2020; census years 2011, 2016, 2021
+YEARS = ("2005", "2006", "2010", "2011", "2015", "2016", "2020", "2021")  # income years 2005-2020; census years 2006-2021
 OUT = Path(__file__).parent / "cpi.json"
 
 

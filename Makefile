@@ -184,7 +184,9 @@ housing-insights: $(HOUSINGINS)
 $(HOUSINGINS): pipeline/housing_insights.py pipeline/school_insights.py
 	$(PYTHON) pipeline/housing_insights.py
 
-# 2006 Census on the 158 neighbourhoods (a model input, not part of the site). The
+# 2006 Census on the 158 neighbourhoods (a model input). insights.py adds its comparable
+# measures to insights.json; since this reads insights.json, its output isn't a prerequisite
+# there (a cycle): after `make census2006`, run `python pipeline/insights.py`. The
 # profile extract ($(PROFILE06)) isn't a prerequisite, so this never needs pyivt.
 CENSUS06 := pipeline/census/manifest.json
 .PHONY: census2006

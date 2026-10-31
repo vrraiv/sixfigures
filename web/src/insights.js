@@ -6,8 +6,10 @@ import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, i
 import { R_EDGES, fmtR, initTip, quantile, rColor, seg, spearman } from "./charts.js";
 
 const data = await fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json());
-const YEARS = data.years; // ["2011", "2016", "2021"]
-const PAIRS = [["2011", "2016"], ["2016", "2021"], ["2011", "2021"]];
+const YEARS = data.years; // ["2006", "2011", "2016", "2021"]
+// 2006 has only the measures comparable to later censuses (pipeline/census2006.py).
+const PAIRS = [["2006", "2011"], ["2011", "2016"], ["2016", "2021"], ["2011", "2021"], ["2006", "2021"]];
+const DEFAULT_PAIR = PAIRS[2];
 const GROUP_NAMES = { income: "Income", low: "Low income and transfers", housing: "Housing", costs: "Housing costs and values", dwellings: "Dwellings", people: "People" };
 const RISE = DIVERGING[5], FALL = DIVERGING[1], INK3 = "#75756f";
 const nbhd = data.nbhd;
@@ -18,11 +20,11 @@ const hash = new URLSearchParams(location.hash.slice(1));
 const state = {
   m: measures.includes(hash.get("m")) ? hash.get("m") : "med_hh_tot",
   year: YEARS.includes(hash.get("y")) ? hash.get("y") : "2021",
-  pair: PAIRS.find((p) => p.join("-") === hash.get("p")) ?? PAIRS[1],
+  pair: PAIRS.find((p) => p.join("-") === hash.get("p")) ?? DEFAULT_PAIR,
   real: hash.get("real") === "1",
   spreadReal: hash.get("sr") !== "0",
   corrYear: YEARS.includes(hash.get("cy")) ? hash.get("cy") : "2021",
-  shiftPair: PAIRS.find((p) => p.join("-") === hash.get("sp")) ?? PAIRS[1],
+  shiftPair: PAIRS.find((p) => p.join("-") === hash.get("sp")) ?? DEFAULT_PAIR,
   shiftOnly: false,
   sx: measures.includes(hash.get("sx")) ? hash.get("sx") : null,
   sy: measures.includes(hash.get("sy")) ? hash.get("sy") : null,
@@ -40,8 +42,14 @@ const writeHash = () => {
 const refYear = (m, y) => (MEASURES[m].dated === "census" ? y : data.income_years[y]);
 // A dollar figure from census y restated in census `to`'s dollars (Toronto CPI).
 const restate = (m, v, y, to) => (v == null || !isMoney(m) ? v : v * (data.cpi[refYear(m, to)] / data.cpi[refYear(m, y)]));
-const val = (m, y) => data.measures[m].values[y];
+const NONE = nbhd.map(() => null);
+const val = (m, y) => data.measures[m].values[y] ?? NONE;
 const city = (m, y) => data.measures[m].city[y];
+const has = (m, y) => y in data.measures[m].values;
+const yearsOf = (m) => YEARS.filter((y) => has(m, y));
+const pairsOf = (m) => PAIRS.filter((p) => p.every((y) => has(m, y)));
+// The three shelter-cost shares: in 2006 their base also counts households with zero or negative income.
+const near06 = (m, ys) => (ys.includes("2006") && data.measures[m].comparability_2006 === "near" ? " In 2006 the base also counts households with zero or negative income." : "");
 const source = (m, y) => (y === "2011" ? (data.measures[m].source["2011"] === "nhs" ? "2011 NHS" : "2011 Census") : `${y} Census`);
 const yearLabel = (m, y) => (refYear(m, y) === y ? `${y} Census` : `${refYear(m, y)} (${source(m, y)})`);
 
@@ -58,7 +66,12 @@ const fmtChangeShort = (m, d) => (isMoney(m) ? `${sign(Math.round(d))}${fmtShort
 const mapLink = (m, y, i) => {
   const [lat, lng] = nbhd[i].at;
   const at = `at=13/${lat}/${lng}`;
-  return y === "2011" ? `/2011/#m=${m}&${at}` : `/#m=${m}&y=${y}&${at}&o=nbhd`;
+  return y === "2006" ? null : y === "2011" ? `/2011/#m=${m}&${at}` : `/#m=${m}&y=${y}&${at}&o=nbhd`;
+};
+// A neighbourhood's name, linked to the map of that census where there is one (no 2006 map).
+const nameLink = (m, y, i) => {
+  const href = mapLink(m, y, i), n = escapeHTML(nbhd[i].name);
+  return href ? `<a class="nm" href="${href}" title="Show ${n} on the map">${n}</a>` : `<span class="nm">${n}</span>`;
 };
 
 initTip();
@@ -91,14 +104,15 @@ function setMeasure(m) {
 // ---- 1. the city at a glance ----------------------------------------------------
 function sparkline(m) {
   const W = 120, H = 34, px = 6, py = 6;
-  const vs = YEARS.map((y) => (state.real ? restate(m, city(m, y), y, "2021") : city(m, y)));
+  const ys = yearsOf(m);
+  const vs = ys.map((y) => (state.real ? restate(m, city(m, y), y, "2021") : city(m, y)));
   const lo = Math.min(...vs), hi = Math.max(...vs), span = hi - lo || 1;
-  const x = (i) => px + (i * (W - 2 * px)) / (YEARS.length - 1);
+  const x = (i) => px + (i * (W - 2 * px)) / (ys.length - 1);
   const y = (v) => (hi === lo ? H / 2 : H - py - ((v - lo) / span) * (H - 2 * py));
   const pts = vs.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const dots = vs.map((v, i) => {
     const last = i === vs.length - 1;
-    const t = `${yearLabel(m, YEARS[i])}: <b>${fmt(m, v)}</b>${state.real && isMoney(m) && YEARS[i] !== "2021" ? ` in ${refYear(m, "2021")} dollars` : ""}`;
+    const t = `${yearLabel(m, ys[i])}: <b>${fmt(m, v)}</b>${state.real && isMoney(m) && ys[i] !== "2021" ? ` in ${refYear(m, "2021")} dollars` : ""}`;
     return `<circle cx="${x(i)}" cy="${y(v)}" r="${last ? 4 : 3}" fill="${last ? COLORS[4] : COLORS[2]}" stroke="#fcfcfb" stroke-width="2"/>`
       + `<circle cx="${x(i)}" cy="${y(v)}" r="11" fill="transparent" data-tip="${escapeHTML(t)}"/>`;
   }).join("");
@@ -114,13 +128,13 @@ function renderCards() {
       const real = state.real && isMoney(m);
       const d = now - (real ? restate(m, city(m, "2016"), "2016", "2021") : city(m, "2016"));
       const change = `<span class="card-delta">${fmtChange(m, d)} since ${refYear(m, "2016")}${real ? ", after inflation" : ""}</span>`;
-      const years = YEARS.map((y) => refYear(m, y));
-      const aria = `${MEASURES[m].long}: ${YEARS.map((y) => `${refYear(m, y)} ${fmt(m, city(m, y))}`).join(", ")}`;
+      const years = yearsOf(m).map((y) => refYear(m, y));
+      const aria = `${MEASURES[m].long}: ${yearsOf(m).map((y) => `${refYear(m, y)} ${fmt(m, city(m, y))}`).join(", ")}`;
       return `<button type="button" class="card" data-m="${m}" aria-pressed="${m === state.m}" aria-label="${escapeHTML(aria)}">
         <span class="card-name">${escapeHTML(MEASURES[m].short)}</span>
         <span class="card-value">${fmt(m, now)}</span>
         ${sparkline(m)}
-        <span class="card-years"><span>${years[0]}</span><span>${years[2]}</span></span>
+        <span class="card-years"><span>${years[0]}</span><span>${years.at(-1)}</span></span>
         ${change}
       </button>`;
     }).join("");
@@ -150,14 +164,13 @@ function ranking(m, y) {
   return { order, rank, v };
 }
 
-function rankRow(m, y, i, r, scale, prev) {
+function rankRow(m, y, i, r, scale, prev, py) {
   const v = r.v[i], k = r.rank.get(i), n = r.order.length;
   const w = Math.max(0, (v / scale.max) * 100), c = (city(m, y) / scale.max) * 100;
   let move = "";
   if (prev) {
     const was = prev.rank.get(i);
     const d = was == null ? null : was - k;
-    const py = refYear(m, YEARS[YEARS.indexOf(y) - 1]);
     move = d == null ? `<span class="move">new</span>`
       : d === 0 ? `<span class="move" aria-label="same rank as in ${py}">–</span>`
       : `<span class="move" aria-label="${d > 0 ? "up" : "down"} ${Math.abs(d)} from ${py}" data-tip="${escapeHTML(`${ordinal(was)} of ${prev.order.length} in ${py}`)}">${d > 0 ? "▲" : "▼"}${Math.abs(d)}</span>`;
@@ -165,7 +178,7 @@ function rankRow(m, y, i, r, scale, prev) {
   const t = `${escapeHTML(nbhd[i].name)}<br><b>${fmt(m, v)}</b> · ${ordinal(k)} of ${n}<br>City: ${fmt(m, city(m, y))}`;
   return `<li>
     <span class="rk">${k}</span>
-    <a class="nm" href="${mapLink(m, y, i)}" title="Show ${escapeHTML(nbhd[i].name)} on the map">${escapeHTML(nbhd[i].name)}</a>
+    ${nameLink(m, y, i)}
     <span class="barcell" data-tip="${t}"><span class="bar-fill" style="width:${w.toFixed(1)}%"></span><span class="city-mark" style="left:${c.toFixed(1)}%"></span></span>
     <span class="vl">${fmtShort(m, v)}</span>
     ${move}
@@ -173,22 +186,24 @@ function rankRow(m, y, i, r, scale, prev) {
 }
 
 function renderRanks() {
-  const m = state.m, y = state.year;
-  seg($("rank-year"), YEARS.map((yy) => [yy, refYear(m, yy) === yy ? yy : `${yy} (${refYear(m, yy)})`]), y, (k) => {
+  const m = state.m, ys = yearsOf(m);
+  if (!ys.includes(state.year)) state.year = "2021";
+  const y = state.year;
+  seg($("rank-year"), ys.map((yy) => [yy, refYear(m, yy) === yy ? yy : `${yy} (${refYear(m, yy)})`]), y, (k) => {
     state.year = k;
     renderRanks();
     writeHash();
   });
   const r = ranking(m, y);
-  const i = YEARS.indexOf(y);
-  const prev = i > 0 ? ranking(m, YEARS[i - 1]) : null;
+  const i = ys.indexOf(y), py = i > 0 ? refYear(m, ys[i - 1]) : null;
+  const prev = i > 0 ? ranking(m, ys[i - 1]) : null;
   const scale = { max: Math.max(...r.order.map((j) => r.v[j]), city(m, y)) };
   const top = r.order.slice(0, 10), bottom = r.order.slice(-10).reverse();
-  $("rank-top").innerHTML = top.map((j) => rankRow(m, y, j, r, scale, prev)).join("");
-  $("rank-bottom").innerHTML = bottom.map((j) => rankRow(m, y, j, r, scale, prev)).join("");
+  $("rank-top").innerHTML = top.map((j) => rankRow(m, y, j, r, scale, prev, py)).join("");
+  $("rank-bottom").innerHTML = bottom.map((j) => rankRow(m, y, j, r, scale, prev, py)).join("");
   const missing = nbhd.length - r.order.length;
   $("rank-lede").innerHTML = `${escapeHTML(MEASURES[m].long)}, ${yearLabel(m, y)}, ${r.order.length} neighbourhoods${missing ? ` (${missing} without a figure)` : ""}. `
-    + `The tick on each bar marks the city (${fmt(m, city(m, y))}).${prev ? ` Arrows: places gained or lost since ${refYear(m, YEARS[i - 1])}.` : ""}`;
+    + `The tick on each bar marks the city (${fmt(m, city(m, y))}).${prev ? ` Arrows: places gained or lost since ${py}.` : ""}${near06(m, [y])}`;
 }
 
 // ---- 3. biggest changes ----------------------------------------------------------
@@ -212,7 +227,7 @@ function changeRow(m, pair, row, scale, up) {
   const [a, b] = pair;
   const t = `${escapeHTML(nbhd[row.i].name)}<br>${refYear(m, a)}: ${fmt(m, row.before)}${isMoney(m) ? ` (in ${refYear(m, b)} dollars)` : ""}<br>${refYear(m, b)}: <b>${fmt(m, row.after)}</b><br>Change: ${fmtChange(m, row.d)}${row.pct != null ? ` (${sign(row.pct)}${Math.abs(row.pct).toFixed(1)}%)` : ""}`;
   return `<li>
-    <a class="nm" href="${mapLink(m, b, row.i)}" title="Show ${escapeHTML(nbhd[row.i].name)} on the map">${escapeHTML(nbhd[row.i].name)}</a>
+    ${nameLink(m, b, row.i)}
     <span class="dumbbell" data-tip="${t}">
       <span class="db-line" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%;background:${col}"></span>
       <span class="db-dot db-from" style="left:${x0.toFixed(1)}%"></span>
@@ -243,8 +258,9 @@ function strip(m, pair, { rows, cityD }) {
 }
 
 function renderChanges() {
-  const m = state.m;
-  seg($("change-pair"), PAIRS.map((p) => [p.join("-"), `${refYear(m, p[0])}–${refYear(m, p[1])}`]), state.pair.join("-"), (k) => {
+  const m = state.m, ps = pairsOf(m);
+  if (!ps.includes(state.pair)) state.pair = DEFAULT_PAIR;
+  seg($("change-pair"), ps.map((p) => [p.join("-"), `${refYear(m, p[0])}–${refYear(m, p[1])}`]), state.pair.join("-"), (k) => {
     state.pair = PAIRS.find((p) => p.join("-") === k);
     renderChanges();
     writeHash();
@@ -259,17 +275,17 @@ function renderChanges() {
   $("change-down").innerHTML = down.map((r) => changeRow(m, pair, r, scale, false)).join("") || `<li class="none">No neighbourhood fell.</li>`;
   const unit = isMoney(m) ? `, ${refYear(m, a)} figures in ${refYear(m, b)} dollars` : ", in percentage points";
   $("change-lede").innerHTML = `${escapeHTML(MEASURES[m].long)}, ${source(m, a)} to ${source(m, b)}${unit}. `
-    + `Each row runs from the earlier figure (open dot) to the later one. The city changed by ${fmtChange(m, c.cityD)}.`;
+    + `Each row runs from the earlier figure (open dot) to the later one. The city changed by ${fmtChange(m, c.cityD)}.${near06(m, pair)}`;
   $("strip").innerHTML = strip(m, pair, c);
   const rose = c.rows.filter((r) => r.d > 0).length, fell = c.rows.filter((r) => r.d < 0).length;
   $("strip-caption").innerHTML = `All ${c.rows.length} neighbourhoods with figures in both censuses, from the biggest fall to the biggest rise: ${rose} rose, ${fell} fell. The dark line marks the city's change.`;
 }
 
-// ---- sections 4-7 share: the three censuses as one light-to-dark blue ramp ----------
-// (validated as an ordinal palette: one hue, monotone lightness, visible steps)
-const YEAR_COLOR = { 2011: "#7aa9e6", 2016: "#2a78d6", 2021: "#0d366b" };
-const yearKey = (el, label = (y) => y) => {
-  el.innerHTML = YEARS.map((y) => `<li><span class="key-dot" style="background:${YEAR_COLOR[y]}"></span>${label(y)}</li>`).join("");
+// ---- sections 4-7 share: the four censuses as one light-to-dark blue ramp ----------
+// (the site's sequential ramp: one hue, monotone lightness, visible steps)
+const YEAR_COLOR = { 2006: "#86b6ef", 2011: "#4f8fe0", 2016: "#1c5cab", 2021: "#0d366b" };
+const yearKey = (el, label = (y) => y, ys = YEARS) => {
+  el.innerHTML = ys.map((y) => `<li><span class="key-dot" style="background:${YEAR_COLOR[y]}"></span>${label(y)}</li>`).join("");
 };
 const shortName = (m) => MEASURES[m].short;
 
@@ -281,7 +297,8 @@ function renderSpread() {
   const m = state.m, money = isMoney(m), real = money && state.spreadReal;
   $("spread-real-wrap").hidden = !money;
   const f = (y) => (real ? data.cpi[refYear(m, "2021")] / data.cpi[refYear(m, y)] : 1);
-  const rows = YEARS.map((y) => {
+  const ys = yearsOf(m);
+  const rows = ys.map((y) => {
     const pts = val(m, y).map((v, i) => (v == null ? null : { i, v: v * f(y) })).filter(Boolean);
     const s = pts.map((p) => p.v).sort((a, b) => a - b);
     return { y, pts, n: s.length, p10: quantile(s, 0.1), p50: quantile(s, 0.5), p90: quantile(s, 0.9) };
@@ -311,7 +328,7 @@ function renderSpread() {
   $("spread").innerHTML = html + `<div class="sp-axis"><span class="sp-year"></span><div class="sp-ticks">${ticks.map((v, k) => `<span style="left:${k * 25}%">${fmtShort(m, v)}${k === 4 ? "+" : ""}</span>`).join("")}</div><span class="sp-stat">median</span></div>`;
   $("spread-lede").innerHTML = `${escapeHTML(MEASURES[m].long)}${real ? `, earlier censuses in ${refYear(m, "2021")} dollars` : ", as published"}. `
     + `Each dot is a neighbourhood; the bar spans the middle 80% of them (10th to 90th percentile) and the dark tick marks the median.`;
-  yearKey($("spread-key"), (y) => `${yearLabel(m, y)} · ${rows[YEARS.indexOf(y)].n} neighbourhoods`);
+  yearKey($("spread-key"), (y) => `${yearLabel(m, y)} · ${rows[ys.indexOf(y)].n} neighbourhoods`, ys);
 }
 $("spread-real").addEventListener("change", (e) => {
   state.spreadReal = e.target.checked;
@@ -340,9 +357,11 @@ function renderCorr() {
     renderCorr();
     writeHash();
   });
-  // the grid (wide screens)
-  const head = `<span class="cg-corner"></span>` + measures.map((b) => `<span class="cg-col${b === m ? " sel" : ""}"><span>${escapeHTML(shortName(b))}</span></span>`).join("");
-  const body = measures.map((a) => `<span class="cg-row${a === m ? " sel" : ""}">${escapeHTML(shortName(a))}</span>` + measures.map((b) => {
+  // the grid (wide screens): the measures with figures in that census
+  const ms = measures.filter((b) => has(b, y));
+  $("corr-grid").style.gridTemplateColumns = `150px repeat(${ms.length}, minmax(14px, 1fr))`;
+  const head = `<span class="cg-corner"></span>` + ms.map((b) => `<span class="cg-col${b === m ? " sel" : ""}"><span>${escapeHTML(shortName(b))}</span></span>`).join("");
+  const body = ms.map((a) => `<span class="cg-row${a === m ? " sel" : ""}">${escapeHTML(shortName(a))}</span>` + ms.map((b) => {
     if (a === b) return `<span class="cg-cell cg-self"></span>`; // not "diag": that is the overlay's class
     const v = c[a][b];
     if (!v) return `<span class="cg-cell none" data-tip="${escapeHTML(`${shortName(a)} and ${shortName(b)}, ${y}: too few neighbourhoods with both`)}"></span>`;
@@ -402,8 +421,9 @@ $("corr-list").addEventListener("click", pickPair);
 function renderScatter() {
   const y = state.corrYear, c = corr(y);
   // Default pair: the selected measure and the measure it moves with most closely.
-  if (!state.sx || !state.sy || state.sx === state.sy) {
-    const m = state.m;
+  if (!state.sx || !state.sy || state.sx === state.sy || !has(state.sx, y) || !has(state.sy, y)) {
+    // (in 2006, a measure without figures gives way to the first two that have them)
+    const m = has(state.m, y) ? state.m : measures.find((b) => has(b, y));
     // ...from another group: within a group (total and after-tax income) it is trivially close.
     const pool = measures.filter((b) => b !== m && c[m][b]);
     const other = pool.filter((b) => MEASURES[b].group !== MEASURES[m].group);
@@ -429,7 +449,9 @@ function renderScatter() {
   const py = (v_) => Math.min(100, Math.max(0, ((v_ - ya) / (yb - ya || 1)) * 100));
   const dots = idx.map((i) => {
     const t = `${escapeHTML(nbhd[i].name)}<br>${escapeHTML(shortName(a))}: <b>${fmt(a, va[i])}</b><br>${escapeHTML(shortName(b))}: <b>${fmt(b, vb[i])}</b>`;
-    return `<a class="sc-dot" href="${mapLink(a, y, i)}" style="left:${px(va[i]).toFixed(2)}%;bottom:${py(vb[i]).toFixed(2)}%" data-tip="${t}" aria-label="${escapeHTML(nbhd[i].name)}"></a>`;
+    const href = mapLink(a, y, i), pos = `left:${px(va[i]).toFixed(2)}%;bottom:${py(vb[i]).toFixed(2)}%`;
+    return href ? `<a class="sc-dot" href="${href}" style="${pos}" data-tip="${t}" aria-label="${escapeHTML(nbhd[i].name)}"></a>`
+      : `<span class="sc-dot" style="${pos}" data-tip="${t}"></span>`;
   }).join("");
   // Gridlines and ticks at quarters of each axis; the top end is the 99th percentile.
   const q = [0, 0.25, 0.5, 0.75, 1];
@@ -442,7 +464,7 @@ function renderScatter() {
     <div class="sc-x">${escapeHTML(MEASURES[a].long)}, ${refYear(a, y)}</div>`;
   const stat = a === b ? "the same measure on both axes; pick two different ones" : v ? `correlation <b>${fmtR(v.r)}</b> across ${v.n} neighbourhoods` : "too few neighbourhoods with both";
   $("scatter-caption").innerHTML = `${y} census: ${stat}. `
-    + `Each dot is a neighbourhood; open one on the map. Pick any two measures, or choose a cell above.`;
+    + `Each dot is a neighbourhood${y === "2006" ? "" : "; open one on the map"}. Pick any two measures, or choose a cell above.`;
 }
 
 // ---- 6. relationships that changed -------------------------------------------------------
@@ -472,7 +494,7 @@ function renderShift() {
       <span class="sh-val">${fmtR(r0)} → ${fmtR(r1)}</span></button></li>`;
   }).join("") || `<li class="none">No pairs to show.</li>`;
   $("shift-lede").innerHTML = `The pairs of measures whose correlation across neighbourhoods changed most between the ${a} and ${b} censuses${state.shiftOnly ? `, among pairs with ${escapeHTML(MEASURES[state.m].long.toLowerCase())}` : ""}. `
-    + `Each strip runs from −1 to 1; the dots are the three censuses. Choose a pair to see it in the chart above.`;
+    + `Each strip runs from −1 to 1; the dots are the censuses. Choose a pair to see it in the chart above.`;
   yearKey($("shift-key"));
 }
 $("shift-only").addEventListener("change", (e) => {
@@ -512,6 +534,7 @@ $("method").textContent = "Neighbourhood figures combine the dissemination areas
   + "Shares are summed from counts; income medians are interpolated from income groups (2011 household income: the median of the areas' medians, weighted by households); "
   + "dwelling value, owner costs and rent are the median of the areas' medians, weighted by owner or renter households; published rates are weighted averages. "
   + "A neighbourhood is left out when areas holding less than half of its households (or owners, renters, people) have a figure. City figures are Statistics Canada's. "
+  + "2006 has the 19 measures its profile publishes on the same terms (the three shelter-cost shares on a base that also counts households with zero or negative income); each of its areas counts toward the neighbourhood covering most of it, as in the later censuses. "
   + "Dollar changes restate the earlier figure with Toronto's consumer price index. "
   + "Correlations are Spearman rank correlations across the neighbourhoods with both figures; the gap is the 90th-percentile neighbourhood's figure over the 10th's.";
 
