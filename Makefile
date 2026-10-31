@@ -32,8 +32,8 @@ STATCAN11 := $(PROFILE11) $(RAW)/gda_000b11a_e.zip $(RAW)/2016_92-156_DALand_ADs
 # the NHS (2011 long form) DA table, a Beyond 20/20 file, and Toronto's rows of it
 NHSIVT11  := $(RAW)/NHSprofile_Can_PR_CD_CSD_DA.IVT
 NHS11     := pipeline/out/toronto_nhs_2011.csv
-# 2006 Census DA profile (Beyond 20/20) and Toronto's rows of it; joining 2006
-# DAs to neighbourhoods waits for the 2006 boundaries and correspondence (www12)
+# 2006 Census DA profile (Beyond 20/20) and Toronto's rows of it (census2006.py
+# places them in neighbourhoods)
 PROFILEIVT06 := $(RAW)/94-581-XCB2006002.IVT
 PROFILE06    := pipeline/out/toronto_profile_2006.csv
 TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_points_4326.csv \
@@ -151,6 +151,20 @@ $(CITYRAW):
 
 $(CITY): $(CITYRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b21a_e.zip $(FIGURES) pipeline/city_layers.py
 	$(PYTHON) pipeline/city_layers.py
+
+# 2006 Census on the 158 neighbourhoods (a model input, not part of the site). The
+# profile extract ($(PROFILE06)) isn't a prerequisite, so this never needs pyivt.
+CENSUS06 := pipeline/census/manifest.json
+.PHONY: census2006
+
+census2006: $(CENSUS06)
+
+$(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip:
+	@echo "$@: download it from www12.statcan.gc.ca in a browser (see pipeline/census2006.py)"; exit 1
+
+$(CENSUS06): $(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip $(RAW)/toronto_neighbourhoods_4326.geojson \
+             $(FIGURES11) $(INSIGHTS) pipeline/census2006.py pipeline/insights.py
+	$(PYTHON) pipeline/census2006.py
 
 clean:
 	rm -rf pipeline/out
