@@ -1,8 +1,9 @@
-// The Insights page: the city's figures in each census, the highest and lowest
+// The Census Insights page: the city's figures in each census, the highest and lowest
 // of the 158 neighbourhoods, and the biggest changes between censuses. Charts are
 // inline SVG and HTML; the figures come from insights.json (pipeline/insights.py).
 import "./style.css";
 import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, ordinal } from "./catalogue.js";
+import { R_EDGES, fmtR, initTip, quantile, rColor, seg, spearman } from "./charts.js";
 
 const data = await fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json());
 const YEARS = data.years; // ["2011", "2016", "2021"]
@@ -60,23 +61,7 @@ const mapLink = (m, y, i) => {
   return y === "2011" ? `/2011/#m=${m}&${at}` : `/#m=${m}&y=${y}&${at}&o=nbhd`;
 };
 
-// ---- tooltip shared by every chart: any element with data-tip -----------------
-const tip = $("tip");
-document.addEventListener("pointerover", (e) => {
-  const t = e.target.closest?.("[data-tip]");
-  if (!t) return;
-  tip.innerHTML = t.dataset.tip;
-  tip.hidden = false;
-});
-document.addEventListener("pointermove", (e) => {
-  if (tip.hidden) return;
-  const pad = 12, w = tip.offsetWidth, h = tip.offsetHeight;
-  const x = Math.min(e.clientX + pad, innerWidth - w - 8), y = e.clientY - h - pad < 8 ? e.clientY + pad : e.clientY - h - pad;
-  tip.style.transform = `translate(${x}px, ${y}px)`;
-});
-document.addEventListener("pointerout", (e) => {
-  if (e.target.closest?.("[data-tip]") && !e.relatedTarget?.closest?.("[data-tip]")) tip.hidden = true;
-});
+initTip();
 
 // ---- measure menu -------------------------------------------------------------
 const select = $("measure");
@@ -155,15 +140,6 @@ $("real").addEventListener("change", (e) => {
   renderCards();
   writeHash();
 });
-
-// ---- segmented controls ---------------------------------------------------------
-function seg(el, items, current, onPick) {
-  el.innerHTML = items.map(([key, label]) => `<button type="button" data-k="${key}" aria-pressed="${key === current}">${label}</button>`).join("");
-  el.onclick = (e) => {
-    const b = e.target.closest("button");
-    if (b) onPick(b.dataset.k);
-  };
-}
 
 // ---- 2. highest and lowest --------------------------------------------------------
 // Rank 1 = highest. Neighbourhoods without a figure are left out.
@@ -295,10 +271,6 @@ const YEAR_COLOR = { 2011: "#7aa9e6", 2016: "#2a78d6", 2021: "#0d366b" };
 const yearKey = (el, label = (y) => y) => {
   el.innerHTML = YEARS.map((y) => `<li><span class="key-dot" style="background:${YEAR_COLOR[y]}"></span>${label(y)}</li>`).join("");
 };
-const quantile = (sorted, q) => {
-  const pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
-};
 const shortName = (m) => MEASURES[m].short;
 
 // ---- 4. how the neighbourhoods spread out ---------------------------------------------
@@ -350,28 +322,6 @@ $("spread-real").addEventListener("change", (e) => {
 // ---- 5. what goes with what ----------------------------------------------------------
 // Spearman rank correlation between two measures across the neighbourhoods with
 // both figures in a census.
-function ranks(xs) {
-  const order = xs.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
-  const r = new Array(xs.length);
-  for (let k = 0; k < order.length;) {
-    let j = k;
-    while (j + 1 < order.length && order[j + 1][0] === order[k][0]) j++;
-    for (let q = k; q <= j; q++) r[order[q][1]] = (k + j) / 2 + 1;
-    k = j + 1;
-  }
-  return r;
-}
-function spearman(a, b) {
-  const idx = a.map((_, i) => i).filter((i) => a[i] != null && b[i] != null);
-  if (idx.length < 30) return null;
-  const ra = ranks(idx.map((i) => a[i])), rb = ranks(idx.map((i) => b[i]));
-  const n = idx.length, ma = ra.reduce((s, v) => s + v, 0) / n, mb = rb.reduce((s, v) => s + v, 0) / n;
-  let sab = 0, saa = 0, sbb = 0;
-  for (let k = 0; k < n; k++) {
-    sab += (ra[k] - ma) * (rb[k] - mb); saa += (ra[k] - ma) ** 2; sbb += (rb[k] - mb) ** 2;
-  }
-  return { r: sab / Math.sqrt(saa * sbb), n };
-}
 const corrCache = {};
 function corr(y) {
   if (corrCache[y]) return corrCache[y];
@@ -382,10 +332,6 @@ function corr(y) {
   }
   return (corrCache[y] = c);
 }
-// Seven classes on the site's diverging ramp: negative red, positive blue.
-const R_EDGES = [-0.6, -0.3, -0.1, 0.1, 0.3, 0.6];
-const rColor = (r) => DIVERGING[R_EDGES.filter((e) => r >= e).length];
-const fmtR = (r) => (r == null ? "—" : `${r < 0 ? "−" : ""}${Math.abs(r).toFixed(2)}`);
 
 function renderCorr() {
   const y = state.corrYear, c = corr(y), m = state.m;

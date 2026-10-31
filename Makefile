@@ -152,20 +152,27 @@ $(CITYRAW):
 $(CITY): $(CITYRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b21a_e.zip $(FIGURES) pipeline/city_layers.py
 	$(PYTHON) pipeline/city_layers.py
 
-# School test results by school and neighbourhood (a model input, not part of the site).
-# It reads the committed 2021 figures files and insights.json without rebuilding them.
+# School test results by school and neighbourhood (a model input), and the School Insights
+# page's schools.json. They read the committed 2021 figures files and insights.json without
+# rebuilding them.
 SCHOOLRAW := $(addprefix $(RAW)/schools/sif_,2017_18.xlsx 2018_19.xlsx 2019_20.xlsx 2020_21.xlsx \
              2021_22.xlsx 2022_23.xlsx 2023_24.xlsx 2024_25.xlsx)
 SCHOOLS   := pipeline/schools/manifest.json
-.PHONY: schools
+SCHOOLINS := web/public/schools.json
+.PHONY: schools school-insights
 
 schools: $(SCHOOLS)
+
+school-insights: $(SCHOOLINS)
 
 $(SCHOOLRAW):
 	$(PYTHON) pipeline/download.py
 
 $(SCHOOLS): $(SCHOOLRAW) $(RAW)/lda_000b21a_e.zip pipeline/schools.py
 	$(PYTHON) pipeline/schools.py
+
+$(SCHOOLINS): $(SCHOOLS) $(RAW)/toronto_neighbourhoods_4326.geojson pipeline/school_insights.py
+	$(PYTHON) pipeline/school_insights.py
 
 # 2006 Census on the 158 neighbourhoods (a model input, not part of the site). The
 # profile extract ($(PROFILE06)) isn't a prerequisite, so this never needs pyivt.

@@ -191,6 +191,10 @@ shares as "62%", as integer percents and as fractions, sometimes in one column; 
 2019-20 and 2020-21 files repeat the 2018-19 results (no tests in the pandemic), which
 the script confirms value for value before dropping them, so the test years are 2018,
 2019 and 2022-2025. The 2023-24 file is preliminary. No attendance areas are published.
+`make school-insights` runs `pipeline/school_insights.py`, which writes the School Insights
+page's `web/public/schools.json` (committed) from those files: the scored schools' results
+and demographic shares by test year, the City's figures (checked against the manifest),
+both neighbourhood methods and simplified neighbourhood outlines for the page's map.
 
 Listing pages:
 - Profile: https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/download-telecharger.cfm?Lang=E

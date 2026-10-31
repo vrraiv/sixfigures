@@ -32,7 +32,16 @@
 /insights/index.html
   Cache-Control: no-cache
 
+/insights/schools/
+  Cache-Control: no-cache
+
+/insights/schools/index.html
+  Cache-Control: no-cache
+
 /insights.json
+  Cache-Control: public, max-age=3600
+
+/schools.json
   Cache-Control: public, max-age=3600
 
 /data/figures/*
