@@ -456,7 +456,7 @@ function renderCorr() {
       return `<td class="pickable${`s:${k}` === state.sx && y === state.y ? " pick" : ""}" data-x="s:${k}" data-y="${y}" style="background:${rColor(v.r)};color:${dark ? "#fff" : INK}" data-tip="${escapeHTML(`${NAMES[m]} and ${label(k).toLowerCase()}, ${y}: <b>${fmtR(v.r)}</b> across ${v.n} schools`)}">${fmtR(v.r)}</td>`;
     }).join("")}</tr>`).join("") + "</tbody>";
   $("corr-lede").innerHTML = `The correlation (Pearson r) across schools between each school's ${NAMES[m].toLowerCase()} and the Ministry's figures on its students, in each test year's file. Choose a cell to see its schools below.`;
-  $("corr-note").innerHTML = `The low-income and parents-without-a-degree shares are Statistics Canada census figures for the areas where students live, not counts of students; their distribution changes between the 2022 and 2023 files. The other shares are reported by the schools.`;
+  $("corr-note").innerHTML = `The low-income and parents-without-a-degree shares are Statistics Canada census figures for the areas where students live, not counts of students; their distribution changes from the 2022-23 file (test year 2023) on. The other shares are reported by the schools.`;
   // neighbourhoods against the 2021 Census
   const y = state.y, v = nv(m, y);
   const rs = censusMeasures.map((c) => ({ c, v: pearson(v, census.measures[c].values["2021"]) })).filter((r) => r.v).sort((a, b) => b.v.r - a.v.r);
