@@ -243,6 +243,15 @@ went from Scarborough East to Scarborough Central, so before 2012 `rms_nbhd.csv`
 both zones' neighbourhoods their combined figure; the script stops if the units show
 another move (`ZONE_MOVES` in `cmhc.py`).
 
+Housing Insights: `make housing-insights` runs `pipeline/housing_insights.py`, which writes
+`web/public/housing.json` (committed) from the committed permits, City, CMHC and StatCan
+series outputs and the households in the figures files. Those outputs aren't make
+prerequisites (their rules would rerun the slow steps or a download); the script stops if
+one is missing. It checks itself against the manifests: units created on permits issued
+match `cma_check` each year, net units issued in 2016-2020 against the 2016-2021 change in
+households match `census_check` (83,604, 48,090, r 0.901), and the 2025 RMS average rent is
+$1,916.
+
 ## Processing notes
 
 - **Encoding:** the profile CSV is Latin-1, not UTF-8.

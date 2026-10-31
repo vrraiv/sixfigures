@@ -34,7 +34,7 @@ const [heavy, heavyBytes] = Object.entries(zooms).sort((a, b) => b[1] - a[1])[0]
 const z10 = zooms[10] ?? 0;
 // Loaded before the map draws: the page, its CSS and JS (but not the lazy search
 // chunk), the MapLibre worker, breaks.json, the opening view's figures and the zoom-10 tiles.
-const first = size(/^(index\.html|breaks\.json|data\/figures\/2021\/(common|med_hh_tot)\.json|assets\/(?!(2011|insights|schools|charts|search|diag)-).*)$/) + z10;
+const first = size(/^(index\.html|breaks\.json|data\/figures\/2021\/(common|med_hh_tot)\.json|assets\/(?!(2011|insights|schools|housing|charts|search|diag)-).*)$/) + z10;
 const total = files.reduce((a, f) => a + f.size, 0);
 console.log(`2021 tiles: heaviest zoom (z${heavy}) ${mb(heavyBytes)} MB of ${mb(ZOOM_LIMIT)} MB budget; first load ~${mb(first)} MB; deploying ${mb(total)} MB in ${files.length} files`);
 

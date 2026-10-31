@@ -41,6 +41,15 @@
 /insights.json
   Cache-Control: public, max-age=3600
 
+/insights/housing/
+  Cache-Control: no-cache
+
+/insights/housing/index.html
+  Cache-Control: no-cache
+
+/housing.json
+  Cache-Control: public, max-age=3600
+
 /schools.json
   Cache-Control: public, max-age=3600
 
