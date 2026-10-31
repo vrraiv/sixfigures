@@ -166,5 +166,20 @@ $(CENSUS06): $(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip $(
              $(FIGURES11) $(INSIGHTS) pipeline/census2006.py pipeline/insights.py
 	$(PYTHON) pipeline/census2006.py
 
+# School test results by school and neighbourhood (a model input, not part of the site).
+# It reads the committed 2021 figures files and insights.json without rebuilding them.
+SCHOOLRAW := $(addprefix $(RAW)/schools/sif_,2017_18.xlsx 2018_19.xlsx 2019_20.xlsx 2020_21.xlsx \
+             2021_22.xlsx 2022_23.xlsx 2023_24.xlsx 2024_25.xlsx)
+SCHOOLS   := pipeline/schools/manifest.json
+.PHONY: schools
+
+schools: $(SCHOOLS)
+
+$(SCHOOLRAW):
+	$(PYTHON) pipeline/download.py
+
+$(SCHOOLS): $(SCHOOLRAW) $(RAW)/lda_000b21a_e.zip pipeline/schools.py
+	$(PYTHON) pipeline/schools.py
+
 clean:
 	rm -rf pipeline/out

@@ -10,7 +10,8 @@ memory. Anything not confirmed says so.
 
 - **Targets.** The 27 measures on the maps (`pipeline/measures.py`): incomes,
   low income and transfers, housing costs and tenure, dwelling types and age,
-  education, mobility, immigration, age groups.
+  education, mobility, immigration, age groups. Also the elementary school
+  score (Grade 3 and 6 test results, below), on its own annual timeline.
 - **Panel unit.** Two candidates:
   - *The City's 158 neighbourhoods.* Constant across every census already:
     each year's DAs carry a 158-model neighbourhood, and `insights.json` has
@@ -111,6 +112,26 @@ and costs in 2006 dollars; `cpi.json` has neither year, but
 Not found openly by census tract. Zones would need a zone-to-neighbourhood
 lookup.
 
+### Ontario Ministry of Education (data.ontario.ca: scripted, `download.py`, `pipeline/schools.py`)
+
+| Source | Where | Years | Geography | Role | Origin |
+|---|---|---|---|---|---|
+| School Information and Student Demographics: enrolment, coordinates, EQAO results (share at the provincial standard in Grade 3 and 6 reading, writing and math, Grade 9 math, the Grade 10 literacy test), school demographics (low income, parents without a degree, language, special education) | [school-information-and-student-demographics](https://data.ontario.ca/en/dataset/school-information-and-student-demographics), one xlsx per school year, Open Government Licence - Ontario | school years 2017-18 to 2024-25; tests written 2018, 2019, 2022-2025 (2023-24 preliminary) | school (coordinates) | Target (elementary score); school demographics as drivers | known to the test year |
+
+No tests were written in 2020 or 2021: the 2019-20 and 2020-21 files repeat the
+2018-19 results (`schools.py` checks that they match value for value). Grade 9
+math was two tests (academic and applied) until 2019 and one since, so the score
+uses Grades 3 and 6 only: the mean of the six results, over the English public and
+Catholic elementary schools without a special condition (about 410-430 of about
+630 in the City report all six each year). No attendance areas are published (the
+City's school "district" layers are trustee wards), so `by_nbhd.csv` gives the
+score two ways: from each DA's nearest public and Catholic schools, weighted by
+children (all 158 neighbourhoods; the primary target), and from the schools inside
+the neighbourhood (140-142 of 158). The two correlate 0.89-0.92 by year. Between
+the 2019 and 2025 tests, neighbourhood scores correlate 0.84 (nearest) and 0.82
+(inside), schools 0.67; against the log of 2021 median household income, about
+0.56-0.58.
+
 ### Not pursued
 
 MPAC property assessments and TRREB sales are not open. Teranet and other
@@ -144,6 +165,9 @@ source allows). Every script prints its own checks, as the census scripts do.
    zone-to-neighbourhood lookup.
 6. **Exploratory drivers** (crime rates, short-term rentals, transit): only if
    the first model leaves error that they could plausibly explain.
+7. **School results** (done: `make schools` rebuilds `pipeline/schools/`): EQAO
+   results and school demographics by school and year, and the Grade 3 and 6
+   score by neighbourhood and test year.
 
 ## Decisions before modelling
 
