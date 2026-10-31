@@ -160,7 +160,7 @@ CENSUS06 := pipeline/census/manifest.json
 census2006: $(CENSUS06)
 
 $(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip:
-	@echo "$@: download it from www12.statcan.gc.ca in a browser (see pipeline/census2006.py)"; exit 1
+	$(PYTHON) pipeline/download.py
 
 $(CENSUS06): $(RAW)/gda_000a06a_e.zip $(RAW)/2011_92-156_DALand_ADsup_txt.zip $(RAW)/toronto_neighbourhoods_4326.geojson \
              $(FIGURES11) $(INSIGHTS) pipeline/census2006.py pipeline/insights.py

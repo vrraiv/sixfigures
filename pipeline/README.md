@@ -90,10 +90,11 @@ crowding not in the profile.
 neighbourhoods and writes `pipeline/census/` (committed): `da_2006.csv` (each DA's
 neighbourhood), `nbhd_2006.csv` (the same and near measures by neighbourhood, aggregated
 as `insights.py` does, plus 2006's average rent, value and owner costs and LICO-AT under
-their own names) and `manifest.json` (checks, city values). It needs two browser
-downloads from www12 in `pipeline/raw`: the 2006 DA boundary file `gda_000a06a_e.zip`
-(digital; the cartographic `gda_000b06a_e.zip` works too) and the 2011↔2006 DA
-correspondence `2011_92-156_DALand_ADsup_txt.zip`. All 3,519 DAs unchanged between 2006
+their own names) and `manifest.json` (checks, city values). It needs two files from
+www12, listed in `download.py` (usually a browser download, as for the other www12
+files): the 2006 DA boundary file `gda_000a06a_e.zip` (digital; the cartographic
+`gda_000b06a_e.zip` works too) and the 2011↔2006 DA correspondence
+`2011_92-156_DALand_ADsup_txt.zip`. All 3,519 DAs unchanged between 2006
 and 2011 land in the neighbourhood the 2011 figures give them. The profile stores
 suppressed statistics as 0; the script nulls them. 21 boundary DAs are not in the
 profile and 5 had their 100% data suppressed, so the DAs sum to 10,518 (0.4%) fewer

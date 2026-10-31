@@ -63,6 +63,15 @@ STATCAN = {
         "https://www12.statcan.gc.ca/census-recensement/2011/geo/ref/"
         "files-fichiers/2016/2016_92-156_DALand_ADsup_csv.zip"
     ),
+    # 2006 DA boundaries (digital) and the 2011<->2006 DA correspondence, for census2006.py
+    "gda_000a06a_e.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/"
+        "files-fichiers/gda_000a06a_e.zip"
+    ),
+    "2011_92-156_DALand_ADsup_txt.zip": (
+        "https://www12.statcan.gc.ca/census-recensement/2011/geo/ref/"
+        "files-fichiers/2011_92-156_DALand_ADsup_txt.zip"
+    ),
 }
 # The 2011 NHS Profile for DAs was never a StatCan product (StatCan did not release
 # DA-level NHS data; its comprehensive files stop at census tracts). A semi-custom

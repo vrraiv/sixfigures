@@ -5,7 +5,8 @@ pipeline/census/da_2006.csv (each 2006 DA's neighbourhood), pipeline/census/nbhd
     python pipeline/census2006.py
 
 Inputs: pipeline/out/toronto_profile_2006.csv (profile2006.py, which needs pyivt) and two
-browser downloads from www12.statcan.gc.ca (it has a bot challenge) in pipeline/raw:
+files from www12.statcan.gc.ca in pipeline/raw (download.py lists them; its bot challenge
+usually means a browser download):
   gda_000a06a_e.zip                 2006 DA boundary file, digital (the cartographic one,
                                     gda_000b06a_e.zip, works too: the overlay counts land only)
   2011_92-156_DALand_ADsup_txt.zip  2011<->2006 DA correspondence: DAUID2011, DAUID2006, a
@@ -146,7 +147,7 @@ def main():
         sys.exit(f"{PROFILE} missing: run pipeline/profile2006.py (needs pyivt)")
     for f in (BOUNDARY_ZIP, CORR_ZIP):
         if not f.exists():
-            sys.exit(f"{f.name} missing: download it from www12.statcan.gc.ca in a browser (see this script's docstring)")
+            sys.exit(f"{f.name} missing: run pipeline/download.py, which prints its URL if StatCan blocks the script")
     raw, csd = load_profile()
     das, city = derive(raw), derive(csd).iloc[0]
     checks = {}
