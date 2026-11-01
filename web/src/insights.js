@@ -3,7 +3,7 @@
 // inline SVG and HTML; the figures come from insights.json (pipeline/insights.py).
 import "./style.css";
 import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, ordinal } from "./catalogue.js";
-import { R_EDGES, fmtR, initTip, quantile, rColor, seg, spearman } from "./charts.js";
+import { R_EDGES, fmtR, initPick, initTip, quantile, rColor, seg, spearman } from "./charts.js";
 
 const data = await fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json());
 const YEARS = data.years; // ["2006", "2011", "2016", "2021"]
@@ -17,6 +17,10 @@ const measures = Object.keys(MEASURES).filter((m) => m in data.measures);
 
 // ---- state, kept in the address -----------------------------------------------
 const hash = new URLSearchParams(location.hash.slice(1));
+const nbIndex = (id) => {
+  const k = nbhd.findIndex((n) => String(n.id) === id);
+  return k < 0 ? null : k;
+};
 const state = {
   m: measures.includes(hash.get("m")) ? hash.get("m") : "med_hh_tot",
   year: YEARS.includes(hash.get("y")) ? hash.get("y") : "2021",
@@ -25,6 +29,7 @@ const state = {
   spreadReal: hash.get("sr") !== "0",
   mapYear: YEARS.includes(hash.get("my")) ? hash.get("my") : "2021",
   mapChange: hash.get("mc") === "1",
+  nb: nbIndex(hash.get("nb")),
   corrYear: YEARS.includes(hash.get("cy")) ? hash.get("cy") : "2021",
   shiftPair: PAIRS.find((p) => p.join("-") === hash.get("sp")) ?? DEFAULT_PAIR,
   shiftOnly: false,
@@ -38,6 +43,7 @@ const writeHash = () => {
   if (state.real) h.set("real", "1");
   h.set("my", state.mapYear);
   if (state.mapChange) h.set("mc", "1");
+  if (state.nb != null) h.set("nb", nbhd[state.nb].id);
   history.replaceState(null, "", `#${h}`);
 };
 
@@ -72,10 +78,10 @@ const mapLink = (m, y, i) => {
   const at = `at=13/${lat}/${lng}`;
   return y === "2006" ? null : y === "2011" ? `/2011/#m=${m}&${at}` : `/#m=${m}&y=${y}&${at}&o=nbhd`;
 };
-// A neighbourhood's name, linked to the map of that census where there is one (no 2006 map).
-const nameLink = (m, y, i) => {
-  const href = mapLink(m, y, i), n = escapeHTML(nbhd[i].name);
-  return href ? `<a class="nm" href="${href}" title="Show ${n} on the map">${n}</a>` : `<span class="nm">${n}</span>`;
+// A neighbourhood's name, which finds it on the neighbourhood map.
+const nameLink = (i) => {
+  const n = escapeHTML(nbhd[i].name);
+  return `<button type="button" class="nm" data-nb="${i}" title="Find ${n} on the map">${n}</button>`;
 };
 
 initTip();
@@ -168,6 +174,14 @@ const mapClasses = (vs, k) => {
   const s = vs.filter((v) => v != null).sort((a, b) => a - b);
   return [1, 2, 3, 4, 5].slice(0, k - 1).map((q) => quantile(s, q / k)).filter((e, i, a) => i === 0 || e > a[i - 1]);
 };
+// The picked neighbourhood's figures, with a link to its areas on the dissemination-area map.
+const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
+  state.nb = i;
+  writeHash();
+}, (i) => {
+  const y = state.mapYear === "2006" ? "2021" : state.mapYear;
+  return ` <a href="${mapLink(state.m, y, i)}">Its areas on the ${y} map</a>`;
+});
 function renderMap() {
   const m = state.m, ys = yearsOf(m);
   if (!ys.includes(state.mapYear)) state.mapYear = "2021";
@@ -203,7 +217,7 @@ function renderMap() {
     const t = change
       ? `${escapeHTML(n.name)}<br>${refYear(m, prev)}: ${fmt(m, v0[k] == null ? null : restate(m, v0[k], prev, y))}${isMoney(m) && v0[k] != null ? ` (in ${refYear(m, y)} dollars)` : ""}<br>${refYear(m, y)}: ${fmt(m, v1[k])}<br>Change: <b>${fmtChange(m, v)}</b>`
       : `${escapeHTML(n.name)}<br>${yearLabel(m, y)}: <b>${fmt(m, v)}</b>`;
-    return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : color(v)}" data-tip="${t}"/>`;
+    return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : color(v)}" data-i="${k}" data-tip="${t}"/>`;
   }).join("");
   $("nb-map").innerHTML = `<svg viewBox="0 0 ${data.map.width} ${data.map.height}" role="img" aria-label="${escapeHTML(`Map of the 158 neighbourhoods: ${MEASURES[m].long.toLowerCase()}, ${change ? `change from ${refYear(m, prev)} to ${refYear(m, y)}` : yearLabel(m, y)}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
@@ -214,6 +228,7 @@ function renderMap() {
   $("map-lede").innerHTML = change
     ? `${escapeHTML(MEASURES[m].long)}: the change from ${source(m, prev)} to ${source(m, y)}${unit}. Red fell, blue rose; the middle class is the fifth of neighbourhoods that changed least.${near06(m, [prev, y])}`
     : `${escapeHTML(MEASURES[m].long)}, ${yearLabel(m, y)}, in sixths of the neighbourhoods: the darkest are the sixth with the highest figures in that census.${near06(m, [y])}`;
+  markPick();
 }
 $("map-change").addEventListener("change", (e) => {
   state.mapChange = e.target.checked;
@@ -244,7 +259,7 @@ function rankRow(m, y, i, r, scale, prev, py) {
   const t = `${escapeHTML(nbhd[i].name)}<br><b>${fmt(m, v)}</b> · ${ordinal(k)} of ${n}<br>City: ${fmt(m, city(m, y))}`;
   return `<li>
     <span class="rk">${k}</span>
-    ${nameLink(m, y, i)}
+    ${nameLink(i)}
     <span class="barcell" data-tip="${t}"><span class="bar-fill" style="width:${w.toFixed(1)}%"></span><span class="city-mark" style="left:${c.toFixed(1)}%"></span></span>
     <span class="vl">${fmtShort(m, v)}</span>
     ${move}
@@ -269,7 +284,7 @@ function renderRanks() {
   $("rank-bottom").innerHTML = bottom.map((j) => rankRow(m, y, j, r, scale, prev, py)).join("");
   const missing = nbhd.length - r.order.length;
   $("rank-lede").innerHTML = `${escapeHTML(MEASURES[m].long)}, ${yearLabel(m, y)}, ${r.order.length} neighbourhoods${missing ? ` (${missing} without a figure)` : ""}. `
-    + `The tick on each bar marks the city (${fmt(m, city(m, y))}).${prev ? ` Arrows: places gained or lost since ${py}.` : ""}${near06(m, [y])}`;
+    + `The tick on each bar marks the city (${fmt(m, city(m, y))}).${prev ? ` Arrows: places gained or lost since ${py}.` : ""} Pick a name to find it on the map.${near06(m, [y])}`;
 }
 
 // ---- 3. biggest changes ----------------------------------------------------------
@@ -293,7 +308,7 @@ function changeRow(m, pair, row, scale, up) {
   const [a, b] = pair;
   const t = `${escapeHTML(nbhd[row.i].name)}<br>${refYear(m, a)}: ${fmt(m, row.before)}${isMoney(m) ? ` (in ${refYear(m, b)} dollars)` : ""}<br>${refYear(m, b)}: <b>${fmt(m, row.after)}</b><br>Change: ${fmtChange(m, row.d)}${row.pct != null ? ` (${sign(row.pct)}${Math.abs(row.pct).toFixed(1)}%)` : ""}`;
   return `<li>
-    ${nameLink(m, b, row.i)}
+    ${nameLink(row.i)}
     <span class="dumbbell" data-tip="${t}">
       <span class="db-line" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%;background:${col}"></span>
       <span class="db-dot db-from" style="left:${x0.toFixed(1)}%"></span>

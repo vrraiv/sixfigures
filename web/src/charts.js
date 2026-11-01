@@ -1,5 +1,5 @@
-// Shared by the Insights pages (insights.js, schools.js): the tooltip, segmented
-// controls, quantiles and correlations, and the correlation colours.
+// Shared by the Insights pages (insights.js, schools.js, housing.js): the tooltip, segmented
+// controls, quantiles and correlations, the correlation colours, and picking a neighbourhood.
 import { $, DIVERGING } from "./catalogue.js";
 
 // ---- tooltip shared by every chart: any element with data-tip -----------------
@@ -70,3 +70,33 @@ export function spearman(a, b) {
 export const R_EDGES = [-0.6, -0.3, -0.1, 0.1, 0.3, 0.6];
 export const rColor = (r) => DIVERGING[R_EDGES.filter((e) => r >= e).length];
 export const fmtR = (r) => (r == null ? "—" : `${r < 0 ? "−" : ""}${Math.abs(r).toFixed(2)}`);
+
+// ---- a neighbourhood picked from a list or the map ------------------------------
+// Anything with data-nb (a neighbourhood's index) picks it: the page's map outlines it and
+// the bar beneath shows its figures; a click on the map picks or clears. The map's paths
+// carry data-i; call the returned mark() after each redraw.
+export function initPick(fig, bar, get, set, extra = () => "") {
+  const mark = () => {
+    const i = get(), p = i == null ? null : fig.querySelector(`path[data-i="${i}"]`);
+    fig.classList.toggle("has-pick", !!p);
+    if (p) {
+      p.classList.add("pick");
+      p.parentNode.append(p); // drawn last, so its outline is on top
+    }
+    bar.hidden = !p;
+    bar.innerHTML = p ? `<span>${p.dataset.tip.replaceAll("<br>", " · ")}</span>${extra(i)}<button type="button" class="nb-clear">Clear</button>` : "";
+  };
+  const pick = (i, scroll) => {
+    fig.querySelector("path.pick")?.classList.remove("pick");
+    set(i);
+    mark();
+    if (scroll && i != null) fig.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("[data-nb]"), p = e.target.closest("path[data-i]");
+    if (a) pick(+a.dataset.nb, true);
+    else if (p && fig.contains(p)) pick(get() === +p.dataset.i ? null : +p.dataset.i, false);
+    else if (e.target.closest(".nb-clear")) pick(null, false);
+  });
+  return mark;
+}
