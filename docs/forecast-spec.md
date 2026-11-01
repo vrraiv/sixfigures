@@ -651,3 +651,30 @@ written alongside (`mae_raw`).
 - **Dollars:** City times exp(ratio), rounded to the nearest $1,000.
 - **Output:** written to `pipeline/out/model/value_live.csv`. Not yet published on the
   site.
+
+## Centred scores and the live table: first run (2026-11-01)
+
+**The rule, on centred scores, still chooses own mean** (forward 8.32, against
+persistence's 8.84):
+
+| Rung | Forward | Reverse |
+|---|---|---|
+| Own mean (chosen) | 8.32 | |
+| Own mean plus market | 8.46 | |
+| Market | 8.69 | 10.16 |
+| Reversion | 8.80 | 10.67 |
+| Persistence | 8.84 | 10.52 |
+| Build | 9.58 | 10.52 |
+| Analogs (k-NN) | 10.66 | 12.57 |
+| Ridge | 11.37 | 11.77 |
+
+**The live table** (`pipeline/out/model/value_live.csv`):
+- **City median, 2026:** $894,944.
+- **Market slope:** +0.211, from the two periods pooled.
+- **Coverage:** 157 of 158 neighbourhoods have a market figure.
+- **Range width:** the median neighbourhood's range spans 16% (high over low).
+- **Median of the neighbourhoods:**
+
+  | 2021 Census | Persistence | Own mean | Own mean plus market | Low | High |
+  |---|---|---|---|---|---|
+  | $925,000 | $920,000 | $911,500 | $916,000 | $851,000 | $993,000 |

@@ -63,6 +63,10 @@ DEMOGRAPHY = PIPELINE / "demography" / "nbhd.csv"
 NBHD_2006 = PIPELINE / "census" / "nbhd_2006.csv"
 TRREB = PIPELINE / "trreb"
 MIN_SALES = 10  # fewer in a window and a community has no market figure
+# The live table (docs/forecast-spec.md): the 2021 Census City median moved by TRREB's
+# May City median, and the range's allowance for the group's shift and the City's error.
+CITY_2021, TRREB_MAY = 900_000, {"2021": 890_000, "2026": 885_000}
+SPREAD = 0.05
 NEIGHBOURHOODS = PIPELINE / "raw" / "toronto_neighbourhoods_4326.geojson"
 OUT = PIPELINE / "out" / "model"
 
@@ -97,6 +101,41 @@ def neighbours(ids: list[int]) -> list[list[int]]:
         hits = [j for j in sidx.query(poly, predicate="intersects") if j != k]
         out.append(hits)
     return out
+
+
+def centre(x: np.ndarray, w: np.ndarray) -> np.ndarray:
+    return x - np.average(x, weights=w)
+
+
+def live(market, L: dict, ids: list, ins: dict, hh: dict) -> None:
+    """The live 2021-2026 table (docs/forecast-spec.md): the City's nowcast times each
+    neighbourhood's ratio by persistence, own mean and own mean plus market, centred."""
+    w = np.array(hh["2021"], float)
+    # The market slope, fitted on both periods pooled, each centred.
+    X, y, wt, grp = [], [], [], []
+    for c in ("2011", "2016"):
+        ww = np.array(hh[c], float)
+        X.append(centre(market(c), ww))
+        y.append(centre(L[str(int(c) + 5)] - L[c], ww))
+        wt.append(ww)
+        grp.append(ids)
+    a, m = tune(ridge_fit, ALPHAS, np.concatenate(X)[:, None], np.concatenate(y), np.concatenate(wt), np.concatenate(grp))
+    slope = (m(np.array([[1.0]])) - m(np.array([[0.0]])))[0]
+    m21 = market("2021")
+    L0 = L["2021"]
+    own = L0 + centre((L["2011"] + L["2016"] + L["2021"]) / 3 - L0, w)
+    mkt = own + centre(slope * m21, w)
+    city = CITY_2021 * TRREB_MAY["2026"] / TRREB_MAY["2021"]
+    R = np.c_[L0, own, mkt]
+    dollars = lambda r: np.round(city * np.exp(r), -3)
+    out = pd.DataFrame({"nbhd_id": ids, "name": [n["name"] for n in ins["nbhd"]],
+                        "value_2021": np.round(CITY_2021 * np.exp(L0)), "persistence": dollars(L0), "own_mean": dollars(own),
+                        "own_mean_market": dollars(mkt), "low": dollars(R.min(axis=1) - SPREAD), "high": dollars(R.max(axis=1) + SPREAD),
+                        "market_figure": m21 != 0})
+    out.to_csv(OUT / "value_live.csv", index=False)
+    print(f"\nLive 2021-2026: City ${city:,.0f}; market slope {slope:+.3f} (alpha {a:.3g}), "
+          f"{int(out.market_figure.sum())} neighbourhoods with a market figure; median range width "
+          f"{np.median(out.high / out.low - 1):.0%}")
 
 
 def main() -> int:
@@ -246,6 +285,13 @@ def main() -> int:
                      **{k: spearman(tr[k], ytr) for k in [*DEMOG, "owners_during", "age0_14", "age65", *DWELL,
                                                           "detached", "condo", "apt5", "lag_avg", "heavy_build", "mkt"]}})
         info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features); reversion alpha {ar:.3g}, slope {slope:+.3f}; ridge_lag alpha {al:.3g}; heavy building {int(tr.heavy_build.sum())} neighbourhoods in training, {int(te.heavy_build.sum())} in test, build alpha {ab:.3g}, shift {shift:+.3f}; ridge_build alpha {abr:.3g}; market alpha {am:.3g}, slope {slope_m:+.3f}, {int((te.mkt != 0).sum())} test neighbourhoods with a market figure; ridge_market alpha {amr:.3g}")
+        # Centred (the rule since 2026-11-01): each rung's predicted changes average
+        # zero over households, so no rung carries a period's average drift.
+        raw = p.copy()
+        ww = p.hh.values.astype(float)
+        for r in [*RUNGS, "ridge_oracle", "ridge_demog_oracle"]:
+            if r in p:
+                p[r] = p[r] - np.average(p[r] - p.L0, weights=ww)
         preds.append(p)
         base = None
         for r in [*RUNGS, "ridge_oracle", "ridge_demog_oracle"]:
@@ -255,6 +301,7 @@ def main() -> int:
             mae = 100 * wmae(p[r].values, p.actual.values, ww)
             base = base or mae
             recs.append({"fold": fold, "rung": r, "n": len(p), "mae": mae, "skill": 1 - mae / base,
+                         "mae_raw": 100 * wmae(raw[r].values, raw.actual.values, ww),
                          "rho_level": spearman(p[r], p.actual), "rho_change": spearman(p[r] - p.L0, p.actual - p.L0)})
     S = pd.DataFrame(recs)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -286,7 +333,8 @@ def main() -> int:
              "heavy_build": "heavy building before", "mkt": "market standing, change during (nowcast)"}
     for k, r in C.iterrows():
         print(f"  {names[k]:<34}" + "".join(f"{v:>12.2f}" for v in r))
-    print(f"\nWrote {OUT / 'value_scores.csv'} and value_predictions.csv")
+    live(market, L, ids, ins, hh)
+    print(f"\nWrote {OUT / 'value_scores.csv'}, value_predictions.csv and value_live.csv")
     return 0
 
 
