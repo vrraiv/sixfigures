@@ -271,6 +271,14 @@ for the dwelling-value model's demographic, dwelling and previous-change rungs. 
 WSL, as for `nhs2011.py`), for the 2006 and 2011 NHS counts. It checks itself against
 insights.json's age and recent-immigrant shares.
 
+`make trreb` runs `pipeline/trreb.py`, which reads TRREB's quarterly Community Housing
+Market Reports for the City's three regions (`pipeline/raw/trreb_community`, Q4 2011
+on) and writes `pipeline/trreb/community.csv` (committed): each community's sales,
+dollar volume, and average and median sale price by quarter, for the dwelling-value
+model's market rungs. `nbhd_map.csv` gives the community holding each of the 158
+neighbourhoods (TRREB's communities are the City's 140 of before 2022). Reading the
+reports is slow; the page text is cached in `pipeline/out/trreb_pages.json`.
+
 ## Processing notes
 
 - **Encoding:** the profile CSV is Latin-1, not UTF-8.

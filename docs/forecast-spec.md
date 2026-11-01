@@ -395,3 +395,286 @@ earlier period would have taught a model to expect it.
 the main cause, the move into 2011 would also have reversed afterwards. It didn't
 (−0.06). The reversal is mostly specific to the 2011–2016 run-up. Some noise remains
 likely, since the reversal is stronger where there are fewer owners.
+
+## Heavy building (added after the previous-change run)
+
+Added 2026-11-01 at the user's request. **Unlike the earlier additions, this was chosen
+after looking at both periods**, so its backtest is partly fitted to what was seen. The
+2026 Census is its first clean test.
+
+**What was seen.** Six neighbourhoods fell in dollars while the City rose 50%: five
+from 2011 to 2016 and one from 2016 to 2021. Three of them were in the top tenth for
+permits issued in the five years before the period. Ranking all neighbourhoods by
+those permits:
+
+| Period | Top tenth: share falling more than 20% against the City | The rest |
+|---|---|---|
+| 2011 to 2016 | 56% | 8% |
+| 2016 to 2021 | 19% | 2% |
+
+New units, often condominiums cheaper than the existing stock, enter the owners'
+homes and pull the census median down. Ridge's `permits_before` enters only as a
+linear term, which dilutes an effect confined to the tail.
+
+**The feature.** `heavy_build` is 1 if a neighbourhood's permits issued in the five
+years before the origin, per 1,000 households, are in the top tenth at that origin,
+and 0 otherwise. Ranking within each origin means no threshold is fitted across
+periods.
+
+Three new rungs, all after `ridge_lag` and so on the higher bar:
+- **`build`:** persistence plus a fitted shift for heavy-building neighbourhoods
+  (ridge on `heavy_build` alone).
+- **`ridge_build`:** ridge's own features plus `heavy_build`.
+- **`own_mean_build`:** own mean plus `build`'s fitted shift for `heavy_build`
+  (forward only, like own mean, so it is scored on one fold).
+
+## Heavy building: first run (2026-11-01)
+
+Sixteen neighbourhoods are flagged at each origin. The rule still chooses own mean:
+
+| Rung | Forward MAE | Reverse MAE |
+|---|---|---|
+| Own mean (chosen) | 7.86 | |
+| Own mean with the heavy-building shift | 8.25 | |
+| Persistence | 8.84 | 10.52 |
+| Build (shift on persistence) | 11.41 | 11.24 |
+| Ridge with heavy building | 12.66 | 12.29 |
+| Ridge | 12.70 | 12.29 |
+
+**The shift doesn't carry from one period to the other.**
+- Fitted on 2011 to 2016, heavy-building neighbourhoods fall 0.18 against the City.
+- Fitted on 2016 to 2021, the tuning sets the shift to zero.
+
+In 2016 to 2021 the flagged neighbourhoods' median relative change was +5%, against
++3% for the rest. More of them fell sharply (19% against 2%), but others rose: heavy
+building widened the spread of outcomes without moving their centre. A shift in the
+forecast can't capture that, though it could widen the range shown for those
+neighbourhoods.
+
+## The City's value: a nowcast (added 2026-11-01)
+
+The ratio forecast can't be acted on in dollars until the City's 2026 median is
+released. The 2026 Census reference day (May 2026) has passed, so the City's median
+can be estimated from market prices already observed. A neighbourhood's dollar
+forecast is then the City estimate times its forecast ratio.
+
+**Rule.** The City's median at census t+5 is its Census median at t times the change
+in a price index from May of year t to May of year t+5. The coefficient is fixed at 1;
+nothing is fitted. It is scored on 2011 to 2016 and 2016 to 2021 against the Census
+City median (+50% and +49.5%).
+
+**Candidates.**
+1. **Statistics Canada New Housing Price Index, Toronto** (table 18-10-0205-01, open
+   licence). Computed before this section was written, so recorded here as seen:
+
+   | Series | May 2011 to May 2016 | May 2016 to May 2021 |
+   |---|---|---|
+   | Total (house and land) | +20.6% | +14.5% |
+   | Land only | +9.4% | +19.0% |
+   | Census City median | +50.0% | +49.5% |
+
+   It covers only new single, semi and row houses at a fixed specification, and misses
+   by a factor of two to three that isn't stable between periods. Rejected; no
+   multiplier is fitted to rescue it.
+2. **TRREB Market Watch, City of Toronto, all home types, May** (pre-registered here,
+   before extraction). Primary: the median sale price. Reported alongside: the
+   average sale price. A glimpse of the May 2016 summary page was seen while checking
+   the layout; no ratio was computed.
+3. **Teranet–National Bank HPI, Toronto** (private comparator only; its terms bar
+   creating other data from it without permission).
+
+The extraction checks that districts sum to their region, the three regions sum to the
+City, and sales times average price matches dollar volume.
+
+## The City's value: first run (2026-11-01)
+
+**TRREB Market Watch figures** (all home types, May; files in `pipeline/raw/trreb_mw`):
+
+| May | City median | City average | Source |
+|---|---|---|---|
+| 2011 | none | $535,807 | pooled over the 36 Toronto districts (W01–W10, C01–C15 less C05, E01–E11) |
+| 2016 | $595,000 | $782,051 | City of Toronto row |
+| 2021 | $890,000 | $1,116,736 | City of Toronto row |
+| 2026 | $885,000 | $1,108,292 | City of Toronto row |
+
+- **Checks passed:**
+  - In every district row and City row, sales times average equals dollar volume.
+  - In 2016 the three regions sum to the City (1,151 + 2,283 + 1,204 = 4,638).
+- **No City median in 2011:** the 2011 report gives no City total, and a median can't
+  be pooled from districts, so the primary rule is scored on 2016 to 2021 only.
+
+**Scores** (log error × 100 against the Census City median, about %):
+
+| Rule | 2011 to 2016 | 2016 to 2021 |
+|---|---|---|
+| Median | not available | +0.0 (+49.6% against +49.5%) |
+| Average | −2.7 (+46.0% against +50.0%) | −4.6 (+42.8% against +49.5%) |
+
+- **The median's near-exact hit is partly luck.** The Census City median for 2021 is
+  exactly $900,000, a round figure where owners' estimates bunch.
+- **The average runs a few points under the Census in both periods.**
+
+**The 2026 nowcast.** TRREB's May median fell 0.6% from 2021 to 2026, and the average
+0.8%. The City's 2026 Census median is estimated at $895,000 by the median rule, or
+$893,000 by the average.
+
+## Neighbourhood market prices: nowcast rungs (added 2026-11-01)
+
+Fixed here before any community figure has been compared with the Census.
+
+**Source.** TRREB's quarterly Community Housing Market Reports for Toronto's three
+regions (`pipeline/raw/trreb_community`, Q4 2011 to Q2 2026). Each gives every
+community's sales, dollar volume, and average and median sale price (all home types).
+TRREB's Toronto communities are the City's 140 neighbourhoods of before 2022.
+
+**These rungs are nowcasts.** They use sales during the period, so they can be
+issued only after the Census reference day, not five years ahead. For 2026 that is
+now. They are reported apart from the forecast rungs, and the 2026 Census is their
+first clean test.
+
+**The feature.** `mkt` is the change over the period in a community's market standing:
+- **Window:** for census year t, Q1 to Q3 of year t, centred on the May reference
+  day. The 2011 origin has only Q4 2011 (the reports start then), five months late.
+- **Level:** the sales-weighted mean of the quarterly log medians in the window.
+- **Standing:** that level less the sales-weighted mean of every Toronto community's
+  level in the same window.
+- **Change:** standing at t+5 less standing at t.
+- **Thin markets:** a community with fewer than 10 sales in either window gets
+  `mkt` = 0, i.e. no market information.
+- **The 158 neighbourhoods:** each takes the figure of the 2022-or-earlier community
+  that contains it. Communities split in 2022 pass their figure to every part
+  *(implementation: the name matching is checked by hand)*.
+
+**Rungs**, after `own_mean_build`:
+- **`market_full`:** persistence plus `mkt`, coefficient fixed at 1, nothing fitted.
+- **`market`:** persistence plus a fitted slope on `mkt` (ridge on `mkt` alone).
+- **`own_mean_market`:** own mean plus `market`'s fitted slope times `mkt` (forward
+  only).
+- **`ridge_market`:** ridge's own features plus `mkt`.
+
+## Neighbourhood market prices: first run (2026-11-01)
+
+**The extraction** (`pipeline/trreb.py`) covers 59 quarters, Q4 2011 to Q2 2026, with
+138 to 140 of the 140 communities in each.
+- Sales times average price matches dollar volume on every row.
+- A district's communities add to TRREB's district total, except in 15 of 1,250
+  district-quarters, where TRREB's own totals are off by one or two sales.
+- Q3 2026 isn't published yet, so a live 2026 window would hold Q1 and Q2 only.
+
+**The rule still chooses own mean:**
+
+| Rung | Forward MAE | Reverse MAE |
+|---|---|---|
+| Own mean (chosen) | 7.86 | |
+| Own mean plus the market slope | 7.92 | |
+| Persistence | 8.84 | 10.52 |
+| Market (fitted slope) | 12.10 | 11.40 |
+| Ridge with the market | 12.38 | 12.58 |
+| Market, coefficient 1 | 12.26 | 19.05 |
+
+**The market change is the first predictor that holds in both periods.** Its rank
+correlation with the change in the Census ratio is +0.38 (2011 to 2016) and +0.36
+(2016 to 2021). Every earlier feature flipped sign between periods.
+- Fitted slopes are +0.23 and +0.14: a sale-price move shows up in the Census ratio
+  at a fifth of its size or less.
+- At full size (`market_full`) it is much worse than persistence.
+
+### Diagnostic: the average drift (chosen after looking)
+
+The household-weighted mean change in the log ratio isn't zero:
+- **2011 to 2016:** −0.047.
+- **2016 to 2021:** +0.025.
+
+The neighbourhoods as a whole shift against the City median, and the shift reverses.
+Every fitted rung carries the training period's mean change into the test period
+through its intercept, giving a bias of 6 to 9 points:
+
+| Rung | Forward bias | Reverse bias |
+|---|---|---|
+| Persistence | −2.5 | +4.7 |
+| Market | −8.9 | +8.2 |
+| Build | −7.4 | +7.2 |
+| Reversion | −7.1 | +7.0 |
+| Ridge | −7.8 | +6.5 |
+
+**Centred scores.** Re-scored with each rung's predicted changes centred to average
+zero (this uses no outcomes):
+
+| Rung | Forward, raw | Forward, centred | Reverse, raw | Reverse, centred |
+|---|---|---|---|---|
+| Own mean | 7.86 | 8.32 | | |
+| Market | 12.10 | 8.69 | 11.40 | 10.16 |
+| Reversion | 11.09 | 8.80 | 11.25 | 10.67 |
+| Persistence | 8.84 | 8.84 | 10.52 | 10.52 |
+| Ridge | 12.70 | 11.37 | 12.29 | 11.77 |
+
+- **Market** beats persistence in both folds once centred, the first fitted rung to do
+  so.
+- **Own mean is still best forward.** The rule chooses it on raw and on centred scores.
+- **Ridge and its variants, analogs and boosting** stay at 10.7 to 12.6 centred. Their
+  losses weren't the intercept alone.
+
+**This sharpens the explanation of own mean's win.** About half its edge over
+persistence (7.86 against 8.84) is the average drift: it forecasts −½ times the
+previous mean change (−0.047), about +0.024, against the actual +0.025. The other half
+is neighbourhood-level reversion.
+
+**For dollar figures**, the drift is a City-wide shift of the neighbourhoods against
+the City median, of 2.5 to 4.7 points a period. A centred ratio forecast leaves it out,
+so a dollar range has to carry it alongside the City nowcast's error.
+
+Centring isn't part of the decision rule. Adopting it would be a rule change, made
+after looking.
+
+## Rule change: centred predictions (adopted 2026-11-01, after looking)
+
+The user adopted centring after seeing the diagnostic above. From here on, every
+rung's predicted changes in the dwelling-value ratio are centred to a
+household-weighted average of zero before scoring. This uses no outcomes; persistence
+is unchanged. The ratio forecast then says nothing about the group's average shift
+against the City median, which is left to the range below. Raw scores are still
+written alongside (`mae_raw`).
+
+## Live dollar table, 2021 to 2026 (fixed before it is computed)
+
+- **City:** the 2021 Census City median ($900,000) times TRREB's May City median
+  change, 2021 to 2026 ($890,000 to $885,000), giving $894,944.
+- **Ratios at the 2021 origin** (each centred, as above):
+  - **persistence:** the 2021 ratio;
+  - **own mean:** the mean of the 2011, 2016 and 2021 ratios;
+  - **own mean plus market:** own mean plus a slope times `mkt` for 2021 to 2026. The
+    2026 window has Q1 and Q2 only (Q3 isn't published). The slope is ridge on `mkt`
+    alone, centred, fitted on both periods pooled.
+- **Range:** from the lowest of the three ratios less 0.05 to the highest plus 0.05.
+  The 0.05 allows for the group's average shift (up to 0.047 seen) and the City
+  nowcast's error.
+- **Dollars:** City times exp(ratio), rounded to the nearest $1,000.
+- **Output:** written to `pipeline/out/model/value_live.csv`. Not yet published on the
+  site.
+
+## Centred scores and the live table: first run (2026-11-01)
+
+**The rule, on centred scores, still chooses own mean** (forward 8.32, against
+persistence's 8.84):
+
+| Rung | Forward | Reverse |
+|---|---|---|
+| Own mean (chosen) | 8.32 | |
+| Own mean plus market | 8.46 | |
+| Market | 8.69 | 10.16 |
+| Reversion | 8.80 | 10.67 |
+| Persistence | 8.84 | 10.52 |
+| Build | 9.58 | 10.52 |
+| Analogs (k-NN) | 10.66 | 12.57 |
+| Ridge | 11.37 | 11.77 |
+
+**The live table** (`pipeline/out/model/value_live.csv`):
+- **City median, 2026:** $894,944.
+- **Market slope:** +0.211, from the two periods pooled.
+- **Coverage:** 157 of 158 neighbourhoods have a market figure.
+- **Range width:** the median neighbourhood's range spans 16% (high over low).
+- **Median of the neighbourhoods:**
+
+  | 2021 Census | Persistence | Own mean | Own mean plus market | Low | High |
+  |---|---|---|---|---|---|
+  | $925,000 | $920,000 | $911,500 | $916,000 | $851,000 | $993,000 |

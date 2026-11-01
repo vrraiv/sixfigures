@@ -45,6 +45,8 @@ pipeline/out/
 !pipeline/cmhc/*.csv
 # Neighbourhood age, immigration and dwelling counts (demography.py), a model input
 !pipeline/demography/*.csv
+# TRREB sale prices by community (trreb.py), a model input
+!pipeline/trreb/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---

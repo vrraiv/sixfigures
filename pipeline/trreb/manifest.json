@@ -1,0 +1,11 @@
+{
+  "quarters": 59,
+  "first": "2011 Q4",
+  "last": "2026 Q2",
+  "communities": 140,
+  "communities_per_quarter": [
+    138,
+    140
+  ],
+  "district_sum_mismatches": 15
+}

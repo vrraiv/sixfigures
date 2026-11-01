@@ -31,6 +31,14 @@ major repairs, and the share of owners with a mortgage, in ridge_dwell.
 The previous change (added after the dwelling run): lag_avg, the change over the five
 years to the origin in the log ratio of the average value of dwellings to the City's,
 alone in reversion and with ridge's features in ridge_lag.
+Heavy building (added after the previous-change run, chosen after looking):
+heavy_build, 1 for the top tenth of neighbourhoods by permits issued in the five years
+before the origin per 1,000 households; a fitted shift on persistence in build and on
+own mean in own_mean_build, and with ridge's features in ridge_build.
+Market prices (nowcast rungs, added after the City nowcast): mkt, the change over the
+period in a community's standing within the City in TRREB's median sale prices
+(pipeline/trreb/community.csv), in market_full (coefficient 1), market (fitted),
+own_mean_market and ridge_market. They use sales during the period.
 
 Writes pipeline/out/model/value_scores.csv, value_predictions.csv and
 value_demography_rho.csv.
@@ -53,6 +61,12 @@ HOUSING = WEB / "housing.json"
 PERMITS = PIPELINE / "permits" / "by_nbhd.csv"
 DEMOGRAPHY = PIPELINE / "demography" / "nbhd.csv"
 NBHD_2006 = PIPELINE / "census" / "nbhd_2006.csv"
+TRREB = PIPELINE / "trreb"
+MIN_SALES = 10  # fewer in a window and a community has no market figure
+# The live table (docs/forecast-spec.md): the 2021 Census City median moved by TRREB's
+# May City median, and the range's allowance for the group's shift and the City's error.
+CITY_2021, TRREB_MAY = 900_000, {"2021": 890_000, "2026": 885_000}
+SPREAD = 0.05
 NEIGHBOURHOODS = PIPELINE / "raw" / "toronto_neighbourhoods_4326.geojson"
 OUT = PIPELINE / "out" / "model"
 
@@ -63,7 +77,9 @@ LEVELS = ["med_hh_at", "lim_at", "renter", "condo", "detached", "apt5", "built_n
 CHANGES = ["med_hh_at", "renter", "detached", "apt5", "built_new", "degree", "imm_recent"]
 KNN_FEATURES = ["L", "nb_L", "med_hh_at", "condo", "built_new", "permits_before"]
 FOLDS = {"forward": ("2011", "2016", "2021"), "reverse": ("2016", "2011", "2016")}
-RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog", "ridge_dwell", "reversion", "ridge_lag"]
+RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog", "ridge_dwell", "reversion", "ridge_lag",
+         "build", "ridge_build", "own_mean_build",
+         "market_full", "market", "own_mean_market", "ridge_market"]
 # The demographic predictors (docs/forecast-spec.md, added after the first run): age
 # and arrival shares, standardised within the census, and the change in owners.
 AGE = {"a25_34": "25 to 34", "a35_44": "35 to 44", "a65_74": "65 to 74", "a75": "75 and over"}
@@ -85,6 +101,41 @@ def neighbours(ids: list[int]) -> list[list[int]]:
         hits = [j for j in sidx.query(poly, predicate="intersects") if j != k]
         out.append(hits)
     return out
+
+
+def centre(x: np.ndarray, w: np.ndarray) -> np.ndarray:
+    return x - np.average(x, weights=w)
+
+
+def live(market, L: dict, ids: list, ins: dict, hh: dict) -> None:
+    """The live 2021-2026 table (docs/forecast-spec.md): the City's nowcast times each
+    neighbourhood's ratio by persistence, own mean and own mean plus market, centred."""
+    w = np.array(hh["2021"], float)
+    # The market slope, fitted on both periods pooled, each centred.
+    X, y, wt, grp = [], [], [], []
+    for c in ("2011", "2016"):
+        ww = np.array(hh[c], float)
+        X.append(centre(market(c), ww))
+        y.append(centre(L[str(int(c) + 5)] - L[c], ww))
+        wt.append(ww)
+        grp.append(ids)
+    a, m = tune(ridge_fit, ALPHAS, np.concatenate(X)[:, None], np.concatenate(y), np.concatenate(wt), np.concatenate(grp))
+    slope = (m(np.array([[1.0]])) - m(np.array([[0.0]])))[0]
+    m21 = market("2021")
+    L0 = L["2021"]
+    own = L0 + centre((L["2011"] + L["2016"] + L["2021"]) / 3 - L0, w)
+    mkt = own + centre(slope * m21, w)
+    city = CITY_2021 * TRREB_MAY["2026"] / TRREB_MAY["2021"]
+    R = np.c_[L0, own, mkt]
+    dollars = lambda r: np.round(city * np.exp(r), -3)
+    out = pd.DataFrame({"nbhd_id": ids, "name": [n["name"] for n in ins["nbhd"]],
+                        "value_2021": np.round(CITY_2021 * np.exp(L0)), "persistence": dollars(L0), "own_mean": dollars(own),
+                        "own_mean_market": dollars(mkt), "low": dollars(R.min(axis=1) - SPREAD), "high": dollars(R.max(axis=1) + SPREAD),
+                        "market_figure": m21 != 0})
+    out.to_csv(OUT / "value_live.csv", index=False)
+    print(f"\nLive 2021-2026: City ${city:,.0f}; market slope {slope:+.3f} (alpha {a:.3g}), "
+          f"{int(out.market_figure.sum())} neighbourhoods with a market figure; median range width "
+          f"{np.median(out.high / out.low - 1):.0%}")
 
 
 def main() -> int:
@@ -118,6 +169,24 @@ def main() -> int:
     city_avg = json.loads((DEMOGRAPHY.parent / "manifest.json").read_text())["city_avg_value"]
     A = {y: np.log(demo[demo.year == int(y)].set_index("nbhd_id").avg_value.reindex(ids).values / city_avg[y])
          for y in ("2006", "2011", "2016", "2021")}
+    # Market prices (nowcast rungs): each community's standing within the City, from
+    # TRREB's quarterly medians around the census (Q1 to Q3; Q4 for 2011, the first).
+    tc = pd.read_csv(TRREB / "community.csv")
+    parent = pd.read_csv(TRREB / "nbhd_map.csv").set_index("nbhd").community.reindex([n["name"] for n in ins["nbhd"]])
+
+    def standing(year: int) -> tuple[pd.Series, pd.Series]:
+        w = tc[(tc.year == year) & tc.q.isin([4] if year == 2011 else [1, 2, 3])]
+        has = w[w.med.notna()]
+        n = has.groupby("community").sales.sum()
+        level = (np.log(has.med) * has.sales).groupby(has.community).sum() / n
+        return level - np.average(level, weights=n), w.groupby("community").sales.sum()
+
+    def market(c: str) -> np.ndarray:
+        (s0, n0), (s1, n1) = standing(int(c)), standing(int(c) + 5)
+        ch = s1 - s0
+        ok = (n0.reindex(ch.index).fillna(0) >= MIN_SALES) & (n1.reindex(ch.index).fillna(0) >= MIN_SALES)
+        return parent.map(ch.where(ok)).fillna(0.0).values
+
     hh06 = pd.read_csv(NBHD_2006).set_index("nbhd_id").hh.reindex(ids).values
     # Owner households: households less the renter share (insights' tenure bases).
     owners = {y: (hh06 if y == "2006" else np.array(hh[y], float)) * (1 - arr("renter", y) / 100)
@@ -150,10 +219,14 @@ def main() -> int:
             d[f"d_{m}"] = z(m, c) - z(m, prev)
         d["permits_before"] = np.log1p(per_1000(y - 5, y - 1, c))
         d["permits_during"] = np.log1p(per_1000(y, y + 4, c))  # oracle
+        # Heavy building (chosen after looking): the top tenth for permits before, at this origin.
+        before = per_1000(y - 5, y - 1, c)
+        d["heavy_build"] = (pd.Series(before).rank(pct=True) > 0.9).astype(float).values
         d[[*AGE, *ARRIVAL, *DWELL]] = demog(c).values
         d["owners_before"] = np.log(owners[c] / owners[prev])
         d["owners_during"] = np.log(owners[str(y + 5)] / owners[c])  # oracle
         d["lag_avg"] = A[c] - A[prev]
+        d["mkt"] = market(c)  # nowcast: sales during the period
         d["hh"] = hh[c]
         return d.fillna(0.0)
 
@@ -191,10 +264,34 @@ def main() -> int:
         fl = [*feats, "lag_avg"]
         al, lag_m = tune(ridge_fit, ALPHAS, tr[fl].values, ytr, w, grp)
         p["ridge_lag"] = te.L.values + lag_m(te[fl].values)
+        ab, bld = tune(ridge_fit, ALPHAS, tr[["heavy_build"]].values, ytr, w, grp)
+        p["build"] = te.L.values + bld(te[["heavy_build"]].values)
+        shift = (bld(np.array([[1.0]])) - bld(np.array([[0.0]])))[0]
+        if fold == "forward":
+            p["own_mean_build"] = p.own_mean + shift * te.heavy_build.values
+        fb = [*feats, "heavy_build"]
+        abr, build_m = tune(ridge_fit, ALPHAS, tr[fb].values, ytr, w, grp)
+        p["ridge_build"] = te.L.values + build_m(te[fb].values)
+        am, mk = tune(ridge_fit, ALPHAS, tr[["mkt"]].values, ytr, w, grp)
+        p["market_full"] = te.L.values + te.mkt.values
+        p["market"] = te.L.values + mk(te[["mkt"]].values)
+        slope_m = (mk(np.array([[1.0]])) - mk(np.array([[0.0]])))[0]
+        if fold == "forward":
+            p["own_mean_market"] = p.own_mean + slope_m * te.mkt.values
+        fm = [*feats, "mkt"]
+        amr, market_m = tune(ridge_fit, ALPHAS, tr[fm].values, ytr, w, grp)
+        p["ridge_market"] = te.L.values + market_m(te[fm].values)
         corr.append({"fold": fold, "period": f"{train_c}-{int(train_c) + 5}",
                      **{k: spearman(tr[k], ytr) for k in [*DEMOG, "owners_during", "age0_14", "age65", *DWELL,
-                                                          "detached", "condo", "apt5", "lag_avg"]}})
-        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features); reversion alpha {ar:.3g}, slope {slope:+.3f}; ridge_lag alpha {al:.3g}")
+                                                          "detached", "condo", "apt5", "lag_avg", "heavy_build", "mkt"]}})
+        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features); reversion alpha {ar:.3g}, slope {slope:+.3f}; ridge_lag alpha {al:.3g}; heavy building {int(tr.heavy_build.sum())} neighbourhoods in training, {int(te.heavy_build.sum())} in test, build alpha {ab:.3g}, shift {shift:+.3f}; ridge_build alpha {abr:.3g}; market alpha {am:.3g}, slope {slope_m:+.3f}, {int((te.mkt != 0).sum())} test neighbourhoods with a market figure; ridge_market alpha {amr:.3g}")
+        # Centred (the rule since 2026-11-01): each rung's predicted changes average
+        # zero over households, so no rung carries a period's average drift.
+        raw = p.copy()
+        ww = p.hh.values.astype(float)
+        for r in [*RUNGS, "ridge_oracle", "ridge_demog_oracle"]:
+            if r in p:
+                p[r] = p[r] - np.average(p[r] - p.L0, weights=ww)
         preds.append(p)
         base = None
         for r in [*RUNGS, "ridge_oracle", "ridge_demog_oracle"]:
@@ -204,6 +301,7 @@ def main() -> int:
             mae = 100 * wmae(p[r].values, p.actual.values, ww)
             base = base or mae
             recs.append({"fold": fold, "rung": r, "n": len(p), "mae": mae, "skill": 1 - mae / base,
+                         "mae_raw": 100 * wmae(raw[r].values, raw.actual.values, ww),
                          "rho_level": spearman(p[r], p.actual), "rho_change": spearman(p[r] - p.L0, p.actual - p.L0)})
     S = pd.DataFrame(recs)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -231,10 +329,12 @@ def main() -> int:
              "owners_during": "owners, change during (oracle)", "age0_14": "aged 0 to 14", "age65": "aged 65 and over",
              "attached": "semi, row and duplex", "bed3": "3 or more bedrooms", "repairs": "major repairs needed",
              "mortgage": "owners with a mortgage", "detached": "single-detached", "condo": "condominium",
-             "apt5": "apartments, 5+ storeys", "lag_avg": "previous change, average value"}
+             "apt5": "apartments, 5+ storeys", "lag_avg": "previous change, average value",
+             "heavy_build": "heavy building before", "mkt": "market standing, change during (nowcast)"}
     for k, r in C.iterrows():
         print(f"  {names[k]:<34}" + "".join(f"{v:>12.2f}" for v in r))
-    print(f"\nWrote {OUT / 'value_scores.csv'} and value_predictions.csv")
+    live(market, L, ids, ins, hh)
+    print(f"\nWrote {OUT / 'value_scores.csv'}, value_predictions.csv and value_live.csv")
     return 0
 
 
