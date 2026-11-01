@@ -327,3 +327,34 @@ Ridge, analogs and boosting already allow for non-linear forms and interactions:
 analogs and boosting through their own structure (trees of 7 leaves combine up to six
 features), ridge only through the squared and interaction terms in the school model.
 None found more than the linear terms.
+
+## The previous change (added after the dwelling run)
+
+Added 2026-11-01 at the user's request, after the dwelling run's results were seen,
+and fixed here before it has been computed.
+
+**The feature.** The fitted rungs lack the neighbourhood's previous change in ratio,
+because the 2006 median value isn't comparable. The censuses do publish the
+*average* value of dwellings, 2006 included. The new feature, `lag_avg`, is the
+change over the five years to the origin in the log ratio of the neighbourhood's
+average value to the City's:
+- 2006 to 2011 for the 2011 origin;
+- 2011 to 2016 for 2016;
+- 2016 to 2021 for live forecasts.
+
+**How the averages are pooled.**
+- **Neighbourhoods:** each DA's published average, weighted by its owner households,
+  over the DAs with a figure. As `census2006.average()` does, a neighbourhood is
+  left without a figure below half coverage of its owners.
+- **The City:** the same pooled mean over all its DAs, so both sides of the ratio are
+  built alike.
+- **Excluded DAs:** an average of $0 marks a suppressed DA. NHS DAs with a global
+  non-response rate of 50% or more are left out.
+
+Two new rungs, both after `ridge_dwell` and so on the higher bar:
+- **`reversion`:** ridge on `lag_avg` alone, which learns how much of the previous
+  move carries on or reverses.
+- **`ridge_lag`:** ridge's own features plus `lag_avg`.
+
+Both folds can use it: the forward fold trains at the 2011 origin (2006 to 2011) and
+tests at 2016 (2011 to 2016); the reverse fold is the other way round.
