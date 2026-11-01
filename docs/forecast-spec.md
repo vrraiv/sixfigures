@@ -119,6 +119,36 @@ Own mean and trend need the 2011 value as history, so they are forward only.
 A margin far smaller than the fold-to-fold differences in MAE is a tie, whatever the
 rule picks; the tables below say so where it applies.
 
+## Demographic predictors (added after the first run)
+
+Added 2026-10-31 at the user's request, after the first run's results were seen. The
+hypothesis: housing demand differs by age and by time since arrival, and the
+number of owners a neighbourhood gains or loses matters too. To keep this from being
+a search over the test fold, the features are fixed here before any of them has been
+computed:
+
+- **Age:** population shares aged 25 to 34 and 35 to 44 (entering ownership), and 65
+  to 74 and 75 and over (leaving it).
+- **Immigration:** shares of the population in private households that immigrated in
+  the five years before the census, and in the five years before that.
+- **Owners:** the change in owner households over the five years to the origin, as
+  a log ratio (known at the origin).
+
+They are added to ridge's features, alongside the existing `age0_14` and `age65`,
+as a new rung, `ridge_demog`. It comes after ridge, so it must clear the higher bar.
+The change in owner households *during* the five years being forecast is oracle data.
+It enters a separate conditional run, `ridge_demog_oracle`, reported apart and never
+chosen.
+
+The counts come from the DA profiles of 2006, 2011 (age from the census, immigration
+and tenure from the NHS) and 2016 and 2021. They are summed to neighbourhoods by
+`pipeline/demography.py` into `pipeline/demography/nbhd.csv`. That script checks
+itself against the existing figures in insights.json (`age0_14`, `age65`,
+`imm_recent`, `renter`) and against the City rows. The DA profiles have no
+age of household maintainer by tenure, so the population's age structure stands in
+for who is likely to buy or sell. The 2011 owner and immigration counts are
+voluntary-survey estimates, so changes into or out of 2011 are noisier.
+
 ## Running it
 
     make forecast        # both; or python pipeline/forecast/schools.py, value.py
