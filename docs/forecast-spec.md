@@ -517,3 +517,37 @@ City, and sales times average price matches dollar volume.
 **The 2026 nowcast.** TRREB's May median fell 0.6% from 2021 to 2026, and the average
 0.8%. The City's 2026 Census median is estimated at $895,000 by the median rule, or
 $893,000 by the average.
+
+## Neighbourhood market prices: nowcast rungs (added 2026-11-01)
+
+Fixed here before any community figure has been compared with the Census.
+
+**Source.** TRREB's quarterly Community Housing Market Reports for Toronto's three
+regions (`pipeline/raw/trreb_community`, Q4 2011 to Q2 2026). Each gives every
+community's sales, dollar volume, and average and median sale price (all home types).
+TRREB's Toronto communities are the City's 140 neighbourhoods of before 2022.
+
+**These rungs are nowcasts.** They use sales during the period, so they can be
+issued only after the Census reference day, not five years ahead. For 2026 that is
+now. They are reported apart from the forecast rungs, and the 2026 Census is their
+first clean test.
+
+**The feature.** `mkt` is the change over the period in a community's market standing:
+- **Window:** for census year t, Q1 to Q3 of year t, centred on the May reference
+  day. The 2011 origin has only Q4 2011 (the reports start then), five months late.
+- **Level:** the sales-weighted mean of the quarterly log medians in the window.
+- **Standing:** that level less the sales-weighted mean of every Toronto community's
+  level in the same window.
+- **Change:** standing at t+5 less standing at t.
+- **Thin markets:** a community with fewer than 10 sales in either window gets
+  `mkt` = 0, i.e. no market information.
+- **The 158 neighbourhoods:** each takes the figure of the 2022-or-earlier community
+  that contains it. Communities split in 2022 pass their figure to every part
+  *(implementation: the name matching is checked by hand)*.
+
+**Rungs**, after `own_mean_build`:
+- **`market_full`:** persistence plus `mkt`, coefficient fixed at 1, nothing fitted.
+- **`market`:** persistence plus a fitted slope on `mkt` (ridge on `mkt` alone).
+- **`own_mean_market`:** own mean plus `market`'s fitted slope times `mkt` (forward
+  only).
+- **`ridge_market`:** ridge's own features plus `mkt`.
