@@ -210,5 +210,13 @@ cmhc: $(GEOM)
 	$(PYTHON) pipeline/download.py --cmhc
 	$(PYTHON) pipeline/cmhc.py
 
+# The forecast backtests (docs/forecast-spec.md): scores and predictions in
+# pipeline/out/model/. Their inputs are committed; the scripts stop if one is missing.
+.PHONY: forecast
+
+forecast:
+	$(PYTHON) pipeline/forecast/schools.py
+	$(PYTHON) pipeline/forecast/value.py
+
 clean:
 	rm -rf pipeline/out
