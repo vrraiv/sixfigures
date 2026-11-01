@@ -23,8 +23,16 @@
     "rep_tot",
     "rep_major",
     "own_tot",
-    "own_mort"
+    "own_mort",
+    "avg_value",
+    "avg_value_owners"
   ],
+  "city_avg_value": {
+    "2006": 413912.47917559143,
+    "2011": 520771.5147329225,
+    "2016": 754192.1073385477,
+    "2021": 1130847.7989929707
+  },
   "checks": {
     "2006": {
       "bands_vs_total": -9.986897190894517e-06,
@@ -32,6 +40,12 @@
         "age_tot": -0.00418051516410467,
         "imm_base": -0.008754060563724297,
         "imm_0_5": -0.01215209721677768
+      },
+      "avg_value": {
+        "pooled_city": 413912,
+        "city_row": 413574,
+        "neighbourhoods_without": 0,
+        "max_diff_vs_nbhd_2006": 0.49695740366587415
       },
       "max_diff_vs_insights": {
         "age0_14": 0.0,
@@ -50,6 +64,11 @@
         "age_tot": 0.0,
         "imm_base": -0.06485961898661696,
         "imm_0_5": -0.11051841588731093
+      },
+      "avg_value": {
+        "pooled_city": 520772,
+        "city_row": 517309,
+        "neighbourhoods_without": 0
       },
       "max_diff_vs_insights": {
         "age0_14": 0.0,
@@ -71,6 +90,11 @@
         "imm_base": -0.00026749242569190645,
         "imm_0_5": 0.0005054535780792957
       },
+      "avg_value": {
+        "pooled_city": 754192,
+        "city_row": 754015,
+        "neighbourhoods_without": 0
+      },
       "max_diff_vs_insights": {
         "age0_14": 0.40000000000000213,
         "age65": 0.5,
@@ -90,6 +114,11 @@
         "age_tot": -1.4314573488327653e-05,
         "imm_base": 1.4486009231262642e-05,
         "imm_0_5": -0.017496465360533175
+      },
+      "avg_value": {
+        "pooled_city": 1130848,
+        "city_row": 1131000,
+        "neighbourhoods_without": 0
       },
       "max_diff_vs_insights": {
         "age0_14": 0.40000000000000213,

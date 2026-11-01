@@ -54,6 +54,7 @@ NHS_2011 = {
     "bed4": (2512, "4 or more bedrooms"),
     "own_tot": (2542, "Number of owner households in non-farm, non-reserve private dwellings"),
     "mort_pct": (2543, "% of owner households with a mortgage"),
+    "avg_value": (2548, "Average value of dwellings ($)"),
 }
 DA_LABEL_2006 = re.compile(r"^(\d{8}) \((\d{7})\d{4}\)\s+(\S+)\s*$")
 CSD_LABEL_2006 = re.compile(rf"^Toronto \({TORONTO_CSD}\) C\s+(\S+)\s*$")
