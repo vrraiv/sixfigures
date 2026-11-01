@@ -39,7 +39,7 @@ HERE = Path(__file__).parent
 PIPELINE = HERE.parent
 sys.path.insert(0, str(PIPELINE))
 from school_insights import DEMOGRAPHICS, TESTS, TYPES  # noqa: E402
-from fit import KS, ALPHAS, choose, expit, knn_fit, logit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
+from fit import KS, ALPHAS, ROUNDS, boost_fit, choose, expit, knn_fit, logit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
 
 SCHOOLS = PIPELINE / "schools" / "schools.csv"
 INSIGHTS = PIPELINE.parent / "web" / "public" / "insights.json"
@@ -51,7 +51,7 @@ FIRST = (2018, 2019)
 COVID = (2019, 2022)
 HOLDOUT = (2024, 2025)
 ONE_YEAR = [FIRST, *SELECTION, HOLDOUT]
-RUNGS = ["persistence", "own_mean", "ridge", "knn"]
+RUNGS = ["persistence", "own_mean", "ridge", "knn", "boost"]
 # Neighbourhood census measures (levels; the income on a log scale), standardised
 # within each census.
 CENSUS = ["med_hh_at", "lim_at", "degree", "renter", "imm_recent", "moved5", "age0_14"]
@@ -172,7 +172,9 @@ def forecast(train: pd.DataFrame, test: pd.DataFrame, city: dict) -> tuple[pd.Da
     out["ridge"] = expit(test.pos + model(test[feats].values) + lev)
     k, knn = tune(knn_fit, KS, train[knn_feats].values, y, w, grp)
     out["knn"] = expit(test.pos + knn(test[knn_feats].values) + lev)
-    info.update(alpha=float(alpha), k=int(k), features=len(feats), train_rows=len(train))
+    n, boost = tune(boost_fit, ROUNDS, X, y, w, grp)
+    out["boost"] = expit(test.pos + boost(test[feats].values) + lev)
+    info.update(alpha=float(alpha), k=int(k), rounds=int(n), features=len(feats), train_rows=len(train))
     return out, info
 
 
@@ -268,7 +270,7 @@ def main() -> int:
             print(f"  {r.fold:<10}{r.rung:<13}{r.n:>5}{r.mae:>7.2f}{r.skill:>8.1%}{r.rho_level:>9.2f}{chg:>9}{r.nbhd_mae:>10.2f}")
         for i in infos:
             if i["grade"] == g and "alpha" in i:
-                print(f"  {i['fold']}: trained on {i['train_rows']} rows, {i['features']} features; ridge alpha {i['alpha']:.3g}, k {i['k']}")
+                print(f"  {i['fold']}: trained on {i['train_rows']} rows, {i['features']} features; ridge alpha {i['alpha']:.3g}, k {i['k']}, boosting rounds {i['rounds']}")
         sel = S[(S.grade == g) & S.fold.isin([f"{a}-{b}" for a, b in SELECTION])].pivot(index="fold", columns="rung", values="mae")
         print(f"  Chosen by the rule: {choose({r: sel[r].tolist() for r in sel}, RUNGS)}")
     print("\n2019 to 2022, across the COVID-19 closures (ridge fitted on 2018-2019):")

@@ -33,8 +33,12 @@ unit.
    in one fold.
 5. **Nearest-neighbour analogs**: the weighted mean change of the k most similar
    units in the training transitions, with k tuned the same way.
-6. **Gradient boosting**, later, if 4 and 5 leave room. It needs LightGBM, which
-   isn't installed yet.
+6. **Gradient boosting** (LightGBM; added 2026-10-31 after the first run): shallow
+   trees (7 leaves, 30 rows per leaf at least), learning rate 0.03, 80% row and
+   feature subsampling, a fixed seed. The number of rounds is tuned like the others,
+   from 10 to 400. The grid first started at 50; it was widened when 50 came out
+   best, and the choice didn't move. It is the check on whether non-linear forms
+   carry signal the linear rungs miss.
 
 Simplex projection (empirical dynamic modelling) is folded into rung 5. Six points
 per school with a three-year gap are too short for an embedding of its own, so
@@ -106,7 +110,7 @@ Own mean and trend need the 2011 value as history, so they are forward only.
 
 - **Up to ridge:** a rung replaces the one chosen so far only if its MAE is lower in
   every selection fold.
-- **Past ridge** (analogs, later boosting): it must also beat by more than the spread
+- **Past ridge** (analogs, boosting): it must also beat by more than the spread
   across folds. Its mean improvement has to be larger than the largest fold's
   improvement less the smallest.
 - **Dwelling value:** the folds are forward and reverse, where both rungs have them.
@@ -127,15 +131,18 @@ The harness writes the scores and predictions to `pipeline/out/model/`.
 against own mean is a tie (margins of 0.04 and 0.09 points). MAE in points, with skill
 against persistence in brackets:
 
-| Fold | Grade 3 persistence | Grade 3 own mean | Grade 3 ridge | Grade 3 analogs | Grade 6 persistence | Grade 6 own mean | Grade 6 ridge | Grade 6 analogs |
-|---|---|---|---|---|---|---|---|---|
-| 2022 to 2023 | 9.07 | 8.50 (6%) | 8.46 (7%) | 8.49 (6%) | 6.89 | 6.45 (6%) | 6.21 (10%) | 6.55 (5%) |
-| 2023 to 2024 | 10.16 | 9.01 (11%) | 8.92 (12%) | 9.90 (3%) | 7.55 | 6.80 (10%) | 6.46 (15%) | 7.56 (0%) |
+| Fold | Grade 3 persistence | Grade 3 own mean | Grade 3 ridge | Grade 3 analogs | Grade 3 boosting | Grade 6 persistence | Grade 6 own mean | Grade 6 ridge | Grade 6 analogs | Grade 6 boosting |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2022 to 2023 | 9.07 | 8.50 (6%) | 8.46 (7%) | 8.49 (6%) | 8.48 (7%) | 6.89 | 6.45 (6%) | 6.21 (10%) | 6.55 (5%) | 6.52 (5%) |
+| 2023 to 2024 | 10.16 | 9.01 (11%) | 8.92 (12%) | 9.90 (3%) | 9.42 (7%) | 7.55 | 6.80 (10%) | 6.46 (15%) | 7.56 (0%) | 7.20 (5%) |
 
 - Grade 3's neighbourhood figures are better from own mean in 2023 to 2024 (MAE 4.82
   against ridge's 5.22).
 - Rank correlation of the forecast and actual change is about 0.47 for ridge and own
   mean.
+- Boosting is worse than ridge in every school fold, in both grades (by up to 0.74
+  points), and in the dwelling-value forward fold. With this much data, non-linear
+  forms add nothing over the linear terms already in ridge.
 
 **2019 to 2022.**
 
@@ -162,6 +169,7 @@ from the observed change, which shows no gap.
 | Trend | 18.03 | −104% | |
 | Ridge | 12.70 | −44% | 12.29 |
 | Analogs | 11.40 | −29% | 12.92 |
+| Boosting | 12.55 | −42% | 11.43 |
 | Ridge with oracle permits | 12.86 | −45% | 12.40 |
 
 The two periods' changes run opposite ways:

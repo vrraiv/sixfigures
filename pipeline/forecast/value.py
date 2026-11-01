@@ -32,7 +32,7 @@ import pandas as pd
 
 HERE = Path(__file__).parent
 PIPELINE = HERE.parent
-from fit import ALPHAS, KS, choose, knn_fit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
+from fit import ALPHAS, KS, ROUNDS, boost_fit, choose, knn_fit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
 
 WEB = PIPELINE.parent / "web" / "public"
 INSIGHTS = WEB / "insights.json"
@@ -48,7 +48,7 @@ LEVELS = ["med_hh_at", "lim_at", "renter", "condo", "detached", "apt5", "built_n
 CHANGES = ["med_hh_at", "renter", "detached", "apt5", "built_new", "degree", "imm_recent"]
 KNN_FEATURES = ["L", "nb_L", "med_hh_at", "condo", "built_new", "permits_before"]
 FOLDS = {"forward": ("2011", "2016", "2021"), "reverse": ("2016", "2011", "2016")}
-RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn"]
+RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost"]
 
 
 def neighbours(ids: list[int]) -> list[list[int]]:
@@ -124,9 +124,11 @@ def main() -> int:
         p["ridge"] = te.L.values + ridge(te[feats].values)
         k, knn = tune(knn_fit, KS, tr[KNN_FEATURES].values, ytr, w, grp)
         p["knn"] = te.L.values + knn(te[KNN_FEATURES].values)
+        n, boost = tune(boost_fit, ROUNDS, tr[feats].values, ytr, w, grp)
+        p["boost"] = te.L.values + boost(te[feats].values)
         ao, oracle = tune(ridge_fit, ALPHAS, tr[[*feats, "permits_during"]].values, ytr, w, grp)
         p["ridge_oracle"] = te.L.values + oracle(te[[*feats, "permits_during"]].values)
-        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}; with oracle permits alpha {ao:.3g}")
+        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}")
         preds.append(p)
         base = None
         for r in [*RUNGS, "ridge_oracle"]:

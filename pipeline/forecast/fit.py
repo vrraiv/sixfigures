@@ -1,7 +1,8 @@
-"""The forecast harness's shared pieces: the fitted rungs (ridge regression and
-nearest-neighbour analogs), their tuning by cross-validation, and the scores.
+"""The forecast harness's shared pieces: the fitted rungs (ridge regression,
+nearest-neighbour analogs and gradient boosting), their tuning by cross-validation,
+and the scores.
 
-Plain numpy, so the harness needs nothing beyond the pipeline's requirements. Every
+Ridge and the analogs are plain numpy; boosting is LightGBM (pipeline/requirements.txt). Every
 fit is weighted (schools by enrolment, neighbourhoods by households) and every
 tuning split keeps a unit's rows together, so no unit is in both halves.
 """
@@ -9,6 +10,7 @@ import numpy as np
 
 ALPHAS = np.logspace(-3, 3, 25)
 KS = [5, 10, 20, 40, 80]
+ROUNDS = [10, 25, 50, 100, 200, 400]  # boosting rounds, tuned; the trees are kept small
 FOLDS = 5
 
 
@@ -60,6 +62,16 @@ def knn_fit(X, y, w, k):
         ww = w[idx]
         return (ww * y[idx]).sum(axis=1) / ww.sum(axis=1)
     return predict
+
+
+def boost_fit(X, y, w, rounds):
+    """Gradient-boosted trees (LightGBM): shallow, slow-learning and subsampled, fixed seed."""
+    import lightgbm as lgb
+    params = {"objective": "regression", "learning_rate": 0.03, "num_leaves": 7, "min_data_in_leaf": 30,
+              "bagging_fraction": 0.8, "bagging_freq": 1, "feature_fraction": 0.8, "lambda_l2": 1.0,
+              "seed": 0, "deterministic": True, "force_row_wise": True, "num_threads": 1, "verbose": -1}
+    m = lgb.train(params, lgb.Dataset(X, y, weight=w), num_boost_round=rounds)
+    return m.predict
 
 
 def group_folds(groups, n=FOLDS, seed=0):

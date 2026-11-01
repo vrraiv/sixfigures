@@ -257,7 +257,7 @@ $1,916.
 `make forecast` runs `pipeline/forecast/schools.py` (one-year forecasts of each
 school's Grade 3 and Grade 6 score) and `pipeline/forecast/value.py` (five-year
 forecasts of each neighbourhood's dwelling value against the City's), with the shared
-fitting and scoring in `pipeline/forecast/fit.py` (numpy only). The targets, rungs,
+fitting and scoring in `pipeline/forecast/fit.py` (numpy, and LightGBM for boosting). The targets, rungs,
 folds, predictors and the rule that picks a rung are in `docs/forecast-spec.md`; the
 scores and predictions go to `pipeline/out/model/`. `schools.py --holdout` scores
 2024 to 2025: once, after the rung is chosen.
