@@ -43,6 +43,8 @@ pipeline/out/
 !pipeline/census/*.csv
 # CMHC starts and rental market tables pipeline/cmhc.py writes
 !pipeline/cmhc/*.csv
+# Neighbourhood age, immigration and dwelling counts (demography.py), a model input
+!pipeline/demography/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---

@@ -31,6 +31,11 @@ Counts per neighbourhood and census (one row each):
 The dwelling counts are 2011 to 2021 only (2011: structure types from the census
 profile, the rest from the NHS); 2006 has no bedroom counts or mortgage shares.
 
+  avg_value        the average value of dwellings, each DA's published average
+                   weighted by its owner households (none below half coverage of
+                   the neighbourhood's owners); avg_value_owners, the owners covered.
+                   The City's, pooled the same way, is in manifest.json.
+
 Checks: the City's age bands add up to its total; the neighbourhood shares aged
 0-14 and 65+ and the share of recent immigrants reproduce insights.json's figures
 for every census (to 0.15 points; the 2016 and 2021 age shares there are the DAs'
@@ -64,7 +69,10 @@ IMM = ["imm_base", "non_imm", "imm", "npr", "imm_0_5", "imm_5_10"]
 # 2021 only: the 2006 profile has no bedroom counts or mortgage shares.
 DWELL = [("dw_tot", "detached"), ("dw_tot", "attached"), ("bed_tot", "bed3"), ("rep_tot", "rep_major"), ("own_tot", "own_mort")]
 DWELL_COLS = ["dw_tot", "detached", "attached", "bed_tot", "bed3", "rep_tot", "rep_major", "own_tot", "own_mort"]
-COLS = ["age_tot", *BANDS, *IMM, *DWELL_COLS]
+# The average value of dwellings: owner-weighted over the DAs with a figure, and the
+# owners those DAs hold (a neighbourhood below half coverage of its owners has none).
+VALUE_COLS = ["avg_value", "avg_value_owners"]
+COLS = ["age_tot", *BANDS, *IMM, *DWELL_COLS, *VALUE_COLS]
 
 
 def five_label(k: str) -> str:
@@ -82,7 +90,7 @@ IDS = {
              1421: ("bed_tot", "Total - Occupied private dwellings by number of bedrooms"), 1425: ("bed3", "3 bedrooms"),
              1426: ("bed4", "4 or more bedrooms"), 1449: ("rep_tot", "Total - Occupied private dwellings by dwelling condition"),
              1451: ("rep_major", "Major repairs needed"), 1482: ("own_tot", "Total - Owner households in non-farm"),
-             1483: ("mort_pct", "% of owner households with a mortgage")},
+             1483: ("mort_pct", "% of owner households with a mortgage"), 1489: ("avg_value", "Average value of dwellings")},
     "2016": {8: ("age_tot", "Total - Age groups and average age of the population"), **{i: (f"y{k}", five_label(k)) for i, k in zip([10, 11, 12, *range(14, 24), *range(25, 30)], FIVE)},
              1140: ("imm_base", "Total - Immigrant status and period of immigration"), 1141: ("non_imm", "Non-immigrants"),
              1142: ("imm", "Immigrants"), 1149: ("imm_0_5", "2011 to 2016"), 1148: ("imm_5_10", "2006 to 2010"),
@@ -92,7 +100,7 @@ IDS = {
              1624: ("bed_tot", "Total - Occupied private dwellings by number of bedrooms"), 1628: ("bed3", "3 bedrooms"),
              1629: ("bed4", "4 or more bedrooms"), 1651: ("rep_tot", "Total - Occupied private dwellings by dwelling condition"),
              1653: ("rep_major", "Major repairs needed"), 1671: ("own_tot", "Total - Owner households in non-farm"),
-             1672: ("mort_pct", "% of owner households with a mortgage")},
+             1672: ("mort_pct", "% of owner households with a mortgage"), 1677: ("avg_value", "Average value of dwellings")},
 }
 
 
@@ -160,7 +168,7 @@ def read_2011() -> pd.DataFrame:
     nhs = pd.read_csv(OUTDIR / "demography_nhs2011.csv", dtype={"geo_code": str, "dq": str}).set_index("geo_code")
     das = nhs[nhs.level == "DA AD"]
     das = das[das.dq.str[3] != "1"]  # global non-response 50% or more
-    nhs_cols = [*IMM, "rep_tot", "rep_major", "bed_tot", "bed3", "bed4", "own_tot", "mort_pct"]
+    nhs_cols = [*IMM, "rep_tot", "rep_major", "bed_tot", "bed3", "bed4", "own_tot", "mort_pct", "avg_value"]
     return age.join(pd.concat([das, nhs.loc[[TORONTO_CSD]]])[nhs_cols], how="outer")
 
 
@@ -169,15 +177,19 @@ def read_2006() -> pd.DataFrame:
     more, by its data-quality flag) counts as having no figures."""
     from census2006 import PROFILE, SHORT_SUPPRESSED
     d = pd.read_csv(OUTDIR / "demography_2006.csv", dtype={"geo_code": str}).set_index("geo_code")
-    p = pd.read_csv(PROFILE, dtype={"geo_code": str}, usecols=["geo_code", "level", "label"])
-    dq = p[p.level == "DA"].set_index("geo_code").label.str.split().str[-1]
+    p = pd.read_csv(PROFILE, dtype={"geo_code": str}, usecols=["geo_code", "level", "label", "avg_value", "n_owner_hh"])
+    p = p.set_index("geo_code")
+    dq = p[p.level == "DA"].label.str.split().str[-1]
     short = dq.index[dq.str[SHORT_SUPPRESSED[0]] == SHORT_SUPPRESSED[1]]
     d.loc[d.index.intersection(short)] = np.nan
+    # The value and owner counts are sample data, which census2006.py keeps for these DAs.
+    d[["avg_value", "own_w"]] = p[["avg_value", "n_owner_hh"]].reindex(d.index).values
     out = pd.DataFrame(index=d.index)
     out["age_tot"] = d.age_tot
     for k in FIVE:
         out[f"y{k}"] = d[f"m{k}"] + d[f"f{k}"]
     out[IMM] = d[IMM]
+    out[["avg_value", "own_w"]] = d[["avg_value", "own_w"]]
     return out
 
 
@@ -191,9 +203,13 @@ def bands(d: pd.DataFrame) -> pd.DataFrame:
         out["attached"] = d[["semi", "row", "duplex"]].sum(axis=1, min_count=3)
         out["bed3"] = d[["bed3", "bed4"]].sum(axis=1, min_count=2)
         out["own_mort"] = d.mort_pct / 100 * d.own_tot  # the published share applied to the DA's owners
+        out["own_w"] = d.own_tot
     else:
         out[DWELL_COLS] = np.nan
-    return out[COLS]
+        out["own_w"] = d.own_w
+    out["avg_value"] = d.avg_value.where(d.avg_value > 0)  # an average of $0 is a suppressed DA
+    out["avg_value_owners"] = np.nan
+    return out[[*COLS, "own_w"]]
 
 
 def nbhd_of(year: str) -> pd.DataFrame:
@@ -228,6 +244,12 @@ def by_nbhd(d: pd.DataFrame, nb: pd.DataFrame) -> pd.DataFrame:
         if f"{part}_base" in out:
             if not np.allclose(out.pop(f"{part}_base").fillna(0), out[base].fillna(0)):
                 sys.exit(f"{part}: pooled over different DAs from {base}")
+    has = d.avg_value.notna() & (d.own_w > 0) & d.hh.notna()
+    g = d[has].groupby("nbhd_id")
+    out["avg_value_owners"] = g.own_w.sum()
+    out["avg_value"] = (d.avg_value * d.own_w)[has].groupby(d.nbhd_id[has]).sum() / out.avg_value_owners
+    coverage = out.avg_value_owners / d[d.own_w.notna()].groupby("nbhd_id").own_w.sum()
+    out.loc[coverage < 0.5, "avg_value"] = np.nan
     return out
 
 
@@ -237,15 +259,16 @@ def main() -> int:
             sys.exit(f"{f} is missing: run pipeline/demography_ivt.py under WSL (see its docstring)")
     ins = json.loads((WEB / "insights.json").read_text(encoding="utf-8"))
     ids = [n["id"] for n in ins["nbhd"]]
-    frames, checks = [], {}
+    frames, checks, city_avg = [], {}, {}
     for year, read in (("2006", read_2006), ("2011", read_2011), ("2016", lambda: read_zip("2016")), ("2021", lambda: read_zip("2021"))):
         raw = read()
         d = bands(raw)
         city = d.loc[TORONTO_CSD].copy()
         if city[["age_tot", *BANDS]].isna().all():  # the 2011 DA file has no City row: its DAs' sums stand in
             city[["age_tot", *BANDS]] = d.drop(index=TORONTO_CSD)[["age_tot", *BANDS]].dropna().sum()
-        nb = by_nbhd(d.drop(index=TORONTO_CSD), nbhd_of(year)).reindex(ids)
-        need = COLS if year != "2006" else ["age_tot", *BANDS, *IMM]
+        das = d.drop(index=TORONTO_CSD)
+        nb = by_nbhd(das, nbhd_of(year)).reindex(ids)
+        need = [c for c in COLS if c not in VALUE_COLS] if year != "2006" else ["age_tot", *BANDS, *IMM]
         if nb[need].isna().any().any():
             sys.exit(f"{year}: neighbourhoods without a figure: {nb[nb[need].isna().any(axis=1)].index.tolist()[:5]}")
         ck = {"bands_vs_total": float(city[list(BANDS)].sum() / city.age_tot - 1),
@@ -255,6 +278,20 @@ def main() -> int:
                 "imm_recent": nb.imm_0_5 / nb.imm_base * 100}
         if year != "2006":
             mine["detached"] = nb.detached / nb.dw_tot * 100
+        # The City's average value, pooled the same way as the neighbourhoods'.
+        ok = das.avg_value.notna() & (das.own_w > 0)
+        city_avg[year] = float((das.avg_value * das.own_w)[ok].sum() / das.own_w[ok].sum())
+        ck["avg_value"] = {"pooled_city": round(city_avg[year]), "city_row": None if pd.isna(city.avg_value) else round(float(city.avg_value)),
+                           "neighbourhoods_without": int(nb.avg_value.isna().sum())}
+        if year == "2006":  # census2006.py pools the 2006 averages the same way
+            want = pd.read_csv(HERE / "census" / "nbhd_2006.csv").set_index("nbhd_id").avg_value.reindex(ids)
+            ck["avg_value"]["max_diff_vs_nbhd_2006"] = float(np.nanmax(np.abs(nb.avg_value - want)))
+        print(f"  {year} average value: pooled City ${city_avg[year]:,.0f}, City row "
+              + (f"${city.avg_value:,.0f}" if pd.notna(city.avg_value) else "none")
+              + f"; {ck['avg_value']['neighbourhoods_without']} neighbourhoods without"
+              + (f"; largest difference from nbhd_2006.csv ${ck['avg_value']['max_diff_vs_nbhd_2006']:,.0f}" if year == "2006" else ""))
+        if year == "2006" and ck["avg_value"]["max_diff_vs_nbhd_2006"] > 1:
+            sys.exit("2006 average value doesn't match census2006.py")
         ck["max_diff_vs_insights"], ck["mean_diff_vs_insights"] = {}, {}
         for m, v in mine.items():
             want = np.array(ins["measures"][m]["values"][year], float)
@@ -276,7 +313,7 @@ def main() -> int:
     out = pd.concat(frames)[["nbhd_id", "year", *COLS]]
     OUT.mkdir(exist_ok=True)
     out.to_csv(OUT / "nbhd.csv", index=False, lineterminator="\n")
-    (OUT / "manifest.json").write_text(json.dumps({"columns": COLS, "checks": checks}, indent=2) + "\n")
+    (OUT / "manifest.json").write_text(json.dumps({"columns": COLS, "city_avg_value": city_avg, "checks": checks}, indent=2) + "\n")
     print(f"wrote {OUT / 'nbhd.csv'} ({len(out)} rows) and manifest.json")
     return 0
 

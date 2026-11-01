@@ -327,3 +327,71 @@ Ridge, analogs and boosting already allow for non-linear forms and interactions:
 analogs and boosting through their own structure (trees of 7 leaves combine up to six
 features), ridge only through the squared and interaction terms in the school model.
 None found more than the linear terms.
+
+## The previous change (added after the dwelling run)
+
+Added 2026-11-01 at the user's request, after the dwelling run's results were seen,
+and fixed here before it has been computed.
+
+**The feature.** The fitted rungs lack the neighbourhood's previous change in ratio,
+because the 2006 median value isn't comparable. The censuses do publish the
+*average* value of dwellings, 2006 included. The new feature, `lag_avg`, is the
+change over the five years to the origin in the log ratio of the neighbourhood's
+average value to the City's:
+- 2006 to 2011 for the 2011 origin;
+- 2011 to 2016 for 2016;
+- 2016 to 2021 for live forecasts.
+
+**How the averages are pooled.**
+- **Neighbourhoods:** each DA's published average, weighted by its owner households,
+  over the DAs with a figure. As `census2006.average()` does, a neighbourhood is
+  left without a figure below half coverage of its owners.
+- **The City:** the same pooled mean over all its DAs, so both sides of the ratio are
+  built alike.
+- **Excluded DAs:** an average of $0 marks a suppressed DA. NHS DAs with a global
+  non-response rate of 50% or more are left out.
+
+Two new rungs, both after `ridge_dwell` and so on the higher bar:
+- **`reversion`:** ridge on `lag_avg` alone, which learns how much of the previous
+  move carries on or reverses.
+- **`ridge_lag`:** ridge's own features plus `lag_avg`.
+
+Both folds can use it: the forward fold trains at the 2011 origin (2006 to 2011) and
+tests at 2016 (2011 to 2016); the reverse fold is the other way round.
+
+## The previous change: first run (2026-11-01)
+
+The pooled averages check out:
+- **2006:** each neighbourhood's average matches `pipeline/census/nbhd_2006.csv`
+  exactly.
+- **City:** the pooled averages are within 0.7% of the City rows, every census.
+
+The rule still chooses own mean:
+
+| Rung | Forward MAE | Reverse MAE |
+|---|---|---|
+| Own mean (chosen) | 7.86 | |
+| Persistence | 8.84 | 10.52 |
+| Reversion (previous change alone) | 11.09 | 11.25 |
+| Ridge with the previous change | 12.70 | 11.67 |
+| Ridge | 12.70 | 12.29 |
+
+**The previous change did not predict the next one the same way in both periods.**
+Rank correlation of the previous change with the next:
+
+| Previous change (average value) | Next change (median value) | Correlation |
+|---|---|---|
+| 2006 to 2011 | 2011 to 2016 | −0.06 |
+| 2011 to 2016 | 2016 to 2021 | −0.36 |
+
+- Fitted on 2011 to 2016, `reversion` learns almost no reversal (slope −0.02).
+- Fitted on 2016 to 2021, it learns a strong one (−0.27).
+
+**Why own mean wins forward.** It assumes half of the last move reverses. That
+happened to be close for 2016 to 2021 (the slope was −0.33), but nothing in the
+earlier period would have taught a model to expect it.
+
+**This revises the measurement-noise reading above.** If noise in the 2011 NHS were
+the main cause, the move into 2011 would also have reversed afterwards. It didn't
+(−0.06). The reversal is mostly specific to the 2011–2016 run-up. Some noise remains
+likely, since the reversal is stronger where there are fewer owners.

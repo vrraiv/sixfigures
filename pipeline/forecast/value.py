@@ -28,6 +28,9 @@ ridge_demog_oracle adds the change in owners during the period (oracle).
 Dwelling predictors (added after the demographic run): the shares of dwellings that
 are semi-detached, row or duplex, that have three or more bedrooms, and that need
 major repairs, and the share of owners with a mortgage, in ridge_dwell.
+The previous change (added after the dwelling run): lag_avg, the change over the five
+years to the origin in the log ratio of the average value of dwellings to the City's,
+alone in reversion and with ridge's features in ridge_lag.
 
 Writes pipeline/out/model/value_scores.csv, value_predictions.csv and
 value_demography_rho.csv.
@@ -60,7 +63,7 @@ LEVELS = ["med_hh_at", "lim_at", "renter", "condo", "detached", "apt5", "built_n
 CHANGES = ["med_hh_at", "renter", "detached", "apt5", "built_new", "degree", "imm_recent"]
 KNN_FEATURES = ["L", "nb_L", "med_hh_at", "condo", "built_new", "permits_before"]
 FOLDS = {"forward": ("2011", "2016", "2021"), "reverse": ("2016", "2011", "2016")}
-RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog", "ridge_dwell"]
+RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog", "ridge_dwell", "reversion", "ridge_lag"]
 # The demographic predictors (docs/forecast-spec.md, added after the first run): age
 # and arrival shares, standardised within the census, and the change in owners.
 AGE = {"a25_34": "25 to 34", "a35_44": "35 to 44", "a65_74": "65 to 74", "a75": "75 and over"}
@@ -110,6 +113,11 @@ def main() -> int:
     permits = permits[permits.basis == "issued"].pivot_table(index="nbhd_id", columns="year", values="created", aggfunc="sum").reindex(ids).fillna(0)
 
     demo = pd.read_csv(DEMOGRAPHY)
+    # The previous change (added after the dwelling run): log ratio of the average
+    # value to the City's, each pooled over owners the same way (demography.py).
+    city_avg = json.loads((DEMOGRAPHY.parent / "manifest.json").read_text())["city_avg_value"]
+    A = {y: np.log(demo[demo.year == int(y)].set_index("nbhd_id").avg_value.reindex(ids).values / city_avg[y])
+         for y in ("2006", "2011", "2016", "2021")}
     hh06 = pd.read_csv(NBHD_2006).set_index("nbhd_id").hh.reindex(ids).values
     # Owner households: households less the renter share (insights' tenure bases).
     owners = {y: (hh06 if y == "2006" else np.array(hh[y], float)) * (1 - arr("renter", y) / 100)
@@ -145,6 +153,7 @@ def main() -> int:
         d[[*AGE, *ARRIVAL, *DWELL]] = demog(c).values
         d["owners_before"] = np.log(owners[c] / owners[prev])
         d["owners_during"] = np.log(owners[str(y + 5)] / owners[c])  # oracle
+        d["lag_avg"] = A[c] - A[prev]
         d["hh"] = hh[c]
         return d.fillna(0.0)
 
@@ -176,10 +185,16 @@ def main() -> int:
         fw = [*fd, *DWELL]
         aw, dwell_m = tune(ridge_fit, ALPHAS, tr[fw].values, ytr, w, grp)
         p["ridge_dwell"] = te.L.values + dwell_m(te[fw].values)
+        ar, rev = tune(ridge_fit, ALPHAS, tr[["lag_avg"]].values, ytr, w, grp)
+        p["reversion"] = te.L.values + rev(te[["lag_avg"]].values)
+        slope = (rev(np.array([[1.0]])) - rev(np.array([[0.0]])))[0]
+        fl = [*feats, "lag_avg"]
+        al, lag_m = tune(ridge_fit, ALPHAS, tr[fl].values, ytr, w, grp)
+        p["ridge_lag"] = te.L.values + lag_m(te[fl].values)
         corr.append({"fold": fold, "period": f"{train_c}-{int(train_c) + 5}",
                      **{k: spearman(tr[k], ytr) for k in [*DEMOG, "owners_during", "age0_14", "age65", *DWELL,
-                                                          "detached", "condo", "apt5"]}})
-        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features)")
+                                                          "detached", "condo", "apt5", "lag_avg"]}})
+        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features); reversion alpha {ar:.3g}, slope {slope:+.3f}; ridge_lag alpha {al:.3g}")
         preds.append(p)
         base = None
         for r in [*RUNGS, "ridge_oracle", "ridge_demog_oracle"]:
@@ -216,7 +231,7 @@ def main() -> int:
              "owners_during": "owners, change during (oracle)", "age0_14": "aged 0 to 14", "age65": "aged 65 and over",
              "attached": "semi, row and duplex", "bed3": "3 or more bedrooms", "repairs": "major repairs needed",
              "mortgage": "owners with a mortgage", "detached": "single-detached", "condo": "condominium",
-             "apt5": "apartments, 5+ storeys"}
+             "apt5": "apartments, 5+ storeys", "lag_avg": "previous change, average value"}
     for k, r in C.iterrows():
         print(f"  {names[k]:<34}" + "".join(f"{v:>12.2f}" for v in r))
     print(f"\nWrote {OUT / 'value_scores.csv'} and value_predictions.csv")
