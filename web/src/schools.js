@@ -4,7 +4,7 @@
 // insights.json. Charts are inline SVG and HTML, as on the Census Insights page.
 import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign } from "./catalogue.js";
-import { fmtR, initTip, pearson, quantile, rColor, seg } from "./charts.js";
+import { fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
 
 const [D, census] = await Promise.all([
   fetch(`/schools.json?v=${__SCHOOLS_VERSION__}`).then((r) => r.json()),
@@ -39,6 +39,10 @@ const censusMeasures = Object.keys(CENSUS).filter((m) => census.measures[m]?.val
 
 // ---- state, kept in the address -----------------------------------------------
 const hash = new URLSearchParams(location.hash.slice(1));
+const nbIndex = (id) => {
+  const k = nbhd.findIndex((n) => String(n.id) === id);
+  return k < 0 ? null : k;
+};
 const pick = (v, list, dflt) => (list.includes(v) ? v : dflt);
 const state = {
   m: pick(hash.get("m"), MEASURES, "score"),
@@ -49,12 +53,14 @@ const state = {
   pair: pick(hash.get("cp"), PAIRS.map((p) => p.join("")), "02"),
   sx: hash.get("sx") ?? "s:low_income",
   showSchools: hash.get("ss") === "1",
+  nb: nbIndex(hash.get("nb")),
   sort: { k: "name", dir: 1 },
   filter: "",
 };
 const writeHash = () => {
   const h = new URLSearchParams({ m: state.m, y: state.y, meth: state.method, sp: state.spread, cu: state.changeUnit, cp: state.pair, sx: state.sx });
   if (state.showSchools) h.set("ss", "1");
+  if (state.nb != null) h.set("nb", nbhd[state.nb].id);
   history.replaceState(null, "", `#${h}`);
 };
 
@@ -215,13 +221,19 @@ const nbRank = (vs) => {
   const order = vs.map((v, i) => [v, i]).filter(([v]) => v != null).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
   return { order, rank: new Map(order.map((i, k) => [i, k + 1])) };
 };
+const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
+  state.nb = i;
+  writeHash();
+});
+// A neighbourhood's name, which finds it on the map; a school's finds its neighbourhood.
+const nameLink = (i, n = escapeHTML(nbhd[i].name)) => `<button type="button" class="nm" data-nb="${i}" title="Find ${n} on the map">${n}</button>`;
 function renderMap() {
   const m = state.m, y = state.y, vs = nv(m, y), b = breaks(m), r = nbRank(vs);
   const shapes = nbhd.map((n, i) => {
     const v = vs[i];
     const extra = state.method === "inside" ? `<br>${D.by_nbhd.inside.schools[y][i] ?? 0} schools inside` : "";
     const t = `${escapeHTML(n.name)}<br>${v == null ? "No school inside with a result" : `<b>${fmt(v)}</b> · ${ordinal(r.rank.get(i))} of ${r.order.length}`}${extra}`;
-    return `<path d="${n.path}" class="${v == null ? "nb-none" : ""}" fill="${v == null ? "url(#nb-hatch)" : COLORS[cls(m, v)]}" data-tip="${t}"/>`;
+    return `<path d="${n.path}" class="${v == null ? "nb-none" : ""}" fill="${v == null ? "url(#nb-hatch)" : COLORS[cls(m, v)]}" data-i="${i}" data-tip="${t}"/>`;
   }).join("");
   let dots = "";
   if (state.showSchools) {
@@ -237,6 +249,7 @@ function renderMap() {
   $("map-lede").innerHTML = `${escapeHTML(LONG[m])}, ${y}${PRELIM.has(y) ? " (preliminary)" : ""}, by neighbourhood: ${state.method === "nearest"
     ? "for each dissemination area, its nearest public and nearest Catholic school with the result, weighted by the boards' shares of enrolment; the areas averaged by their children aged 0–14"
     : "the schools located in the neighbourhood, weighted by enrolment"}. The classes are the same in every year.${state.showSchools ? " Dots are the schools, on the same classes." : ""}`;
+  markPick();
 }
 $("map-schools").checked = state.showSchools;
 $("map-schools").addEventListener("change", (e) => {
@@ -258,7 +271,7 @@ function rankRow(m, y, i, r, prev, vs) {
   const t = `${escapeHTML(nbhd[i].name)}<br><b>${fmt(v)}</b> · ${ordinal(k)} of ${r.order.length}<br>City: ${fmt(c)}`;
   return `<li>
     <span class="rk">${k}</span>
-    <span class="nm">${escapeHTML(nbhd[i].name)}</span>
+    ${nameLink(i)}
     <span class="barcell" data-tip="${t}"><span class="bar-fill" style="width:${v.toFixed(1)}%"></span><span class="city-mark" style="left:${c.toFixed(1)}%"></span></span>
     <span class="vl">${fmtShort(v)}</span>
     ${move}
@@ -272,7 +285,7 @@ function renderRanks() {
   $("rank-bottom").innerHTML = r.order.slice(-10).reverse().map((i) => rankRow(m, y, i, r, prev, vs)).join("");
   const missing = nbhd.length - r.order.length;
   $("rank-lede").innerHTML = `${escapeHTML(LONG[m])}, ${y}${PRELIM.has(y) ? " (preliminary)" : ""}, ${METHODS[state.method].toLowerCase()}, ${r.order.length} neighbourhoods${missing ? ` (${missing} without a figure)` : ""}. `
-    + `Bars run from 0 to 100%; the tick marks the City (${fmt(city(m, y))}).${prev ? ` Arrows: places gained or lost since ${prev.y}.` : ""}`;
+    + `Bars run from 0 to 100%; the tick marks the City (${fmt(city(m, y))}).${prev ? ` Arrows: places gained or lost since ${prev.y}.` : ""} Pick a name to find it on the map.`;
 }
 
 // ---- 5. how the results spread out ---------------------------------------------------------------
@@ -416,7 +429,7 @@ function renderChanges() {
   const row = (r, rise) => {
     const x0 = x(r.before), x1 = x(r.after), col = rise ? RISE : FALL;
     const t = `${escapeHTML(name(r.i))}${detail(r.i)}<br>${pLabel(pa)}: ${fmt(r.before)}<br>${pLabel(pb)}: <b>${fmt(r.after)}</b><br>Change: ${fmtD(r.d)}`;
-    return `<li><span class="nm">${escapeHTML(name(r.i))}</span>
+    return `<li>${nameLink(unit === "schools" ? S.nbhd[r.i] : r.i, escapeHTML(name(r.i)))}
       <span class="dumbbell" data-tip="${t}">
         <span class="db-line" style="left:${Math.min(x0, x1).toFixed(1)}%;width:${Math.abs(x1 - x0).toFixed(1)}%;background:${col}"></span>
         <span class="db-dot db-from" style="left:${x0.toFixed(1)}%"></span>

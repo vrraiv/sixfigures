@@ -563,6 +563,14 @@ body.doc { display: block; height: auto; }
 .nb-map svg { display: block; width: 100%; height: auto; max-height: 620px; }
 .nb-map path { stroke: #fff; stroke-width: 1; stroke-linejoin: round; }
 .nb-map path:hover { stroke: var(--ink); stroke-width: 2; }
+.nb-map { scroll-margin: 90px 0; }
+.nb-map path[data-i] { cursor: pointer; }
+.nb-map.has-pick path { opacity: 0.6; }
+.nb-map.has-pick path.pick { opacity: 1; stroke: var(--ink); stroke-width: 3; }
+.nb-pick { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 8px 0 0; padding: 6px 10px; font-size: 13px; background: #f4f4ef; border-radius: 4px; }
+.nb-pick[hidden] { display: none; }
+.nb-pick button { margin-left: auto; font: inherit; font-size: 12px; padding: 2px 10px; border: 1px solid #d6d6cf; border-radius: 3px; background: #fff; cursor: pointer; }
+.insights button.nm { padding: 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
 .nb-school { stroke: var(--ink); stroke-width: 0.8; }
 .nb-school:hover { stroke-width: 2.5; }
 /* histogram */

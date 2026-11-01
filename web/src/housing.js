@@ -5,7 +5,7 @@
 // Charts are inline SVG and HTML, as on the other Insights pages.
 import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign } from "./catalogue.js";
-import { fmtR, initTip, pearson, quantile, rColor, seg, spearman } from "./charts.js";
+import { fmtR, initPick, initTip, pearson, quantile, rColor, seg, spearman } from "./charts.js";
 
 const [D, census] = await Promise.all([
   fetch(`/housing.json?v=${__HOUSING_VERSION__}`).then((r) => r.json()),
@@ -59,6 +59,10 @@ function periods(m) {
 
 // ---- state, kept in the address -----------------------------------------------
 const hash = new URLSearchParams(location.hash.slice(1));
+const nbIndex = (id) => {
+  const k = nbhd.findIndex((n) => String(n.id) === id);
+  return k < 0 ? null : k;
+};
 const state = {
   m: M[hash.get("m")] ? hash.get("m") : "created",
   p: hash.get("p"),
@@ -67,6 +71,7 @@ const state = {
   span: ["2011-2016", "2016-2021"].includes(hash.get("cs")) ? hash.get("cs") : "2016-2021",
   zoneKey: hash.get("zk") === "vacancy" ? "vacancy" : "avg_rent",
   sx: hash.get("sx"),
+  nb: nbIndex(hash.get("nb")),
 };
 const fixPeriod = () => {
   const ps = periods(state.m).map(([k]) => k);
@@ -77,6 +82,7 @@ const writeHash = () => {
   const h = new URLSearchParams({ m: state.m, r: state.rate ? "1" : "0", lag: state.lag, cs: state.span, zk: state.zoneKey });
   if (state.p) h.set("p", state.p);
   if (state.sx) h.set("sx", state.sx);
+  if (state.nb != null) h.set("nb", nbhd[state.nb].id);
   history.replaceState(null, "", `#${h}`);
 };
 
@@ -306,6 +312,10 @@ function breaks(vs) {
   }
   return { edges: uniq([1, 2, 3, 4, 5].map((k) => quantile(s, k / 6))), zero: false };
 }
+const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
+  state.nb = i;
+  writeHash();
+});
 function renderMap() {
   const { vs, base } = values(), { edges: b, zero } = breaks(vs), order = rankOrder(vs);
   const rank = new Map(order.map((i, k) => [i, k + 1]));
@@ -316,7 +326,7 @@ function renderMap() {
     const v = vs[i];
     const z = zone ? `<br>CMHC zone: ${escapeHTML(zoneName(D.cmhc.nbhd_zone[i]))}` : "";
     const t = `${escapeHTML(n.name)}<br>${v == null ? "No figure" : `<b>${fmtV(v)}</b> · ${ordinal(rank.get(i))} of ${order.length}`}${z}`;
-    return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : pal[cls(v)]}" data-tip="${t}"/>`;
+    return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : pal[cls(v)]}" data-i="${i}" data-tip="${t}"/>`;
   }).join("");
   $("nb-map").innerHTML = `<svg viewBox="0 0 ${D.map.width} ${D.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${M[state.m].label.toLowerCase()}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
@@ -327,6 +337,7 @@ function renderMap() {
   $("map-key").innerHTML = pal.map((c, k) => `<li><span class="key-sq" style="background:${c}"></span>${label(k)}</li>`).join("")
     + (vs.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No figure</li>` : "");
   $("map-lede").innerHTML = `${describe(base)}, by neighbourhood, in classes of about equal numbers of neighbourhoods${zero ? ", with those that have none in a class of their own" : ""}.${zone ? " CMHC publishes rents by zone: each neighbourhood shows its zones' figures, weighted by its renter households in each." : ""}`;
+  markPick();
 }
 const zoneName = (code) => D.cmhc.zones.find((z) => z.code === code)?.name ?? "—";
 const rankOrder = (vs) => vs.map((v, i) => [v, i]).filter(([v]) => v != null).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
@@ -344,13 +355,13 @@ function renderRanks() {
   const max = Math.max(...order.map((i) => Math.abs(vs[i])));
   const row = (i) => {
     const v = vs[i], w = (Math.abs(v) / max) * 100;
-    return `<li><span class="rk">${order.indexOf(i) + 1}</span><span class="nm">${escapeHTML(nbhd[i].name)}</span>
+    return `<li><span class="rk">${order.indexOf(i) + 1}</span><button type="button" class="nm" data-nb="${i}" title="Find ${escapeHTML(nbhd[i].name)} on the map">${escapeHTML(nbhd[i].name)}</button>
       <span class="barcell" data-tip="${escapeHTML(`${nbhd[i].name}<br><b>${fmtV(v)}</b>`)}"><span class="bar-fill" style="width:${w.toFixed(1)}%${v < 0 ? `;background:${FALL}` : ""}"></span></span>
       <span class="vl">${fmtV(v)}</span><span class="move"></span></li>`;
   };
   $("rank-top").innerHTML = order.slice(0, 10).map(row).join("");
   $("rank-bottom").innerHTML = order.slice(-10).reverse().map(row).join("");
-  $("rank-lede").innerHTML = `${describe(base)}: ${order.length} neighbourhoods${order.length < N ? ` (${N - order.length} without a figure)` : ""}.`;
+  $("rank-lede").innerHTML = `${describe(base)}: ${order.length} neighbourhoods${order.length < N ? ` (${N - order.length} without a figure)` : ""}. Pick a name to find it on the map.`;
   // concentration: the share of the City's total in the neighbourhoods with the most
   const raw = values(state.m, state.p, false).vs;
   const conc = $("conc");
