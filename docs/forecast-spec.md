@@ -450,3 +450,38 @@ In 2016 to 2021 the flagged neighbourhoods' median relative change was +5%, agai
 building widened the spread of outcomes without moving their centre. A shift in the
 forecast can't capture that, though it could widen the range shown for those
 neighbourhoods.
+
+## The City's value: a nowcast (added 2026-11-01)
+
+The ratio forecast can't be acted on in dollars until the City's 2026 median is
+released. The 2026 Census reference day (May 2026) has passed, so the City's median
+can be estimated from market prices already observed. A neighbourhood's dollar
+forecast is then the City estimate times its forecast ratio.
+
+**Rule.** The City's median at census t+5 is its Census median at t times the change
+in a price index from May of year t to May of year t+5. The coefficient is fixed at 1;
+nothing is fitted. It is scored on 2011 to 2016 and 2016 to 2021 against the Census
+City median (+50% and +49.5%).
+
+**Candidates.**
+1. **Statistics Canada New Housing Price Index, Toronto** (table 18-10-0205-01, open
+   licence). Computed before this section was written, so recorded here as seen:
+
+   | Series | May 2011 to May 2016 | May 2016 to May 2021 |
+   |---|---|---|
+   | Total (house and land) | +20.6% | +14.5% |
+   | Land only | +9.4% | +19.0% |
+   | Census City median | +50.0% | +49.5% |
+
+   It covers only new single, semi and row houses at a fixed specification, and misses
+   by a factor of two to three that isn't stable between periods. Rejected; no
+   multiplier is fitted to rescue it.
+2. **TRREB Market Watch, City of Toronto, all home types, May** (pre-registered here,
+   before extraction). Primary: the median sale price. Reported alongside: the
+   average sale price. A glimpse of the May 2016 summary page was seen while checking
+   the layout; no ratio was computed.
+3. **Teranet–National Bank HPI, Toronto** (private comparator only; its terms bar
+   creating other data from it without permission).
+
+The extraction checks that districts sum to their region, the three regions sum to the
+City, and sales times average price matches dollar volume.
