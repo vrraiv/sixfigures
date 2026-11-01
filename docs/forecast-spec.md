@@ -551,3 +551,77 @@ first clean test.
 - **`own_mean_market`:** own mean plus `market`'s fitted slope times `mkt` (forward
   only).
 - **`ridge_market`:** ridge's own features plus `mkt`.
+
+## Neighbourhood market prices: first run (2026-11-01)
+
+**The extraction** (`pipeline/trreb.py`) covers 59 quarters, Q4 2011 to Q2 2026, with
+138 to 140 of the 140 communities in each.
+- Sales times average price matches dollar volume on every row.
+- A district's communities add to TRREB's district total, except in 15 of 1,250
+  district-quarters, where TRREB's own totals are off by one or two sales.
+- Q3 2026 isn't published yet, so a live 2026 window would hold Q1 and Q2 only.
+
+**The rule still chooses own mean:**
+
+| Rung | Forward MAE | Reverse MAE |
+|---|---|---|
+| Own mean (chosen) | 7.86 | |
+| Own mean plus the market slope | 7.92 | |
+| Persistence | 8.84 | 10.52 |
+| Market (fitted slope) | 12.10 | 11.40 |
+| Ridge with the market | 12.38 | 12.58 |
+| Market, coefficient 1 | 12.26 | 19.05 |
+
+**The market change is the first predictor that holds in both periods.** Its rank
+correlation with the change in the Census ratio is +0.38 (2011 to 2016) and +0.36
+(2016 to 2021). Every earlier feature flipped sign between periods.
+- Fitted slopes are +0.23 and +0.14: a sale-price move shows up in the Census ratio
+  at a fifth of its size or less.
+- At full size (`market_full`) it is much worse than persistence.
+
+### Diagnostic: the average drift (chosen after looking)
+
+The household-weighted mean change in the log ratio isn't zero:
+- **2011 to 2016:** −0.047.
+- **2016 to 2021:** +0.025.
+
+The neighbourhoods as a whole shift against the City median, and the shift reverses.
+Every fitted rung carries the training period's mean change into the test period
+through its intercept, giving a bias of 6 to 9 points:
+
+| Rung | Forward bias | Reverse bias |
+|---|---|---|
+| Persistence | −2.5 | +4.7 |
+| Market | −8.9 | +8.2 |
+| Build | −7.4 | +7.2 |
+| Reversion | −7.1 | +7.0 |
+| Ridge | −7.8 | +6.5 |
+
+**Centred scores.** Re-scored with each rung's predicted changes centred to average
+zero (this uses no outcomes):
+
+| Rung | Forward, raw | Forward, centred | Reverse, raw | Reverse, centred |
+|---|---|---|---|---|
+| Own mean | 7.86 | 8.32 | | |
+| Market | 12.10 | 8.69 | 11.40 | 10.16 |
+| Reversion | 11.09 | 8.80 | 11.25 | 10.67 |
+| Persistence | 8.84 | 8.84 | 10.52 | 10.52 |
+| Ridge | 12.70 | 11.37 | 12.29 | 11.77 |
+
+- **Market** beats persistence in both folds once centred, the first fitted rung to do
+  so.
+- **Own mean is still best forward.** The rule chooses it on raw and on centred scores.
+- **Ridge and its variants, analogs and boosting** stay at 10.7 to 12.6 centred. Their
+  losses weren't the intercept alone.
+
+**This sharpens the explanation of own mean's win.** About half its edge over
+persistence (7.86 against 8.84) is the average drift: it forecasts −½ times the
+previous mean change (−0.047), about +0.024, against the actual +0.025. The other half
+is neighbourhood-level reversion.
+
+**For dollar figures**, the drift is a City-wide shift of the neighbourhoods against
+the City median, of 2.5 to 4.7 points a period. A centred ratio forecast leaves it out,
+so a dollar range has to carry it alongside the City nowcast's error.
+
+Centring isn't part of the decision rule. Adopting it would be a rule change, made
+after looking.

@@ -219,6 +219,13 @@ cmhc: $(GEOM)
 demography:
 	$(PYTHON) pipeline/demography.py
 
+# TRREB sale prices by community (a model input): pipeline/trreb/community.csv, from
+# the quarterly Community Housing Market Reports in pipeline/raw/trreb_community.
+.PHONY: trreb
+
+trreb:
+	$(PYTHON) pipeline/trreb.py
+
 # The forecast backtests (docs/forecast-spec.md): scores and predictions in
 # pipeline/out/model/. Their inputs are committed; the scripts stop if one is missing.
 .PHONY: forecast
