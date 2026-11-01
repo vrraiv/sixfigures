@@ -253,3 +253,33 @@ value ratio over it (description, not a forecast):
   Neighbourhoods that added owners fell back against the City. Because the target is
   a median of owners' estimates, added owners (mostly in new condominium buildings)
   also change whose values the median is taken over.
+
+## Dwelling predictors (added after the demographic run)
+
+Added 2026-10-31 at the user's request, after the demographic run's results were
+seen. They are fixed here before any of them has been computed. Each is a share of
+occupied private dwellings, or of owner households, at the origin, standardised
+within the census:
+
+- **Ground-oriented attached:** semi-detached, row houses and apartments in a duplex.
+- **Three or more bedrooms.**
+- **Major repairs needed.**
+- **Owner households with a mortgage.** The DAs' published percentage is applied to
+  their owner households, then pooled.
+
+They are added to `ridge_demog`'s features as a new rung, `ridge_dwell`, after
+`ridge_demog`, so it must clear the higher bar. The oracle owner change stays out of
+it.
+
+The fifth feature agreed, the five-year change in condominium share, can't be built:
+the 2006 profile has no condominium status, so the change to the 2011 origin, which
+the forward fold trains on, doesn't exist. It is dropped, not replaced. The change in
+the share of apartments in buildings of five or more storeys (`d_apt5`) is already a
+predictor.
+
+Sources:
+- **Structure types:** the 2011 census profile; the 2016 and 2021 profiles.
+- **Bedrooms, repairs and mortgages:** the 2011 NHS; the 2016 and 2021 profiles.
+
+2006 isn't needed: these are levels at the origins 2011 and 2016 (and 2021 for live
+forecasts).
