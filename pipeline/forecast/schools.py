@@ -39,7 +39,7 @@ HERE = Path(__file__).parent
 PIPELINE = HERE.parent
 sys.path.insert(0, str(PIPELINE))
 from school_insights import DEMOGRAPHICS, TESTS, TYPES  # noqa: E402
-from fit import KS, ALPHAS, expit, knn_fit, logit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
+from fit import KS, ALPHAS, choose, expit, knn_fit, logit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
 
 SCHOOLS = PIPELINE / "schools" / "schools.csv"
 INSIGHTS = PIPELINE.parent / "web" / "public" / "insights.json"
@@ -190,9 +190,10 @@ def score(p: pd.DataFrame, rung: str) -> dict:
 
 
 def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> list[str]:
-    """2019 to 2022: the City's change, and each school's result against the 2018-2019
-    ridge forecast (its shortfall, net of the City's change) and its change against the
-    mean change, by its 2019 low-income share."""
+    """2019 to 2022: the City's change, and by thirds of the schools' 2019 low-income
+    share, their enrolment-weighted results against the 2018-2019 ridge forecast (net of
+    the City's change) and their change against the mean change; then the highest third
+    less the lowest, with a bootstrap standard error."""
     lines = []
     for g in GRADES:
         q = p[p.grade == g].copy()
@@ -207,10 +208,20 @@ def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> list[str]:
         q["raw"] = ch - np.average(ch, weights=q.enrol)  # against these schools' mean change
         q["tercile"] = pd.qcut(q.low_income_raw.rank(method="first"), 3, labels=["lowest third", "middle third", "highest third"])
         lines.append(f"  {g.upper()}: City {y19:.1f}% in 2019, {y22:.1f}% in 2022 ({y22 - y19:+.1f} pp); {len(q)} schools")
+        q["resid"] -= np.average(q.resid, weights=q.enrol)  # the model's offset across all schools
         for t, d in q.groupby("tercile", observed=True):
-            se = d.resid.std() / np.sqrt(len(d))
             lines.append(f"    low income {t:<13} (2019 share {d.low_income_raw.min():.0f}-{d.low_income_raw.max():.0f}%): "
-                         f"vs forecast {d.resid.mean():+.1f} pp (se {se:.1f}); change vs mean change {d.raw.mean():+.1f} pp")
+                         f"vs forecast {np.average(d.resid, weights=d.enrol):+.1f} pp; change vs mean change {np.average(d.raw, weights=d.enrol):+.1f} pp")
+        hi, lo = q[q.tercile == "highest third"], q[q.tercile == "lowest third"]
+        rng = np.random.default_rng(0)
+
+        def gap(col, boot=False):
+            h = hi.sample(frac=1, replace=True, random_state=rng) if boot else hi
+            l_ = lo.sample(frac=1, replace=True, random_state=rng) if boot else lo
+            return np.average(h[col], weights=h.enrol) - np.average(l_[col], weights=l_.enrol)
+        for col, name in (("resid", "vs forecast"), ("raw", "change")):
+            se = np.std([gap(col, True) for _ in range(1000)])
+            lines.append(f"    highest third less lowest, {name}: {gap(col):+.1f} pp (se {se:.1f})")
     return lines
 
 
@@ -258,14 +269,8 @@ def main() -> int:
         for i in infos:
             if i["grade"] == g and "alpha" in i:
                 print(f"  {i['fold']}: trained on {i['train_rows']} rows, {i['features']} features; ridge alpha {i['alpha']:.3g}, k {i['k']}")
-        # The decision rule: a rung replaces the one chosen so far only if its error is
-        # lower in every selection fold.
         sel = S[(S.grade == g) & S.fold.isin([f"{a}-{b}" for a, b in SELECTION])].pivot(index="fold", columns="rung", values="mae")
-        chosen = "persistence"
-        for r in RUNGS[1:]:
-            if r in sel and (sel[r] < sel[chosen]).all():
-                chosen = r
-        print(f"  Chosen by the rule: {chosen}")
+        print(f"  Chosen by the rule: {choose({r: sel[r].tolist() for r in sel}, RUNGS)}")
     print("\n2019 to 2022, across the COVID-19 closures (ridge fitted on 2018-2019):")
     print("\n".join(covid(P[(P.t0 == COVID[0]) & (P.t1 == COVID[1])], city, s)))
     if args.holdout:

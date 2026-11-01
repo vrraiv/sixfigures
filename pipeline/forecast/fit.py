@@ -111,6 +111,27 @@ def spearman(a, b):
     return float(np.corrcoef(rank(a), rank(b))[0, 1])
 
 
+# Rungs up to ridge; the rest (analogs, later boosting) must clear the higher bar.
+SIMPLE = {"persistence", "own_mean", "trend", "ridge"}
+
+
+def choose(mae: dict, rungs: list) -> str:
+    """The decision rule. Walk the rungs in order; a rung replaces the one chosen so far
+    if its MAE is lower in every fold both have; past ridge, also only if its mean
+    improvement is larger than the improvements' spread (largest less smallest) across
+    those folds. mae is {rung: [MAE by fold]}, NaN where a rung has no fold."""
+    chosen = rungs[0]
+    for r in rungs[1:]:
+        if r not in mae:
+            continue
+        d = [a - b for a, b in zip(mae[chosen], mae[r]) if not (np.isnan(a) or np.isnan(b))]
+        if not d or min(d) <= 0:
+            continue
+        if r in SIMPLE or np.mean(d) > max(d) - min(d):
+            chosen = r
+    return chosen
+
+
 def self_check():
     """Ridge with no penalty is weighted least squares; spearman matches a known case."""
     rng = np.random.default_rng(1)
@@ -124,3 +145,7 @@ def self_check():
     assert np.allclose(p, A @ ols, atol=1e-8), "ridge(0) != weighted least squares"
     assert abs(spearman([1, 2, 3, 4], [10, 20, 30, 25]) - 0.8) < 1e-12, "spearman"
     assert np.allclose(knn_fit(X, y, w, 1)(X), y), "1-nearest neighbour of a training row is itself"
+    m = {"persistence": [10, 10], "ridge": [9, 9.9], "knn": [8.5, 9.0]}
+    assert choose(m, ["persistence", "ridge", "knn"]) == "knn", "knn: gains 0.5, 0.9 > spread 0.4"
+    m["knn"] = [8.0, 9.8]
+    assert choose(m, ["persistence", "ridge", "knn"]) == "ridge", "knn: gains 1.0, 0.1 < spread 0.9"

@@ -32,7 +32,7 @@ import pandas as pd
 
 HERE = Path(__file__).parent
 PIPELINE = HERE.parent
-from fit import ALPHAS, KS, knn_fit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
+from fit import ALPHAS, KS, choose, knn_fit, ridge_fit, self_check, spearman, tune, wmae  # noqa: E402
 
 WEB = PIPELINE.parent / "web" / "public"
 INSIGHTS = WEB / "insights.json"
@@ -149,18 +149,10 @@ def main() -> int:
         chg = "" if np.isnan(r.rho_change) else f"{r.rho_change:.2f}"
         print(f"  {r.fold:<9}{r.rung:<14}{r.n:>5}{r.mae:>7.2f}{r.skill:>8.1%}{r.rho_level:>9.2f}{chg:>9}")
     print("\n".join(info))
-    # The decision rule: a rung replaces the one chosen so far only if its error is lower
-    # in the forward fold and, where both have one, the reverse fold too. The oracle run
-    # is conditional and never chosen.
+    # The decision rule over the forward and reverse folds; the oracle run is
+    # conditional and never chosen.
     mae = S.pivot(index="rung", columns="fold", values="mae")
-    chosen = "persistence"
-    for r in RUNGS[1:]:
-        ok = mae.loc[r, "forward"] < mae.loc[chosen, "forward"]
-        if not np.isnan(mae.loc[r, "reverse"]) and not np.isnan(mae.loc[chosen, "reverse"]):
-            ok = ok and mae.loc[r, "reverse"] < mae.loc[chosen, "reverse"]
-        if ok:
-            chosen = r
-    print(f"  Chosen by the rule: {chosen}")
+    print(f"  Chosen by the rule: {choose({r: [mae.loc[r, 'forward'], mae.loc[r, 'reverse']] for r in RUNGS}, RUNGS)}")
     print(f"\nWrote {OUT / 'value_scores.csv'} and value_predictions.csv")
     return 0
 
