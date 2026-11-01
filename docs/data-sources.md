@@ -187,6 +187,9 @@ source allows). Every script prints its own checks, as the census scripts do.
 
 ## Decisions before modelling
 
+Settled for the first models in [forecast-spec.md](forecast-spec.md).
+
+
 - **Panel unit**: neighbourhoods first (recommended: constant geography,
   validated, fast), DAs later if the neighbourhood model works.
 - **Backtest**: 2016-to-2021 with known-at-origin drivers only, and a second,

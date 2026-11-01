@@ -210,5 +210,22 @@ cmhc: $(GEOM)
 	$(PYTHON) pipeline/download.py --cmhc
 	$(PYTHON) pipeline/cmhc.py
 
+# Age groups and period of immigration by neighbourhood (a model input):
+# pipeline/demography/nbhd.csv. The 2006 and 2011 NHS counts come from the Beyond 20/20
+# tables via pyivt, as for nhs2011.py: run `$(PYIVT_PYTHON) pipeline/demography_ivt.py`
+# first (under WSL where pyivt has no Windows wheel).
+.PHONY: demography
+
+demography:
+	$(PYTHON) pipeline/demography.py
+
+# The forecast backtests (docs/forecast-spec.md): scores and predictions in
+# pipeline/out/model/. Their inputs are committed; the scripts stop if one is missing.
+.PHONY: forecast
+
+forecast:
+	$(PYTHON) pipeline/forecast/schools.py
+	$(PYTHON) pipeline/forecast/value.py
+
 clean:
 	rm -rf pipeline/out
