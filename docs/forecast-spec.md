@@ -395,3 +395,35 @@ earlier period would have taught a model to expect it.
 the main cause, the move into 2011 would also have reversed afterwards. It didn't
 (−0.06). The reversal is mostly specific to the 2011–2016 run-up. Some noise remains
 likely, since the reversal is stronger where there are fewer owners.
+
+## Heavy building (added after the previous-change run)
+
+Added 2026-11-01 at the user's request. **Unlike the earlier additions, this was chosen
+after looking at both periods**, so its backtest is partly fitted to what was seen. The
+2026 Census is its first clean test.
+
+**What was seen.** Six neighbourhoods fell in dollars while the City rose 50%: five
+from 2011 to 2016 and one from 2016 to 2021. Three of them were in the top tenth for
+permits issued in the five years before the period. Ranking all neighbourhoods by
+those permits:
+
+| Period | Top tenth: share falling more than 20% against the City | The rest |
+|---|---|---|
+| 2011 to 2016 | 56% | 8% |
+| 2016 to 2021 | 19% | 2% |
+
+New units, often condominiums cheaper than the existing stock, enter the owners'
+homes and pull the census median down. Ridge's `permits_before` enters only as a
+linear term, which dilutes an effect confined to the tail.
+
+**The feature.** `heavy_build` is 1 if a neighbourhood's permits issued in the five
+years before the origin, per 1,000 households, are in the top tenth at that origin,
+and 0 otherwise. Ranking within each origin means no threshold is fitted across
+periods.
+
+Three new rungs, all after `ridge_lag` and so on the higher bar:
+- **`build`:** persistence plus a fitted shift for heavy-building neighbourhoods
+  (ridge on `heavy_build` alone).
+- **`ridge_build`:** ridge's own features plus `heavy_build`.
+- **`own_mean_build`:** own mean plus `build`'s fitted shift for `heavy_build`
+  (forward only, like own mean, so it is scored on one fold).
