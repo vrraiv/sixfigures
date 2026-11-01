@@ -264,8 +264,9 @@ scores and predictions go to `pipeline/out/model/`. `schools.py --holdout` score
 
 `make demography` runs `pipeline/demography.py`, which writes
 `pipeline/demography/nbhd.csv` (committed): population in ten-year age bands and by
-period of immigration, by neighbourhood, for 2006 to 2021, for the dwelling-value
-model's demographic rung. Run `pipeline/demography_ivt.py` first, with pyivt (under
+period of immigration (2006 to 2021), and dwellings by structure type, bedrooms and
+condition and owners with a mortgage (2011 to 2021), by neighbourhood, for the
+dwelling-value model's demographic and dwelling rungs. Run `pipeline/demography_ivt.py` first, with pyivt (under
 WSL, as for `nhs2011.py`), for the 2006 and 2011 NHS counts. It checks itself against
 insights.json's age and recent-immigrant shares.
 

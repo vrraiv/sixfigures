@@ -283,3 +283,47 @@ Sources:
 
 2006 isn't needed: these are levels at the origins 2011 and 2016 (and 2021 for live
 forecasts).
+
+## Dwelling predictors: first run (2026-10-31)
+
+The dwelling counts reproduce insights.json's single-detached share exactly for 2011,
+2016 and 2021.
+
+The rule still chooses own mean. `ridge_dwell` scores 12.68 forward and 12.37 reverse,
+against `ridge_demog`'s 12.40 and 12.18.
+
+Like age, the dwelling shares track each period's movement and then flip (Spearman
+correlation with the change that followed):
+
+| Share at the start | 2011 to 2016 | 2016 to 2021 |
+|---|---|---|
+| Semi, row and duplex | +0.27 | +0.01 |
+| Three or more bedrooms | +0.37 | −0.15 |
+| Major repairs needed | −0.05 | +0.35 |
+| Owners with a mortgage | −0.32 | +0.40 |
+| Single-detached (existing) | +0.44 | −0.21 |
+| Apartments, 5+ storeys (existing) | −0.42 | +0.11 |
+
+## Why own mean wins
+
+No fitted rung sees the one thing own mean uses: the neighbourhood's previous ratio.
+
+- **What own mean does.** It is the 2016 ratio less half the 2011-to-2016 change,
+  i.e. it forecasts that half of the last period's move reverses.
+- **What the data shows.** The 2016-to-2021 change regressed on the 2011-to-2016
+  change has a slope of −0.33.
+- **Why ridge can't learn it.** The forward fold trains on 2011 to 2016, and its
+  previous change would need the 2006 value, which isn't comparable.
+
+**Part of the reversal looks like measurement noise.**
+- The correlation of successive changes is −0.49 in the half of neighbourhoods with
+  fewer owners, and −0.36 in the half with more.
+- The 2011 to 2016 changes are more spread out than the 2016 to 2021 changes (standard
+  deviation 0.157 against 0.122), and 2011 is the voluntary NHS.
+
+Noise in one census's median shows up as a move that reverses in the next.
+
+Ridge, analogs and boosting already allow for non-linear forms and interactions:
+analogs and boosting through their own structure (trees of 7 leaves combine up to six
+features), ridge only through the squared and interaction terms in the school model.
+None found more than the linear terms.

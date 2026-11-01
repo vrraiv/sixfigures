@@ -25,6 +25,9 @@ the population aged 25-34, 35-44, 65-74 and 75+, shares that immigrated in the f
 years before the census and the five before that (pipeline/demography/nbhd.csv),
 and the change in owner households over the five years to the origin, in ridge_demog;
 ridge_demog_oracle adds the change in owners during the period (oracle).
+Dwelling predictors (added after the demographic run): the shares of dwellings that
+are semi-detached, row or duplex, that have three or more bedrooms, and that need
+major repairs, and the share of owners with a mortgage, in ridge_dwell.
 
 Writes pipeline/out/model/value_scores.csv, value_predictions.csv and
 value_demography_rho.csv.
@@ -57,12 +60,15 @@ LEVELS = ["med_hh_at", "lim_at", "renter", "condo", "detached", "apt5", "built_n
 CHANGES = ["med_hh_at", "renter", "detached", "apt5", "built_new", "degree", "imm_recent"]
 KNN_FEATURES = ["L", "nb_L", "med_hh_at", "condo", "built_new", "permits_before"]
 FOLDS = {"forward": ("2011", "2016", "2021"), "reverse": ("2016", "2011", "2016")}
-RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog"]
+RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog", "ridge_dwell"]
 # The demographic predictors (docs/forecast-spec.md, added after the first run): age
 # and arrival shares, standardised within the census, and the change in owners.
 AGE = {"a25_34": "25 to 34", "a35_44": "35 to 44", "a65_74": "65 to 74", "a75": "75 and over"}
 ARRIVAL = {"imm_0_5": "arrived in the last 5 years", "imm_5_10": "arrived 5 to 10 years before"}
 DEMOG = [*AGE, *ARRIVAL, "owners_before"]
+# The dwelling predictors (added after the demographic run): (part, base) shares.
+DWELL = {"attached": ("attached", "dw_tot"), "bed3": ("bed3", "bed_tot"), "repairs": ("rep_major", "rep_tot"),
+         "mortgage": ("own_mort", "own_tot")}
 
 
 def neighbours(ids: list[int]) -> list[list[int]]:
@@ -116,6 +122,8 @@ def main() -> int:
             out[k] = d[k] / d.age_tot
         for k in ARRIVAL:
             out[k] = d[k] / d.imm_base
+        for k, (part, base) in DWELL.items():
+            out[k] = d[part] / d[base]
         return (out - out.mean()) / out.std(ddof=0)
 
     def per_1000(y0, y1, c):
@@ -134,7 +142,7 @@ def main() -> int:
             d[f"d_{m}"] = z(m, c) - z(m, prev)
         d["permits_before"] = np.log1p(per_1000(y - 5, y - 1, c))
         d["permits_during"] = np.log1p(per_1000(y, y + 4, c))  # oracle
-        d[list(AGE) + list(ARRIVAL)] = demog(c).values
+        d[[*AGE, *ARRIVAL, *DWELL]] = demog(c).values
         d["owners_before"] = np.log(owners[c] / owners[prev])
         d["owners_during"] = np.log(owners[str(y + 5)] / owners[c])  # oracle
         d["hh"] = hh[c]
@@ -165,9 +173,13 @@ def main() -> int:
         p["ridge_demog"] = te.L.values + demog_m(te[fd].values)
         ado, demog_o = tune(ridge_fit, ALPHAS, tr[[*fd, "owners_during"]].values, ytr, w, grp)
         p["ridge_demog_oracle"] = te.L.values + demog_o(te[[*fd, "owners_during"]].values)
+        fw = [*fd, *DWELL]
+        aw, dwell_m = tune(ridge_fit, ALPHAS, tr[fw].values, ytr, w, grp)
+        p["ridge_dwell"] = te.L.values + dwell_m(te[fw].values)
         corr.append({"fold": fold, "period": f"{train_c}-{int(train_c) + 5}",
-                     **{k: spearman(tr[k], ytr) for k in [*DEMOG, "owners_during", "age0_14", "age65"]}})
-        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}")
+                     **{k: spearman(tr[k], ytr) for k in [*DEMOG, "owners_during", "age0_14", "age65", *DWELL,
+                                                          "detached", "condo", "apt5"]}})
+        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features)")
         preds.append(p)
         base = None
         for r in [*RUNGS, "ridge_oracle", "ridge_demog_oracle"]:
@@ -201,7 +213,10 @@ def main() -> int:
     print("\nRank correlation with the five-year change in the value ratio (at the start of each period):")
     print(f"  {'':<34}" + "".join(f"{p:>12}" for p in C.columns))
     names = {**{k: f"aged {v}" for k, v in AGE.items()}, **ARRIVAL, "owners_before": "owners, change in the 5 years before",
-             "owners_during": "owners, change during (oracle)", "age0_14": "aged 0 to 14", "age65": "aged 65 and over"}
+             "owners_during": "owners, change during (oracle)", "age0_14": "aged 0 to 14", "age65": "aged 65 and over",
+             "attached": "semi, row and duplex", "bed3": "3 or more bedrooms", "repairs": "major repairs needed",
+             "mortgage": "owners with a mortgage", "detached": "single-detached", "condo": "condominium",
+             "apt5": "apartments, 5+ storeys"}
     for k, r in C.iterrows():
         print(f"  {names[k]:<34}" + "".join(f"{v:>12.2f}" for v in r))
     print(f"\nWrote {OUT / 'value_scores.csv'} and value_predictions.csv")

@@ -1,4 +1,5 @@
-"""Age groups and period of immigration by neighbourhood, for the forecast model:
+"""Age groups, period of immigration and dwelling characteristics by neighbourhood,
+for the forecast model:
 pipeline/demography/nbhd.csv and manifest.json.
 
     python pipeline/demography.py
@@ -20,6 +21,15 @@ Counts per neighbourhood and census (one row each):
   imm_0_5, imm_5_10  immigrants who arrived in the five years before the census,
                    and in the five years before that (2016-21 and 2011-15 for 2021;
                    2011-16 and 2006-10; 2006-11 and 2001-05; 2001-06 and 1996-2000)
+
+  dw_tot, detached, attached  occupied private dwellings, single-detached, and
+                   semi-detached, row and duplex (100% data)
+  bed_tot, bed3    dwellings by number of bedrooms, and those with 3 or more
+  rep_tot, rep_major  dwellings by condition, and those needing major repairs
+  own_tot, own_mort   owner households, and those with a mortgage (each DA's
+                   published percentage applied to its owners)
+The dwelling counts are 2011 to 2021 only (2011: structure types from the census
+profile, the rest from the NHS); 2006 has no bedroom counts or mortgage shares.
 
 Checks: the City's age bands add up to its total; the neighbourhood shares aged
 0-14 and 65+ and the share of recent immigrants reproduce insights.json's figures
@@ -50,7 +60,11 @@ FIVE = ["0_4", "5_9", "10_14", "15_19", "20_24", "25_29", "30_34", "35_39", "40_
 BANDS = {"a0_14": FIVE[0:3], "a15_24": FIVE[3:5], "a25_34": FIVE[5:7], "a35_44": FIVE[7:9], "a45_54": FIVE[9:11],
          "a55_64": FIVE[11:13], "a65_74": FIVE[13:15], "a75": FIVE[15:]}
 IMM = ["imm_base", "non_imm", "imm", "npr", "imm_0_5", "imm_5_10"]
-COLS = ["age_tot", *BANDS, *IMM]
+# Dwelling counts in (base, part) pairs, each pooled over the DAs with both. 2011 to
+# 2021 only: the 2006 profile has no bedroom counts or mortgage shares.
+DWELL = [("dw_tot", "detached"), ("dw_tot", "attached"), ("bed_tot", "bed3"), ("rep_tot", "rep_major"), ("own_tot", "own_mort")]
+DWELL_COLS = ["dw_tot", "detached", "attached", "bed_tot", "bed3", "rep_tot", "rep_major", "own_tot", "own_mort"]
+COLS = ["age_tot", *BANDS, *IMM, *DWELL_COLS]
 
 
 def five_label(k: str) -> str:
@@ -62,11 +76,23 @@ IDS = {
     "2021": {8: ("age_tot", "Total - Age groups of the population"), **{i: (f"y{k}", five_label(k)) for i, k in zip([10, 11, 12, *range(14, 24), *range(25, 30)], FIVE)},
              1527: ("imm_base", "Total - Immigrant status and period of immigration"), 1528: ("non_imm", "Non-immigrants"),
              1529: ("imm", "Immigrants"), 1536: ("imm_0_5", "2016 to 2021"), 1535: ("imm_5_10", "2011 to 2015"),
-             1537: ("npr", "Non-permanent residents")},
+             1537: ("npr", "Non-permanent residents"),
+             41: ("dw_tot", "Total - Occupied private dwellings by structural type"), 42: ("detached", "Single-detached house"),
+             43: ("semi", "Semi-detached house"), 44: ("row", "Row house"), 45: ("duplex", "Apartment or flat in a duplex"),
+             1421: ("bed_tot", "Total - Occupied private dwellings by number of bedrooms"), 1425: ("bed3", "3 bedrooms"),
+             1426: ("bed4", "4 or more bedrooms"), 1449: ("rep_tot", "Total - Occupied private dwellings by dwelling condition"),
+             1451: ("rep_major", "Major repairs needed"), 1482: ("own_tot", "Total - Owner households in non-farm"),
+             1483: ("mort_pct", "% of owner households with a mortgage")},
     "2016": {8: ("age_tot", "Total - Age groups and average age of the population"), **{i: (f"y{k}", five_label(k)) for i, k in zip([10, 11, 12, *range(14, 24), *range(25, 30)], FIVE)},
              1140: ("imm_base", "Total - Immigrant status and period of immigration"), 1141: ("non_imm", "Non-immigrants"),
              1142: ("imm", "Immigrants"), 1149: ("imm_0_5", "2011 to 2016"), 1148: ("imm_5_10", "2006 to 2010"),
-             1150: ("npr", "Non-permanent residents")},
+             1150: ("npr", "Non-permanent residents"),
+             41: ("dw_tot", "Total - Occupied private dwellings by structural type"), 42: ("detached", "Single-detached house"),
+             45: ("semi", "Semi-detached house"), 46: ("row", "Row house"), 47: ("duplex", "Apartment or flat in a duplex"),
+             1624: ("bed_tot", "Total - Occupied private dwellings by number of bedrooms"), 1628: ("bed3", "3 bedrooms"),
+             1629: ("bed4", "4 or more bedrooms"), 1651: ("rep_tot", "Total - Occupied private dwellings by dwelling condition"),
+             1653: ("rep_major", "Major repairs needed"), 1671: ("own_tot", "Total - Owner households in non-farm"),
+             1672: ("mort_pct", "% of owner households with a mortgage")},
 }
 
 
@@ -110,16 +136,20 @@ def read_zip(year: str) -> pd.DataFrame:
 
 def read_2011() -> pd.DataFrame:
     """Age groups from the 2011 census profile CSV, immigration from the NHS extract."""
-    names = {"Total population by age groups": "age_tot", **{five_label(k): f"y{k}" for k in FIVE}}
+    topics = {"Age characteristics": {"Total population by age groups": "age_tot", **{five_label(k): f"y{k}" for k in FIVE}},
+              "Household and dwelling characteristics": {
+                  "Total number of occupied private dwellings by structural type of dwelling": "dw_tot",
+                  "Single-detached house": "detached", "Semi-detached house": "semi", "Row house": "row", "Apartment, duplex": "duplex"}}
     rows = {}
     with open(RAW / "98-316-XWE2011001-1501-ONT.csv", "rb") as f:
         f.readline()
         for line in f:
-            if not line.startswith(b"3520") or b"Age characteristics" not in line:
+            if not line.startswith(b"3520") or not (b"Age characteristics" in line or b"Household and dwelling" in line):
                 continue
             r = next(csv.reader([line.decode("latin-1")]))
             label = r[4]
-            if r[3] != "Age characteristics" or label.strip() not in names or label.startswith("      "):
+            names = topics.get(r[3], {})
+            if label.strip() not in names or (r[3] == "Age characteristics" and label.startswith("      ")):
                 continue  # single years of age are indented further
             key = names[label.strip()]
             row = rows.setdefault(r[0], {})
@@ -130,8 +160,8 @@ def read_2011() -> pd.DataFrame:
     nhs = pd.read_csv(OUTDIR / "demography_nhs2011.csv", dtype={"geo_code": str, "dq": str}).set_index("geo_code")
     das = nhs[nhs.level == "DA AD"]
     das = das[das.dq.str[3] != "1"]  # global non-response 50% or more
-    imm = pd.concat([das, nhs.loc[[TORONTO_CSD]]])[IMM]
-    return age.join(imm, how="outer")
+    nhs_cols = [*IMM, "rep_tot", "rep_major", "bed_tot", "bed3", "bed4", "own_tot", "mort_pct"]
+    return age.join(pd.concat([das, nhs.loc[[TORONTO_CSD]]])[nhs_cols], how="outer")
 
 
 def read_2006() -> pd.DataFrame:
@@ -155,6 +185,14 @@ def bands(d: pd.DataFrame) -> pd.DataFrame:
     out = d[["age_tot", *IMM]].copy()
     for b, ks in BANDS.items():
         out[b] = d[[f"y{k}" for k in ks]].sum(axis=1, min_count=len(ks))
+    if "dw_tot" in d:
+        same = ["dw_tot", "detached", "bed_tot", "rep_tot", "rep_major", "own_tot"]
+        out[same] = d[same]
+        out["attached"] = d[["semi", "row", "duplex"]].sum(axis=1, min_count=3)
+        out["bed3"] = d[["bed3", "bed4"]].sum(axis=1, min_count=2)
+        out["own_mort"] = d.mort_pct / 100 * d.own_tot  # the published share applied to the DA's owners
+    else:
+        out[DWELL_COLS] = np.nan
     return out[COLS]
 
 
@@ -178,6 +216,18 @@ def by_nbhd(d: pd.DataFrame, nb: pd.DataFrame) -> pd.DataFrame:
         out[c] = d[age_ok].groupby("nbhd_id")[c].sum()
     for c in IMM:
         out[c] = d[imm_ok].groupby("nbhd_id")[c].sum()
+    for base, part in DWELL:
+        ok = d[base].notna() & d[part].notna() & d.hh.notna()
+        g = d[ok].groupby("nbhd_id")
+        out[part] = g[part].sum() if ok.any() else np.nan
+        out[f"{part}_base"] = g[base].sum() if ok.any() else np.nan
+    for base in ("dw_tot", "bed_tot", "rep_tot", "own_tot"):  # the base column: its first pair's DAs
+        first = next(p for b, p in DWELL if b == base)
+        out[base] = out.pop(f"{first}_base")
+    for base, part in DWELL:  # a later pair on the same base must have pooled the same DAs
+        if f"{part}_base" in out:
+            if not np.allclose(out.pop(f"{part}_base").fillna(0), out[base].fillna(0)):
+                sys.exit(f"{part}: pooled over different DAs from {base}")
     return out
 
 
@@ -195,13 +245,16 @@ def main() -> int:
         if city[["age_tot", *BANDS]].isna().all():  # the 2011 DA file has no City row: its DAs' sums stand in
             city[["age_tot", *BANDS]] = d.drop(index=TORONTO_CSD)[["age_tot", *BANDS]].dropna().sum()
         nb = by_nbhd(d.drop(index=TORONTO_CSD), nbhd_of(year)).reindex(ids)
-        if nb.isna().any().any():
-            sys.exit(f"{year}: neighbourhoods without a figure: {nb[nb.isna().any(axis=1)].index.tolist()[:5]}")
+        need = COLS if year != "2006" else ["age_tot", *BANDS, *IMM]
+        if nb[need].isna().any().any():
+            sys.exit(f"{year}: neighbourhoods without a figure: {nb[nb[need].isna().any(axis=1)].index.tolist()[:5]}")
         ck = {"bands_vs_total": float(city[list(BANDS)].sum() / city.age_tot - 1),
               "das_vs_city": {c: float(nb[c].sum() / city[c] - 1) for c in ("age_tot", "imm_base", "imm_0_5")}}
         # insights.json's shares, from the same DAs and bases
         mine = {"age0_14": nb.a0_14 / nb.age_tot * 100, "age65": (nb.a65_74 + nb.a75) / nb.age_tot * 100,
                 "imm_recent": nb.imm_0_5 / nb.imm_base * 100}
+        if year != "2006":
+            mine["detached"] = nb.detached / nb.dw_tot * 100
         ck["max_diff_vs_insights"], ck["mean_diff_vs_insights"] = {}, {}
         for m, v in mine.items():
             want = np.array(ins["measures"][m]["values"][year], float)
@@ -215,11 +268,11 @@ def main() -> int:
               + ", ".join(f"{m} {x:.2f} {ck['mean_diff_vs_insights'][m]:.3f}" for m, x in ck["max_diff_vs_insights"].items()))
         # insights.json's age shares for 2016 and 2021 are the DAs' published percentages
         # weighted by population, not pooled counts: the two agree only to rounding.
-        tol = {m: 0.15 if m == "imm_recent" or year in ("2006", "2011") else 0.6 for m in mine}
+        tol = {m: 0.15 if m in ("imm_recent", "detached") or year in ("2006", "2011") else 0.6 for m in mine}
         bad = {m: x for m, x in ck["max_diff_vs_insights"].items() if x > tol[m] or ck["mean_diff_vs_insights"][m] > 0.15}
         if bad or abs(ck["bands_vs_total"]) > 0.005:
             sys.exit(f"{year}: check failed: {bad or ck['bands_vs_total']}")
-        frames.append(nb.round(0).astype(int).assign(year=int(year)).rename_axis("nbhd_id").reset_index())
+        frames.append(nb[COLS].round(0).astype("Int64").assign(year=int(year)).rename_axis("nbhd_id").reset_index())
     out = pd.concat(frames)[["nbhd_id", "year", *COLS]]
     OUT.mkdir(exist_ok=True)
     out.to_csv(OUT / "nbhd.csv", index=False, lineterminator="\n")

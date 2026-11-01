@@ -1,4 +1,4 @@
-"""The age and immigration counts demography.py needs from the two Beyond 20/20
+"""The age, immigration and (2011) dwelling counts demography.py needs from the two Beyond 20/20
 tables: pipeline/out/demography_2006.csv and pipeline/out/demography_nhs2011.csv.
 
     wsl -e ~/pyivt/.venv/bin/python pipeline/demography_ivt.py
@@ -47,6 +47,13 @@ NHS_2011 = {
     "imm_0_5": (25, "2006 to 2011"),
     "imm_5_10": (24, "2001 to 2005"),
     "npr": (26, "Non-permanent residents"),
+    "rep_tot": (2491, "Total number of occupied private dwellings by condition of dwelling"),
+    "rep_major": (2493, "Major repairs needed"),
+    "bed_tot": (2508, "Total number of occupied private dwellings by number of bedrooms"),
+    "bed3": (2511, "3 bedrooms"),
+    "bed4": (2512, "4 or more bedrooms"),
+    "own_tot": (2542, "Number of owner households in non-farm, non-reserve private dwellings"),
+    "mort_pct": (2543, "% of owner households with a mortgage"),
 }
 DA_LABEL_2006 = re.compile(r"^(\d{8}) \((\d{7})\d{4}\)\s+(\S+)\s*$")
 CSD_LABEL_2006 = re.compile(rf"^Toronto \({TORONTO_CSD}\) C\s+(\S+)\s*$")

@@ -14,7 +14,16 @@
     "imm",
     "npr",
     "imm_0_5",
-    "imm_5_10"
+    "imm_5_10",
+    "dw_tot",
+    "detached",
+    "attached",
+    "bed_tot",
+    "bed3",
+    "rep_tot",
+    "rep_major",
+    "own_tot",
+    "own_mort"
   ],
   "checks": {
     "2006": {
@@ -45,12 +54,14 @@
       "max_diff_vs_insights": {
         "age0_14": 0.0,
         "age65": 0.0,
-        "imm_recent": 0.0
+        "imm_recent": 0.0,
+        "detached": 0.0
       },
       "mean_diff_vs_insights": {
         "age0_14": 0.0,
         "age65": 0.0,
-        "imm_recent": 0.0
+        "imm_recent": 0.0,
+        "detached": 0.0
       }
     },
     "2016": {
@@ -63,12 +74,14 @@
       "max_diff_vs_insights": {
         "age0_14": 0.40000000000000213,
         "age65": 0.5,
-        "imm_recent": 0.0
+        "imm_recent": 0.0,
+        "detached": 0.0
       },
       "mean_diff_vs_insights": {
         "age0_14": 0.09303797468354437,
         "age65": 0.11139240506329093,
-        "imm_recent": 0.0
+        "imm_recent": 0.0,
+        "detached": 0.0
       }
     },
     "2021": {
@@ -81,12 +94,14 @@
       "max_diff_vs_insights": {
         "age0_14": 0.40000000000000213,
         "age65": 0.40000000000000036,
-        "imm_recent": 0.0
+        "imm_recent": 0.0,
+        "detached": 0.0
       },
       "mean_diff_vs_insights": {
         "age0_14": 0.08670886075949372,
         "age65": 0.11962025316455713,
-        "imm_recent": 0.0
+        "imm_recent": 0.0,
+        "detached": 0.0
       }
     }
   }
