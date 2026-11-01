@@ -485,3 +485,35 @@ City median (+50% and +49.5%).
 
 The extraction checks that districts sum to their region, the three regions sum to the
 City, and sales times average price matches dollar volume.
+
+## The City's value: first run (2026-11-01)
+
+**TRREB Market Watch figures** (all home types, May; files in `pipeline/raw/trreb_mw`):
+
+| May | City median | City average | Source |
+|---|---|---|---|
+| 2011 | none | $535,807 | pooled over the 36 Toronto districts (W01–W10, C01–C15 less C05, E01–E11) |
+| 2016 | $595,000 | $782,051 | City of Toronto row |
+| 2021 | $890,000 | $1,116,736 | City of Toronto row |
+| 2026 | $885,000 | $1,108,292 | City of Toronto row |
+
+- **Checks passed:**
+  - In every district row and City row, sales times average equals dollar volume.
+  - In 2016 the three regions sum to the City (1,151 + 2,283 + 1,204 = 4,638).
+- **No City median in 2011:** the 2011 report gives no City total, and a median can't
+  be pooled from districts, so the primary rule is scored on 2016 to 2021 only.
+
+**Scores** (log error × 100 against the Census City median, about %):
+
+| Rule | 2011 to 2016 | 2016 to 2021 |
+|---|---|---|
+| Median | not available | +0.0 (+49.6% against +49.5%) |
+| Average | −2.7 (+46.0% against +50.0%) | −4.6 (+42.8% against +49.5%) |
+
+- **The median's near-exact hit is partly luck.** The Census City median for 2021 is
+  exactly $900,000, a round figure where owners' estimates bunch.
+- **The average runs a few points under the Census in both periods.**
+
+**The 2026 nowcast.** TRREB's May median fell 0.6% from 2021 to 2026, and the average
+0.8%. The City's 2026 Census median is estimated at $895,000 by the median rule, or
+$893,000 by the average.
