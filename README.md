@@ -44,6 +44,14 @@ or per 1,000 households, shows how concentrated new units are, correlates them w
 CMHC's rents and vacancy by zone. Its data is `web/public/housing.json`
 (`pipeline/housing_insights.py`).
 
+Sale Prices Insights, `/insights/prices/`, covers home sales from TRREB's quarterly
+community reports (Q4 2011 on): the City's sales and average sale price by quarter, by
+region, and the spread of the communities' medians. By neighbourhood it maps and ranks the
+median sale price, its standing against the City's, its change over one and five years,
+and homes sold (as counts or per 1,000 households), correlates them with the 2021 Census,
+and compares the change in sale prices with the change in census dwelling values. Its
+data is `web/public/prices.json` (`pipeline/price_insights.py`).
+
 ## Measures
 
 The measure menu has six sections:

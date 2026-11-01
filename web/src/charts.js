@@ -1,6 +1,7 @@
-// Shared by the Insights pages (insights.js, schools.js, housing.js): the tooltip, segmented
-// controls, quantiles and correlations, the correlation colours, and picking a neighbourhood.
-import { $, DIVERGING } from "./catalogue.js";
+// Shared by the Insights pages (insights.js, schools.js, housing.js, prices.js): the tooltip,
+// segmented controls, quantiles and correlations, the correlation colours, picking a
+// neighbourhood, and the small bar-and-line charts and sparklines.
+import { $, COLORS, DIVERGING, escapeHTML } from "./catalogue.js";
 
 // ---- tooltip shared by every chart: any element with data-tip -----------------
 export function initTip() {
@@ -99,4 +100,67 @@ export function initPick(fig, bar, get, set, extra = () => "") {
     else if (e.target.closest(".nb-clear")) pick(null, false);
   });
   return mark;
+}
+
+// ---- small chart kit: bars and lines over years ----------------------------------------
+// Marks live in a 0-100 SVG box stretched to the chart; labels and hover targets are
+// HTML so they keep their size. series: [{name, color, values, neg?}]; bars stack.
+function yTicks(lo, hi, fmt) {
+  const raw = (hi - lo) / 4, mag = 10 ** Math.floor(Math.log10(raw || 1));
+  const step = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((s) => s >= raw);
+  const ticks = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(v);
+  return { ticks, fmt };
+}
+export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l, height = 170, zero = true, partialFrom = null }) {
+  const n = labels.length;
+  const sum = (vs) => vs.reduce((a, v) => a + (v ?? 0), 0);
+  const stackTop = labels.map((_, k) => sum(bars.filter((s) => !s.neg).map((s) => s.values[k])));
+  const stackBot = labels.map((_, k) => -sum(bars.filter((s) => s.neg).map((s) => s.values[k])));
+  const lineVals = lines.flatMap((s) => s.values.filter((v) => v != null));
+  const barVals = bars.length ? [...stackTop, ...stackBot] : [];
+  let hi = Math.max(...barVals, ...lineVals), lo = Math.min(...barVals, ...lineVals);
+  if (zero) { hi = Math.max(hi, 0); lo = Math.min(lo, 0); }
+  else { const pad = (hi - lo) * 0.08; hi += pad; lo -= pad; }
+  const { ticks } = yTicks(lo, hi);
+  lo = Math.min(lo, ticks[0]); hi = Math.max(hi, ticks.at(-1));
+  const y = (v) => 100 - ((v - lo) / (hi - lo || 1)) * 100, bw = 100 / n, x = (k) => (k + 0.5) * bw;
+  let svg = "";
+  labels.forEach((l, k) => {
+    let up = 0, down = 0;
+    for (const s of bars) {
+      const v = s.values[k] ?? 0;
+      if (!v) continue;
+      const [a, b] = s.neg ? [-down, -(down += v)] : [up, (up += v)];
+      svg += `<rect x="${(k * bw + bw * 0.12).toFixed(2)}" width="${(bw * 0.76).toFixed(2)}" y="${y(Math.max(a, b)).toFixed(2)}" height="${Math.abs(y(a) - y(b)).toFixed(2)}" fill="${s.color}"${partialFrom != null && k >= partialFrom ? ' opacity="0.45"' : ""}/>`;
+    }
+  });
+  for (const s of lines) {
+    const pts = s.values.map((v, k) => (v == null ? null : `${x(k).toFixed(2)},${y(v).toFixed(2)}`));
+    const runs = [[]];
+    pts.forEach((p) => (p ? runs.at(-1).push(p) : runs.push([])));
+    svg += runs.filter((r) => r.length).map((r) => `<polyline points="${r.join(" ")}" fill="none" stroke="${s.color}" stroke-width="2" vector-effect="non-scaling-stroke"${s.dash ? ' stroke-dasharray="4 3"' : ""}/>`).join("");
+  }
+  const tips = labels.map((l, k) => {
+    const rows = [...bars, ...lines].filter((s) => s.values[k] != null).map((s) => `${s.name}: <b>${fmt(s.values[k])}</b>`).join("<br>");
+    return `<span class="ch-hit" style="left:${k * bw}%;width:${bw}%" data-tip="${escapeHTML(`${tipLabel(l)}<br>${rows}`)}"></span>`;
+  }).join("");
+  const yt = ticks.map((v) => `<span class="sc-ytick" style="bottom:${100 - y(v)}%">${fmt(v)}</span><span class="sc-gy" style="bottom:${100 - y(v)}%"></span>`).join("");
+  const every = Math.ceil(n / (String(labels[0]).length > 4 ? 5 : 8)); // month labels are wider
+  // every `every`th label, and the last, unless it would crowd the one before
+  const xt = labels.map((l, k) => ((k % every === 0 && n - 1 - k >= every * 0.6) || k === n - 1 ? `<span style="left:${x(k)}%">${l}</span>` : "")).join("");
+  const zeroLine = lo < 0 ? `<span class="ch-zero" style="bottom:${100 - y(0)}%"></span>` : "";
+  return `<div class="ch-box" style="height:${height}px">${yt}${zeroLine}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>`;
+}
+export const key = (items) => `<ul class="year-key">${items.map(([name, color, kind]) => `<li><span class="${kind === "line" ? "key-line" : "key-sq"}" style="background:${color}"></span>${name}</li>`).join("")}</ul>`;
+
+// A sparkline: the series' line and its last point.
+export function spark(vals, labels) {
+  const W = 120, H = 34, px = 6, py = 6, vs = vals.filter((v) => v != null);
+  const lo = Math.min(...vs), hi = Math.max(...vs), span = hi - lo || 1;
+  const x = (k) => px + (k * (W - 2 * px)) / (vals.length - 1), y = (v) => H - py - ((v - lo) / span) * (H - 2 * py);
+  const pts = vals.map((v, k) => (v == null ? "" : `${x(k).toFixed(1)},${y(v).toFixed(1)}`)).filter(Boolean).join(" ");
+  const k = vals.length - 1;
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${COLORS[2]}" stroke-width="2" stroke-linejoin="round"/>`
+    + `<circle cx="${x(k)}" cy="${y(vals[k])}" r="4" fill="${COLORS[4]}" stroke="#fcfcfb" stroke-width="2"/></svg>`;
 }

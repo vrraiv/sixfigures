@@ -185,6 +185,15 @@ housing-insights: $(HOUSINGINS)
 $(HOUSINGINS): pipeline/housing_insights.py pipeline/school_insights.py
 	$(PYTHON) pipeline/housing_insights.py
 
+# The Sale Prices Insights page's prices.json, from the committed TRREB community figures
+# (make trreb). The script stops if they are missing.
+PRICEINS := web/public/prices.json
+.PHONY: price-insights
+price-insights: $(PRICEINS)
+
+$(PRICEINS): pipeline/price_insights.py pipeline/housing_insights.py pipeline/school_insights.py
+	$(PYTHON) pipeline/price_insights.py
+
 # 2006 Census on the 158 neighbourhoods (a model input). insights.py adds its comparable
 # measures to insights.json; since this reads insights.json, its output isn't a prerequisite
 # there (a cycle): after `make census2006`, run `python pipeline/insights.py`. The
