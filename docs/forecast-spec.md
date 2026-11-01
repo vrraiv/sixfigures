@@ -625,3 +625,29 @@ so a dollar range has to carry it alongside the City nowcast's error.
 
 Centring isn't part of the decision rule. Adopting it would be a rule change, made
 after looking.
+
+## Rule change: centred predictions (adopted 2026-11-01, after looking)
+
+The user adopted centring after seeing the diagnostic above. From here on, every
+rung's predicted changes in the dwelling-value ratio are centred to a
+household-weighted average of zero before scoring. This uses no outcomes; persistence
+is unchanged. The ratio forecast then says nothing about the group's average shift
+against the City median, which is left to the range below. Raw scores are still
+written alongside (`mae_raw`).
+
+## Live dollar table, 2021 to 2026 (fixed before it is computed)
+
+- **City:** the 2021 Census City median ($900,000) times TRREB's May City median
+  change, 2021 to 2026 ($890,000 to $885,000), giving $894,944.
+- **Ratios at the 2021 origin** (each centred, as above):
+  - **persistence:** the 2021 ratio;
+  - **own mean:** the mean of the 2011, 2016 and 2021 ratios;
+  - **own mean plus market:** own mean plus a slope times `mkt` for 2021 to 2026. The
+    2026 window has Q1 and Q2 only (Q3 isn't published). The slope is ridge on `mkt`
+    alone, centred, fitted on both periods pooled.
+- **Range:** from the lowest of the three ratios less 0.05 to the highest plus 0.05.
+  The 0.05 allows for the group's average shift (up to 0.047 seen) and the City
+  nowcast's error.
+- **Dollars:** City times exp(ratio), rounded to the nearest $1,000.
+- **Output:** written to `pipeline/out/model/value_live.csv`. Not yet published on the
+  site.
