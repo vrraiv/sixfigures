@@ -279,6 +279,11 @@ model's market rungs. `nbhd_map.csv` gives the community holding each of the 158
 neighbourhoods (TRREB's communities are the City's 140 of before 2022). Reading the
 reports is slow; the page text is cached in `pipeline/out/trreb_pages.json`.
 
+`make price-insights` runs `pipeline/price_insights.py`, which writes
+`web/public/prices.json` for the Sale Prices Insights page (`/insights/prices/`): each
+community's sales and median sale price by quarter, the City's and each region's sales
+and average sale price, and the 158 neighbourhoods' outlines with their community.
+
 ## Processing notes
 
 - **Encoding:** the profile CSV is Latin-1, not UTF-8.
