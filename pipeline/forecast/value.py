@@ -31,6 +31,10 @@ major repairs, and the share of owners with a mortgage, in ridge_dwell.
 The previous change (added after the dwelling run): lag_avg, the change over the five
 years to the origin in the log ratio of the average value of dwellings to the City's,
 alone in reversion and with ridge's features in ridge_lag.
+Heavy building (added after the previous-change run, chosen after looking):
+heavy_build, 1 for the top tenth of neighbourhoods by permits issued in the five years
+before the origin per 1,000 households; a fitted shift on persistence in build and on
+own mean in own_mean_build, and with ridge's features in ridge_build.
 
 Writes pipeline/out/model/value_scores.csv, value_predictions.csv and
 value_demography_rho.csv.
@@ -63,7 +67,8 @@ LEVELS = ["med_hh_at", "lim_at", "renter", "condo", "detached", "apt5", "built_n
 CHANGES = ["med_hh_at", "renter", "detached", "apt5", "built_new", "degree", "imm_recent"]
 KNN_FEATURES = ["L", "nb_L", "med_hh_at", "condo", "built_new", "permits_before"]
 FOLDS = {"forward": ("2011", "2016", "2021"), "reverse": ("2016", "2011", "2016")}
-RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog", "ridge_dwell", "reversion", "ridge_lag"]
+RUNGS = ["persistence", "own_mean", "trend", "ridge", "knn", "boost", "ridge_demog", "ridge_dwell", "reversion", "ridge_lag",
+         "build", "ridge_build", "own_mean_build"]
 # The demographic predictors (docs/forecast-spec.md, added after the first run): age
 # and arrival shares, standardised within the census, and the change in owners.
 AGE = {"a25_34": "25 to 34", "a35_44": "35 to 44", "a65_74": "65 to 74", "a75": "75 and over"}
@@ -150,6 +155,9 @@ def main() -> int:
             d[f"d_{m}"] = z(m, c) - z(m, prev)
         d["permits_before"] = np.log1p(per_1000(y - 5, y - 1, c))
         d["permits_during"] = np.log1p(per_1000(y, y + 4, c))  # oracle
+        # Heavy building (chosen after looking): the top tenth for permits before, at this origin.
+        before = per_1000(y - 5, y - 1, c)
+        d["heavy_build"] = (pd.Series(before).rank(pct=True) > 0.9).astype(float).values
         d[[*AGE, *ARRIVAL, *DWELL]] = demog(c).values
         d["owners_before"] = np.log(owners[c] / owners[prev])
         d["owners_during"] = np.log(owners[str(y + 5)] / owners[c])  # oracle
@@ -191,10 +199,18 @@ def main() -> int:
         fl = [*feats, "lag_avg"]
         al, lag_m = tune(ridge_fit, ALPHAS, tr[fl].values, ytr, w, grp)
         p["ridge_lag"] = te.L.values + lag_m(te[fl].values)
+        ab, bld = tune(ridge_fit, ALPHAS, tr[["heavy_build"]].values, ytr, w, grp)
+        p["build"] = te.L.values + bld(te[["heavy_build"]].values)
+        shift = (bld(np.array([[1.0]])) - bld(np.array([[0.0]])))[0]
+        if fold == "forward":
+            p["own_mean_build"] = p.own_mean + shift * te.heavy_build.values
+        fb = [*feats, "heavy_build"]
+        abr, build_m = tune(ridge_fit, ALPHAS, tr[fb].values, ytr, w, grp)
+        p["ridge_build"] = te.L.values + build_m(te[fb].values)
         corr.append({"fold": fold, "period": f"{train_c}-{int(train_c) + 5}",
                      **{k: spearman(tr[k], ytr) for k in [*DEMOG, "owners_during", "age0_14", "age65", *DWELL,
-                                                          "detached", "condo", "apt5", "lag_avg"]}})
-        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features); reversion alpha {ar:.3g}, slope {slope:+.3f}; ridge_lag alpha {al:.3g}")
+                                                          "detached", "condo", "apt5", "lag_avg", "heavy_build"]}})
+        info.append(f"  {fold}: fitted on {train_c}-{int(train_c) + 5}, {len(feats)} features; ridge alpha {a:.3g}, k {k}, boosting rounds {n}; with oracle permits alpha {ao:.3g}; with demography alpha {ad:.3g} ({len(fd)} features), and oracle owners {ado:.3g}; with dwellings alpha {aw:.3g} ({len(fw)} features); reversion alpha {ar:.3g}, slope {slope:+.3f}; ridge_lag alpha {al:.3g}; heavy building {int(tr.heavy_build.sum())} neighbourhoods in training, {int(te.heavy_build.sum())} in test, build alpha {ab:.3g}, shift {shift:+.3f}; ridge_build alpha {abr:.3g}")
         preds.append(p)
         base = None
         for r in [*RUNGS, "ridge_oracle", "ridge_demog_oracle"]:
@@ -231,7 +247,8 @@ def main() -> int:
              "owners_during": "owners, change during (oracle)", "age0_14": "aged 0 to 14", "age65": "aged 65 and over",
              "attached": "semi, row and duplex", "bed3": "3 or more bedrooms", "repairs": "major repairs needed",
              "mortgage": "owners with a mortgage", "detached": "single-detached", "condo": "condominium",
-             "apt5": "apartments, 5+ storeys", "lag_avg": "previous change, average value"}
+             "apt5": "apartments, 5+ storeys", "lag_avg": "previous change, average value",
+             "heavy_build": "heavy building before"}
     for k, r in C.iterrows():
         print(f"  {names[k]:<34}" + "".join(f"{v:>12.2f}" for v in r))
     print(f"\nWrote {OUT / 'value_scores.csv'} and value_predictions.csv")

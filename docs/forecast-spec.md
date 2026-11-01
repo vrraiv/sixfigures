@@ -427,3 +427,26 @@ Three new rungs, all after `ridge_lag` and so on the higher bar:
 - **`ridge_build`:** ridge's own features plus `heavy_build`.
 - **`own_mean_build`:** own mean plus `build`'s fitted shift for `heavy_build`
   (forward only, like own mean, so it is scored on one fold).
+
+## Heavy building: first run (2026-11-01)
+
+Sixteen neighbourhoods are flagged at each origin. The rule still chooses own mean:
+
+| Rung | Forward MAE | Reverse MAE |
+|---|---|---|
+| Own mean (chosen) | 7.86 | |
+| Own mean with the heavy-building shift | 8.25 | |
+| Persistence | 8.84 | 10.52 |
+| Build (shift on persistence) | 11.41 | 11.24 |
+| Ridge with heavy building | 12.66 | 12.29 |
+| Ridge | 12.70 | 12.29 |
+
+**The shift doesn't carry from one period to the other.**
+- Fitted on 2011 to 2016, heavy-building neighbourhoods fall 0.18 against the City.
+- Fitted on 2016 to 2021, the tuning sets the shift to zero.
+
+In 2016 to 2021 the flagged neighbourhoods' median relative change was +5%, against
++3% for the rest. More of them fell sharply (19% against 2%), but others rose: heavy
+building widened the spread of outcomes without moving their centre. A shift in the
+forecast can't capture that, though it could widen the range shown for those
+neighbourhoods.
