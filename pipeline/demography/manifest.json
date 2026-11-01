@@ -1,0 +1,93 @@
+{
+  "columns": [
+    "age_tot",
+    "a0_14",
+    "a15_24",
+    "a25_34",
+    "a35_44",
+    "a45_54",
+    "a55_64",
+    "a65_74",
+    "a75",
+    "imm_base",
+    "non_imm",
+    "imm",
+    "npr",
+    "imm_0_5",
+    "imm_5_10"
+  ],
+  "checks": {
+    "2006": {
+      "bands_vs_total": -9.986897190894517e-06,
+      "das_vs_city": {
+        "age_tot": -0.00418051516410467,
+        "imm_base": -0.008754060563724297,
+        "imm_0_5": -0.01215209721677768
+      },
+      "max_diff_vs_insights": {
+        "age0_14": 0.0,
+        "age65": 0.0,
+        "imm_recent": 0.0
+      },
+      "mean_diff_vs_insights": {
+        "age0_14": 0.0,
+        "age65": 0.0,
+        "imm_recent": 0.0
+      }
+    },
+    "2011": {
+      "bands_vs_total": -0.0003659417443734325,
+      "das_vs_city": {
+        "age_tot": 0.0,
+        "imm_base": -0.06485961898661696,
+        "imm_0_5": -0.11051841588731093
+      },
+      "max_diff_vs_insights": {
+        "age0_14": 0.0,
+        "age65": 0.0,
+        "imm_recent": 0.0
+      },
+      "mean_diff_vs_insights": {
+        "age0_14": 0.0,
+        "age65": 0.0,
+        "imm_recent": 0.0
+      }
+    },
+    "2016": {
+      "bands_vs_total": 0.0,
+      "das_vs_city": {
+        "age_tot": -0.0005930655264189122,
+        "imm_base": -0.00026749242569190645,
+        "imm_0_5": 0.0005054535780792957
+      },
+      "max_diff_vs_insights": {
+        "age0_14": 0.40000000000000213,
+        "age65": 0.5,
+        "imm_recent": 0.0
+      },
+      "mean_diff_vs_insights": {
+        "age0_14": 0.09303797468354437,
+        "age65": 0.11139240506329093,
+        "imm_recent": 0.0
+      }
+    },
+    "2021": {
+      "bands_vs_total": 3.5786433720819133e-06,
+      "das_vs_city": {
+        "age_tot": -1.4314573488327653e-05,
+        "imm_base": 1.4486009231262642e-05,
+        "imm_0_5": -0.017496465360533175
+      },
+      "max_diff_vs_insights": {
+        "age0_14": 0.40000000000000213,
+        "age65": 0.40000000000000036,
+        "imm_recent": 0.0
+      },
+      "mean_diff_vs_insights": {
+        "age0_14": 0.08670886075949372,
+        "age65": 0.11962025316455713,
+        "imm_recent": 0.0
+      }
+    }
+  }
+}

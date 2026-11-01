@@ -212,3 +212,44 @@ The two periods' changes run opposite ways:
 
 A model fitted on one five-year period learns that period's direction, and with two
 periods there is nothing to learn a stable one from.
+
+## Demographic predictors: first run (2026-10-31)
+
+`pipeline/demography/nbhd.csv` reproduces insights.json for every census:
+- **2006 and 2011:** the shares aged 0–14 and 65+, and recently arrived, match exactly.
+- **2016 and 2021:** the age shares match to rounding (mean 0.1 points, largest 0.5).
+  The page uses the DAs' published percentages, not pooled counts. The difference is
+  unbiased (mean signed difference under 0.02).
+
+The rule still chooses own mean. The demographic rung moves ridge only slightly:
+
+| Rung | Forward MAE | Reverse MAE |
+|---|---|---|
+| Ridge | 12.70 | 12.29 |
+| Ridge with demography | 12.40 | 12.18 |
+| ... and oracle owner change | 12.45 | 12.58 |
+| Own mean (chosen) | 7.86 | |
+| Persistence | 8.84 | 10.52 |
+
+Rank correlation of each share at the start of a period with the change in the
+value ratio over it (description, not a forecast):
+
+| Share at the start | 2011 to 2016 | 2016 to 2021 |
+|---|---|---|
+| Aged 25 to 34 | −0.29 | +0.10 |
+| Aged 35 to 44 | −0.25 | +0.19 |
+| Aged 65 to 74 | +0.32 | −0.29 |
+| Aged 75 and over | +0.27 | −0.30 |
+| Arrived in the last 5 years | −0.11 | −0.02 |
+| Arrived 5 to 10 years before | −0.05 | +0.07 |
+| Owners, change in the 5 years before | −0.33 | −0.17 |
+| Owners, change during (oracle) | −0.25 | +0.03 |
+
+- **Age structure tracks each period's movement, then flips.** Older neighbourhoods
+  gained on the City in 2011–2016 and lost in 2016–2021; younger ones the reverse.
+  That is the same reversal as the detached share's, so a fit on one period points
+  the wrong way in the other.
+- **Owner growth before the period is the one signal with the same sign in both.**
+  Neighbourhoods that added owners fell back against the City. Because the target is
+  a median of owners' estimates, added owners (mostly in new condominium buildings)
+  also change whose values the median is taken over.
