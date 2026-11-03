@@ -770,3 +770,13 @@ transitions. It covers 530 Grade 3 schools in 150 neighbourhoods and 457 Grade 6
 schools in 142, from City levels of 67.9% and 75.1% in 2025 carried over. Written to
 `pipeline/model/schools_2026.csv` (neighbourhoods) and `schools_2026_schools.csv`, and
 committed before any 2025-26 result was read.
+
+## Dwelling value: the range's backtest, results (2026-11-03)
+
+Scored once, as fixed above (`value.py`, `pipeline/out/model/value_range_backtest.csv`):
+- **City at 2021:** $900,354 from TRREB's May median, against the Census's $900,000.
+- **Inside the range:** 65% of the 158 neighbourhoods (69% of households).
+- **Outside:** 43 above the range and 12 below.
+- **Width:** the median range spans 17% (high over low).
+
+The rule is unchanged. The point scores and the live table are the same as before.
