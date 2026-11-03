@@ -49,7 +49,7 @@ function renderForecast() {
   drawMap($("nb-map"), $("map-key"), D, vals, fmtK, tip, `Map of the neighbourhoods by forecast median dwelling value, 2026`);
   const lede = {
     own_mean: "Own mean, the rung the decision rule chose: the mean of the neighbourhood's ratios to the City's median in 2011, 2016 and 2021.",
-    own_mean_market: "Own mean plus market, a nowcast: own mean plus a slope times the change in the neighbourhood's standing in TRREB's median sale prices, Q1–Q3 2021 to Q1–Q2 2026 (Q3 2026 isn't published yet). The slope is fitted on 2011 to 2016 and 2016 to 2021 pooled.",
+    own_mean_market: "Own mean plus market, a nowcast: own mean plus a slope times the change in the neighbourhood's standing in TRREB's median sale prices, Q1–Q3 2021 to Q1–Q2 2026 (the 2026 window has Q1 and Q2 only). The slope is fitted on 2011 to 2016 and 2016 to 2021 pooled.",
     persistence: "Persistence: the neighbourhood's 2021 ratio to the City's median.",
   }[k];
   $("map-lede").innerHTML = `${lede} Each rung's changes from 2021 are centred to average zero over households. Classes hold about equal numbers of neighbourhoods.`;

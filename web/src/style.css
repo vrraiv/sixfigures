@@ -310,6 +310,7 @@ a { color: var(--accent); }
 .wordmark a[aria-current="page"] { color: var(--accent); font-weight: 600; }
 .wordmark a, .wordmark .brand { white-space: nowrap; }
 @media (max-width: 480px) { .wordmark { flex-wrap: wrap; gap: 2px 10px; } }
+@media (max-width: 400px) { .wordmark { gap: 2px 4px; padding: 6px 8px; } .wordmark a { padding: 2px 3px; } }
 body.with-nav { grid-template-rows: auto auto 1fr auto; }
 
 /* ---- the Insights page: a scrolling document rather than a full-screen map ---- */
