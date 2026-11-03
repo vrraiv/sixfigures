@@ -738,3 +738,35 @@ looking, in one period. The 2026 Census tests it apart.
    the two-year transitions 2022 to 2024 and 2023 to 2025, tuned the same way.
 
 The neighbourhood ranges come from the selection folds, as above, in every case.
+
+## The holdout and the live 2025 to 2026 forecast: results (2026-11-03)
+
+Run once, with `schools.py --holdout --live`. The selection folds' scores are
+unchanged by the new code.
+
+**The holdout, 2024 to 2025.** Ridge has the lowest MAE in both grades (in points,
+skill against persistence in brackets):
+
+| Rung | Grade 3 schools | Grade 3 neighbourhoods | Grade 6 schools | Grade 6 neighbourhoods |
+|---|---|---|---|---|
+| Persistence | 10.02 | 5.61 | 7.39 | 4.28 |
+| Own mean | 8.31 (17%) | 4.96 | 6.48 (12%) | 3.77 |
+| Ridge (chosen) | 8.00 (20%) | 4.81 | 5.87 (20%) | 3.37 |
+| Analogs | 9.35 (7%) | 5.36 | 6.75 (9%) | 3.80 |
+| Boosting | 8.89 (11%) | 5.05 | 6.46 (13%) | 3.66 |
+
+Rank correlation of ridge's forecast change with the actual change: 0.58 in both
+grades.
+
+**The ranges** (from the selection folds, either side of the forecast):
+
+| Grade | One school | Two or more | Holdout: inside | One school | Two or more |
+|---|---|---|---|---|---|
+| Grade 3 | 12.8 points | 8.3 points | 81% of 150 | 75% | 83% |
+| Grade 6 | 10.5 points | 6.1 points | 87% of 142 | 93% | 86% |
+
+**The live forecast, 2025 to 2026.** Fitted on 2,118 Grade 3 and 1,810 Grade 6
+transitions. It covers 530 Grade 3 schools in 150 neighbourhoods and 457 Grade 6
+schools in 142, from City levels of 67.9% and 75.1% in 2025 carried over. Written to
+`pipeline/model/schools_2026.csv` (neighbourhoods) and `schools_2026_schools.csv`, and
+committed before any 2025-26 result was read.
