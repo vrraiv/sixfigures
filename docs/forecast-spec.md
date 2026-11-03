@@ -678,3 +678,62 @@ persistence's 8.84):
   | 2021 Census | Persistence | Own mean | Own mean plus market | Low | High |
   |---|---|---|---|---|---|
   | $925,000 | $920,000 | $911,500 | $916,000 | $851,000 | $993,000 |
+
+## The holdout, live forecasts and ranges (fixed 2026-11-03, before the holdout is run)
+
+Fixed with the user before the schools holdout is spent and before any live schools
+forecast or 2025-26 school result has been computed or read.
+
+**The holdout reports; it doesn't choose.** Ridge stays the rung for both grades
+whatever the holdout shows, including the Grade 3 tie with own mean. The holdout
+reports every rung's school and neighbourhood MAE and the coverage of the range below.
+
+**Schools: the range.** Each grade's neighbourhood figure gets an 80% range, from the
+two selection folds (2022 to 2023 and 2023 to 2024):
+- The absolute error of ridge's neighbourhood figure, one row per neighbourhood and
+  fold, both folds pooled.
+- Its 80th percentile, separately for neighbourhoods with one scored school and with
+  two or more. (In the selection folds, single-school neighbourhoods miss by more:
+  median 6.9 points against about 4.2 for Grade 3.)
+- The range is the forecast plus or minus that, within 0 to 100.
+- Absolute rather than signed errors, because the signed errors lean negative in the
+  selection folds, partly from the City's own year-to-year move, which isn't forecast.
+
+The holdout reports the share of neighbourhoods inside it.
+
+**Dwelling value: the range's backtest.** The live rule (lowest of the three centred
+ratios less 0.05 to the highest plus 0.05) was set after the forward-fold point
+scores were seen, but its coverage has not been computed. It is scored once on the
+forward fold, in dollars:
+- **Ratios at 2016:** centred persistence, own mean, and own mean plus market (slope
+  fitted on 2011 to 2016).
+- **City:** the 2016 Census City median times TRREB's May City median, 2016 to 2021
+  ($595,000 to $890,000).
+- **Reported:** the share of neighbourhoods whose 2021 Census median falls inside.
+
+The range rule is not changed to suit the result. Any change would be a dated rule
+change, after looking.
+
+**Heavy building does not widen the range.** Its effect on the spread was seen after
+looking, in one period. The 2026 Census tests it apart.
+
+**Schools: live forecasts.** EQAO's open data (Achievement Results, eqao.com) has
+2025-26 school results; the Ministry's file doesn't yet. So:
+
+1. **2025 to 2026, a second test.** Ridge for each grade, fitted on every one-year
+   transition to 2025 (2018 to 2019, 2022 to 2023, 2023 to 2024, 2024 to 2025),
+   tuned as before. Features at 2025, the 2021 Census, and the City's 2025 level
+   carried over. Neighbourhood figures are weighted by 2025 enrolment, over the
+   schools with that grade's 2025 score. It is committed before any 2025-26 result is
+   read, then scored like a fold (persistence and own mean alongside, and the range's
+   coverage).
+2. **EQAO's file is used only if it matches.** Its 2024-25 results must reproduce the
+   Ministry's 2024-25 scores: the same Toronto schools, and at least 95% of school,
+   grade and subject cells within one point.
+3. **2026 to 2027, the forecast.** The same model refitted with 2025 to 2026 added.
+   Scores at 2026 come from EQAO. The Ministry's demographics and enrolment come from
+   2024-25, the latest it publishes, carried over to 2026.
+4. **If EQAO's file doesn't match:** step 1 is still the published forecast for 2026,
+   scored when the Ministry's 2025-26 file appears.
+
+The neighbourhood ranges come from the selection folds, as above, in every case.
