@@ -237,11 +237,17 @@ trreb:
 
 # The forecast backtests (docs/forecast-spec.md): scores and predictions in
 # pipeline/out/model/. Their inputs are committed; the scripts stop if one is missing.
-.PHONY: forecast
+# The schools holdout was spent on 2026-11-03, so it is always scored now; --live
+# checks the frozen forecasts in pipeline/model/ and never overwrites them.
+.PHONY: forecast forecast-pages
 
 forecast:
-	$(PYTHON) pipeline/forecast/schools.py
+	$(PYTHON) pipeline/forecast/schools.py --holdout --live
 	$(PYTHON) pipeline/forecast/value.py
+
+# The Forecasts pages' forecasts.json, from the model outputs (make forecast).
+forecast-pages:
+	$(PYTHON) pipeline/forecast_pages.py
 
 clean:
 	rm -rf pipeline/out

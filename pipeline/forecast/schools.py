@@ -33,7 +33,7 @@ Live (--live): ridge fitted on every one-year transition to 2025 forecasts 2026 
 2025, written to pipeline/model/ before any 2025-26 result is read.
 
 Writes pipeline/out/model/schools_scores.csv (each fold, grade and rung),
-schools_predictions.csv and schools_ranges.csv, and prints the scores, the rung the
+schools_predictions.csv, schools_ranges.csv and schools_covid.csv, and prints the scores, the rung the
 decision rule picks, the range's coverage in the holdout, and the 2019-2022
 shortfall by school low-income share.
 """
@@ -236,12 +236,12 @@ def score(p: pd.DataFrame, rung: str) -> dict:
     }
 
 
-def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> list[str]:
+def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> tuple[list[str], list[dict]]:
     """2019 to 2022: the City's change, and by thirds of the schools' 2019 low-income
     share, their enrolment-weighted results against the 2018-2019 ridge forecast (net of
     the City's change) and their change against the mean change; then the highest third
     less the lowest, with a bootstrap standard error."""
-    lines = []
+    lines, recs = [], []
     for g in GRADES:
         q = p[p.grade == g].copy()
         def city_score(y):
@@ -257,6 +257,9 @@ def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> list[str]:
         lines.append(f"  {g.upper()}: City {y19:.1f}% in 2019, {y22:.1f}% in 2022 ({y22 - y19:+.1f} pp); {len(q)} schools")
         q["resid"] -= np.average(q.resid, weights=q.enrol)  # the model's offset across all schools
         for t, d in q.groupby("tercile", observed=True):
+            recs.append({"grade": g, "row": str(t), "share_lo": d.low_income_raw.min(), "share_hi": d.low_income_raw.max(),
+                         "n": len(d), "vs_forecast": np.average(d.resid, weights=d.enrol), "change": np.average(d.raw, weights=d.enrol),
+                         "city_2019": y19, "city_2022": y22})
             lines.append(f"    low income {t:<13} (2019 share {d.low_income_raw.min():.0f}-{d.low_income_raw.max():.0f}%): "
                          f"vs forecast {np.average(d.resid, weights=d.enrol):+.1f} pp; change vs mean change {np.average(d.raw, weights=d.enrol):+.1f} pp")
         hi, lo = q[q.tercile == "highest third"], q[q.tercile == "lowest third"]
@@ -266,10 +269,14 @@ def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> list[str]:
             h = hi.sample(frac=1, replace=True, random_state=rng) if boot else hi
             l_ = lo.sample(frac=1, replace=True, random_state=rng) if boot else lo
             return np.average(h[col], weights=h.enrol) - np.average(l_[col], weights=l_.enrol)
+        gaps = {}
         for col, name in (("resid", "vs forecast"), ("raw", "change")):
             se = np.std([gap(col, True) for _ in range(1000)])
+            gaps[col] = (gap(col), se)
             lines.append(f"    highest third less lowest, {name}: {gap(col):+.1f} pp (se {se:.1f})")
-    return lines
+        recs.append({"grade": g, "row": "gap", "n": len(hi) + len(lo), "vs_forecast": gaps["resid"][0], "vs_forecast_se": gaps["resid"][1],
+                     "change": gaps["raw"][0], "change_se": gaps["raw"][1], "city_2019": y19, "city_2022": y22})
+    return lines, recs
 
 
 def live(s: pd.DataFrame, census: dict, city: dict, B: dict) -> None:
@@ -287,10 +294,14 @@ def live(s: pd.DataFrame, census: dict, city: dict, B: dict) -> None:
         nbs.append(nb.reset_index().assign(grade=g))
         print(f"  live {g.upper()} {LIVE_ORIGIN}-{LIVE_ORIGIN + 1}: {len(test)} schools, {len(nb)} neighbourhoods; trained on "
               f"{info['train_rows']} rows, ridge alpha {info['alpha']:.3g}; City {expit(city[g][LIVE_ORIGIN]):.1f}% carried over")
-    pd.concat(sch).reset_index(names="school_number").to_csv(LIVE / f"schools_{LIVE_ORIGIN + 1}_schools.csv", index=False, float_format="%.3f")
     N = pd.concat(nbs)[["grade", "nbhd_id", "n_schools", "enrol", "score0", "pred", "low", "high"]]
-    N.to_csv(LIVE / f"schools_{LIVE_ORIGIN + 1}.csv", index=False, float_format="%.3f")
-    print(f"  Wrote {LIVE / f'schools_{LIVE_ORIGIN + 1}.csv'} (neighbourhoods) and schools_{LIVE_ORIGIN + 1}_schools.csv")
+    files = {LIVE / f"schools_{LIVE_ORIGIN + 1}_schools.csv": pd.concat(sch).reset_index(names="school_number").to_csv(index=False, float_format="%.3f", lineterminator="\n"),
+             LIVE / f"schools_{LIVE_ORIGIN + 1}.csv": N.to_csv(index=False, float_format="%.3f", lineterminator="\n")}
+    for f, text in files.items():
+        if f.exists() and f.read_text(encoding="utf-8").replace("\r\n", "\n") != text:
+            sys.exit(f"{f} is a frozen forecast and this run differs from it: not overwritten")
+        f.write_text(text, encoding="utf-8", newline="\n")
+    print(f"  {LIVE / f'schools_{LIVE_ORIGIN + 1}.csv'} (neighbourhoods) and schools_{LIVE_ORIGIN + 1}_schools.csv: written or unchanged")
 
 
 def main() -> int:
@@ -354,7 +365,9 @@ def main() -> int:
         sel = S[(S.grade == g) & S.fold.isin([f"{a}-{b}" for a, b in SELECTION])].pivot(index="fold", columns="rung", values="mae")
         print(f"  Chosen by the rule: {choose({r: sel[r].tolist() for r in sel}, RUNGS)}")
     print("\n2019 to 2022, across the COVID-19 closures (ridge fitted on 2018-2019):")
-    print("\n".join(covid(P[(P.t0 == COVID[0]) & (P.t1 == COVID[1])], city, s)))
+    lines, recs = covid(P[(P.t0 == COVID[0]) & (P.t1 == COVID[1])], city, s)
+    print("\n".join(lines))
+    pd.DataFrame(recs).to_csv(OUT / "schools_covid.csv", index=False, float_format="%.4f")
     print("\nRanges (80th percentile of ridge's absolute neighbourhood error, selection folds):")
     for r in rng_rows:
         line = f"  {r['grade'].upper()}: one school +/-{r['one']:.2f} ({r['rows_one']} rows), more +/-{r['more']:.2f} ({r['rows_more']} rows)"
