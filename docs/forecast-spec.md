@@ -733,7 +733,8 @@ looking, in one period. The 2026 Census tests it apart.
 3. **2026 to 2027, the forecast.** The same model refitted with 2025 to 2026 added.
    Scores at 2026 come from EQAO. The Ministry's demographics and enrolment come from
    2024-25, the latest it publishes, carried over to 2026.
-4. **If EQAO's file doesn't match:** step 1 is still the published forecast for 2026,
-   scored when the Ministry's 2025-26 file appears.
+4. **If EQAO's file doesn't match:** step 1 is scored when the Ministry's 2025-26
+   file appears, and the forecast is 2025 to 2027, two years ahead: ridge fitted on
+   the two-year transitions 2022 to 2024 and 2023 to 2025, tuned the same way.
 
 The neighbourhood ranges come from the selection folds, as above, in every case.
