@@ -3,6 +3,7 @@ results (docs/forecast-spec.md).
 
     python pipeline/forecast/schools.py             # the selection folds
     python pipeline/forecast/schools.py --holdout   # also 2024 to 2025, once
+    python pipeline/forecast/schools.py --holdout --live   # and the 2025-2026 forecast
 
 Reads pipeline/schools/schools.csv (the schools School Insights shows) and the
 neighbourhood census figures in web/public/insights.json. A grade's score is the
@@ -23,9 +24,18 @@ Folds:
   2022-2023, 2023-2024  the selection folds
   2024-2025  the holdout, with --holdout
 
-Writes pipeline/out/model/schools_scores.csv (each fold, grade and rung) and
-schools_predictions.csv, and prints the scores, the rung the decision rule picks,
-and the 2019-2022 shortfall by school low-income share.
+Ranges (fixed 2026-11-03, before the holdout): each grade's neighbourhood figure
+gets the 80th percentile of ridge's absolute neighbourhood error in the selection
+folds, either side, separately for neighbourhoods with one scored school and with
+more.
+
+Live (--live): ridge fitted on every one-year transition to 2025 forecasts 2026 from
+2025, written to pipeline/model/ before any 2025-26 result is read.
+
+Writes pipeline/out/model/schools_scores.csv (each fold, grade and rung),
+schools_predictions.csv and schools_ranges.csv, and prints the scores, the rung the
+decision rule picks, the range's coverage in the holdout, and the 2019-2022
+shortfall by school low-income share.
 """
 import argparse
 import json
@@ -44,6 +54,7 @@ from fit import KS, ALPHAS, ROUNDS, boost_fit, choose, expit, knn_fit, logit, ri
 SCHOOLS = PIPELINE / "schools" / "schools.csv"
 INSIGHTS = PIPELINE.parent / "web" / "public" / "insights.json"
 OUT = PIPELINE / "out" / "model"
+LIVE = PIPELINE / "model"  # committed: live forecasts, frozen before their outcomes are known
 
 GRADES = {"g3": TESTS[:3], "g6": TESTS[3:]}
 SELECTION = [(2022, 2023), (2023, 2024)]
@@ -51,6 +62,8 @@ FIRST = (2018, 2019)
 COVID = (2019, 2022)
 HOLDOUT = (2024, 2025)
 ONE_YEAR = [FIRST, *SELECTION, HOLDOUT]
+LIVE_ORIGIN = 2025
+RANGE_Q = 80  # percentile of the absolute neighbourhood error: an 80% range
 RUNGS = ["persistence", "own_mean", "ridge", "knn", "boost"]
 # Neighbourhood census measures (levels; the income on a log scale), standardised
 # within each census.
@@ -103,13 +116,18 @@ def positions(s: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     return s, city
 
 
-def rows(s: pd.DataFrame, census: dict, g: str, t0: int, t1: int) -> pd.DataFrame:
-    """The schools with grade g's score at both t0 and t1, with their features at t0."""
+def rows(s: pd.DataFrame, census: dict, g: str, t0: int, t1: int | None) -> pd.DataFrame:
+    """The schools with grade g's score at both t0 and t1, with their features at t0.
+    With t1 None (a live forecast), every school with the score at t0."""
     years = sorted(s.year.unique())
     other = "g6" if g == "g3" else "g3"
     a = s[s.year == t0].set_index("school_number")
-    b = s[s.year == t1].set_index("school_number")
-    keep = a.index[a[g].notna() & a.enrolment.notna()].intersection(b.index[b[g].notna()])
+    keep = a.index[a[g].notna() & a.enrolment.notna()]
+    if t1 is None:
+        b = pd.DataFrame(np.nan, index=keep, columns=[g, f"{g}_pos"])
+    else:
+        b = s[s.year == t1].set_index("school_number")
+        keep = keep.intersection(b.index[b[g].notna()])
     a, b = a.loc[keep], b.loc[keep]
     hist = s[(s.year < t0) & s[g].notna()].groupby("school_number")
     prev_year = max([y for y in years if y < t0], default=None)
@@ -143,7 +161,7 @@ def rows(s: pd.DataFrame, census: dict, g: str, t0: int, t1: int) -> pd.DataFram
     d["enrol"] = a.enrolment
     d["nbhd_id"] = a.nbhd_id.astype(int)
     d["low_income_raw"] = a.low_income
-    d["t0"], d["t1"], d["grade"] = t0, t1, g
+    d["t0"], d["t1"], d["grade"] = t0, (t0 + 1 if t1 is None else t1), g
     return d
 
 
@@ -176,6 +194,33 @@ def forecast(train: pd.DataFrame, test: pd.DataFrame, city: dict) -> tuple[pd.Da
     out["boost"] = expit(test.pos + boost(test[feats].values) + lev)
     info.update(alpha=float(alpha), k=int(k), rounds=int(n), features=len(feats), train_rows=len(train))
     return out, info
+
+
+def nbhd(p: pd.DataFrame, rung: str) -> pd.DataFrame:
+    """Each neighbourhood's figure: its schools' forecasts (and results) weighted by
+    enrolment at the origin, and how many schools it has."""
+    nb = p.assign(pw=p[rung] * p.enrol, aw=p.actual * p.enrol, sw=p.score0 * p.enrol, n=1).groupby("nbhd_id")[["pw", "aw", "sw", "enrol", "n"]].sum()
+    return pd.DataFrame({"pred": nb.pw / nb.enrol, "actual": nb.aw / nb.enrol, "score0": nb.sw / nb.enrol,
+                         "enrol": nb.enrol, "n_schools": nb.n})
+
+
+def bands(P: pd.DataFrame) -> dict:
+    """The range (docs/forecast-spec.md, fixed before the holdout): by grade, the 80th
+    percentile of ridge's absolute neighbourhood error in the selection folds pooled,
+    for neighbourhoods with one scored school and with more."""
+    out = {}
+    for g in GRADES:
+        e = pd.concat([nbhd(p, "ridge") for (gg, t0, t1), p in P.groupby(["grade", "t0", "t1"])
+                       if gg == g and (t0, t1) in SELECTION])
+        err = (e.actual - e.pred).abs()
+        out[g] = {k: float(np.percentile(err[sel], RANGE_Q)) for k, sel in (("one", e.n_schools == 1), ("more", e.n_schools > 1))}
+        out[g]["rows"] = {"one": int((e.n_schools == 1).sum()), "more": int((e.n_schools > 1).sum())}
+    return out
+
+
+def with_range(nb: pd.DataFrame, b: dict) -> pd.DataFrame:
+    half = np.where(nb.n_schools == 1, b["one"], b["more"])
+    return nb.assign(low=np.clip(nb.pred - half, 0, 100), high=np.clip(nb.pred + half, 0, 100))
 
 
 def score(p: pd.DataFrame, rung: str) -> dict:
@@ -227,10 +272,34 @@ def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> list[str]:
     return lines
 
 
+def live(s: pd.DataFrame, census: dict, city: dict, B: dict) -> None:
+    """The 2025-2026 forecast (docs/forecast-spec.md): ridge fitted on every one-year
+    transition to 2025, each school's and neighbourhood's figure, and the range."""
+    LIVE.mkdir(exist_ok=True)
+    sch, nbs = [], []
+    print()
+    for g in GRADES:
+        test = rows(s, census, g, LIVE_ORIGIN, None)
+        train = pd.concat([rows(s, census, g, a, b) for a, b in ONE_YEAR if b <= LIVE_ORIGIN])
+        p, info = forecast(train, test, city)
+        sch.append(p[["grade", "t0", "t1", "nbhd_id", "enrol", "score0", "persistence", "own_mean", "ridge"]])
+        nb = with_range(nbhd(p, "ridge"), B[g]).drop(columns="actual")
+        nbs.append(nb.reset_index().assign(grade=g))
+        print(f"  live {g.upper()} {LIVE_ORIGIN}-{LIVE_ORIGIN + 1}: {len(test)} schools, {len(nb)} neighbourhoods; trained on "
+              f"{info['train_rows']} rows, ridge alpha {info['alpha']:.3g}; City {expit(city[g][LIVE_ORIGIN]):.1f}% carried over")
+    pd.concat(sch).reset_index(names="school_number").to_csv(LIVE / f"schools_{LIVE_ORIGIN + 1}_schools.csv", index=False, float_format="%.3f")
+    N = pd.concat(nbs)[["grade", "nbhd_id", "n_schools", "enrol", "score0", "pred", "low", "high"]]
+    N.to_csv(LIVE / f"schools_{LIVE_ORIGIN + 1}.csv", index=False, float_format="%.3f")
+    print(f"  Wrote {LIVE / f'schools_{LIVE_ORIGIN + 1}.csv'} (neighbourhoods) and schools_{LIVE_ORIGIN + 1}_schools.csv")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--holdout", action="store_true", help="also score 2024-2025 (once, after the rung is chosen)")
+    ap.add_argument("--live", action="store_true", help="also forecast 2026 from 2025 (fits on the holdout year, so with --holdout)")
     args = ap.parse_args()
+    if args.live and not args.holdout:
+        sys.exit("--live fits on the holdout year: run it with --holdout")
     self_check()
     for f in (SCHOOLS, INSIGHTS):
         if not f.exists():
@@ -259,6 +328,17 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     S.to_csv(OUT / "schools_scores.csv", index=False, float_format="%.4f")
     P.reset_index(names="school_number").to_csv(OUT / "schools_predictions.csv", index=False, float_format="%.3f")
+    B = bands(P)
+    rng_rows = []
+    for g in GRADES:
+        r = {"grade": g, "one": B[g]["one"], "more": B[g]["more"], "rows_one": B[g]["rows"]["one"], "rows_more": B[g]["rows"]["more"]}
+        if args.holdout:
+            h = with_range(nbhd(P[(P.grade == g) & (P.t0 == HOLDOUT[0]) & (P.t1 == HOLDOUT[1])], "ridge"), B[g])
+            inside = (h.actual >= h.low) & (h.actual <= h.high)
+            r.update(holdout_n=len(h), holdout_inside=float(inside.mean()),
+                     holdout_inside_one=float(inside[h.n_schools == 1].mean()), holdout_inside_more=float(inside[h.n_schools > 1].mean()))
+        rng_rows.append(r)
+    pd.DataFrame(rng_rows).to_csv(OUT / "schools_ranges.csv", index=False, float_format="%.4f")
 
     print("Mean absolute error in percentage points (enrolment-weighted); skill against persistence;")
     print("rank correlation of forecast and actual levels, and of forecast and actual changes.")
@@ -275,8 +355,17 @@ def main() -> int:
         print(f"  Chosen by the rule: {choose({r: sel[r].tolist() for r in sel}, RUNGS)}")
     print("\n2019 to 2022, across the COVID-19 closures (ridge fitted on 2018-2019):")
     print("\n".join(covid(P[(P.t0 == COVID[0]) & (P.t1 == COVID[1])], city, s)))
+    print("\nRanges (80th percentile of ridge's absolute neighbourhood error, selection folds):")
+    for r in rng_rows:
+        line = f"  {r['grade'].upper()}: one school +/-{r['one']:.2f} ({r['rows_one']} rows), more +/-{r['more']:.2f} ({r['rows_more']} rows)"
+        if "holdout_n" in r:
+            line += (f"; holdout: {r['holdout_inside']:.0%} of {r['holdout_n']} neighbourhoods inside "
+                     f"(one school {r['holdout_inside_one']:.0%}, more {r['holdout_inside_more']:.0%})")
+        print(line)
     if args.holdout:
         print("\nThe holdout (2024-2025) is now spent: report it, don't tune on it.")
+    if args.live:
+        live(s, census, city, B)
     print(f"\nWrote {OUT / 'schools_scores.csv'} and schools_predictions.csv")
     return 0
 
