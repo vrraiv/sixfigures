@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto Forecasts Method</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="How the school and dwelling-value forecasts for Toronto's neighbourhoods are made and tested: targets, models, backtests, the decision rule and the ranges." />
+  </head>
+  <body class="with-nav doc">
+    <nav class="wordmark" aria-label="Site">
+      <a href="/">2016 · 2021</a>
+      <span class="brand">Toronto by DA</span>
+      <a href="/2011/">2011</a>
+      <a href="/insights/">Insights</a>
+      <a href="/forecasts/" aria-current="page">Forecasts</a>
+    </nav>
+    <header class="bar">
+      <h1>Forecasts <span class="sub">How the school and dwelling-value forecasts are made and tested</span></h1>
+      <nav class="themes" aria-label="Forecasts">
+        <a href="/forecasts/" aria-current="page">Method</a>
+        <a href="/forecasts/schools/">Schools</a>
+        <a href="/forecasts/value/">Dwelling value</a>
+      </nav>
+    </header>
+
+    <main class="insights fc-doc">
+      <section class="ins-section" aria-labelledby="what-h">
+        <h2 id="what-h">What is forecast</h2>
+        <ul>
+          <li><b>Schools.</b> Each English public or Catholic elementary school's Grade 3 and Grade 6 score, one test year ahead. A score is the mean of the school's reading, writing and math results: the share of its students at or above the provincial standard. A neighbourhood's figure is its schools' forecasts weighted by enrolment. Grade 3 and Grade 6 are forecast separately.</li>
+          <li><b>Dwelling value.</b> Each of the 158 neighbourhoods' census median value of owned dwellings, as a ratio to the City's median, one census (five years) ahead. The City's own median is not forecast; for dollar figures it is nowcast from TRREB's sale prices (below).</li>
+        </ul>
+        <p>Every model places each school or neighbourhood against the City (a school by its score on the logit scale less the City's enrolment-weighted mean), and the City's level carries over from the year the forecast is made, the origin. The models differ only in where they place each unit.</p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rungs-h">
+        <h2 id="rungs-h">The models</h2>
+        <p>The models are rungs on a ladder, from the simplest up. Each is tried in every backtest; the decision rule below picks one.</p>
+        <div class="tbl-wrap"><table class="tbl fc-wrap">
+          <thead><tr><th>Rung</th><th class="txt">What it does</th><th>Schools</th><th>Dwelling value</th></tr></thead>
+          <tbody>
+            <tr><th>Persistence</th><td class="txt">The same position as at the origin.</td><td>✓</td><td>✓</td></tr>
+            <tr><th>Own mean</th><td class="txt">The unit's mean position to date (two years or more).</td><td>✓</td><td>✓</td></tr>
+            <tr><th>Trend</th><td class="txt">The last five years' change, again.</td><td></td><td>✓</td></tr>
+            <tr><th>Ridge regression</th><td class="txt">A linear model of the change, fitted to the transitions before the origin. The penalty is tuned by five-fold cross-validation, with each unit's rows kept in one fold.</td><td>✓</td><td>✓</td></tr>
+            <tr><th>Analogs</th><td class="txt">The weighted mean change of the most similar units in the training transitions (nearest neighbours), with their number tuned the same way.</td><td>✓</td><td>✓</td></tr>
+            <tr><th>Boosting †</th><td class="txt">Gradient-boosted shallow trees (LightGBM), with the number of rounds tuned the same way.</td><td>✓</td><td>✓</td></tr>
+            <tr><th>Ridge variants †</th><td class="txt">Ridge with more predictors: demography; dwelling shares; the previous change in the average value; heavy building ‡.</td><td></td><td>✓</td></tr>
+            <tr><th>Reversion †</th><td class="txt">Ridge on the previous change alone.</td><td></td><td>✓</td></tr>
+            <tr><th>Heavy building ‡</th><td class="txt">A fitted shift for the top tenth of neighbourhoods by permits issued in the five years before, on persistence or on own mean.</td><td></td><td>✓</td></tr>
+            <tr><th>Market (nowcasts)</th><td class="txt">The change in a neighbourhood's standing in TRREB's median sale prices during the period, alone or added to persistence, own mean or ridge. These use sales after the origin, so they can be made only once the census day has passed. Reported apart.</td><td></td><td>✓</td></tr>
+            <tr><th>Conditional runs</th><td class="txt">Ridge with permits issued, or owners gained, during the period being forecast: known only afterwards. Reported apart and never chosen.</td><td></td><td>✓</td></tr>
+          </tbody>
+        </table></div>
+        <p class="tbl-note">† Added after the first results were seen, and fixed before it was computed. ‡ Chosen after looking at both periods' results; the 2026 Census is its first clean test.</p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="pred-h">
+        <h2 id="pred-h">Predictors: only what was known at the origin</h2>
+        <ul>
+          <li><b>Schools.</b> The school's position at the origin (also squared, and scaled by its enrolment), the year before and its mean to date; the other grade's position; enrolment; Catholic or public; the Ministry's six student shares (low income, parents without a degree, first language not English, new to Canada, special education, gifted), standardised within each year; and the neighbourhood's census (median after-tax household income, low-income rate, degrees, renters, recent immigrants, movers, children). A census is used from two test years after it: 2016 for the origins 2018 to 2022, 2021 from 2023.</li>
+          <li><b>Dwelling value.</b> The census at the origin (income, low income, renters, condominiums, detached houses, tall apartments, new dwellings, degrees, recent immigrants, movers, children, seniors, shelter costs), the five-year change in seven of them, the neighbouring neighbourhoods' mean ratio, and permits issued in the five years before per 1,000 households. The variants add age and arrival shares and the change in owners; dwelling shares; the previous five-year change in the ratio of average values; and heavy building.</li>
+        </ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="folds-h">
+        <h2 id="folds-h">The backtests</h2>
+        <p>Each backtest fits the models on what came before an origin and forecasts what followed. Years are test years (2025 is the 2024–25 school year).</p>
+        <div class="tbl-wrap"><table class="tbl fc-wrap">
+          <thead><tr><th>Schools</th><th class="txt">Use</th></tr></thead>
+          <tbody>
+            <tr><th>2018 to 2019</th><td class="txt">Persistence only: nothing earlier to fit on.</td></tr>
+            <tr><th>2019 to 2022</th><td class="txt">Three years across the COVID-19 closures (no tests in 2020 and 2021). Scored on its own, with models fitted on 2018 to 2019; never used to choose.</td></tr>
+            <tr><th>2022 to 2023, 2023 to 2024</th><td class="txt">The selection folds: the rule chooses on these.</td></tr>
+            <tr><th>2024 to 2025</th><td class="txt">The holdout: run once, on 3 November 2026, after the choice. It reports and doesn't change the choice.</td></tr>
+          </tbody>
+        </table></div>
+        <div class="tbl-wrap"><table class="tbl fc-wrap">
+          <thead><tr><th>Dwelling value</th><th class="txt">Use</th></tr></thead>
+          <tbody>
+            <tr><th>Forward</th><td class="txt">Fitted on 2011 to 2016, tested on 2016 to 2021: the backtest.</td></tr>
+            <tr><th>Reverse</th><td class="txt">Fitted on 2016 to 2021, tested on 2011 to 2016: a check that what a fit learns holds both ways. Own mean and trend need an earlier census, so they are forward only.</td></tr>
+          </tbody>
+        </table></div>
+        <p>2006 is the only earlier census, and its median value isn't comparable, so these are the only two five-year transitions.</p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rule-h">
+        <h2 id="rule-h">Scores and the decision rule</h2>
+        <ul>
+          <li><b>Error.</b> The mean absolute error: in percentage points for schools, weighted by enrolment; for dwelling value, of the log ratio to the City's median (×100, about a percentage), weighted by households. Skill is the reduction in error against persistence.</li>
+          <li><b>The rule.</b> Walk up the ladder from persistence. Up to ridge, a rung replaces the one chosen so far only if its error is lower in every fold. Past ridge, its mean improvement must also be larger than the spread of its improvements across the folds. For dwelling value the folds are forward and reverse, where a rung has both.</li>
+          <li><b>Centring</b> (dwelling value, adopted 1 November 2026 after looking). Each rung's predicted changes are centred to average zero over households, so no rung carries one period's average shift against the City's median into the next. Raw scores are shown alongside.</li>
+        </ul>
+        <p>The rule chose ridge regression for schools and own mean for dwelling value.</p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="range-h">
+        <h2 id="range-h">The ranges</h2>
+        <ul>
+          <li><b>Schools.</b> An 80% range: the forecast plus or minus the 80th percentile of ridge's absolute neighbourhood errors in the two selection folds, set separately for neighbourhoods with one school and with more. Fixed before the holdout, which reports how many neighbourhoods fell inside.</li>
+          <li><b>Dwelling value.</b> From the lowest of three forecasts (persistence, own mean, and own mean plus market) less 0.05 on the log scale, to the highest plus 0.05. The 0.05 allows for the neighbourhoods' average shift against the City's median and the error in the City's nowcast. Set after the backtest's point scores were seen; its coverage on 2016 to 2021 was scored once afterwards and the rule left unchanged.</li>
+        </ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="live-h">
+        <h2 id="live-h">The live forecasts</h2>
+        <ul>
+          <li><b>Schools.</b> Ridge refitted on every one-year transition to 2025 forecasts 2026. It was made and committed on 3 November 2026, before any 2025–26 result was read. EQAO's 2025–26 results will score it, and a forecast for 2027 follows from them.</li>
+          <li><b>Dwelling value.</b> The 2026 Census (reference day May 2026; Statistics Canada plans its major releases by December 2027). The City's median is its 2021 Census median moved by TRREB's May median sale price, 2021 to 2026, with nothing fitted. That rule was scored on 2016 to 2021 against the Census.</li>
+        </ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="log-h">
+        <h2 id="log-h">What changed, and when</h2>
+        <div class="tbl-wrap"><table class="tbl fc-wrap">
+          <thead><tr><th>Date</th><th class="txt">Change</th></tr></thead>
+          <tbody>
+            <tr><th>31 Oct 2026</th><td class="txt">Targets, folds, predictors, scores and the rule agreed before any model was run. First run.</td></tr>
+            <tr><th>31 Oct 2026</th><td class="txt">After the first run: boosting; for dwelling value, demography, then dwelling shares. Each was fixed before it was computed.</td></tr>
+            <tr><th>1 Nov 2026</th><td class="txt">The previous change in average value (fixed before computing). Heavy building, chosen after looking. The City's nowcast from TRREB and the market rungs (fixed before computing).</td></tr>
+            <tr><th>1 Nov 2026</th><td class="txt">Centring adopted, after looking at the average shift.</td></tr>
+            <tr><th>3 Nov 2026</th><td class="txt">The school ranges and live forecast fixed; the holdout run once; the dwelling-value range's coverage scored once.</td></tr>
+          </tbody>
+        </table></div>
+        <p>The full record, with every run's results and the reasons for each change, is in the <a href="https://github.com/vrraiv/sixfigures/blob/main/docs/forecast-spec.md">forecast spec</a>.</p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      Ontario Ministry of Education, School Information and Student Demographics, with EQAO results; contains information licensed under the
+      <a href="https://www.ontario.ca/page/open-government-licence-ontario">Open Government Licence – Ontario</a>.
+      Statistics Canada, the 2006 to 2021 Censuses of Population and the 2011 National Household Survey, under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      TRREB, Market Watch and Community Housing Market Reports, as published.
+      City of Toronto Open Data, under the <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+    <script type="module" src="/src/fc-method.js"></script>
+  </body>
+</html>
