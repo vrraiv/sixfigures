@@ -780,3 +780,62 @@ Scored once, as fixed above (`value.py`, `pipeline/out/model/value_range_backtes
 - **Width:** the median range spans 17% (high over low).
 
 The rule is unchanged. The point scores and the live table are the same as before.
+
+## EQAO's school file: the match, and scoring 2025 to 2026 (fixed 2026-11-03, before the 2025-26 results are scored)
+
+**The match (step 2).** EQAO's Achievement Results school records for 2024-25
+(`G3_2025_1.csv`, `G6_2025_1.csv`), against the Ministry's 2024-25 scores:
+- **The measure:** `pctOverallR_L34`, `pctOverallW_L34` and `pctOverallM_L34`, the
+  share of fully participating students at levels 3 and 4.
+- **Schools:** every Toronto school with a Ministry score is in EQAO's file (557 for
+  Grade 3, 485 for Grade 6). All 1,655 Grade 3 and 1,454 Grade 6 school, grade and
+  subject cells are equal.
+- **Over all registered students** (`cntOverall*_L34` over `cntStudents_*`), 41% of
+  Grade 3 cells and 48% of Grade 6 cells are within one point, so the Ministry's figure
+  is the participating share.
+- **One more school in EQAO's file:** Cordella Junior Public School (123056) has a
+  Grade 3 score. It is in the Ministry's files to 2022-23, not in 2023-24 or 2024-25.
+
+The file passes, so step 3 follows and the two-year fallback isn't used. The 2025-26
+field definitions are the same as 2024-25's, apart from the change-log sheet, and
+the files have the same columns.
+
+**2026 school rows.** `pipeline/eqao.py` repeats the match, then writes each Toronto
+school's 2026 scores (the same measure; "N/R" and "N/D" are missing) to
+`pipeline/schools/eqao_2026.csv`.
+- The harness builds each 2026 school-year from the school's Ministry 2024-25 row
+  (enrolment, demographics, type, neighbourhood), with the year set to 2026 and
+  EQAO's six scores.
+- Schools with a 2026 score but no Ministry 2024-25 row are left out, and counted.
+- The City's 2026 level is the enrolment-weighted logit mean, as for other years,
+  with 2024-25 enrolment.
+- `schools.csv` and the School Insights page are unchanged.
+
+**Scoring 2025 to 2026.** Like a fold, from the frozen school forecasts in
+`pipeline/model/schools_2026_schools.csv`:
+- **Schools:** those in the frozen file with that grade's 2026 score.
+- **Rungs:** only the three frozen columns, persistence, own mean and ridge. Analogs and
+  boosting weren't frozen, so they aren't scored.
+- **School scores:** MAE weighted by 2025 enrolment, skill against persistence, and
+  the rank correlation of forecast and actual change.
+- **Neighbourhood figures:** recomputed over those schools, weighted by 2025 enrolment,
+  with the number of schools counted over them. They take the selection folds' ranges
+  and report the coverage.
+- **The frozen neighbourhood file** (over every school with a 2025 score) is what was
+  published. It isn't rescored.
+
+**2026 to 2027 (step 3).**
+- **Model:** ridge for each grade, fitted on the one-year transitions 2018 to 2019,
+  2022 to 2023, 2023 to 2024, 2024 to 2025 and 2025 to 2026, and tuned as before.
+- **Inputs:** features at 2026 (the Ministry's 2024-25 rows, as above), the 2021
+  Census, and the City's 2026 level carried over.
+- **Neighbourhood figures:** weighted by 2024-25 enrolment, over the schools with that
+  grade's 2026 score and a Ministry 2024-25 row. The ranges come from the selection
+  folds.
+- **Output:** `pipeline/model/schools_2027.csv` and `schools_2027_schools.csv`, never
+  overwritten.
+
+**What was read first.** The 2025-26 forecast was frozen and pushed first (commit
+4d61d0e). Then, while the files' layout was being checked, a few rows of the
+2025-26 files and their counts of suppression codes were printed. Nothing else from
+2025-26 was read before this note.
