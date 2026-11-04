@@ -125,6 +125,16 @@ Central, so 2010-2011 use the two zones combined. The export matches CMHC's publ
 |---|---|---|---|---|---|
 | School Information and Student Demographics: enrolment, coordinates, EQAO results (share at the provincial standard in Grade 3 and 6 reading, writing and math, Grade 9 math, the Grade 10 literacy test), school demographics (low income, parents without a degree, language, special education) | [school-information-and-student-demographics](https://data.ontario.ca/en/dataset/school-information-and-student-demographics), one xlsx per school year, Open Government Licence - Ontario | school years 2017-18 to 2024-25; tests written 2018, 2019, 2022-2025 (2023-24 preliminary) | school (coordinates) | Target (elementary score); school demographics as drivers | test results known to the test year; low income and parents without a degree are census-derived (below) |
 
+### EQAO (eqao.com: downloaded by hand, `pipeline/eqao.py`)
+
+| Source | Where | Years | Geography | Role | Origin |
+|---|---|---|---|---|---|
+| Achievement Results, Grade 3 and Grade 6: each school's share of fully participating students at the provincial standard in reading, writing and math (`pctOverall*_L34`) | [open data](https://www.eqao.com/about-eqao/open-data/), one zip per grade and school year, used under the [Open Government Licence - Ontario](https://www.ontario.ca/page/open-government-licence-ontario) (EQAO's Intellectual Property Use Policy). Cloudflare blocks scripted downloads, so the zips go into `pipeline/raw/eqao/` by hand | 2024-25 (the match) and 2025-26 | school (the Ministry's school number) | Target for 2026: the 2025-to-2026 score and the 2026-to-2027 forecast | test results known to the test year |
+
+EQAO's 2024-25 file reproduces every Ministry 2024-25 Toronto score exactly, so its
+2025-26 scores stand in for the Ministry's file, which doesn't have them yet
+(`pipeline/schools/eqao_2026.csv`; see the forecast spec).
+
 No tests were written in 2020 or 2021: the 2019-20 and 2020-21 files repeat the
 2018-19 results (`schools.py` checks that they match value for value). Grade 9
 math was two tests (academic and applied) until 2019 and one since, so the score

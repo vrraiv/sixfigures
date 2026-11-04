@@ -239,7 +239,7 @@ trreb:
 # pipeline/out/model/. Their inputs are committed; the scripts stop if one is missing.
 # The schools holdout was spent on 2026-11-03, so it is always scored now; --live
 # checks the frozen forecasts in pipeline/model/ and never overwrites them.
-.PHONY: forecast forecast-pages
+.PHONY: forecast forecast-pages eqao
 
 forecast:
 	$(PYTHON) pipeline/forecast/schools.py --holdout --live
@@ -248,6 +248,11 @@ forecast:
 # The Forecasts pages' forecasts.json, from the model outputs (make forecast).
 forecast-pages:
 	$(PYTHON) pipeline/forecast_pages.py
+
+# EQAO's 2025-26 school results for the schools forecast (the zips are downloaded by
+# hand: see pipeline/eqao.py). Run before make forecast.
+eqao:
+	$(PYTHON) pipeline/eqao.py
 
 clean:
 	rm -rf pipeline/out
