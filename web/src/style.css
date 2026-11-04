@@ -308,6 +308,9 @@ a { color: var(--accent); }
 .wordmark a { color: var(--ink-2); text-decoration: none; padding: 2px 4px; border-radius: 4px; }
 .wordmark a:hover { background: #eef4fc; color: var(--accent); }
 .wordmark a[aria-current="page"] { color: var(--accent); font-weight: 600; }
+.wordmark a, .wordmark .brand { white-space: nowrap; }
+@media (max-width: 480px) { .wordmark { flex-wrap: wrap; gap: 2px 10px; } }
+@media (max-width: 400px) { .wordmark { gap: 2px 4px; padding: 6px 8px; } .wordmark a { padding: 2px 3px; } }
 body.with-nav { grid-template-rows: auto auto 1fr auto; }
 
 /* ---- the Insights page: a scrolling document rather than a full-screen map ---- */
@@ -615,3 +618,27 @@ body.doc { display: block; height: auto; }
 .sc-diag { position: absolute; inset: 0; width: 100%; height: 100%; }
 .measure-bar .seg button { white-space: nowrap; }
 @media (max-width: 640px) { .measure-bar .seg button { padding: 5px 8px; } }
+
+/* ---- Forecasts ---- */
+.fc-doc p, .fc-doc li { max-width: 78ch; font-size: 14px; }
+.fc-doc ul { padding-left: 20px; }
+.fc-doc li { margin: 0 0 8px; }
+.fc-doc h2 { font-size: 18px; font-weight: 650; margin: 0 0 8px; }
+.tbl.fc-wrap td.txt { white-space: normal; max-width: 620px; min-width: 260px; }
+.tbl th.fc-group { padding-top: 12px; font-size: 12px; font-weight: 650; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
+.fc-mark { color: var(--ink-3); font-weight: 400; }
+.fc-list { list-style: none; margin: 0; padding: 4px 10px; font-size: 13px; }
+.fc-list li { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(120px, 2fr) 76px; gap: 10px; align-items: center; padding: 3px 0; border-bottom: 1px solid #f0f0ec; }
+.fc-list li.none { display: block; color: var(--ink-3); }
+.fc-list .vl { text-align: right; font-variant-numeric: tabular-nums; }
+.fc-track { position: relative; height: 14px; }
+.fc-range { position: absolute; top: 3px; height: 8px; background: #cde2fb; border-radius: 4px; }
+.fc-dot { position: absolute; top: 2px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--ink); }
+.fc-from { position: absolute; top: 0; width: 2px; height: 14px; margin-left: -1px; background: var(--ink); }
+.fc-key-range { display: inline-block; width: 22px; height: 8px; margin-right: 6px; border-radius: 4px; background: #cde2fb; vertical-align: 0; }
+@media (max-width: 640px) {
+  .fc-list li { grid-template-columns: minmax(0, 1fr) minmax(90px, 1.2fr) 64px; gap: 6px; }
+  .tbl.fc-wrap { width: 100%; }
+  .tbl.fc-wrap td.txt { min-width: 0; }
+  .tbl.fc-wrap th { white-space: normal; }
+}

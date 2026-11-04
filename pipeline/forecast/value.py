@@ -40,8 +40,11 @@ period in a community's standing within the City in TRREB's median sale prices
 (pipeline/trreb/community.csv), in market_full (coefficient 1), market (fitted),
 own_mean_market and ridge_market. They use sales during the period.
 
-Writes pipeline/out/model/value_scores.csv, value_predictions.csv and
-value_demography_rho.csv.
+The range (docs/forecast-spec.md, 2026-11-03): the live rule's coverage scored once
+on the forward fold, in dollars, with the City from TRREB's May median 2016 to 2021.
+
+Writes pipeline/out/model/value_scores.csv, value_predictions.csv,
+value_demography_rho.csv, value_live.csv and value_range_backtest.csv.
 """
 import json
 import sys
@@ -65,7 +68,7 @@ TRREB = PIPELINE / "trreb"
 MIN_SALES = 10  # fewer in a window and a community has no market figure
 # The live table (docs/forecast-spec.md): the 2021 Census City median moved by TRREB's
 # May City median, and the range's allowance for the group's shift and the City's error.
-CITY_2021, TRREB_MAY = 900_000, {"2021": 890_000, "2026": 885_000}
+CITY_2021, TRREB_MAY = 900_000, {"2016": 595_000, "2021": 890_000, "2026": 885_000}
 SPREAD = 0.05
 NEIGHBOURHOODS = PIPELINE / "raw" / "toronto_neighbourhoods_4326.geojson"
 OUT = PIPELINE / "out" / "model"
@@ -136,6 +139,28 @@ def live(market, L: dict, ids: list, ins: dict, hh: dict) -> None:
     print(f"\nLive 2021-2026: City ${city:,.0f}; market slope {slope:+.3f} (alpha {a:.3g}), "
           f"{int(out.market_figure.sum())} neighbourhoods with a market figure; median range width "
           f"{np.median(out.high / out.low - 1):.0%}")
+
+
+def range_backtest(p: pd.DataFrame, M: dict, ids: list) -> None:
+    """The live range rule scored on the forward fold (docs/forecast-spec.md): at 2016,
+    the lowest of the centred persistence, own mean and own mean plus market ratios
+    less SPREAD to the highest plus SPREAD, times the City's 2016 Census median moved
+    by TRREB's May median to 2021; the share of 2021 Census medians inside."""
+    p = p.set_index("nbhd_id").loc[ids]
+    city = M["value"]["city"]["2016"] * TRREB_MAY["2021"] / TRREB_MAY["2016"]
+    R = p[["persistence", "own_mean", "own_mean_market"]].values
+    dollars = lambda r: np.round(city * np.exp(r), -3)
+    actual = np.array([np.nan if v is None else v for v in M["value"]["values"]["2021"]], float)
+    out = pd.DataFrame({"nbhd_id": ids, "actual": actual, "low": dollars(R.min(axis=1) - SPREAD),
+                        "high": dollars(R.max(axis=1) + SPREAD), "own_mean": dollars(p.own_mean.values),
+                        "hh": p.hh.values})
+    out["inside"] = (out.actual >= out.low) & (out.actual <= out.high)
+    out["below"], out["above"] = out.actual < out.low, out.actual > out.high
+    out.to_csv(OUT / "value_range_backtest.csv", index=False)
+    w = out.hh.astype(float)
+    print(f"\nRange backtest, 2016 to 2021 (City ${city:,.0f} against the Census ${M['value']['city']['2021']:,.0f}): "
+          f"{out.inside.mean():.0%} of {len(out)} neighbourhoods inside ({np.average(out.inside, weights=w):.0%} of households); "
+          f"{int(out.below.sum())} below, {int(out.above.sum())} above; median width {np.median(out.high / out.low - 1):.0%}")
 
 
 def main() -> int:
@@ -333,6 +358,7 @@ def main() -> int:
              "heavy_build": "heavy building before", "mkt": "market standing, change during (nowcast)"}
     for k, r in C.iterrows():
         print(f"  {names[k]:<34}" + "".join(f"{v:>12.2f}" for v in r))
+    range_backtest(pd.concat(preds).query("fold == 'forward'"), M, ids)
     live(market, L, ids, ins, hh)
     print(f"\nWrote {OUT / 'value_scores.csv'}, value_predictions.csv and value_live.csv")
     return 0

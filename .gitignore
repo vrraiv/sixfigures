@@ -60,3 +60,5 @@ Thumbs.db
 desktop.ini
 # Unpacked from the .pmtiles at build time (scripts/extract-tiles.mjs)
 web/public/tiles/
+# the live forecasts pipeline/forecast/ freezes before their outcomes are known
+!pipeline/model/*.csv

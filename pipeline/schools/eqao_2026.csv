@@ -1,0 +1,610 @@
+school_number,name,eqao_name,g3_read,g3_write,g3_math,g6_read,g6_write,g6_math
+002151,Adam Beck Junior Public School,Adam Beck Jr PS,75,62,76,93,85,48
+004499,Agincourt Junior Public School,Agincourt Jr PS,73,81,68,100,96,63
+005479,Agnes Macphail Public School,Agnes Macphail PS,88,68,75,100,100,93
+006602,Albion Heights Junior Middle School,Albion Heights Junior Middle School,84,72,72,80,80,39
+009172,Alexander Muir/Gladstone Ave Junior and Senior Public School,Alexander Muir/Gladstone Ave P,81,78,68,89,96,57
+011088,Alexmuir Junior Public School,Alexmuir Jr PS,62,66,62,76,67,45
+013200,Allenby Junior Public School,Allenby Jr PS,83,80,77,95,92,88
+013226,Seneca Hill Public School,Seneca Hill PS,100,87,71,,,
+014001,Downtown Alternative School,Downtown Alternative PS,91,82,82,,,
+014036,Avondale Alternative Elementary School,Avondale E and S Alternative,92,92,92,100,91,100
+018929,Ancaster Public School,Ancaster PS,64,58,42,,,
+019445,Annette Street Junior and Senior Public School,Annette Street PS,80,82,78,88,76,65
+019704,Anson Park Public School,Anson Park PS,77,48,48,91,87,46
+019720,Anson S Taylor Junior Public School,Anson Taylor Jr PS,62,69,50,100,93,87
+019735,École élémentaire La Mosaïque,École élémentaire La Mosaïque,100,92,96,96,93,84
+020303,Arbor Glen Public School,Arbor Glen PS,84,84,81,,,
+020486,Garden Avenue Junior Public School,Garden Avenue Jr PS,86,81,100,100,100,87
+020745,Armour Heights Public School,Armour Heights PS,67,71,62,95,95,60
+023549,Académie Alexandre-Dumas,Académie Alexandre-Dumas,80,68,72,100,100,80
+028614,Avondale Public School,Avondale Public School,79,62,69,82,77,68
+030104,Bala Avenue Community School,Bala Avenue Community S,71,71,50,,,
+031011,Balmy Beach Community School,Balmy Beach Community School,94,100,94,96,100,73
+031887,Banting and Best Public School,Banting & Best PS,87,78,89,100,100,89
+035173,Baycrest Public School,Baycrest PS,89,84,95,84,82,44
+037257,Bayview Middle School,Bayview Middle School,,,,87,89,64
+037710,Beaches Alternative Junior School,Beaches Alternative S,90,70,70,100,100,90
+038032,Beaumonde Heights Junior Middle School,Beaumonde Heights Jr Middle S,76,68,68,93,89,49
+039594,Bedford Park Public School,Bedford Park Jr PS,89,82,86,100,100,81
+041416,Bellmere Junior Public School,Bellmere Jr PS,64,50,41,89,95,46
+042108,École élémentaire Paul-Demers,École élémentaire Paul-Demers,77,83,87,100,100,100
+043494,Bendale Junior Public School,Bendale Jr PS,70,61,66,89,92,71
+043753,Bennington Heights Elementary School,Bennington Heights PS,94,81,100,100,100,85
+045446,Berner Trail Junior Public School,Berner Trail Jr PS,67,54,59,84,81,27
+047260,Bessborough Drive Elementary and Middle School,Bessborough Drive PS,96,87,87,95,98,80
+048020,Beverly Glen Junior Public School,Beverly Glen Jr PS,88,79,65,94,85,56
+048046,Beverley Heights Middle School,Beverley Heights Middle S,,,,75,72,28
+049344,Birch Cliff Public School,Birch Cliff PS,54,69,56,88,83,46
+049476,Birch Cliff Heights Public School,Birch Cliff Heights PS,60,46,40,93,85,61
+050288,Blacksmith Public School,Blacksmith PS,91,38,73,,,
+050679,Blake Street Junior Public School,Blake Street PS,,,55,87,90,56
+053244,Blantyre Public School,Blantyre PS,75,50,57,85,85,36
+053376,Blaydon Public School,Blaydon PS,79,86,57,,,
+054801,Bloordale Middle School,Bloordale Md S,,,,86,85,56
+054933,Bloorlea Middle School,Bloorlea Md S,,,,87,88,55
+055328,Blythwood Junior Public School,Blythwood PS,95,97,92,100,100,88
+056367,Bowmore Road Junior and Senior Public School,Bowmore PS,84,72,52,87,89,49
+057100,Braeburn Junior School,Braeburn Jr S,43,30,17,,,
+060658,Brian Public School,Brian PS,50,60,61,,,
+060917,Briarcrest Junior School,Briarcrest Jr S,65,53,71,,,
+061956,Bridlewood Junior Public School,Bridlewood Jr PS,92,83,76,91,96,79
+063541,Brimwood Boulevard Junior Public School,Brimwood Boulevard Jr PS,79,58,48,98,95,67
+063649,Broadacres Junior Public School,Broadacres Jr S,54,40,54,,,
+063770,Broadlands Public School,Broadlands PS,,,47,,,
+064424,Brock Public School,Brock Jr PS,92,64,84,93,97,73
+066508,Brookhaven Public School,Brookhaven PS,64,60,52,,,
+066540,Brookmill Boulevard Junior Public School,Brookmill Boulevard Jr PS,87,83,83,100,100,93
+067156,Brown Junior Public School,Brown PS,76,76,81,97,100,70
+067547,Bruce Public School,Bruce Public School,86,76,62,89,89,43
+068713,Buchanan Public School,Buchanan PS,58,53,53,56,65,45
+071749,Burrows Hall Junior Public School,Burrows Hall Jr PS,92,88,88,100,96,65
+072745,C D Farquharson Junior Public School,C D Farquharson Jr PS,84,77,89,96,93,76
+075990,Calico Public School,Calico PS,54,31,24,,,
+080020,Cameron Public School,Cameron PS,84,67,76,,,
+084352,Claude Watson School for the Arts,Claude Watson School for the Arts,,,,98,98,94
+088080,Cassandra Public School,Cassandra PS,59,55,50,,,
+089486,Cedar Drive Junior Public School,Cedar Drive Jr PS,74,61,56,75,70,22
+089516,Wilmington Elementary School,Wilmington Elementary School,74,70,59,,,
+089770,Cedarbrook Public School,Cedarbrook PS,75,66,66,73,78,28
+090034,Cedarvale Community School,Cedarvale Community S,83,83,87,100,100,73
+090298,Centennial Road Junior Public School,Centennial Road Junior PS,74,81,70,93,93,65
+100048,Chalkfarm Public School,Chalkfarm PS,29,32,23,,,
+101605,Charles E Webster Public School,Charles E Webster Jr PS,58,42,39,71,71,39
+101737,Charles G Fraser Junior Public School,Charles G Fraser Jr PS,83,71,71,71,71,43
+102440,Charlottetown Junior Public School,Charlottetown PS,84,79,76,82,88,46
+102580,Chartland Junior Public School,Chartland Jr PS,67,53,73,94,94,76
+106151,Chester Elementary School,Chester PS,74,74,65,,,
+106178,Chester Le Junior Public School,Chester Le Jr PS,31,27,38,58,50,8
+106410,Chine Drive Public School,Chine Drive PS,73,82,82,100,100,86
+107190,Church Street Junior Public School,Church Street Jr PS,84,72,78,78,78,52
+107328,Churchill Public School,Churchill PS,85,87,87,,,
+107581,Churchill Heights Public School,Churchill Heights PS,64,61,50,86,91,79
+107948,Claireville Junior School,Claireville Jr S,54,38,46,,,
+107972,Clairlea Public School,Clairlea PS,64,59,36,88,86,49
+111740,Cliffside Public School,Cliffside PS,53,47,42,62,62,29
+111775,Cliffwood Public School,Cliffwood PS,88,82,85,,,
+113174,Clinton Street Junior Public School,Clinton Street PS,95,89,79,89,91,83
+123315,Cornell Junior Public School,Cornell Jr PS,87,78,80,91,91,56
+125008,Corvette Junior Public School,Corvette Jr PS,85,72,82,85,82,42
+125130,Cosburn Middle School,Cosburn Md S,,,,88,86,53
+125393,Cottingham Junior Public School,Cottingham Jr PS,100,81,94,100,100,100
+125520,Courcelette Public School,Courcelette PS,88,84,72,96,92,67
+126195,Equinox Holistic Alternative School,Equinox Holistic Alternative School,92,92,77,100,100,55
+127680,Crescent Town Elementary School,Crescent Town PS,80,76,64,,,
+127736,Cresthaven Public School,Cresthaven PS,100,80,71,,,
+127884,Crestview Public School,Crestview PS,78,65,71,,,
+128058,C R Marchant Middle School,C R Marchant Middle S,,,,65,68,23
+130850,Lester B Pearson Elementary School,Lester B Pearson PS,,,83,100,91,87
+133060,Dallington Public School,Dallington PS,58,42,43,,,
+133582,Danforth Gardens Public School,Danforth Gardens PS,38,45,36,85,69,52
+134627,David Hornell Junior School,David Hornell Jr S,78,70,74,,,
+134848,David Lewis Public School,David Lewis PS,84,84,88,97,100,81
+135011,Davisville Junior Public School,Davisville Jr PS,62,73,54,100,93,93
+135534,Daystrom Public School,Daystrom PS,78,64,47,,,
+135798,Deer Park Junior and Senior Public School,Deer Park Jr & Sr PS,93,89,84,91,94,71
+136551,Castlebar Junior School,Castlebar Junior School,89,80,77,,,
+137030,Denlow Public School,Denlow PS,91,84,91,,,
+137090,Dennis Avenue Community School,Dennis Avenue Community S,69,69,53,95,95,42
+139041,Derrydown Public School,Derrydown PS,38,38,38,,,
+139955,Dewson Street Junior Public School,Dewson Street Jr PS,71,67,87,95,89,66
+140996,Dixon Grove Junior Middle School,Dixon Grove Jr & Md S,60,80,71,65,61,19
+141380,Don Mills Middle School,Don Mills Middle S,,,,82,82,46
+141410,Don Valley Middle School,Don Valley Middle School,,,,93,85,62
+141640,Donview Middle School,Donview Middle S,,,,62,70,33
+141771,Donwood Park Public School,Donwood Park Jr PS,83,71,66,86,81,49
+142816,Dorset Park Public School,Dorset Park Jr PS,42,32,42,80,90,30
+145548,Dovercourt Public School,Dovercourt PS,76,58,59,93,93,67
+146978,Downsview Public School,Downsview PS,60,68,68,,,
+149055,Driftwood Public School,Driftwood PS,68,55,45,,,
+151262,Charles H Best Junior and Middle School,Charles H Best Junior Middle School,,,,85,76,40
+151653,Duke of Connaught Junior and Senior Public School,Duke of Connaught PS,70,64,69,88,83,65
+153214,Dundas Junior Public School,Dundas Jr PS,66,71,72,,,
+153478,Dunlace Public School,Dunlace PS,84,74,80,,,
+157635,Earl Beatty Junior and Senior Public School,Earl Beatty Jr & Sr PS,77,59,88,81,81,56
+157909,École élémentaire Micheline-Saint-Cyr,École élémentaire Micheline-Saint-Cyr,94,74,87,100,93,79
+158020,Earl Haig Public School,Earl Haig Jr PS,69,64,59,87,85,44
+164399,Eastview Public School,Eastview Jr PS,58,62,46,87,83,33
+164780,Eatonville Junior School,Eatonville Jr PS,62,66,62,,,
+165476,École élémentaire Pierre-Elliott-Trudeau,École élémentaire Pierre-Elliott-Trudeau,87,89,89,100,100,95
+165824,Edgewood Public School,Edgewood PS,79,71,64,75,69,38
+167517,Eglinton Junior Public School,Eglinton PS,68,70,64,,,
+171026,Elia Middle School,Elia Middle S,,,,80,78,39
+171280,Elizabeth Simcoe Junior Public School,Elizabeth Simcoe Jr PS,81,67,81,93,90,68
+173363,Elkhorn Public School,Elkhorn PS,81,72,79,,,
+173495,Ellesmere-Statton Public School,Ellesmere-Statton PS,61,55,58,75,73,59
+176796,Elmbank Junior Middle Academy,Elmbank Junior Middle Academy S,95,80,75,62,75,12
+177261,Elmlea Junior School,Elmlea Jr S,60,27,37,,,
+185680,Ernest Public School,Ernest PS,84,68,80,,,
+186759,Essex Junior and Senior Public School,Essex Junior and Senior PS,57,43,43,71,61,22
+186880,Étienne Brûlé Junior School,Étienne Brûlé Junior School,67,71,68,,,
+190780,F H Miller Junior Public School,F H Miller Jr PS,83,73,73,100,100,50
+190918,Fairbank Public School,Fairbank Public School,40,33,33,69,66,31
+191485,Fairglen Junior Public School,Fairglen Jr PS,50,52,43,96,93,84
+191957,Fairmount Public School,Fairmount Jr PS,74,74,83,83,83,55
+193518,Faywood Arts-Based Curriculum School,Faywood Arts Based Curriculum S,88,82,81,85,80,52
+194069,École élémentaire Félix-Leclerc,École élémentaire Félix-Leclerc,95,91,91,100,95,91
+195073,Fenside Public School,Fenside PS,68,67,64,,,
+195464,Fern Avenue Junior and Senior Public School,Fern Avenue Jr & Sr PS,70,61,75,97,97,72
+196371,Finch Public School,Finch PS,62,62,59,,,
+196550,Firgrove Public School,Firgrove PS,71,63,49,,,
+198781,Fleming Public School,Fleming PS,91,73,73,100,100,88
+198846,Flemington Public School,Flemington PS,60,47,33,,,
+201510,Forest Manor Public School,Forest Manor PS,56,56,47,,,
+203262,Frankland Community School Junior,Frankland Jr PS,88,97,100,97,97,69
+207942,Galloway Road Public School,Galloway Road PS,82,91,82,100,100,44
+210714,Gateway Public School,Gateway PS,57,55,51,89,80,38
+211060,General Brock Public School,General Brock PS,76,74,57,88,95,74
+211320,General Crerar Public School,General Crerar PS,68,59,61,74,69,35
+211451,General Mercer Junior Public School,General Mercer Jr PS,44,35,35,50,54,38
+211842,George Anderson Public School,George Anderson PS,93,87,100,,,
+211974,George B Little Public School,George B Little PS,69,66,51,83,65,26
+212750,George P Mackie Junior Public School,George P Mackie Jr PS,76,84,68,100,96,67
+212881,George Peck Public School,George Peck PS,58,21,58,62,76,48
+213144,George R Gauld Junior School,George R Gauld Jr PS,68,54,61,,,
+213403,George Syme Community School,George Syme Community S,60,53,60,64,61,48
+213535,George Webster Elementary School,George Webster PS,82,73,59,91,86,50
+216003,Givins/Shaw Junior Public School,Givins/Shaw Jr & Sr PS,72,48,44,97,100,72
+216402,Glamorgan Junior Public School,Glamorgan Jr PS,58,53,47,75,80,31
+216780,Gledhill Junior Public School,Gledhill Jr PS,90,87,73,,,
+217697,Glen Park Public School,Glen Park PS,81,81,66,96,96,56
+217824,Glen Ravine Junior Public School,Glen Ravine Jr PS,65,65,50,96,96,52
+221597,Golf Road Junior Public School,Golf Road Jr PS,78,61,78,84,78,39
+223158,Gosford Public School,Gosford PS,48,44,40,,,
+225622,Gracedale Public School,Gracedale PS,74,69,56,,,
+225886,Gracefield Public School,Gracefield PS,41,53,47,,,
+229580,Greenholme Junior Middle School,Greenholme Jr Middle S,94,94,61,93,93,28
+229652,Greenland Public School,Greenland PS,67,77,57,,,
+230820,Grenoble Public School,Grenoble PS,40,35,27,68,70,37
+232262,Grey Owl Junior Public School,Grey Owl Jr PS,71,67,54,81,78,17
+232904,Guildwood Junior Public School,Guildwood Jr PS,71,72,47,73,77,32
+233161,Gulfstream Public School,Gulfstream PS,75,77,68,84,88,53
+236675,H A Halbert Junior Public School,H A Halbert Jr PS,48,33,22,83,81,40
+237655,Hawthorne II Bilingual Alternative Junior School,Hawthorne II Bilingual  Alternative S,92,77,73,100,86,79
+249807,Harwood Public School,Harwood Jr PS,57,57,67,77,77,55
+252271,Heather Heights Junior Public School,Heather Heights Jr PS,93,80,93,87,100,47
+253405,Heritage Park Public School,Heritage Park PS,90,80,100,93,93,55
+255378,Highland Heights Junior Public School,Highland Heights Jr PS,53,60,56,94,94,65
+255416,High Park Alternative School Junior,High Park Alternative Prmy S,77,54,54,,,
+255467,Highcastle Public School,Highcastle PS,71,71,62,73,65,19
+255521,Highfield Junior School,Highfield Jr S,66,58,58,,,
+255785,Highland Creek Public School,Highland Creek PS,63,53,68,88,96,50
+255947,Highland Middle School,Highland Middle School,,,,95,92,72
+256170,Highview Public School,Highview PS,70,53,53,,,
+257214,Hillcrest Community School,Hillcrest Community School S,91,85,80,95,97,70
+258970,Hillmount Public School,Hillmount PS,68,58,58,,,
+259551,Hilltop Middle School,Hilltop Md S,,,,69,75,32
+261246,Hodgson Middle School,Hodgson Middle School,,,,90,93,64
+263010,Hollycrest Middle School,Hollycrest MS,,,,84,88,49
+263060,Hollywood Public School,Hollywood PS,94,90,92,,,
+266051,Howard Junior Public School,Howard Jr PS,85,67,80,94,94,76
+270342,Humber Valley Village Junior Middle School,Humber Valley Village Jr & Md,91,85,97,91,91,72
+270474,Humbercrest Public School,Humbercrest Jr & Sr PS,38,46,70,96,98,71
+270504,Humber Summit Middle School,Humber Summit Md S,,,,85,80,43
+270997,Humewood Community School,Humewood Community C S,86,76,87,95,95,71
+272280,Humberwood Downs Junior Middle Academy,Humberwood Downs Jr. Middle Academy S,92,84,79,92,90,53
+272426,Hunter's Glen Junior Public School,Hunter's Glen Jr PS,64,67,50,90,84,62
+274119,Huron Street Junior Public School,Huron Street PS,89,84,79,93,97,69
+275158,Indian Road Crescent Junior Public School,Indian Road Crescent Jr PS,100,94,97,94,97,81
+275280,Inglewood Heights Junior Public School,Inglewood Heights Jr PS,84,84,70,100,96,57
+277754,Ionview Public School,Ionview PS,70,59,49,68,74,21
+278165,Iroquois Junior Public School,Iroquois Jr PS,100,100,94,96,98,91
+278793,Island Public/Natural Science School,Island Public/Natural Science,91,82,82,95,95,53
+278920,Islington Junior Middle School,Islington Jr & Md S,65,48,42,86,88,39
+279706,J G Workman Public School,J G Workman PS,67,67,53,87,93,53
+280879,Jackman Avenue Junior Public School,Jackman Avenue Jr PS,83,78,82,100,98,79
+282049,James S Bell Junior Middle School,James S Bell Jr & Md S,71,71,52,88,91,44
+282227,Brookview Middle School,Brookview Md S,,,,72,76,20
+282260,École élémentaire Jeanne-Lajoie,École élémentaire Jeanne-Lajoie,87,79,87,98,82,75
+282693,Jesse Ketchum Junior and Senior Public School,Jesse Ketchum Jr & Sr PS,85,78,86,89,94,67
+283088,John A Leslie Public School,John A Leslie PS,68,65,58,85,89,49
+283436,John D Parker Junior School,John D Parker Jr S,94,77,81,,,
+283479,John English Junior Middle School,John English Jr & Md S,65,65,70,90,89,61
+283606,John Fisher Junior Public School,John Fisher  PS,,,74,95,100,91
+283738,John G Althouse Middle School,John G Althouse Md S,,,,92,94,70
+284203,John McCrae Public School,John McCrae Sr PS,75,74,56,77,80,34
+284645,J R Wilcox Community School,J R Wilcox Community S,91,100,86,100,100,71
+284904,John Ross Robertson Junior Public School,John Ross Robertson Jr PS,83,81,79,100,98,87
+285293,John Wanless Junior Public School,John Wanless Jr PS,97,91,92,91,87,72
+286060,Joseph Brant Senior Public School,Joseph Brant Sr PS,67,40,63,69,71,39
+286206,Joyce Public School,Joyce PS,68,50,50,94,94,88
+286850,Forest Hill Junior and Senior Public School,Forest Hill Jr & Sr PS,71,86,81,100,100,92
+287300,Silverthorn Community School,Silverthorn Community School,71,47,47,89,83,47
+287504,Rene Gordon (Elementary) School,Rene Gordon Health and Wellness Academy,59,72,41,,,
+287801,Alvin Curling Public School,Alvin Curling Public School,83,77,68,98,100,88
+288411,Keele Street Public School,Keele Street Jr & City,97,88,97,100,100,80
+288543,Keelesdale Junior Public School,Keelesdale Jr PS,64,64,45,82,73,18
+289817,Kensington Community School School Junior,Kensington Community S,75,58,58,100,100,54
+291277,Kew Beach Junior Public School,Kew Beach Jr PS,84,69,76,98,100,78
+291927,Kimberley Junior Public School,Kimberley Jr PS,84,81,84,81,84,42
+294780,King Edward Junior and Senior Public School,King Edward Jr & Sr PS,70,50,70,91,91,82
+296473,King George Junior Public School,King George Jr PS,97,83,93,89,89,53
+300110,Kingslake Public School,Kingslake PS,87,75,71,,,
+300373,Kingsview Village Junior School,Kingsview Village Jr S,77,65,54,,,
+302589,Knob Hill Public School,Knob Hill Jr PS,90,68,63,85,88,38
+305316,Lamberton Public School,Lamberton PS,69,55,52,,,
+305570,Lambton Kingsway Junior Middle School,Lambton Kingsway Jr & Md S,95,93,93,100,98,85
+305707,Lambton Park Community School,Lambton Park Community S,73,53,53,60,67,20
+308048,Lanor Junior Middle School,Lanor Jr & Md S,89,79,61,90,85,60
+308560,Lord Lansdowne Junior Public School,Lord Lansdowne Jr & Sr PS,,,84,100,97,81
+309192,École élémentaire Laure-Rièse,École élémentaire Laure-Rièse,100,100,100,95,86,90
+310255,Lawrence Heights Middle School,Lawrence Heights Md S,,,,68,53,22
+310905,Ledbury Park Elementary and Middle School,Ledbury Park E & Md S,83,79,81,89,84,77
+311553,Lescon Public School,Lescon PS,55,45,45,,,
+311812,Leslieville Junior Public School,Leslieville Jr PS,71,67,62,85,82,55
+312339,Lillian Public School,Lillian PS,82,74,68,,,
+320919,Lord Dufferin Junior and Senior Public School,Lord Dufferin Jr & Sr PS,74,62,62,60,68,16
+321699,Lord Roberts Junior Public School,Lord Roberts Jr PS,86,89,83,88,69,46
+324647,Lucy Maud Montgomery Public School,Lucy Maud Montgomery PS,79,21,43,85,92,62
+326372,Lynngate Junior Public School,Lynngate Jr PS,55,60,45,58,62,17
+326500,Lynnwood Heights Junior Public School,Lynnwood Heights Jr PS,64,50,82,93,100,93
+328910,École élémentaire Mathieu-da-Costa,École élémentaire Mathieu-Da-Costa,93,73,87,100,95,86
+329134,Emily Carr Public School,Emily Carr PS,78,67,56,80,79,44
+329177,Alexander Stirling Public School,Alexander Stirling PS,47,47,47,69,69,16
+331635,Malvern Junior Public School,Malvern Jr PS,56,58,52,88,85,45
+331830,Manhattan Park Junior Public School,Manhattan Park Jr PS,60,50,50,,,
+335606,Maple Leaf Public School,Maple Leaf PS,43,33,29,68,68,12
+336580,Mountview Alternative School School,Mountview Alternative School,,,,92,83,50
+342190,Market Lane Junior and Senior Public School,Market Lane PS,45,39,45,73,80,20
+344930,Africentric Alternative School,Africentric Alternative S,,,,60,73,0
+346527,Maryvale Public School,Maryvale PS,52,29,43,83,67,58
+346659,Mason Road Junior Public School,Mason Road Jr PS,56,40,49,79,79,38
+348511,Mary Shadd Public School,Mary Shadd PS,79,86,75,90,84,47
+349127,Maurice Cody Junior Public School,Maurice Cody PS,96,88,84,,,
+352632,McKee Public School,McKee PS,88,88,86,,,
+354716,McMurrich Junior Public School,McMurrich Jr PS,82,77,76,99,99,72
+356315,Brookside Public School,Brookside PS,74,76,74,94,90,59
+356662,Meadowvale Public School,Meadowvale PS,80,85,67,97,93,43
+360198,Melody Village Junior School,Melody Village Jr S,,,79,88,94,35
+361348,Fairbank Memorial Community School,Fairbank Memorial Community S,75,64,61,,,
+364690,Military Trail Public School,Military Trail PS,26,17,17,58,55,9
+364703,Macklin Public School,Macklin PS,78,70,84,93,85,75
+364746,Mill Valley Junior School,Mill Valley Jr S,82,88,76,,,
+365769,Millwood Junior School,Millwood Jr S,92,86,91,,,
+365793,Milliken Public School,Milliken PS,83,74,70,92,96,72
+365890,Milne Valley Middle School,Milne Valley Md S,,,,78,80,40
+371351,Montrose Junior Public School,Montrose PS,100,100,100,100,100,89
+373559,Morrish Public School,Morrish PS,72,72,56,96,96,68
+374733,Morse Street Junior Public School,Morse Street Jr PS,58,47,52,92,87,62
+378577,Muirhead Public School,Muirhead PS,72,64,54,,,
+382068,Karen Kain School of the Arts,Karen Kain School of the Arts,,,,94,97,69
+384879,Niagara Street Junior Public School,Niagara Street Jr PS,94,80,89,97,100,66
+400734,Norman Cook Junior Public School,Norman Cook Jr PS,48,44,37,100,93,57
+400866,Norman Ingram Public School,Norman Ingram PS,91,82,86,,,
+402940,Norseman Junior Middle School,Norseman Jr & Md S,86,78,80,93,93,76
+403075,North Agincourt Junior Public School,North Agincourt Jr PS,87,60,74,87,87,75
+403202,North Bendale Junior Public School,North Bendale Jr PS,69,57,46,90,95,60
+403237,North Bridlewood Junior Public School,North Bridlewood Jr PS,79,72,60,76,82,50
+407291,North Kipling Junior Middle School,North Kipling Jr M S,56,61,30,84,68,21
+409570,North Preparatory Junior Public School,North Preparatory S,81,62,62,100,95,67
+411132,Northlea Elementary and Middle School,Northlea PS,85,68,77,97,96,69
+411264,Cummer Valley Middle School,Cummer Valley Md S,,,,80,78,52
+411914,Norway Junior Public School,Norway Jr PS,65,65,57,96,93,63
+413305,O'Connor Public School,O'Connor PS,59,47,29,,,
+413470,D A Morrison Middle School,D A Morrison Middle S,,,,80,82,55
+413739,Oakdale Park Middle School,Oakdale Park Md S,,,,59,61,24
+414387,Oakridge Junior Public School,Oakridge Jr PS,74,61,62,,,
+415812,Ogden Junior Public School,Ogden Jr PS,70,67,59,89,100,68
+419710,Orde Street Public School,Orde Street Jr PS,62,52,55,86,82,69
+421537,Oriole Park Junior Public School,Oriole Park Jr PS,97,97,97,,,
+422237,Thomas L Wells Public School,Thomas L Wells PS,85,83,85,97,100,71
+425826,Carleton Village Junior and Senior Public School,Carleton Village PS,47,37,59,65,56,33
+427772,Ossington/Old Orchard Junior Public School,Ossington / Old Orchard PS,96,96,96,100,100,87
+429333,Owen Public School,Owen PS,77,77,88,,,
+430301,Jean Lumb Public School,Jean Lumb Public School,77,72,69,94,97,77
+432326,Palmerston Avenue Junior Public School,Palmerston Avenue Jr PS,,,88,96,96,69
+432849,Pape Avenue Junior Public School,Pape Avenue Jr PS,100,87,96,97,97,83
+433624,Nelson Mandela Park Public School,Nelson Mandela Park PS,58,31,42,68,71,26
+433756,Park Lawn Junior and Middle School,Park Lawn Jr & Md S,88,70,78,88,94,71
+434140,Parkdale Junior and Senior Public School,Parkdale Jr & Sr PS,67,58,73,83,74,33
+434400,Parkfield Junior School,Parkfield Jr S,71,71,35,,,
+435180,Parkside Elementary School,Parkside E PS,82,71,79,,,
+437522,Pauline Junior Public School,Pauline Jr PS,81,73,56,95,95,41
+437581,Pauline Johnson Junior Public School,Pauline Johnson Jr PS,63,50,41,82,82,54
+438014,Percy Williams Junior Public School,Percy Williams Jr,86,77,81,100,100,85
+439479,Pelmo Park Public School,Pelmo Park PS,35,18,15,,,
+441554,Perth Avenue Junior Public School,Perth Avenue Jr PS,87,73,82,89,91,60
+443697,Pierre Laporte Middle School,Pierre Laporte MS,,,,82,83,46
+445525,Pineway Public School,Pineway PS,46,54,54,,,
+447621,École élémentaire Charles-Sauriol,École élémentaire Charles-Sauriol,100,100,98,100,100,93
+448052,Diefenbaker Elementary School,Diefenbaker ES,92,92,76,,,
+448575,Pleasant Public School,Pleasant PS,76,62,57,64,50,33
+448958,Pleasant View Middle School,Pleasant View Middle School,,,,79,85,52
+450138,Poplar Road Junior Public School,Poplar Road Jr PS,89,84,89,100,100,91
+450144,Bannockburn Public School,Bannockburn PS,,,100,,,
+450332,Portage Trail Community School,Portage Trail Community Jr.,52,32,45,72,70,16
+451320,Port Royal Public School,Port Royal PS,84,68,84,94,88,66
+452343,Presteign Heights Elementary School,Presteign Heights ES,84,76,72,,,
+457809,Princess Margaret Junior School,Princess Margaret Jr S,82,70,79,,,
+461830,Queen Alexandra Middle School,Queen Alexandra Sr PS,,,,75,72,47
+465739,Dr. Rita Cox – Kina Minogok Public School,Dr. Rita Cox – Kina Minagok PS,63,48,54,68,74,53
+466255,Amesbury Middle School,Amesbury Md S,,,,69,65,24
+467685,R H McGregor Elementary School,R H McGregor PS,82,77,78,,,
+467812,R J Lang Elementary and Middle School,R J Lang E & Md S,74,70,58,79,56,21
+474541,Ranchdale Public School,Ranchdale PS,43,57,29,,,
+476390,Rawlinson Community School,Rawlinson Community S,61,52,62,80,86,27
+479640,Regal Road Junior Public School,Regal Road Jr PS,76,62,77,100,96,74
+479900,Regent Heights Public School,Regent Heights Jr PS,66,51,53,84,86,51
+485101,Rippleton Public School,Rippleton PS,81,74,71,,,
+485756,Rivercrest Junior School,Rivercrest Jr S,61,57,48,,,
+488488,Rockford Public School,Rockford PS,86,84,65,88,86,41
+489000,Roden Public School,Roden Jr PS,62,62,51,84,82,50
+489522,Rolph Road Elementary School,Rolph Road PS,92,74,80,97,94,74
+490300,Rose Avenue Junior Public School,Rose Avenue Jr PS,54,53,44,80,85,45
+490954,Rosedale Junior Public School,Rosedale Jr PS,81,84,85,91,91,68
+491349,Roselands Junior Public School,Roselands Jr PS,45,45,45,72,70,33
+491730,Rosethorn Junior School,Rosethorn Jr S,90,60,83,,,
+493090,John G Diefenbaker Public School,John G Diefenbaker PS,78,78,44,91,91,61
+493104,Chief Dan George Public School,Chief Dan George PS,40,30,47,92,85,33
+493120,Rouge Valley Public School,Rouge Valley PS,79,79,71,89,94,56
+493554,Roywood Public School,Roywood PS,65,74,65,,,
+493686,Runnymede Junior and Senior Public School,Runnymede Jr & Sr PS,89,80,87,98,97,81
+495506,Ryerson Community School Junior Senior,Ryerson Community Jr Sr PS S,57,33,33,76,88,59
+497134,École élémentaire Gabrielle-Roy,École élémentaire Gabrielle-Roy,100,100,100,97,97,83
+497665,Samuel Hearne Public School,Samuel Hearne Middle S,,,,66,73,27
+501972,Scarborough Village Public School,Scarborough Village PS,,,,75,69,38
+504866,Second Street Junior Middle School,Second Street Jr & Md S,93,93,80,92,88,54
+504998,Secord Elementary School,Secord PS,52,56,51,,,
+505250,Selwyn Elementary School,Selwyn PS,80,76,76,,,
+506036,Seventh Street Junior School,Seventh Street Jr S,93,90,86,,,
+508110,Shaughnessy Public School,Shaughnessy PS,85,77,69,,,
+509280,Sheppard Public School,Sheppard PS,47,37,47,,,
+511102,Shirley Street Junior Public School,Shirley Street Jr PS,81,88,75,100,94,72
+511137,Shoreham Public School,Shoreham PS,96,74,70,,,
+514314,Silver Springs Public School,Silver Springs PS,40,48,52,90,81,70
+515132,Sir Adam Beck Junior School,Sir Adam Beck Jr S,83,74,72,,,
+517348,Sloane Public School,Sloane PS,80,73,66,,,
+518840,Smithfield Middle School,Smithfield Md S,,,,79,82,44
+526890,The Grove Community School,The Grove Community S,46,8,54,100,100,60
+528269,Sprucecourt Junior Public School,Sprucecourt Public School,71,53,58,76,68,34
+528919,St Andrews Public School,St Andrews PS,80,69,74,100,98,76
+529176,St Andrew's Middle School,St Andrew's Middle School,,,,87,89,70
+529567,Gordon A Brown Middle School,Gordon A Brown Md S,,,,92,90,69
+529958,St George's Junior School,St George's Jr S,61,39,48,,,
+531022,St Margaret's Public School,St Margaret's PS,72,64,68,70,80,31
+534374,Stanley Public School,Stanley PS,90,97,100,,,
+535311,Sir Samuel B Steele Junior Public School,Sir Samuel B Steele Jr,67,47,65,88,84,54
+535443,Steelesview Public School,Steelesview PS,68,59,77,,,
+536393,Terry Fox Public School,Terry Fox PS,76,52,61,69,69,69
+536482,Kennedy Public School,Kennedy PS,66,57,69,83,85,82
+536970,Stilecroft Public School,Stilecroft PS,62,65,46,,,
+542040,Summit Heights Public School,Summit Heights PS,77,77,77,98,100,84
+543470,Sunnylea Junior School,Sunnylea Jr S,97,97,100,,,
+544388,Swansea Junior and Senior Junior and Senior Public School,Swansea PS,90,87,83,98,95,71
+547875,Tam O'Shanter Junior Public School,Tam O'Shanter Jr PS,74,81,83,75,79,32
+551279,The Elms Junior Middle School,The Elms Jr & Md S,70,59,48,70,68,33
+551325,H J Alexander Community School,H J Alexander Community School,60,45,38,,,
+552704,Thorncliffe Park Public School,Thorncliffe Park PS,45,40,43,,,
+553093,Three Valleys Public School,Three Valleys PS,77,73,77,,,
+555169,The Waterfront School,Waterfront S,71,82,65,94,94,44
+556793,Timberbank Junior Public School,Timberbank Jr PS,72,61,56,78,83,61
+557200,Tom Longboat Junior Public School,Tom Longboat Junior PS,96,74,87,96,96,79
+557382,Topcliff Public School,Topcliff PS,57,65,59,,,
+562580,Tumpane Public School,Tumpane PS,62,54,60,,,
+563234,Twentieth Street Junior School,Twentieth Street Jr S,54,23,46,,,
+569135,Valley Park Middle School,Valley Park Md S,,,,70,63,30
+569607,Valleyfield Junior School,Valleyfield Jr S,72,53,31,,,
+574546,Victoria Park Elementary School,Victoria Park PS,78,61,67,,,
+576239,Victoria Village Public School,Victoria Village PS,65,48,52,,,
+579092,Vradenburg Junior Public School,Vradenburg Jr PS,86,72,72,95,91,64
+586374,Walter Perry Junior Public School,Walter Perry Jr PS,74,74,56,85,92,53
+586765,Taylor Creek Public School,Taylor Creek Public School,55,45,55,69,75,42
+587028,Warren Park Junior Public School,Warren Park Jr PS,65,60,65,88,84,44
+589896,Kapapamahchakwew - Wandering Spirit Scho Junior Senior,Kâpapâmahchakwêw - Wandering Spirit School,70,40,70,64,42,8
+591050,Wedgewood Junior School,Wedgewood Jr S,89,80,77,,,
+593915,Wellesworth Junior School,Wellesworth Jr S,100,91,65,,,
+595608,West Glen Junior School,West Glen Jr S,46,41,43,,,
+596256,West Hill Public School,West Hill PS,85,63,52,88,88,46
+596388,West Humber Junior Middle School,West Humber Jr & Md S,74,78,52,86,88,36
+597554,West Preparatory Junior Public School,West Preparatory PS,98,85,78,93,93,61
+597686,West Rouge Junior Public School,West Rouge Jr. PS,88,82,82,91,91,70
+602108,Westmount Junior School,Westmount Jr S,71,67,52,,,
+602850,Weston Memorial Junior Public School,Weston Memorial Jr PS,89,79,71,,,
+603015,Westway Junior School,Westway Jr S,74,65,48,,,
+603406,Westwood Middle School,Westwood MS,,,,82,84,55
+603929,Wexford Public School,Wexford PS,64,46,43,74,79,24
+605166,White Haven Junior Public School,White Haven Jr PS,75,67,65,83,85,61
+605611,Whitney Junior Public School,Whitney Jr PS,100,100,98,97,94,90
+607177,Wilkinson Junior Public School,Wilkinson Jr PS,82,76,84,93,92,73
+607304,William Burgess Elementary School,William Burgess PS,76,62,71,,,
+607550,William G Davis Junior Public School,William G Davis Jr PS,82,74,72,93,87,63
+607568,William G Miller Junior Public School,William G Miller Jr PS,45,27,42,79,83,46
+607827,Tredway Woodsworth Public School,Tredway Woodsworth Public School,65,58,48,79,77,33
+609250,Williamson Road Junior Public School,Williamson Road Jr PS,72,69,79,95,97,72
+609510,Willow Park Junior Public School,Willow Park Jr PS,54,46,39,58,64,12
+609773,Willowdale Middle School,Willowdale Middle S,,,,90,89,59
+609900,Terraview-Willowfield Public School,Terraview-Willowfield PS,80,67,80,81,88,61
+612634,Dublin Heights Elementary and Middle School,Dublin Heights Elem & Middle S,65,52,68,75,82,43
+613282,Winchester Junior and Senior Public School,Winchester Jr & Sr PS,,,56,81,85,62
+614882,Windfields Middle School,Windfields Middle School,,,,97,97,88
+616141,Withrow Avenue Junior Public School,Withrow Avenue Jr PS,92,75,81,98,98,78
+616532,Woburn Junior Public School,Woburn Jr PS,55,38,45,69,78,26
+617210,Woodbine Middle School,Woodbine Middle School,,,,77,76,37
+624594,Yorkview Public School,Yorkview PS,54,59,57,,,
+624756,Yorkwoods Public School,Yorkwoods PS,57,48,33,,,
+625132,Zion Heights Middle School,Zion Heights Middle School,,,,90,89,78
+686247,All Saints Catholic School,All Saints Sep S,62,56,42,86,86,40
+686891,Annunciation Catholic School,Annunciation Sep S,52,71,67,89,96,47
+689807,St Kateri Tekakwitha Catholic School,St. Kateri Tekakwitha,50,75,44,,,70
+690538,Blessed Sacrament Catholic School,Blessed Sacrament Sep S,88,88,93,95,95,64
+690660,Blessed Trinity Catholic School,Blessed Trinity Sep S,82,55,73,64,55,10
+694045,Canadian Martyrs Catholic School,Canadian Martyrs Sep S,72,68,59,91,91,38
+694428,Josyf Cardinal Slipyj Catholic School,Josyf Cardinal Slipyj Sep S,70,72,77,100,100,71
+694815,St. Pier Giorgio Frassati Catholic School,St. Pier Giorgio Frassati Catholic School,94,82,67,85,96,33
+695408,Cardinal Leger Catholic School,Cardinal Leger Sep S,67,56,72,86,89,51
+703001,D'Arcy McGee Catholic School,D'Arcy McGee Sep S,59,50,45,55,59,22
+704210,Holy Child Catholic School,Holy Child Catholic S,82,45,57,96,83,71
+706426,Father Serra Catholic School,Father Serra Sep S,93,89,88,96,96,71
+707970,ÉÉC Georges-Étienne-Cartier,ÉÉC Georges-Étienne-Cartier,79,75,81,88,86,65
+710601,St. Margherita of Cittá di Castello Catholic School,Blessed Margherita of Citta Castello Sep School,68,86,45,100,96,56
+714062,Holy Angels Catholic School,Holy Angels Sep S,89,80,69,91,88,45
+715239,Holy Cross Catholic School,Holy Cross Sep S,72,72,56,87,87,50
+716146,Holy Family Catholic School,Holy Family Sep S,67,61,50,67,58,17
+717444,Holy Name Catholic School,Holy Name Sep S,94,76,62,86,86,55
+719528,Holy Rosary Catholic School,Holy Rosary Sep S,86,79,61,89,89,76
+720178,Holy Spirit Catholic School,Holy Spirit Sep S,82,82,90,75,75,28
+721603,Immaculate Conception Catholic School,Immaculate Conception Sep S,65,52,32,85,79,36
+721999,Immaculate Heart of Mary Catholic School,Immaculate Heart of Mary Sep S,,,,93,93,64
+723576,James Culnan Catholic School,James Culnan Sep S,45,13,33,71,68,22
+724122,St John XXIII Catholic School,St. John XXIII,73,61,57,93,90,49
+732080,ÉÉC Notre-Dame-de-Grâce,ÉÉC Notre-Dame-de-Grâce,91,77,82,94,89,89
+732435,Msgr John Corrigan Catholic School,Msgr John Corrigan,88,84,68,95,95,90
+733016,Mother Cabrini Catholic School,Mother Cabrini Sep S,,,,100,100,67
+733954,Nativity of Our Lord Catholic School,Nativity of Our Lord Sep S,80,76,67,94,92,45
+743704,Our Lady of Fatima Catholic School,Our Lady of Fatima Catholic S,63,56,45,92,95,41
+744565,Our Lady of Grace Catholic School,Our Lady of Grace Sep S,81,86,71,87,87,53
+746177,Our Lady of Lourdes Catholic School,Our Lady of Lourdes S,65,62,50,87,85,56
+747602,Our Lady of Peace Catholic School,Our Lady of Peace Sep S,,,52,94,88,75
+747998,Our Lady of Perpetual Help Catholic School,Our Lady of Perpetual Help Sep,91,85,73,90,94,71
+748382,Our Lady of Sorrows Catholic School,Our Lady of Sorrows Sep S,86,81,88,100,98,85
+748773,Our Lady of the Assumption Catholic School,Our Lady of the Assumption Sep School,61,35,26,94,89,43
+749290,Our Lady of Victory Catholic School,Our Lady of Victory Sep S,66,60,44,74,71,32
+749559,Our Lady of Wisdom Catholic School,Our Lady of Wisdom Sep S,,,81,96,93,52
+751405,St Paul VI Catholic School,St. Paul VI,80,73,81,75,88,44
+751634,Precious Blood Catholic School,Precious Blood,78,69,64,89,73,19
+752690,Prince of Peace Catholic School,Prince of Peace Sep S,75,50,92,100,100,58
+752819,Regina Mundi Catholic School,Regina Mundi Sep S,55,45,34,82,91,23
+755532,ÉÉC du Sacré-Coeur-Toronto,ÉÉC du Sacré-Coeur - Toronto,64,50,64,80,75,60
+756334,Sacred Heart Catholic School,Sacred Heart Sep S,80,80,65,88,94,76
+763462,Santa Maria Catholic School,Santa Maria Sep S,83,50,58,43,50,7
+765023,St Agatha Catholic School,St Agatha Sep S,67,60,67,91,97,42
+765635,St Agnes Catholic School,St Agnes Sep S,100,100,100,100,100,88
+765759,St Aidan Catholic School,St Aidan Sep S,79,63,58,91,94,66
+766038,St Albert Catholic School,St Albert,68,45,70,96,93,50
+767913,St Alphonsus Catholic School,St Alphonsus Sep S,81,62,38,74,74,57
+768537,St Ambrose Catholic School,St Ambrose Sep S,97,93,94,96,98,67
+768790,St Andrew Catholic School,St Andrew Sep S,91,81,67,86,82,42
+769525,St Angela Catholic School,St Angela Sep S,56,50,31,86,92,35
+772437,St Anselm Catholic School,St Anselm Sep S,95,95,95,96,100,81
+773557,ÉÉC Sainte-Marguerite-d'Youville,ÉÉC Sainte-Marguerite-D'Youville,97,88,97,100,98,85
+773735,St Anthony Catholic School,St Anthony Sep S,82,59,53,84,89,42
+775444,St Augustine Catholic School,St Augustine of Canterbury Sep,74,69,41,90,92,39
+775819,St Barbara Catholic School,St Barbara Sep S,59,70,43,80,70,40
+775843,St Barnabas Catholic School,St Barnabas S,69,69,54,93,93,57
+776637,St Bartholomew Catholic School,St Bartholomew Sep S,55,73,55,,,
+776700,St Bede Catholic School,St Bede Catholic S,,25,58,,,
+776980,St Benedict Catholic School,St Benedict Sep S,60,64,43,80,70,25
+778800,St Bernard Catholic School,St Bernard Sep S,79,70,58,73,64,22
+780235,St Bonaventure Catholic School,St Bonaventure Sep S,86,84,90,94,95,72
+780499,St Boniface Catholic School,St Boniface Sep S,87,87,73,80,81,39
+780570,St Brendan Catholic School,St Brendan Sep S,83,73,83,96,93,63
+780880,St Brigid Catholic School,St Brigid Sep S,82,68,60,89,82,48
+781118,St Bruno/St. Raymond Catholic School,St Bruno Sep S,30,20,30,69,75,31
+781797,St Cecilia Catholic School,St Cecilia Sep S,,,60,91,98,68
+782963,St Charles Catholic School,St Charles Sep S,50,54,54,83,92,58
+783510,St Charles Garnier Catholic School,St Charles Garnier Catholic S,70,70,43,74,80,18
+784389,St Clare Catholic School,St Clare Sep S,83,83,78,84,84,34
+784435,Sts Cosmas and Damian Catholic School,Sts Cosmas and Damian Catholic S,91,89,66,89,87,66
+784656,St Clement Catholic School,St Clement Sep S,95,90,81,100,100,83
+784990,St Columba Catholic School,St Columba Catholic Sep S,59,59,48,81,70,35
+785334,St Conrad Catholic School,St Conrad,73,58,56,85,82,36
+785539,Epiphany of our Lord Catholic Academy,Epiphany of Our Lord Catholic Sep S,64,64,82,,,
+785563,St Cyril Catholic School,St Cyril Sep S,,,65,96,100,90
+785857,St Antoine Daniel Catholic School,St Antoine Daniel Sep S,81,59,67,85,92,50
+786276,St Demetrius Catholic School,St Demetrius Sep S,78,67,71,93,87,53
+786497,St Denis Catholic School,St Denis Sep S,87,80,87,96,88,77
+786756,St Dominic Savio Catholic School,St. Dominic Savio Catholic S,75,65,53,94,82,76
+787353,St Dorothy Catholic School,St Dorothy Sep S,50,58,50,75,71,33
+787388,St Dunstan Catholic School,St Dunstan Catholic S,84,68,40,89,89,53
+787663,St Edmund Campion Catholic School,St Edmund Campion Sep S,87,77,57,79,79,42
+788163,St Edward Catholic School,St Edward Sep S,100,97,97,92,86,81
+789100,St Elizabeth Seton Catholic School,St Elizabeth Seton Sep S,80,90,90,91,82,64
+789208,St Elizabeth Catholic School,St Elizabeth Sep S,45,45,73,90,86,48
+789690,St Eugene Catholic School,St Eugene Sep S,78,74,74,85,86,40
+789917,St Fidelis Catholic School,St Fidelis S,75,62,62,88,79,36
+789992,St Florence Catholic School,St Florence Sep S,,,,83,83,67
+791946,St Francis de Sales Catholic School,St Francis de Sales S,58,62,42,54,59,28
+792454,St Francis Xavier Catholic School,St Francis Xavier Sep S,70,59,63,80,72,40
+793620,St Gabriel Catholic School,St Gabriel Sep S,64,52,60,86,86,48
+793868,St Gabriel Lalemant Catholic School,St Gabriel Lalemant Catholic  S,67,80,67,84,79,26
+794678,St Gerald Catholic School,St Gerald Sep S,85,69,53,70,80,47
+795968,St Gregory Catholic School,St Gregory Sep S,85,84,74,84,89,54
+796611,St Helen Catholic School,St Helen Catholic S,50,25,33,94,94,89
+797073,St Henry Catholic School,St Henry Sep S,100,91,100,92,88,69
+798223,ÉÉC Saint-Jean-de-Lalande,ÉÉC Saint-Jean-de-Lalande,67,73,67,94,78,39
+798290,St Isaac Jogues Catholic School,St Isaac Jogues Catholic S,96,91,78,92,88,54
+799343,St James Catholic School,St James Sep S,,,,93,86,36
+799734,St Jane Frances Catholic School,St Jane Frances Catholic S,66,58,59,70,74,23
+800406,St Jean de Brebeuf Catholic School,St Jean de Brebeuf Catholic S,83,67,67,,,
+800775,St Jerome Catholic School,St Jerome Sep S,75,48,49,89,92,52
+801160,St Joachim Catholic School,St Joachim Sep S,71,57,71,80,67,30
+802336,St John Catholic School,St John Sep S,91,91,85,96,89,61
+802468,St John the Evangelist Catholic School,St John the Evangelist Sep S,76,69,57,76,76,37
+803403,The Holy Trinity Catholic School,The Holy Trinity Catholic School,86,70,70,94,95,70
+805866,St John Vianney Catholic School,St John Vianney,74,81,58,77,87,37
+805971,St Josaphat Catholic School,St Josaphat Catholic S,62,42,46,100,91,74
+811564,St Joseph Catholic School,St Joseph Sep S,70,45,40,92,89,54
+816370,St Jude Catholic School,St Jude Sep S,50,46,37,71,64,20
+816760,St Kevin Catholic School,St Kevin Catholic S,53,37,42,94,94,50
+817287,St Lawrence Catholic School,St Lawrence Sep S,76,66,55,92,85,50
+818194,St Leo Catholic School,St Leo Sep S,83,58,63,81,85,47
+819239,St Louis Catholic School,St Louis Catholic S,93,100,97,97,87,48
+820610,St Luigi Catholic School,St Luigi Sep S,36,36,36,,,
+820814,Pope Francis Catholic School,Pope Francis Catholic School,93,86,50,78,94,56
+820903,St Malachy Catholic School,St Malachy S,73,45,57,100,94,72
+821055,St Marcellus Catholic School,St Marcellus Sep S,73,73,68,91,88,26
+821578,St Margaret Catholic School,St Margaret Sep S,80,76,73,92,94,56
+822353,St Maria Goretti Catholic School,St Maria Goretti Sep S,69,69,57,91,89,40
+822876,St Mark Catholic School,St Mark Sep S,71,70,62,94,94,56
+823597,St Martha Catholic School,St Martha S,69,54,38,95,95,27
+824305,St Martin De Porres Catholic School,St Martin De Porres Sep S,62,58,54,80,70,22
+827290,St Mary of the Angels Catholic School,St Mary of the Angels Sep S,77,41,64,89,100,74
+830933,St Mary Catholic School,St Mary Sep S,,,,75,69,38
+832219,Divine Mercy Catholic School,Divine Mercy Catholic Elementary School,81,85,82,80,74,40
+832367,St Matthew Catholic School,St Matthew Sep S,71,63,42,72,77,36
+832405,St Maurice Catholic School,St Maurice Sep S,68,64,54,97,100,34
+833605,Bishop Macdonell Catholic School,Bishop Macdonell Catholic School,78,78,64,96,92,56
+834491,St Michael Catholic School,St Michael School,57,50,29,92,92,50
+835200,St Michael's Choir (Jr) School,St Michael's Choir S,95,100,95,100,100,100
+835480,St Monica Catholic School,St Monica Sep S,70,63,56,96,93,50
+836133,St Nicholas Catholic School,St Nicholas Catholic S,74,53,55,81,74,31
+836435,St Nicholas of Bari Catholic School,St Nicholas of Bari Catholic S,76,68,52,90,83,57
+836524,St Norbert Catholic School,St Norbert Sep S,75,78,44,82,93,39
+836656,St Paschal Baylon Catholic School,St Paschal Baylon Sep S,67,60,66,96,96,63
+841308,ÉÉC Saint-Michel,ÉÉC Saint-Michel,68,64,60,88,81,72
+842540,St Paul Catholic School,St Paul Sep S,43,48,33,59,70,19
+845182,St Andre Catholic School,St. Andre Catholic School,70,64,60,79,73,33
+845744,ÉÉC Saint-Noël-Chabanel-Toronto,ÉÉC Saint-Noel-Chabanel-Toronto,84,82,100,92,88,96
+846660,St Pius X Catholic School,St Pius X Sep S,100,93,96,95,92,66
+848220,St Raphael Catholic School,St Raphael Sep S,64,47,51,89,89,42
+848875,St Richard Catholic School,St Richard Sep S,89,63,79,96,96,65
+849650,St Robert Catholic School,St Robert Sep S,72,54,62,95,92,58
+849812,St Roch Catholic School,St Roch,58,55,52,88,83,46
+850047,St Rose of Lima Catholic School,St Rose of Lima Sep S,92,84,71,84,86,27
+850209,St Sebastian Catholic School,St Sebastian Sep S,100,89,100,100,100,76
+850306,St John Bosco Catholic School,St John Bosco Sep S,69,62,53,100,100,85
+850381,St Simon Catholic School,St Simon Sep S,64,60,58,80,61,20
+850829,St Stephen Catholic School,St Stephen Sep S,75,58,54,100,97,62
+851078,St Sylvester Catholic School,St Sylvester Sep S,78,39,44,80,70,
+852511,St Theresa Shrine Catholic School,St Theresa Shrine Sep S,52,52,48,92,83,75
+855243,St Thomas Aquinas Catholic School,St Thomas Aquinas Sep S,79,61,58,86,83,60
+855650,St Thomas More Catholic School,St Thomas More Sep S,40,53,40,94,88,61
+856541,St Timothy Catholic School,St Timothy Sep S,97,74,77,85,87,53
+856932,St Ursula Catholic School,St Ursula Sep S,67,47,53,100,88,31
+857742,St Victor Catholic School,St Victor Catholic S,81,74,74,95,93,74
+858757,St Vincent de Paul Catholic School,St Vincent de Paul Catholic S,85,95,75,96,93,74
+859036,St Wilfrid Catholic School,St Wilfrid Sep S,80,67,64,87,94,38
+859591,Stella Maris Catholic School,Stella Maris Sep S,88,76,53,60,68,32
+862525,ÉÉC Sainte-Madeleine,ÉÉC Sainte-Madeleine,92,85,88,83,67,57
+864994,Transfiguration of our Lord Catholic School,Transfiguration Catholic S,55,66,55,97,94,71
+866423,Venerable John Merlini Catholic School,Venerable John Merlini S,87,53,44,90,87,65

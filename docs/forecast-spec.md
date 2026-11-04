@@ -678,3 +678,201 @@ persistence's 8.84):
   | 2021 Census | Persistence | Own mean | Own mean plus market | Low | High |
   |---|---|---|---|---|---|
   | $925,000 | $920,000 | $911,500 | $916,000 | $851,000 | $993,000 |
+
+## The holdout, live forecasts and ranges (fixed 2026-11-03, before the holdout is run)
+
+Fixed with the user before the schools holdout is spent and before any live schools
+forecast or 2025-26 school result has been computed or read.
+
+**The holdout reports; it doesn't choose.** Ridge stays the rung for both grades
+whatever the holdout shows, including the Grade 3 tie with own mean. The holdout
+reports every rung's school and neighbourhood MAE and the coverage of the range below.
+
+**Schools: the range.** Each grade's neighbourhood figure gets an 80% range, from the
+two selection folds (2022 to 2023 and 2023 to 2024):
+- The absolute error of ridge's neighbourhood figure, one row per neighbourhood and
+  fold, both folds pooled.
+- Its 80th percentile, separately for neighbourhoods with one scored school and with
+  two or more. (In the selection folds, single-school neighbourhoods miss by more:
+  median 6.9 points against about 4.2 for Grade 3.)
+- The range is the forecast plus or minus that, within 0 to 100.
+- Absolute rather than signed errors, because the signed errors lean negative in the
+  selection folds, partly from the City's own year-to-year move, which isn't forecast.
+
+The holdout reports the share of neighbourhoods inside it.
+
+**Dwelling value: the range's backtest.** The live rule (lowest of the three centred
+ratios less 0.05 to the highest plus 0.05) was set after the forward-fold point
+scores were seen, but its coverage has not been computed. It is scored once on the
+forward fold, in dollars:
+- **Ratios at 2016:** centred persistence, own mean, and own mean plus market (slope
+  fitted on 2011 to 2016).
+- **City:** the 2016 Census City median times TRREB's May City median, 2016 to 2021
+  ($595,000 to $890,000).
+- **Reported:** the share of neighbourhoods whose 2021 Census median falls inside.
+
+The range rule is not changed to suit the result. Any change would be a dated rule
+change, after looking.
+
+**Heavy building does not widen the range.** Its effect on the spread was seen after
+looking, in one period. The 2026 Census tests it apart.
+
+**Schools: live forecasts.** EQAO's open data (Achievement Results, eqao.com) has
+2025-26 school results; the Ministry's file doesn't yet. So:
+
+1. **2025 to 2026, a second test.** Ridge for each grade, fitted on every one-year
+   transition to 2025 (2018 to 2019, 2022 to 2023, 2023 to 2024, 2024 to 2025),
+   tuned as before. Features at 2025, the 2021 Census, and the City's 2025 level
+   carried over. Neighbourhood figures are weighted by 2025 enrolment, over the
+   schools with that grade's 2025 score. It is committed before any 2025-26 result is
+   read, then scored like a fold (persistence and own mean alongside, and the range's
+   coverage).
+2. **EQAO's file is used only if it matches.** Its 2024-25 results must reproduce the
+   Ministry's 2024-25 scores: the same Toronto schools, and at least 95% of school,
+   grade and subject cells within one point.
+3. **2026 to 2027, the forecast.** The same model refitted with 2025 to 2026 added.
+   Scores at 2026 come from EQAO. The Ministry's demographics and enrolment come from
+   2024-25, the latest it publishes, carried over to 2026.
+4. **If EQAO's file doesn't match:** step 1 is scored when the Ministry's 2025-26
+   file appears, and the forecast is 2025 to 2027, two years ahead: ridge fitted on
+   the two-year transitions 2022 to 2024 and 2023 to 2025, tuned the same way.
+
+The neighbourhood ranges come from the selection folds, as above, in every case.
+
+## The holdout and the live 2025 to 2026 forecast: results (2026-11-03)
+
+Run once, with `schools.py --holdout --live`. The selection folds' scores are
+unchanged by the new code.
+
+**The holdout, 2024 to 2025.** Ridge has the lowest MAE in both grades (in points,
+skill against persistence in brackets):
+
+| Rung | Grade 3 schools | Grade 3 neighbourhoods | Grade 6 schools | Grade 6 neighbourhoods |
+|---|---|---|---|---|
+| Persistence | 10.02 | 5.61 | 7.39 | 4.28 |
+| Own mean | 8.31 (17%) | 4.96 | 6.48 (12%) | 3.77 |
+| Ridge (chosen) | 8.00 (20%) | 4.81 | 5.87 (20%) | 3.37 |
+| Analogs | 9.35 (7%) | 5.36 | 6.75 (9%) | 3.80 |
+| Boosting | 8.89 (11%) | 5.05 | 6.46 (13%) | 3.66 |
+
+Rank correlation of ridge's forecast change with the actual change: 0.58 in both
+grades.
+
+**The ranges** (from the selection folds, either side of the forecast):
+
+| Grade | One school | Two or more | Holdout: inside | One school | Two or more |
+|---|---|---|---|---|---|
+| Grade 3 | 12.8 points | 8.3 points | 81% of 150 | 75% | 83% |
+| Grade 6 | 10.5 points | 6.1 points | 87% of 142 | 93% | 86% |
+
+**The live forecast, 2025 to 2026.** Fitted on 2,118 Grade 3 and 1,810 Grade 6
+transitions. It covers 530 Grade 3 schools in 150 neighbourhoods and 457 Grade 6
+schools in 142, from City levels of 67.9% and 75.1% in 2025 carried over. Written to
+`pipeline/model/schools_2026.csv` (neighbourhoods) and `schools_2026_schools.csv`, and
+committed before any 2025-26 result was read.
+
+## Dwelling value: the range's backtest, results (2026-11-03)
+
+Scored once, as fixed above (`value.py`, `pipeline/out/model/value_range_backtest.csv`):
+- **City at 2021:** $900,354 from TRREB's May median, against the Census's $900,000.
+- **Inside the range:** 65% of the 158 neighbourhoods (69% of households).
+- **Outside:** 43 above the range and 12 below.
+- **Width:** the median range spans 17% (high over low).
+
+The rule is unchanged. The point scores and the live table are the same as before.
+
+## EQAO's school file: the match, and scoring 2025 to 2026 (fixed 2026-11-03, before the 2025-26 results are scored)
+
+**The match (step 2).** EQAO's Achievement Results school records for 2024-25
+(`G3_2025_1.csv`, `G6_2025_1.csv`), against the Ministry's 2024-25 scores:
+- **The measure:** `pctOverallR_L34`, `pctOverallW_L34` and `pctOverallM_L34`, the
+  share of fully participating students at levels 3 and 4.
+- **Schools:** every Toronto school with a Ministry score is in EQAO's file (557 for
+  Grade 3, 485 for Grade 6). All 1,655 Grade 3 and 1,454 Grade 6 school, grade and
+  subject cells are equal.
+- **Over all registered students** (`cntOverall*_L34` over `cntStudents_*`), 41% of
+  Grade 3 cells and 48% of Grade 6 cells are within one point, so the Ministry's figure
+  is the participating share.
+- **One more school in EQAO's file:** Cordella Junior Public School (123056) has a
+  Grade 3 score. It is in the Ministry's files to 2022-23, not in 2023-24 or 2024-25.
+
+The file passes, so step 3 follows and the two-year fallback isn't used. The 2025-26
+field definitions are the same as 2024-25's, apart from the change-log sheet, and
+the files have the same columns.
+
+**2026 school rows.** `pipeline/eqao.py` repeats the match, then writes each Toronto
+school's 2026 scores (the same measure; "N/R" and "N/D" are missing) to
+`pipeline/schools/eqao_2026.csv`.
+- The harness builds each 2026 school-year from the school's Ministry 2024-25 row
+  (enrolment, demographics, type, neighbourhood), with the year set to 2026 and
+  EQAO's six scores.
+- Schools with a 2026 score but no Ministry 2024-25 row are left out, and counted.
+- The City's 2026 level is the enrolment-weighted logit mean, as for other years,
+  with 2024-25 enrolment.
+- `schools.csv` and the School Insights page are unchanged.
+
+**Scoring 2025 to 2026.** Like a fold, from the frozen school forecasts in
+`pipeline/model/schools_2026_schools.csv`:
+- **Schools:** those in the frozen file with that grade's 2026 score.
+- **Rungs:** only the three frozen columns, persistence, own mean and ridge. Analogs and
+  boosting weren't frozen, so they aren't scored.
+- **School scores:** MAE weighted by 2025 enrolment, skill against persistence, and
+  the rank correlation of forecast and actual change.
+- **Neighbourhood figures:** recomputed over those schools, weighted by 2025 enrolment,
+  with the number of schools counted over them. They take the selection folds' ranges
+  and report the coverage.
+- **The frozen neighbourhood file** (over every school with a 2025 score) is what was
+  published. It isn't rescored.
+
+**2026 to 2027 (step 3).**
+- **Model:** ridge for each grade, fitted on the one-year transitions 2018 to 2019,
+  2022 to 2023, 2023 to 2024, 2024 to 2025 and 2025 to 2026, and tuned as before.
+- **Inputs:** features at 2026 (the Ministry's 2024-25 rows, as above), the 2021
+  Census, and the City's 2026 level carried over.
+- **Neighbourhood figures:** weighted by 2024-25 enrolment, over the schools with that
+  grade's 2026 score and a Ministry 2024-25 row. The ranges come from the selection
+  folds.
+- **Output:** `pipeline/model/schools_2027.csv` and `schools_2027_schools.csv`, never
+  overwritten.
+
+**What was read first.** The 2025-26 forecast was frozen and pushed first (commit
+4d61d0e). Then, while the files' layout was being checked, a few rows of the
+2025-26 files and their counts of suppression codes were printed. Nothing else from
+2025-26 was read before this note.
+
+## EQAO 2025-26: the second test and the 2026 to 2027 forecast, results (2026-11-03)
+
+**`pipeline/eqao.py`.** It repeats the match as above, then writes 609 schools' 2026
+scores. One Toronto board school with a 2026 score has no Ministry 2024-25 row and is
+left out: Virtual Elementary School (398055).
+
+**The frozen forecast, 2025 to 2026.** 517 of the frozen file's 530 Grade 3 schools and
+447 of its 457 Grade 6 schools have a 2026 score. Ridge has the lowest MAE in both
+grades (in points, skill against persistence in brackets):
+
+| Rung | Grade 3 schools | Grade 3 neighbourhoods | Grade 6 schools | Grade 6 neighbourhoods |
+|---|---|---|---|---|
+| Persistence | 10.16 | 6.13 | 7.38 | 4.61 |
+| Own mean | 8.94 (12%) | 5.00 | 6.35 (14%) | 4.20 |
+| Ridge (chosen) | 8.48 (17%) | 4.90 | 6.13 (17%) | 3.98 |
+
+Rank correlation of ridge's forecast change with the actual change: 0.53 (Grade 3)
+and 0.54 (Grade 6).
+
+**The ranges, 2025 to 2026:**
+
+| Grade | Inside | One school | Two or more |
+|---|---|---|---|
+| Grade 3 | 79% of 149 | 87% | 77% |
+| Grade 6 | 80% of 141 | 85% | 79% |
+
+**The City's level in 2026** (enrolment-weighted logit mean, 2024-25 enrolment):
+70.8% for Grade 3 and 77.9% for Grade 6, against 67.9% and 75.1% in 2025.
+
+**The forecast, 2026 to 2027.** Fitted on 2,635 Grade 3 and 2,257 Grade 6
+transitions, with ridge alphas of 0.00178 and 0.00562. It covers 529 Grade 3 schools in
+150 neighbourhoods and 453 Grade 6 schools in 141, from the City's 2026 levels carried
+over. Written to `pipeline/model/schools_2027.csv` (neighbourhoods) and
+`schools_2027_schools.csv`.
+
+Selection, holdout and 2019 to 2022 outputs are the same as before the change.

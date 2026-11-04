@@ -36,15 +36,17 @@ export default defineConfig({
     __SCHOOLS_VERSION__: JSON.stringify(version("web/public/schools.json")),
     __HOUSING_VERSION__: JSON.stringify(version("web/public/housing.json")),
     __PRICES_VERSION__: JSON.stringify(version("web/public/prices.json")),
+    __FORECASTS_VERSION__: JSON.stringify(version("web/public/forecasts.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),
   },
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Six pages: / (2016 and 2021), /2011/, and the Insights pages /insights/ (census),
-    // /insights/schools/, /insights/housing/ and /insights/prices/.
-    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html" } },
+    // Nine pages: / (2016 and 2021), /2011/, the Insights pages /insights/ (census),
+    // /insights/schools/, /insights/housing/ and /insights/prices/, and the Forecasts
+    // pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
+    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling" } },
