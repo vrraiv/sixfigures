@@ -8,15 +8,16 @@ neighbourhood boundaries, and writes:
 
   nbhd, map   the 158 neighbourhoods in insights.json's order with SVG outlines
               (school_insights.paths)
-  schools     by grade: the City's score each year; each fold's scores by rung; the
-              ranges and their coverage in the holdout; the holdout's neighbourhood
-              figures; the 2019-2022 table; and the live forecast by neighbourhood
+  schools     by grade: the City's score each year; each fold's scores by rung (with
+              the frozen 2025-2026 forecast scored on EQAO's results); the ranges and
+              their coverage; the holdout's and 2025-2026's neighbourhood figures; the
+              2019-2022 table; and the live 2026-2027 forecast by neighbourhood
   value       each rung's scores (centred and raw), the range's backtest, the City
               figures behind the nowcast, and the live 2026 table
   rungs       each rung's name, what it uses, and when it was added
 
-Nothing here is computed afresh except the neighbourhood figures of the holdout,
-which use the harness's own functions (forecast/schools.py).
+Nothing here is computed afresh except the neighbourhood figures of the holdout and
+of 2025-2026, which use the harness's own functions (forecast/schools.py).
 """
 import importlib.util
 import json
@@ -71,6 +72,8 @@ RUNGS = {
     "ridge_market": ("Ridge, with the market change", "nowcast", "2026-11-01"),
 }
 CHOSEN = {"schools": "ridge", "value": "own_mean"}
+LIVE_ORIGIN = 2026  # the schools forecast shown: 2026 to 2027
+ENROLMENT_YEAR = "2024-25"  # the Ministry's latest, carried to 2026
 
 # TRREB Market Watch, City of Toronto, all home types, May (read by hand into
 # docs/forecast-spec.md; the medians must agree with forecast/value.py's).
@@ -84,7 +87,8 @@ def r(v, k=2):
 def main() -> int:
     need = [INSIGHTS, *(MODEL / f for f in ("schools_scores.csv", "schools_predictions.csv", "schools_ranges.csv",
                                              "schools_covid.csv", "value_scores.csv", "value_range_backtest.csv",
-                                             "value_live.csv")), LIVE / "schools_2026.csv"]
+                                             "value_live.csv", "schools_2026_scored.csv")),
+            LIVE / f"schools_{LIVE_ORIGIN + 1}.csv"]
     for f in need:
         if not f.exists():
             sys.exit(f"{f} is missing (make forecast)")
@@ -99,12 +103,13 @@ def main() -> int:
 
     # ---- schools ----------------------------------------------------------------------
     S = pd.read_csv(MODEL / "schools_scores.csv")
-    if not (S.fold == "2024-2025").any():
-        sys.exit("the schools scores have no holdout: run make forecast")
+    if not (S.fold == "2024-2025").any() or not (S.fold == "2025-2026").any():
+        sys.exit("the schools scores have no holdout or no 2025-2026: run make eqao and make forecast")
     P = pd.read_csv(MODEL / "schools_predictions.csv", dtype={"school_number": str})
     Rg = pd.read_csv(MODEL / "schools_ranges.csv").set_index("grade")
     Cv = pd.read_csv(MODEL / "schools_covid.csv")
-    L = pd.read_csv(LIVE / "schools_2026.csv")
+    L = pd.read_csv(LIVE / f"schools_{LIVE_ORIGIN + 1}.csv")
+    Sc = pd.read_csv(MODEL / "schools_2026_scored.csv", dtype={"school_number": str})
     s, _ = fs.load()
     schools = {}
     for g in fs.GRADES:
@@ -113,7 +118,10 @@ def main() -> int:
         rg = Rg.loc[g]
         h = P[(P.grade == g) & (P.t0 == fs.HOLDOUT[0]) & (P.t1 == fs.HOLDOUT[1])]
         hb = fs.with_range(fs.nbhd(h, "ridge"), {"one": rg.one, "more": rg.more})
+        sb = fs.with_range(fs.nbhd(Sc[Sc.grade == g], "ridge"), {"one": rg.one, "more": rg.more})
         live = L[L.grade == g]
+        nb_rows = lambda b: [{"i": index[int(k)], "pred": r(x.pred), "actual": r(x.actual), "low": r(x.low),  # noqa: E731
+                              "high": r(x.high), "n": int(x.n_schools)} for k, x in b.iterrows()]
         schools[g] = {
             "city": {str(y): r(v) for y, v in city.items()},
             "scores": [{"fold": x.fold, "rung": x.rung, "n": int(x.n), "mae": r(x.mae), "skill": r(x.skill, 4),
@@ -121,11 +129,13 @@ def main() -> int:
             "range": {"one": r(rg.one), "more": r(rg.more), "rows_one": int(rg.rows_one), "rows_more": int(rg.rows_more),
                       "inside": r(rg.holdout_inside, 4), "inside_one": r(rg.holdout_inside_one, 4),
                       "inside_more": r(rg.holdout_inside_more, 4), "n": int(rg.holdout_n)},
-            "holdout": [{"i": index[int(k)], "pred": r(x.pred), "actual": r(x.actual), "low": r(x.low), "high": r(x.high),
-                         "n": int(x.n_schools)} for k, x in hb.iterrows()],
+            "holdout": nb_rows(hb),
+            "second": {"inside": r(rg.second_inside, 4), "inside_one": r(rg.second_inside_one, 4),
+                       "inside_more": r(rg.second_inside_more, 4), "n": int(rg.second_n),
+                       "schools": int(rg.second_schools), "frozen": int(rg.second_frozen), "nbhd": nb_rows(sb)},
             "covid": [{k: (r(v, 4) if isinstance(v, float) else v) for k, v in x.items() if k != "grade"}
                       for x in Cv[Cv.grade == g].to_dict("records")],
-            "live": {"origin": 2025, "target": 2026,
+            "live": {"origin": LIVE_ORIGIN, "target": LIVE_ORIGIN + 1, "enrolment": ENROLMENT_YEAR,
                      "nbhd": [{"i": index[int(x.nbhd_id)], "n": int(x.n_schools), "score0": r(x.score0), "pred": r(x.pred),
                                "low": r(x.low), "high": r(x.high)} for x in live.itertuples()]},
         }

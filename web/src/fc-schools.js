@@ -10,9 +10,11 @@ const FOLDS = [
   ["2022-2023", "2022 to 2023", "selection"],
   ["2023-2024", "2023 to 2024", "selection"],
   ["2024-2025", "2024 to 2025", "holdout"],
+  ["2025-2026", "2025 to 2026", "the frozen forecast"],
   ["2019-2022", "2019 to 2022", "across the closures"],
 ];
 const schoolYear = (y) => `${y - 1}–${String(y).slice(2)}`;
+const dashYear = (s) => s.replace("-", "–");
 
 const hash = new URLSearchParams(location.hash.slice(1));
 const state = { g: GRADES[hash.get("g")] ? hash.get("g") : "g3", sort: hash.get("s") === "name" ? "name" : "pred", filter: "", nb: nbFromHash(D, hash.get("nb")) };
@@ -37,9 +39,9 @@ function renderForecast() {
       : `${n}<br>No school with a ${name} score in ${L.origin}`;
   };
   drawMap($("nb-map"), $("map-key"), D, vals, (v) => `${Math.round(v)}%`, tip, `Map of the neighbourhoods by forecast ${name} score, ${L.target}`);
-  $("map-lede").innerHTML = `Each neighbourhood's forecast ${name} score for ${L.target} (the ${schoolYear(L.target)} school year): the share of students at the provincial standard, as the mean of reading, writing and math, `
-    + `averaged over its schools with their ${L.origin} enrolment. Ridge regression, fitted on every one-year change up to ${L.origin}, forecasts each school; the City's ${L.origin} level carries over. `
-    + `${L.nbhd.length} neighbourhoods have a school with a ${name} score in ${L.origin}; the rest are hatched. Made on 3 November 2026, before any ${schoolYear(L.target)} result was read. Classes hold about equal numbers of neighbourhoods.`;
+  $("map-lede").innerHTML = `Each neighbourhood's forecast ${name} score for ${L.target} (the ${schoolYear(L.target)} school year): the share of fully participating students at the provincial standard, as the mean of reading, writing and math, `
+    + `averaged over its schools with their ${dashYear(L.enrolment)} enrolment. Ridge regression, fitted on every one-year change up to ${L.origin}, forecasts each school; the City's ${L.origin} level carries over. `
+    + `${L.nbhd.length} neighbourhoods have a school with a ${name} score in ${L.origin}; the rest are hatched. Made on 3 November 2026. Classes hold about equal numbers of neighbourhoods.`;
   markPick();
   renderList();
   $("list-lede").innerHTML = `The bar is the 80% range: the forecast ± ${fmtPts(r.more, 1)} points, or ± ${fmtPts(r.one, 1)} where the neighbourhood has one school `
@@ -63,8 +65,9 @@ function renderScores() {
   const first = sc("2018-2019", "persistence");
   $("scores-lede").innerHTML = `Mean absolute error in percentage points, weighted by enrolment, for each rung's forecast one test year ahead (three for 2019 to 2022, across the COVID-19 closures). `
     + `In brackets, skill: the reduction in error against persistence. The rule chose the rung on the two selection folds; the holdout was run once, after the choice, and doesn't change it. `
-    + `Neighbourhood figures average the schools' forecasts and results with their enrolment.`;
-  $("scores-note").innerHTML = `${marksNote} 2018 to 2019 has persistence only (nothing earlier to fit on): ${fmtPts(first?.mae)} for schools, ${fmtPts(first?.nbhd_mae)} for neighbourhoods.`;
+    + `2025 to 2026 is the live forecast made from 2025 and committed before any 2025–26 result was read, scored on EQAO's results. Neighbourhood figures average the schools' forecasts and results with their enrolment.`;
+  $("scores-note").innerHTML = `${marksNote} 2018 to 2019 has persistence only (nothing earlier to fit on): ${fmtPts(first?.mae)} for schools, ${fmtPts(first?.nbhd_mae)} for neighbourhoods. `
+    + `2025 to 2026 has the three rungs the live forecast kept: persistence, own mean and ridge.`;
 }
 
 // ---- the holdout -----------------------------------------------------------------------------------------
@@ -74,10 +77,21 @@ function renderHoldout() {
   scatterKey($("hold-key"));
   $("hold-lede").innerHTML = `Each neighbourhood's ${name} forecast for 2025, made from 2024 with ridge fitted on the changes before it, against the result. `
     + `<b>${fmtShare(r.inside)}</b> of ${r.n} neighbourhoods fell inside the range set from the selection folds.`;
-  $("ranges").innerHTML = `<thead><tr><th>Neighbourhoods</th><th>Range (± points)</th><th>Selection-fold rows</th><th>Holdout: inside</th></tr></thead><tbody>
-    <tr><th>One school</th><td>${fmtPts(r.one, 1)}</td><td>${r.rows_one}</td><td>${fmtShare(r.inside_one)}</td></tr>
-    <tr><th>Two or more</th><td>${fmtPts(r.more, 1)}</td><td>${r.rows_more}</td><td>${fmtShare(r.inside_more)}</td></tr>
-    <tr><th>All</th><td></td><td>${r.rows_one + r.rows_more}</td><td>${fmtShare(r.inside)}</td></tr></tbody>`;
+  const s2 = g.second;
+  $("ranges").innerHTML = `<thead><tr><th>Neighbourhoods</th><th>Range (± points)</th><th>Selection-fold rows</th><th>Holdout: inside</th><th>2025 to 2026: inside</th></tr></thead><tbody>
+    <tr><th>One school</th><td>${fmtPts(r.one, 1)}</td><td>${r.rows_one}</td><td>${fmtShare(r.inside_one)}</td><td>${fmtShare(s2.inside_one)}</td></tr>
+    <tr><th>Two or more</th><td>${fmtPts(r.more, 1)}</td><td>${r.rows_more}</td><td>${fmtShare(r.inside_more)}</td><td>${fmtShare(s2.inside_more)}</td></tr>
+    <tr><th>All</th><td></td><td>${r.rows_one + r.rows_more}</td><td>${fmtShare(r.inside)} <span class="none">of ${r.n}</span></td><td>${fmtShare(s2.inside)} <span class="none">of ${s2.n}</span></td></tr></tbody>`;
+}
+
+// ---- 2025 to 2026: the frozen forecast, scored ---------------------------------------------------------------
+function renderSecond() {
+  const g = G(), s2 = g.second, name = GRADES[state.g];
+  scatter($("second-scatter"), D, s2.nbhd, { fmt: (v) => `${Math.round(v)}%`, xLabel: `Ridge's forecast for 2026, ${name}`, yLabel: `Actual, 2026` });
+  scatterKey($("second-key"));
+  $("second-lede").innerHTML = `Each neighbourhood's ${name} forecast for 2026, made from 2025 and committed on 3 November 2026 before any 2025–26 result was read, against EQAO's 2025–26 results. `
+    + `${s2.schools} of the forecast's ${s2.frozen} schools have a 2026 score; neighbourhood figures are over those schools. `
+    + `<b>${fmtShare(s2.inside)}</b> of ${s2.n} neighbourhoods fell inside the range.`;
 }
 
 // ---- 2019 to 2022 ----------------------------------------------------------------------------------------
@@ -91,7 +105,8 @@ function renderCovid() {
     + `Change: each third's change from 2019 to 2022 less the mean change. Both weighted by enrolment; bootstrap standard errors in brackets.`;
 }
 
-$("method-note").innerHTML = `Scores are the share of students at or above the provincial standard (levels 3 and 4), the mean of reading, writing and math; years are test years (2025 is the 2024–25 school year; 2024 is the Ministry's preliminary file). `
+$("method-note").innerHTML = `Scores are the share of fully participating students at or above the provincial standard (levels 3 and 4), the mean of reading, writing and math; years are test years (2025 is the 2024–25 school year; 2024 is the Ministry's preliminary file). `
+  + `2026 scores are from EQAO's school file, which reproduces every Ministry 2024–25 Toronto score; for 2026, enrolment and the student shares are the Ministry's 2024–25 figures. `
   + `English public and Catholic elementary schools, placed in the neighbourhood that contains them. The method, the rungs and the decision rule are on the <a href="/forecasts/">Method</a> page.`;
 
 function render() {
@@ -100,6 +115,7 @@ function render() {
   renderForecast();
   renderScores();
   renderHoldout();
+  renderSecond();
   renderCovid();
   writeHash();
 }

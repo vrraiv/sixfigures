@@ -839,3 +839,40 @@ school's 2026 scores (the same measure; "N/R" and "N/D" are missing) to
 4d61d0e). Then, while the files' layout was being checked, a few rows of the
 2025-26 files and their counts of suppression codes were printed. Nothing else from
 2025-26 was read before this note.
+
+## EQAO 2025-26: the second test and the 2026 to 2027 forecast, results (2026-11-03)
+
+**`pipeline/eqao.py`.** It repeats the match as above, then writes 609 schools' 2026
+scores. One Toronto board school with a 2026 score has no Ministry 2024-25 row and is
+left out: Virtual Elementary School (398055).
+
+**The frozen forecast, 2025 to 2026.** 517 of the frozen file's 530 Grade 3 schools and
+447 of its 457 Grade 6 schools have a 2026 score. Ridge has the lowest MAE in both
+grades (in points, skill against persistence in brackets):
+
+| Rung | Grade 3 schools | Grade 3 neighbourhoods | Grade 6 schools | Grade 6 neighbourhoods |
+|---|---|---|---|---|
+| Persistence | 10.16 | 6.13 | 7.38 | 4.61 |
+| Own mean | 8.94 (12%) | 5.00 | 6.35 (14%) | 4.20 |
+| Ridge (chosen) | 8.48 (17%) | 4.90 | 6.13 (17%) | 3.98 |
+
+Rank correlation of ridge's forecast change with the actual change: 0.53 (Grade 3)
+and 0.54 (Grade 6).
+
+**The ranges, 2025 to 2026:**
+
+| Grade | Inside | One school | Two or more |
+|---|---|---|---|
+| Grade 3 | 79% of 149 | 87% | 77% |
+| Grade 6 | 80% of 141 | 85% | 79% |
+
+**The City's level in 2026** (enrolment-weighted logit mean, 2024-25 enrolment):
+70.8% for Grade 3 and 77.9% for Grade 6, against 67.9% and 75.1% in 2025.
+
+**The forecast, 2026 to 2027.** Fitted on 2,635 Grade 3 and 2,257 Grade 6
+transitions, with ridge alphas of 0.00178 and 0.00562. It covers 529 Grade 3 schools in
+150 neighbourhoods and 453 Grade 6 schools in 141, from the City's 2026 levels carried
+over. Written to `pipeline/model/schools_2027.csv` (neighbourhoods) and
+`schools_2027_schools.csv`.
+
+Selection, holdout and 2019 to 2022 outputs are the same as before the change.

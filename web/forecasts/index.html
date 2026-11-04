@@ -30,7 +30,7 @@
       <section class="ins-section" aria-labelledby="what-h">
         <h2 id="what-h">What is forecast</h2>
         <ul>
-          <li><b>Schools.</b> Each English public or Catholic elementary school's Grade 3 and Grade 6 score, one test year ahead. A score is the mean of the school's reading, writing and math results: the share of its students at or above the provincial standard. A neighbourhood's figure is its schools' forecasts weighted by enrolment. Grade 3 and Grade 6 are forecast separately.</li>
+          <li><b>Schools.</b> Each English public or Catholic elementary school's Grade 3 and Grade 6 score, one test year ahead. A score is the mean of the school's reading, writing and math results: the share of its fully participating students at or above the provincial standard. A neighbourhood's figure is its schools' forecasts weighted by enrolment. Grade 3 and Grade 6 are forecast separately.</li>
           <li><b>Dwelling value.</b> Each of the 158 neighbourhoods' census median value of owned dwellings, as a ratio to the City's median, one census (five years) ahead. The City's own median is not forecast; for dollar figures it is nowcast from TRREB's sale prices (below).</li>
         </ul>
         <p>Every model places each school or neighbourhood against the City (a school by its score on the logit scale less the City's enrolment-weighted mean), and the City's level carries over from the year the forecast is made, the origin. The models differ only in where they place each unit.</p>
@@ -68,7 +68,7 @@
 
       <section class="ins-section" aria-labelledby="folds-h">
         <h2 id="folds-h">The backtests</h2>
-        <p>Each backtest fits the models on what came before an origin and forecasts what followed. Years are test years (2025 is the 2024–25 school year).</p>
+        <p>Each backtest fits the models on what came before an origin and forecasts what followed. Years are test years (2025 is the 2024–25 school year). Scores to 2025 are the Ministry's; 2026 scores are from EQAO's school file, which reproduces every Ministry 2024–25 Toronto score.</p>
         <div class="tbl-wrap"><table class="tbl fc-wrap">
           <thead><tr><th>Schools</th><th class="txt">Use</th></tr></thead>
           <tbody>
@@ -76,6 +76,7 @@
             <tr><th>2019 to 2022</th><td class="txt">Three years across the COVID-19 closures (no tests in 2020 and 2021). Scored on its own, with models fitted on 2018 to 2019; never used to choose.</td></tr>
             <tr><th>2022 to 2023, 2023 to 2024</th><td class="txt">The selection folds: the rule chooses on these.</td></tr>
             <tr><th>2024 to 2025</th><td class="txt">The holdout: run once, on 3 November 2026, after the choice. It reports and doesn't change the choice.</td></tr>
+            <tr><th>2025 to 2026</th><td class="txt">The live forecast made from 2025, committed on 3 November 2026 before any 2025–26 result was read, then scored on EQAO's results: persistence, own mean and ridge, the three it kept.</td></tr>
           </tbody>
         </table></div>
         <div class="tbl-wrap"><table class="tbl fc-wrap">
@@ -101,7 +102,7 @@
       <section class="ins-section" aria-labelledby="range-h">
         <h2 id="range-h">The ranges</h2>
         <ul>
-          <li><b>Schools.</b> An 80% range: the forecast plus or minus the 80th percentile of ridge's absolute neighbourhood errors in the two selection folds, set separately for neighbourhoods with one school and with more. Fixed before the holdout, which reports how many neighbourhoods fell inside.</li>
+          <li><b>Schools.</b> An 80% range: the forecast plus or minus the 80th percentile of ridge's absolute neighbourhood errors in the two selection folds, set separately for neighbourhoods with one school and with more. Fixed before the holdout; the holdout and 2025 to 2026 report how many neighbourhoods fell inside.</li>
           <li><b>Dwelling value.</b> From the lowest of three forecasts (persistence, own mean, and own mean plus market) less 0.05 on the log scale, to the highest plus 0.05. The 0.05 allows for the neighbourhoods' average shift against the City's median and the error in the City's nowcast. Set after the backtest's point scores were seen; its coverage on 2016 to 2021 was scored once afterwards and the rule left unchanged.</li>
         </ul>
       </section>
@@ -109,7 +110,7 @@
       <section class="ins-section" aria-labelledby="live-h">
         <h2 id="live-h">The live forecasts</h2>
         <ul>
-          <li><b>Schools.</b> Ridge refitted on every one-year transition to 2025 forecasts 2026. It was made and committed on 3 November 2026, before any 2025–26 result was read. EQAO's 2025–26 results will score it, and a forecast for 2027 follows from them.</li>
+          <li><b>Schools.</b> Ridge refitted on every one-year transition to 2026 forecasts 2027 (the 2026–27 school year), from EQAO's 2026 scores. For 2026, enrolment and the student shares are the Ministry's 2024–25 figures, the latest it publishes. The forecast for 2026, made from 2025 and committed before any 2025–26 result was read, is scored above as 2025 to 2026.</li>
           <li><b>Dwelling value.</b> The 2026 Census (reference day May 2026; Statistics Canada plans its major releases by December 2027). The City's median is its 2021 Census median moved by TRREB's May median sale price, 2021 to 2026, with nothing fitted. That rule was scored on 2016 to 2021 against the Census.</li>
         </ul>
       </section>
@@ -124,6 +125,7 @@
             <tr><th>1 Nov 2026</th><td class="txt">The previous change in average value (fixed before computing). Heavy building, chosen after looking. The City's nowcast from TRREB and the market rungs (fixed before computing).</td></tr>
             <tr><th>1 Nov 2026</th><td class="txt">Centring adopted, after looking at the average shift.</td></tr>
             <tr><th>3 Nov 2026</th><td class="txt">The school ranges and live forecast fixed; the holdout run once; the dwelling-value range's coverage scored once.</td></tr>
+            <tr><th>3 Nov 2026</th><td class="txt">EQAO's 2024–25 school file checked against the Ministry's (every score equal); the scoring of 2025 to 2026 fixed, then run; the forecast for 2027 made.</td></tr>
           </tbody>
         </table></div>
         <p>The full record, with every run's results and the reasons for each change, is in the <a href="https://github.com/vrraiv/sixfigures/blob/main/docs/forecast-spec.md">forecast spec</a>.</p>
@@ -133,6 +135,8 @@
     <footer class="foot">
       Ontario Ministry of Education, School Information and Student Demographics, with EQAO results; contains information licensed under the
       <a href="https://www.ontario.ca/page/open-government-licence-ontario">Open Government Licence – Ontario</a>.
+      EQAO open data, Achievement Results, Grades 3 and 6, 2024–25 and 2025–26:
+      <a href="https://www.ontario.ca/page/open-government-licence-ontario">Used under licence</a>.
       Statistics Canada, the 2006 to 2021 Censuses of Population and the 2011 National Household Survey, under the
       <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
       TRREB, Market Watch and Community Housing Market Reports, as published.

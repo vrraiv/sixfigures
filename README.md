@@ -55,9 +55,10 @@ data is `web/public/prices.json` (`pipeline/price_insights.py`).
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's
-forecast Grade 3 and Grade 6 score with its 80% range, and tabulates every rung's
-errors in the backtests and the holdout, the ranges' coverage, and the 2019 to 2022
-results by school low-income share. Dwelling Value Forecasts, `/forecasts/value/`, maps
+forecast Grade 3 and Grade 6 score for 2026-27 with its 80% range, and tabulates every
+rung's errors in the backtests, the holdout and the frozen 2025-26 forecast (scored on
+EQAO's results, `make eqao`), the ranges' coverage, and the 2019 to 2022 results by
+school low-income share. Dwelling Value Forecasts, `/forecasts/value/`, maps
 and lists each neighbourhood's forecast median value of owned dwellings in the 2026
 Census with its range, and tabulates every rung's errors, the range's coverage on 2016
 to 2021, and the TRREB figures behind the City's nowcast. Their data is
