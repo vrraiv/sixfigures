@@ -89,6 +89,17 @@ one colour scale and lists the neighbourhoods in the hottest sixth on nearly eve
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 
+The Data Explorer, `/insights/explorer/` (a button above the Insights tabs on every Insights
+page), offers every neighbourhood measure on the site in one menu: 67 measures from the census,
+safety, schools, sale prices, housing, trees and heat, elections and short-term rentals. For the
+chosen measure it shows the map with a period slider (one colour scale for all periods), the
+spread, the highest and lowest neighbourhoods, the median neighbourhood over time with the
+middle half and middle 80% (and a picked neighbourhood's line), the biggest rises and falls
+between two periods, how stable the ranking is, and the other measures it goes with, from other
+sources and from its own. Views for two and three measures are to come. Its data is
+`web/public/explorer/` (`pipeline/explorer_data.py`): a catalogue and one file per source,
+fetched when a measure from it is first used.
+
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's

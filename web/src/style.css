@@ -699,6 +699,34 @@ body.doc { display: block; height: auto; }
 .day-step:disabled { opacity: 0.4; cursor: default; }
 #day-map svg { max-height: 460px; }
 
+/* ---- Data Explorer ---- */
+/* the button above the Insights tabs, on every Insights page */
+.ins-nav { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.explorer-btn { display: block; padding: 5px 12px; font-size: 13px; text-align: center; text-decoration: none; color: var(--ink-2); background: #fff; border: 1px solid #c9c9c3; border-radius: 6px; }
+.explorer-btn:hover { background: #eef4fc; color: var(--accent); border-color: var(--accent); }
+.explorer-btn[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+@media (max-width: 640px) { .ins-nav { width: 100%; } }
+.ex-bar select { flex: 1 1 320px; min-width: 0; max-width: 560px; }
+.ex-period { display: flex; align-items: center; gap: 8px; flex: 1 1 280px; min-width: 0; }
+.ex-period[hidden] { display: none; }
+.ex-period input[type="range"] { flex: 1 1 120px; min-width: 60px; accent-color: var(--accent); }
+.ex-period output { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ex-about { max-width: 90ch; margin-top: 10px; }
+.ex-to { font-size: 13px; color: var(--ink-2); }
+.hi-city.hi-pick { background: #c2410c; width: 3px; }
+.ex-trend { margin-left: 56px; }
+.ex-trend + .ch-xticks { margin-left: 56px; }
+.tr-hit { position: absolute; top: 0; bottom: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+.tr-hit:hover { background: rgba(26, 26, 25, 0.06); }
+.ex-key-line { display: inline-block; width: 16px; height: 3px; margin-right: 6px; vertical-align: 3px; background: var(--ink); }
+.ex-diff { white-space: nowrap; }
+.rank-list .ex-none { display: block; padding: 6px 0; color: var(--ink-3); font-size: 13px; }
+.ex-rel.shown { max-width: 900px; }
+.corr-cols .ex-rel button { grid-template-columns: minmax(0, 2.2fr) minmax(70px, 1fr) 44px; padding: 5px 0; }
+.ex-rel .cl-name { white-space: normal; }
+.ex-src { display: block; font-size: 11px; color: var(--ink-3); }
+section[hidden] { display: none; }
+
 /* ---- Forecasts ---- */
 .fc-doc p, .fc-doc li { max-width: 78ch; font-size: 14px; }
 .fc-doc ul { padding-left: 20px; }
