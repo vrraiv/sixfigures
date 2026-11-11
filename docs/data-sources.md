@@ -86,6 +86,8 @@ it's worth an enquiry, but the plan doesn't depend on it.
 | DineSafe | `dinesafe` | rolling ~3 years, daily | coordinates | Exploratory (food premises, inspections, infractions) | known | 20,118 establishments, all placed |
 | Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | address, FSA, ward | Exploratory | today only | 8,586 registrations (2026-11-11); no history, so no backtest use; ingested by `pipeline/rentals.py` |
 | Municipal election results (Mayor) | `election-results-official` (2022), `elections-official-by-election-results` (2023 by-election), `elections-voter-statistics`, `elections-by-election-voter-statistics`, `elections-subdivisions` | 2022, 2023 (2026 results posted, no boundaries yet) | voting subdivision to DA and neighbourhood | Exploratory (turnout and vote shares against census income) | known | ward and city totals equal the workbooks and the Clerk's declarations (551,890; 724,638); electors vs 2021 population r 0.94 by neighbourhood |
+| Street trees | `street-tree-data` | as available (2026-06-04) | points (geocoded, many to the parcel address) | Exploratory: trees per ha, DBH, species by DA | today only | 688,335 rows = datastore total; 22 outside DAs; City street trees only, no parks or private |
+| Forest and land cover (2018 Tree Canopy Study) | `forest-and-land-cover` | 2018 | 8-class land-cover polygons (EPSG:2952) | Exploratory: canopy share by DA | 2018 | 166.4 km2 tree class, 26.2% of DA area; canopy share vs median household income r 0.43 |
 | Toronto Employment Survey | `toronto-employment-survey-summary-tables` | annual | summary tables (geography to be checked) | City anchor (jobs) | known | |
 | TTC routes and schedules (GTFS); transit-oriented communities | `ttc-routes-and-schedules`, `transit-oriented-communities` | current | stops, sites | Driver (new rapid transit near a DA) | known for opened lines | |
 | Neighbourhood Profiles 2021 (158 model) | `neighbourhood-profiles` | 2021 | 158 neighbourhoods | Validation (already used) | | |
@@ -218,6 +220,18 @@ pieces snapped to the nearest DA within 2 m), and DAs in neighbourhoods by
   subdivisions were renumbered and have no boundaries or voter statistics yet.
   Elections Canada's 2025 poll results can be fetched by script, but no 2025
   polling-division boundaries are published; Elections Ontario's are PDF only.
+
+- **Trees and heat** (`pipeline/trees.py` → `pipeline/trees/`): street trees and
+  2018 canopy share by DA and neighbourhood, and Landsat 8/9 Collection 2 Level-2
+  summer surface temperature from Microsoft Planetary Computer's STAC (anonymous SAS
+  token; USGS's AWS bucket is requester-pays). June-August 2022-2025, 11 passes at
+  least 90% clear over Toronto. USGS's ST_B10 is empty over ~28% of the city (missing
+  emissivity data), so LST is recomputed from the product's radiance and atmosphere
+  bands with NDVI emissivity (0.58 C cooler than ST_B10 where both exist, sd 0.89).
+  Per DA: median over passes of the mean (`lst_c`), and of the difference from each
+  pass's city mean (`lst_anom`: r -0.69 with canopy share, -0.19 with median household
+  income). Canopy share, not street trees per ha (r +0.16 with `lst_anom`), is the
+  measure for heat. Needs `rasterio`.
 
 ### Not pursued
 

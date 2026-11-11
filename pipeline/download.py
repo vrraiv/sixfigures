@@ -183,6 +183,9 @@ TORONTO = {
         "elections-subdivisions", "voting-subdivisions-2022 - 4326.geojson", b"{"),
     "toronto_voting_subdivisions_2023_4326.geojson": (
         "elections-subdivisions", "voting-subdivisions-2023 - 4326.geojson", b"{"),
+    # Street trees and 2018 land cover (trees.py); 145 MB and 436 MB
+    "toronto_street_trees_4326.csv": ("street-tree-data", "Street Tree Data - 4326.csv", b"_id,"),
+    "toronto_tree_canopy_2018.zip": ("forest-and-land-cover", "2018 Tree Canopy Study Geodatabase", b"PK"),
     # DineSafe inspections (health.py), a rolling ~3-year window refreshed daily
     "toronto_dinesafe.csv": ("dinesafe", "Dinesafe.csv", b"_id,"),
 }

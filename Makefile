@@ -265,7 +265,10 @@ eqao:
 #              registrations by ward and neighbourhood against the latest snapshot
 #   elections  the 2022 mayoral election and 2023 by-election by voting subdivision,
 #              2021 DA and neighbourhood (special polls allocated within the ward)
-LAYERS := crime health rentals elections
+#   trees      street trees, 2018 canopy share and Landsat summer surface temperature by
+#              DA and neighbourhood (trees.py fetches and caches its Landsat windows from
+#              Planetary Computer in pipeline/raw/landsat/)
+LAYERS := crime health rentals elections trees
 .PHONY: layers $(LAYERS)
 
 layers: $(LAYERS)
