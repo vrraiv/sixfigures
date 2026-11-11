@@ -4,23 +4,41 @@
 import { $, COLORS, DIVERGING, escapeHTML } from "./catalogue.js";
 
 // ---- tooltip shared by every chart: any element with data-tip -----------------
+// With a mouse the tip follows the pointer and goes when it leaves. A touch has no hover: a tap
+// shows the tip at the finger and it stays until the next tap elsewhere or a scroll.
 export function initTip() {
   const tip = $("tip");
-  document.addEventListener("pointerover", (e) => {
-    const t = e.target.closest?.("[data-tip]");
-    if (!t) return;
+  let held = false; // shown by a touch
+  const place = (e) => {
+    const pad = 12, w = tip.offsetWidth, h = tip.offsetHeight;
+    const x = Math.max(8, Math.min(e.clientX + pad, innerWidth - w - 8)), y = e.clientY - h - pad < 8 ? e.clientY + pad : e.clientY - h - pad;
+    tip.style.transform = `translate(${x}px, ${y}px)`;
+  };
+  const show = (t, e) => {
     tip.innerHTML = t.dataset.tip;
     tip.hidden = false;
+    place(e);
+  };
+  document.addEventListener("pointerover", (e) => {
+    const t = e.target.closest?.("[data-tip]");
+    if (t && e.pointerType !== "touch") show(t, e);
   });
   document.addEventListener("pointermove", (e) => {
-    if (tip.hidden) return;
-    const pad = 12, w = tip.offsetWidth, h = tip.offsetHeight;
-    const x = Math.min(e.clientX + pad, innerWidth - w - 8), y = e.clientY - h - pad < 8 ? e.clientY + pad : e.clientY - h - pad;
-    tip.style.transform = `translate(${x}px, ${y}px)`;
+    if (!tip.hidden && !held) place(e);
   });
   document.addEventListener("pointerout", (e) => {
-    if (e.target.closest?.("[data-tip]") && !e.relatedTarget?.closest?.("[data-tip]")) tip.hidden = true;
+    if (!held && e.target.closest?.("[data-tip]") && !e.relatedTarget?.closest?.("[data-tip]")) tip.hidden = true;
   });
+  document.addEventListener("pointerup", (e) => {
+    if (e.pointerType !== "touch") { held = false; return; }
+    const t = e.target.closest?.("[data-tip]");
+    held = !!t;
+    if (t) show(t, e);
+    else tip.hidden = true;
+  });
+  addEventListener("scroll", () => {
+    if (held) { held = false; tip.hidden = true; }
+  }, { passive: true });
 }
 
 // ---- segmented controls ---------------------------------------------------------
@@ -84,8 +102,10 @@ export function initPick(fig, bar, get, set, extra = () => "") {
       p.classList.add("pick");
       p.parentNode.append(p); // drawn last, so its outline is on top
     }
-    bar.hidden = !p;
-    bar.innerHTML = p ? `<span>${p.dataset.tip.replaceAll("<br>", " · ")}</span>${extra(i)}<button type="button" class="nb-clear">Clear</button>` : "";
+    // a bar with data-empty keeps its place when nothing is picked and says how to pick
+    bar.hidden = !p && !bar.dataset.empty;
+    bar.classList.toggle("empty", !p);
+    bar.innerHTML = p ? `<span>${p.dataset.tip.replaceAll("<br>", " · ")}</span>${extra(i)}<button type="button" class="nb-clear">Clear</button>` : escapeHTML(bar.dataset.empty ?? "");
   };
   const pick = (i, scroll) => {
     fig.querySelector("path.pick")?.classList.remove("pick");
@@ -95,7 +115,7 @@ export function initPick(fig, bar, get, set, extra = () => "") {
   };
   document.addEventListener("click", (e) => {
     const a = e.target.closest("[data-nb]"), p = e.target.closest("path[data-i]");
-    if (a) pick(+a.dataset.nb, true);
+    if (a) pick(+a.dataset.nb, a.matches("button, a"));
     else if (p && fig.contains(p)) pick(get() === +p.dataset.i ? null : +p.dataset.i, false);
     else if (e.target.closest(".nb-clear")) pick(null, false);
   });
@@ -148,7 +168,7 @@ export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l,
   const yt = ticks.map((v) => `<span class="sc-ytick" style="bottom:${100 - y(v)}%">${fmt(v)}</span><span class="sc-gy" style="bottom:${100 - y(v)}%"></span>`).join("");
   const every = Math.ceil(n / (String(labels[0]).length > 4 ? 5 : 8)); // month labels are wider
   // every `every`th label, and the last, unless it would crowd the one before
-  const xt = labels.map((l, k) => ((k % every === 0 && n - 1 - k >= every * 0.6) || k === n - 1 ? `<span style="left:${x(k)}%">${l}</span>` : "")).join("");
+  const xt = labels.map((l, k) => ((k % every === 0 && n - 1 - k >= every * 0.9) || k === n - 1 ? `<span style="left:${x(k)}%">${l}</span>` : "")).join("");
   const zeroLine = lo < 0 ? `<span class="ch-zero" style="bottom:${100 - y(0)}%"></span>` : "";
   return `<div class="ch-box" style="height:${height}px">${yt}${zeroLine}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>`;
 }

@@ -85,9 +85,11 @@ export function histHTML(d, vs, { bins = 24, height = null } = {}) {
 }
 
 // ---- a neighbourhood map: one <path> per neighbourhood, filled by fill(i) -------------------------
+let hatches = 0;
 export function mapSVG(fill, tip, label, cls = () => "") {
-  const shapes = nbhd.map((n, i) => `<path d="${n.path}" fill="${fill(i) ?? "url(#nb-hatch)"}" data-i="${i}"${cls(i) ? ` class="${cls(i)}"` : ""} data-tip="${escapeHTML(tip(i))}"/>`).join("");
+  const hatch = `nb-hatch-${++hatches}`; // several maps can share a page: each has its own pattern id
+  const shapes = nbhd.map((n, i) => `<path d="${n.path}" fill="${fill(i) ?? `url(#${hatch})`}" data-i="${i}"${cls(i) ? ` class="${cls(i)}"` : ""} data-tip="${escapeHTML(tip(i))}"/>`).join("");
   return `<svg viewBox="0 0 ${C.map.width} ${C.map.height}" role="img" aria-label="${escapeHTML(label)}">
-    <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
+    <defs><pattern id="${hatch}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
     <g>${shapes}</g></svg>`;
 }

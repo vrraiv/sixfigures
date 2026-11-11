@@ -71,7 +71,7 @@ function renderTrend() {
     data-tip="${escapeHTML(`${when(k)}<br>Median neighbourhood: <b>${fmt(d, p50[k])}</b><br>Middle half: ${fmt(d, p25[k])} to ${fmt(d, p75[k])}<br>Middle 80%: ${fmt(d, p10[k])} to ${fmt(d, p90[k])}${pk ? `<br>${nbhd[S.nb].name}: <b>${fmt(d, pk[k])}</b>` : ""}`)}" aria-label="${escapeHTML(when(k))}"></button>`).join("");
   const yt = [0, 0.25, 0.5, 0.75, 1].map((f) => `<span class="sc-ytick" style="bottom:${f * 100}%">${fmtAxis(d, lo + f * (hi - lo))}</span><span class="sc-gy" style="bottom:${f * 100}%"></span>`).join("");
   const every = Math.ceil(n / 8);
-  const xt = d.periods.map((per, k) => ((k % every === 0 && n - 1 - k >= every * 0.6) || k === n - 1 ? `<span style="left:${x(k)}%">${escapeHTML(d.kind === "scrape" ? per.slice(0, 7) : per.split(" ")[0])}</span>` : "")).join("");
+  const xt = d.periods.map((per, k) => ((k % every === 0 && n - 1 - k >= every * 0.9) || k === n - 1 ? `<span style="left:${x(k)}%">${escapeHTML(d.kind === "scrape" ? per.slice(0, 7) : per.split(" ")[0])}</span>` : "")).join("");
   $("trend").innerHTML = `<div class="tr-box ex-trend">${yt}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${hits}</div><div class="ch-xticks">${xt}</div>
     <ul class="year-key"><li><span class="ex-key-line" style="background:${COLORS[5]}"></span>Median neighbourhood</li><li><span class="key-sq" style="background:${COLORS[1]}"></span>Middle half</li>
       <li><span class="key-sq" style="background:${COLORS[0]}"></span>Middle 80%</li>${pk ? `<li><span class="ex-key-line" style="background:${ORANGE}"></span>${escapeHTML(nbhd[S.nb].name)}</li>` : ""}</ul>`;
@@ -116,6 +116,7 @@ function renderStability() {
 }
 
 // ---- 7. what it goes with: every other measure, at its period nearest this one ----------------------------
+const PER_SOURCE = 3;
 let relToken = 0, relKey = null;
 async function renderRelated() {
   const key = `${M().d.id}|${M().p}`;
@@ -135,11 +136,14 @@ async function renderRelated() {
       <span class="cl-name">${escapeHTML(m.label)}<span class="ex-src">${escapeHTML(SRC[m.source].label)} · ${escapeHTML(m.periods[k])}${n < N ? ` · ${n} neighbourhoods` : ""}</span></span>
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - Math.abs(r) * 50}%`};width:${Math.abs(r) * 50}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
-  const other = rs.filter((x) => x.m.source !== d.source).slice(0, 10), same = rs.filter((x) => x.m.source === d.source).slice(0, 6);
+  // at most PER_SOURCE from any one other source, so seven school results don't crowd out the rest
+  const seen = {};
+  const other = rs.filter((x) => x.m.source !== d.source && (seen[x.m.source] = (seen[x.m.source] ?? 0) + 1) <= PER_SOURCE).slice(0, 10);
+  const same = rs.filter((x) => x.m.source === d.source).slice(0, 6);
   $("rel-other").innerHTML = other.map(item).join("");
   $("rel-same").innerHTML = same.map(item).join("") || `<li class="ex-none">This source has no other measure.</li>`;
   $("rel-same-h").textContent = `From the same source (${SRC[d.source].label})`;
-  $("rel-lede").innerHTML = `The measures whose ranking of the neighbourhoods is closest to ${escapeHTML(lc(d.label))}'s in ${escapeHTML(when())}, or most nearly its reverse, out of the other ${C.measures.length - 1}: Spearman rank correlation, each measure at its period nearest ${escapeHTML(d.periods[p])}. Measures from the same source often count nearly the same thing, so they are listed apart. A correlation across neighbourhoods says nothing about individual people, and none of this shows cause. Pick one to set it beside this measure.`;
+  $("rel-lede").innerHTML = `The measures whose ranking of the neighbourhoods is closest to ${escapeHTML(lc(d.label))}'s in ${escapeHTML(when())}, or most nearly its reverse, out of the other ${C.measures.length - 1}: Spearman rank correlation, each measure at its period nearest ${escapeHTML(d.periods[p])}. Measures from the same source often count nearly the same thing, so they are listed apart, and no other source gets more than ${PER_SOURCE} places. A correlation across neighbourhoods says nothing about individual people, and none of this shows cause. Pick one to set it beside this measure.`;
 }
 // the closest measure from another source, for "Add a measure"; null until the list has been drawn
 export const suggestion = () => $("rel-other").querySelector("[data-m]")?.dataset.m ?? null;

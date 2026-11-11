@@ -36,6 +36,37 @@ export function biKey({ xName, xRanges, xArrow, yName, yRanges, yArrow }) {
       <dt>${escapeHTML(yName)} (rows, bottom to top)</dt><dd>${yRanges.map(escapeHTML).join(" · ")}</dd></dl>`;
 }
 
+// Black or white text, whichever reads better on a fill colour ("#rrggbb").
+export function inkOn(hex) {
+  const [r, g, b] = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.36 ? "#1a1a19" : "#fff";
+}
+
+// The contents list at the top of a long page: a link to each visible section that has an id.
+export function buildToc(nav) {
+  const secs = [...document.querySelectorAll("main section[id]")].filter((s) => !s.hidden && !s.closest("[hidden]"));
+  nav.innerHTML = `<span class="toc-label">On this page</span>${secs.map((s) => `<a href="#${s.id}">${escapeHTML(s.dataset.toc ?? s.querySelector("h2").textContent)}</a>`).join("")}`;
+  // the address holds the page's choices after "#", so jump by script and leave it alone
+  nav.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (!a) return;
+    e.preventDefault();
+    const target = document.getElementById(a.getAttribute("href").slice(1));
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // a section above that loads late (a map fetched on scroll) pushes the target down: settle on it
+    for (const ms of [700, 1500]) setTimeout(() => {
+      if (target && Math.abs(target.getBoundingClientRect().top) > 90) target.scrollIntoView({ block: "start" });
+    }, ms);
+  });
+}
+
+// The neighbourhood finder: a menu of every neighbourhood by name, for when a small one is hard
+// to hit on the map. fill() once; set its value to the picked index (or "") on each draw.
+export function fillFinder(select, names) {
+  const order = names.map((n, i) => [n, i]).sort((a, b) => a[0].localeCompare(b[0]));
+  select.innerHTML = `<option value="">Find a neighbourhood…</option>${order.map(([n, i]) => `<option value="${i}">${escapeHTML(n)}</option>`).join("")}`;
+}
+
 // The neighbourhoods with an income figure in fifths, the least well off first.
 export function incomeFifths(inc, up) {
   const idx = inc.map((_, i) => i).filter((i) => inc[i] != null);

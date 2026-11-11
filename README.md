@@ -93,6 +93,11 @@ one colour scale and lists the neighbourhoods in the hottest sixth on nearly eve
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 
+On the Safety, Trees and Explorer pages a neighbourhood can be picked on any map, chart or list, or
+found by name in a menu, and is then marked everywhere on the page; Safety and Trees open with a
+contents list, and the Trees measure menu stays pinned only over the sections it drives. Tooltips
+work by touch on every Insights page: a tap shows the figures and the next tap elsewhere hides them.
+
 The Data Explorer, `/insights/explorer/` (a button above the Insights tabs on every Insights
 page), offers every neighbourhood measure on the site in one menu: 67 measures from the census,
 safety, schools, sale prices, housing, trees and heat, elections and short-term rentals. Up to

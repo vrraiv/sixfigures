@@ -5,6 +5,7 @@
 import "./style.css";
 import { $, escapeHTML } from "./catalogue.js";
 import { initTip } from "./charts.js";
+import { fillFinder } from "./nbtools.js";
 import { C, DEF, S, SRC, columns, fmt, nbhd, nearest, pctOrd, pctRank, vals, whenOf } from "./explorer-core.js";
 import { initOne, renderOne, suggestion } from "./explorer-one.js";
 import { initTwo, renderTwo } from "./explorer-two.js";
@@ -148,6 +149,12 @@ function markPicks() {
   }).join("")}<button type="button" class="nb-clear">Clear</button>`;
 }
 
+fillFinder($("find-nb"), nbhd.map((n) => n.name));
+$("find-nb").addEventListener("change", (e) => {
+  S.nb = e.target.value === "" ? null : +e.target.value;
+  draw();
+});
+
 // ---- the CSV download: the chosen measures at their chosen periods ------------------------------------------
 $("csv").addEventListener("click", () => {
   const q = (s) => `"${String(s).replaceAll('"', '""')}"`;
@@ -173,6 +180,7 @@ function draw() {
   else if (n === 2) renderTwo();
   else renderThree();
   markPicks();
+  $("find-nb").value = S.nb ?? "";
   writeHash();
 }
 

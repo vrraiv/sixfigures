@@ -33,7 +33,9 @@
     </header>
 
     <main class="insights">
-      <section class="ins-section" aria-labelledby="glance-h">
+      <nav class="toc" id="toc" aria-label="On this page"></nav>
+
+      <section class="ins-section" id="glance" data-toc="At a glance" aria-labelledby="glance-h">
         <div class="ins-head">
           <h2 id="glance-h">The city at a glance</h2>
         </div>
@@ -41,7 +43,7 @@
         <div id="cards" class="card-row"></div>
       </section>
 
-      <section class="ins-section" aria-labelledby="shade-h">
+      <section class="ins-section" id="shade" data-toc="Shade and heat" aria-labelledby="shade-h">
         <div class="ins-head">
           <h2 id="shade-h">Shade and heat</h2>
         </div>
@@ -50,7 +52,106 @@
         <div id="panels" class="panels"></div>
       </section>
 
-      <section class="ins-section" id="days" aria-labelledby="days-h">
+      <!-- The measure menu and the sections that follow it. The menu sticks to the top of the screen only
+           while these are on it: a sticky element stays inside its parent. -->
+      <div class="bar-scope">
+      <!-- The measure for the neighbourhood sections below. -->
+      <div class="measure-bar compact" id="measure-bar">
+        <label for="measure">Neighbourhoods by</label>
+        <select id="measure"></select>
+      </div>
+
+      <section class="ins-section" id="on-map" data-toc="The map" aria-labelledby="map-h">
+        <div class="ins-head">
+          <h2 id="map-h">Neighbourhoods on the map</h2>
+          <div class="seg-row">
+            <div class="seg" id="overlay" role="group" aria-label="Map shows"></div>
+            <select id="income" class="inline-select" aria-label="Income measure"></select>
+          </div>
+        </div>
+        <p class="ins-lede" id="map-lede"></p>
+        <div class="find-row"><select id="find-nb" class="inline-select" aria-label="Find a neighbourhood"></select></div>
+        <div class="map-wrap">
+          <figure class="nb-map" id="nb-map"></figure>
+          <div class="bi-key" id="bi-key" hidden></div>
+        </div>
+        <p class="nb-pick" id="map-pick" data-empty="No neighbourhood picked. Pick one on the map, in a list or on a chart, or find it by name, to mark it everywhere on the page."></p>
+        <ul class="corr-key" id="map-key"></ul>
+      </section>
+
+      <section class="ins-section" id="inside" data-toc="Inside a neighbourhood" aria-labelledby="in-h">
+        <div class="ins-head">
+          <h2 id="in-h">Inside the neighbourhood</h2>
+          <select id="in-nb" class="inline-select" aria-label="Neighbourhood"></select>
+        </div>
+        <p class="ins-lede" id="in-lede"></p>
+        <div class="in-body">
+          <figure class="da-map" id="da-map"><p class="tbl-note">Loading the DAs…</p></figure>
+          <div class="in-side">
+            <dl class="in-stats" id="in-stats"></dl>
+            <ul class="corr-key" id="in-key"></ul>
+          </div>
+        </div>
+        <h3 class="sub-h in-list-h">The widest heat gaps inside a neighbourhood</h3>
+        <p class="tbl-note" id="spread-note"></p>
+        <ol class="rank-list spread-list" id="spread-list"></ol>
+      </section>
+
+      <section class="ins-section" id="by-income" data-toc="By income" aria-labelledby="inc-h">
+        <div class="ins-head">
+          <h2 id="inc-h">By neighbourhood income</h2>
+        </div>
+        <p class="ins-lede" id="inc-lede"></p>
+        <div class="tbl-wrap"><table class="tbl heat" id="inc-table"></table></div>
+        <p class="tbl-note" id="inc-note"></p>
+      </section>
+
+      <section class="ins-section" id="ranks" data-toc="Highest and lowest" aria-labelledby="rank-h">
+        <div class="ins-head">
+          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
+        </div>
+        <p class="ins-lede" id="rank-lede"></p>
+        <div class="ranks" id="rank-body">
+          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
+        </div>
+      </section>
+
+      <section class="ins-section" id="corr" data-toc="What goes with what" aria-labelledby="corr-h">
+        <div class="ins-head">
+          <h2 id="corr-h">What goes with what</h2>
+        </div>
+        <p class="ins-lede" id="corr-lede"></p>
+        <div id="corr-body">
+          <div class="corr-cols">
+            <div><h3 class="sub-h">2021 Census</h3><ol id="census-list" class="corr-list shown"></ol></div>
+            <div><h3 class="sub-h">Crime, schools, prices, turnout, rentals</h3><ol id="other-list" class="corr-list shown"></ol></div>
+          </div>
+          <figure class="scatter" id="scatter-fig">
+            <figcaption id="scatter-caption"></figcaption>
+            <div id="scatter"></div>
+          </figure>
+        </div>
+      </section>
+      </div>
+
+      <section class="ins-section" id="hv" data-toc="Hot and vulnerable" aria-labelledby="hv-h">
+        <div class="ins-head">
+          <h2 id="hv-h">Hot and vulnerable</h2>
+        </div>
+        <p class="ins-lede" id="hv-lede"></p>
+        <fieldset class="hv-factors" id="hv-factors"><legend>Vulnerability counts</legend></fieldset>
+        <div class="map-wrap">
+          <figure class="nb-map" id="hv-map"></figure>
+          <div class="bi-key" id="hv-key"></div>
+        </div>
+        <figure class="scatter"><div id="hv-scatter"></div></figure>
+        <h3 class="sub-h in-list-h" id="hv-list-h"></h3>
+        <div class="tbl-wrap"><table class="tbl" id="hv-table"></table></div>
+        <p class="tbl-note" id="hv-note"></p>
+      </section>
+
+      <section class="ins-section" id="days" data-toc="Day by day" aria-labelledby="days-h">
         <div class="ins-head">
           <h2 id="days-h">Day by day</h2>
           <div class="seg-row">
@@ -72,48 +173,7 @@
         <ol class="rank-list spread-list" id="always-list"></ol>
       </section>
 
-      <!-- The measure for the neighbourhood sections below. -->
-      <div class="measure-bar" id="measure-bar">
-        <label for="measure">Neighbourhoods by</label>
-        <select id="measure"></select>
-      </div>
-
-      <section class="ins-section" aria-labelledby="map-h">
-        <div class="ins-head">
-          <h2 id="map-h">Neighbourhoods on the map</h2>
-          <div class="seg-row">
-            <div class="seg" id="overlay" role="group" aria-label="Map shows"></div>
-            <select id="income" class="inline-select" aria-label="Income measure"></select>
-          </div>
-        </div>
-        <p class="ins-lede" id="map-lede"></p>
-        <div class="map-wrap">
-          <figure class="nb-map" id="nb-map"></figure>
-          <div class="bi-key" id="bi-key" hidden></div>
-        </div>
-        <p class="nb-pick" id="map-pick" hidden></p>
-        <ul class="corr-key" id="map-key"></ul>
-      </section>
-
-      <section class="ins-section" id="inside" aria-labelledby="in-h">
-        <div class="ins-head">
-          <h2 id="in-h">Inside the neighbourhood</h2>
-          <select id="in-nb" class="inline-select" aria-label="Neighbourhood"></select>
-        </div>
-        <p class="ins-lede" id="in-lede"></p>
-        <div class="in-body">
-          <figure class="da-map" id="da-map"><p class="tbl-note">Loading the DAs…</p></figure>
-          <div class="in-side">
-            <dl class="in-stats" id="in-stats"></dl>
-            <ul class="corr-key" id="in-key"></ul>
-          </div>
-        </div>
-        <h3 class="sub-h in-list-h">The widest heat gaps inside a neighbourhood</h3>
-        <p class="tbl-note" id="spread-note"></p>
-        <ol class="rank-list spread-list" id="spread-list"></ol>
-      </section>
-
-      <section class="ins-section" id="goal" aria-labelledby="goal-h">
+      <section class="ins-section" id="goal" data-toc="Toward 40% canopy" aria-labelledby="goal-h">
         <div class="ins-head">
           <h2 id="goal-h">Toward 40% canopy</h2>
           <div class="seg" id="goal-sort" role="group" aria-label="Sort by"></div>
@@ -124,7 +184,7 @@
         <p class="tbl-note" id="goal-note"></p>
       </section>
 
-      <section class="ins-section" id="change" aria-labelledby="cc-h">
+      <section class="ins-section" id="change" data-toc="Change since 2008" aria-labelledby="cc-h">
         <div class="ins-head">
           <h2 id="cc-h">Canopy change, 2008 to 2018</h2>
           <div class="seg" id="cc-basis" role="group" aria-label="What counts as canopy in 2018"></div>
@@ -141,7 +201,7 @@
         <p class="tbl-note" id="cc-note"></p>
       </section>
 
-      <section class="ins-section" id="planted" aria-labelledby="pl-h">
+      <section class="ins-section" id="planted" data-toc="What's planted" aria-labelledby="pl-h">
         <div class="ins-head">
           <h2 id="pl-h">What's planted</h2>
         </div>
@@ -161,59 +221,6 @@
           </div>
         </div>
         <p class="tbl-note">Bars against the limits run to 40%; the tick is the limit. Species diversity, Norway maple and the commonest genus can be mapped with the menu above.</p>
-      </section>
-
-      <section class="ins-section" id="hv" aria-labelledby="hv-h">
-        <div class="ins-head">
-          <h2 id="hv-h">Hot and vulnerable</h2>
-        </div>
-        <p class="ins-lede" id="hv-lede"></p>
-        <fieldset class="hv-factors" id="hv-factors"><legend>Vulnerability counts</legend></fieldset>
-        <div class="map-wrap">
-          <figure class="nb-map" id="hv-map"></figure>
-          <div class="bi-key" id="hv-key"></div>
-        </div>
-        <figure class="scatter"><div id="hv-scatter"></div></figure>
-        <h3 class="sub-h in-list-h" id="hv-list-h"></h3>
-        <div class="tbl-wrap"><table class="tbl" id="hv-table"></table></div>
-        <p class="tbl-note" id="hv-note"></p>
-      </section>
-
-      <section class="ins-section" aria-labelledby="inc-h">
-        <div class="ins-head">
-          <h2 id="inc-h">By neighbourhood income</h2>
-        </div>
-        <p class="ins-lede" id="inc-lede"></p>
-        <div class="tbl-wrap"><table class="tbl heat" id="inc-table"></table></div>
-        <p class="tbl-note" id="inc-note"></p>
-      </section>
-
-      <section class="ins-section" aria-labelledby="rank-h">
-        <div class="ins-head">
-          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
-        </div>
-        <p class="ins-lede" id="rank-lede"></p>
-        <div class="ranks" id="rank-body">
-          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
-          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
-        </div>
-      </section>
-
-      <section class="ins-section" aria-labelledby="corr-h">
-        <div class="ins-head">
-          <h2 id="corr-h">What goes with what</h2>
-        </div>
-        <p class="ins-lede" id="corr-lede"></p>
-        <div id="corr-body">
-          <div class="corr-cols">
-            <div><h3 class="sub-h">2021 Census</h3><ol id="census-list" class="corr-list shown"></ol></div>
-            <div><h3 class="sub-h">Crime, schools, prices, turnout, rentals</h3><ol id="other-list" class="corr-list shown"></ol></div>
-          </div>
-          <figure class="scatter" id="scatter-fig">
-            <figcaption id="scatter-caption"></figcaption>
-            <div id="scatter"></div>
-          </figure>
-        </div>
       </section>
       <div id="tip" class="tip" role="tooltip" hidden></div>
     </main>
