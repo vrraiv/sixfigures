@@ -254,5 +254,27 @@ forecast-pages:
 eqao:
 	$(PYTHON) pipeline/eqao.py
 
+# Neighbourhood layers (exploratory model inputs, not yet on the site), each placed
+# with pipeline/places.py and written with its checks to pipeline/<layer>/manifest.json.
+# Their raw files come from `make download`; each script stops if one is missing.
+#   crime      police crime, shootings, homicides and KSI collisions by neighbourhood
+#              and year, checked against the police's Neighbourhood Crime Rates
+#   health     CIMD 2021 by DA and neighbourhood, DineSafe by neighbourhood (ON-Marg
+#              is computed but kept in pipeline/out/ for its licence)
+#   rentals    Inside Airbnb listings by snapshot and neighbourhood; City short-term rental
+#              registrations by ward and neighbourhood against the latest snapshot
+#   elections  the 2022 mayoral election and 2023 by-election by voting subdivision,
+#              2021 DA and neighbourhood (special polls allocated within the ward)
+#   trees      street trees, 2018 canopy share and Landsat summer surface temperature by
+#              DA and neighbourhood (trees.py fetches and caches its Landsat windows from
+#              Planetary Computer in pipeline/raw/landsat/)
+LAYERS := crime health rentals elections trees
+.PHONY: layers $(LAYERS)
+
+layers: $(LAYERS)
+
+$(LAYERS):
+	$(PYTHON) pipeline/$@.py
+
 clean:
 	rm -rf pipeline/out

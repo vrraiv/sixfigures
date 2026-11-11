@@ -1,0 +1,272 @@
+{
+  "built": "2026-11-11",
+  "inside_airbnb": {
+    "page": "https://insideairbnb.com/get-the-data/",
+    "url": "https://data.insideairbnb.com/canada/on/toronto/{date}/data/listings.csv.gz",
+    "licence": "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
+    "attribution": "Source: Inside Airbnb (insideairbnb.com), Toronto, 2025-12-12, 2026-03-19, 2026-06-15, 2026-09-16. Creative Commons Attribution 4.0 International (CC BY 4.0).",
+    "snapshots_listed_2026_11_11": [
+      "2025-12-12",
+      "2026-03-19",
+      "2026-06-15",
+      "2026-09-16"
+    ],
+    "unlisted_but_downloadable_2026_11_11": "monthly from 2022-08-03; 2026-10-07 and 2026-11-01 past the latest listed; none found 2015-2022-07",
+    "files": {
+      "2025-12-12": {
+        "name": "toronto_listings_2025-12-12.csv.gz",
+        "bytes": 10665289,
+        "retrieved": "2026-11-11"
+      },
+      "2026-03-19": {
+        "name": "toronto_listings_2026-03-19.csv.gz",
+        "bytes": 9249242,
+        "retrieved": "2026-11-11"
+      },
+      "2026-06-15": {
+        "name": "toronto_listings_2026-06-15.csv.gz",
+        "bytes": 12727004,
+        "retrieved": "2026-11-11"
+      },
+      "2026-09-16": {
+        "name": "toronto_listings_2026-09-16.csv.gz",
+        "bytes": 13117826,
+        "retrieved": "2026-11-11"
+      }
+    }
+  },
+  "city": {
+    "registrations": {
+      "package": "short-term-rentals-registration",
+      "resource": "short-term-rental-registrations-data.csv",
+      "licence": "Open Government Licence - Toronto",
+      "name": "toronto_str_registrations.csv",
+      "bytes": 745868,
+      "retrieved": "2026-11-11"
+    },
+    "wards": {
+      "name": "toronto_wards_4326.geojson",
+      "bytes": 1148140,
+      "retrieved": "2026-11-11"
+    },
+    "address_points": {
+      "name": "toronto_address_points_4326.csv",
+      "bytes": 183420679,
+      "retrieved": "2026-11-11"
+    }
+  },
+  "definitions": {
+    "short_term": "minimum_nights < 28",
+    "active": "number_of_reviews_ltm > 0",
+    "est_nights": "estimated_occupancy_l365d (reviews-based, capped at 255)",
+    "placement": "places.place (DA outlines: toronto_da.pmtiles z13); coordinates jittered up to 150 m, so neighbourhoods only"
+  },
+  "checks": {
+    "2025-12-12": {
+      "rows": 21602,
+      "placed": 21601,
+      "outside_toronto_das": 1,
+      "outside_ids": [
+        "1004013699276160240"
+      ],
+      "by_nbhd_sum_equals_placed": true,
+      "nbhds_with_listings": 158,
+      "within_150m_of_nbhd_boundary": 0.4394,
+      "same_name_as_inside_airbnb_nbhd": 0.9978,
+      "short_term": 6489,
+      "active": 11150,
+      "short_term_active": 5866,
+      "active_equals_occupancy_gt_0": true,
+      "available_365_gt_0": 17253,
+      "est_nights": 1516014,
+      "est_nights_max": 255,
+      "priced": 0.0,
+      "multi_listing": 9951,
+      "licence_short_term": {
+        "registered": 4715,
+        "unmatched": 1649,
+        "blank": 98,
+        "exempt": 20,
+        "other": 7
+      },
+      "licence_not_short_term": {
+        "blank": 11048,
+        "unmatched": 3457,
+        "registered": 510,
+        "exempt": 98
+      }
+    },
+    "2026-03-19": {
+      "rows": 15490,
+      "placed": 15489,
+      "outside_toronto_das": 1,
+      "outside_ids": [
+        "1004013699276160240"
+      ],
+      "by_nbhd_sum_equals_placed": true,
+      "nbhds_with_listings": 158,
+      "within_150m_of_nbhd_boundary": 0.4399,
+      "same_name_as_inside_airbnb_nbhd": 0.9984,
+      "short_term": 6756,
+      "active": 10245,
+      "short_term_active": 6115,
+      "active_equals_occupancy_gt_0": true,
+      "available_365_gt_0": 15172,
+      "est_nights": 1335775,
+      "est_nights_max": 255,
+      "priced": 0.946,
+      "multi_listing": 6925,
+      "licence_short_term": {
+        "registered": 5445,
+        "unmatched": 1175,
+        "blank": 113,
+        "exempt": 15,
+        "other": 8
+      },
+      "licence_not_short_term": {
+        "blank": 6069,
+        "unmatched": 2383,
+        "registered": 222,
+        "exempt": 60
+      }
+    },
+    "2026-06-15": {
+      "rows": 22198,
+      "placed": 22197,
+      "outside_toronto_das": 1,
+      "outside_ids": [
+        "1004013699276160240"
+      ],
+      "by_nbhd_sum_equals_placed": true,
+      "nbhds_with_listings": 158,
+      "within_150m_of_nbhd_boundary": 0.442,
+      "same_name_as_inside_airbnb_nbhd": 0.9979,
+      "short_term": 8768,
+      "active": 12214,
+      "short_term_active": 7556,
+      "active_equals_occupancy_gt_0": true,
+      "available_365_gt_0": 19003,
+      "est_nights": 1515635,
+      "est_nights_max": 255,
+      "priced": 0.8234,
+      "multi_listing": 10112,
+      "licence_short_term": {
+        "registered": 7575,
+        "unmatched": 980,
+        "blank": 183,
+        "exempt": 20,
+        "other": 10
+      },
+      "licence_not_short_term": {
+        "blank": 10001,
+        "unmatched": 3067,
+        "registered": 276,
+        "exempt": 86
+      }
+    },
+    "2026-09-16": {
+      "rows": 22050,
+      "placed": 22049,
+      "outside_toronto_das": 1,
+      "outside_ids": [
+        "1004013699276160240"
+      ],
+      "by_nbhd_sum_equals_placed": true,
+      "nbhds_with_listings": 158,
+      "within_150m_of_nbhd_boundary": 0.445,
+      "same_name_as_inside_airbnb_nbhd": 0.9979,
+      "short_term": 8554,
+      "active": 12844,
+      "short_term_active": 7918,
+      "active_equals_occupancy_gt_0": true,
+      "available_365_gt_0": 18604,
+      "est_nights": 1601766,
+      "est_nights_max": 255,
+      "priced": 0.7601,
+      "multi_listing": 10318,
+      "licence_short_term": {
+        "registered": 7980,
+        "unmatched": 338,
+        "blank": 208,
+        "exempt": 18,
+        "other": 10
+      },
+      "licence_not_short_term": {
+        "blank": 10014,
+        "unmatched": 3022,
+        "registered": 375,
+        "exempt": 85
+      }
+    },
+    "registrations": {
+      "rows": 8586,
+      "unique_numbers": 8586,
+      "number_format_ok": 1.0,
+      "issued_months": [
+        "202009",
+        "202611"
+      ],
+      "wards": 25,
+      "by_kind": {
+        "condo": 3586,
+        "house": 3285,
+        "apartment": 681,
+        "townhouse": 587,
+        "plex": 447
+      },
+      "address_match": {
+        "address": 8554,
+        "unplaced": 25,
+        "nearest": 7,
+        "placed": 0.9971
+      },
+      "registrations_by_ward_sum": 8586,
+      "registrations_by_nbhd_sum": 8561,
+      "by_nbhd_sum_equals_placed": true,
+      "by_ward_sum_equals_rows": true
+    },
+    "comparison": {
+      "snapshot": "2026-09-16",
+      "registry_retrieved": "2026-11-11",
+      "listings_with_ward": 22050,
+      "short_term_listings": 8554,
+      "short_term_active": 7918,
+      "registrations": 8586,
+      "short_term_per_registration": 0.996,
+      "short_term_active_per_registration": 0.922,
+      "short_term_registered_share": 0.9329,
+      "short_term_active_registered_share": 0.9399,
+      "registration_numbers_on_listings": 6845,
+      "registrations_shown_by_a_listing": 0.7972,
+      "listings_per_number_shown": {
+        "median": 1.0,
+        "max": 11,
+        "numbers_on_5_plus": 37
+      },
+      "listing_and_registration_same_ward": 0.9793,
+      "listing_and_registration_same_nbhd": 0.9308,
+      "by_ward_short_term_vs_registrations": {
+        "r": 0.998,
+        "rho": 0.964
+      },
+      "by_nbhd_short_term_vs_registrations": {
+        "r": 0.991,
+        "rho": 0.947
+      }
+    }
+  },
+  "outputs": {
+    "by_nbhd.csv": {
+      "rows": 632,
+      "bytes": 69338
+    },
+    "registrations_by_nbhd.csv": {
+      "rows": 158,
+      "bytes": 9124
+    },
+    "registrations_by_ward.csv": {
+      "rows": 25,
+      "bytes": 2819
+    }
+  }
+}

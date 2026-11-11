@@ -1,0 +1,513 @@
+{
+  "built": "2026-11-11",
+  "files": {
+    "ncr": {
+      "name": "toronto_neighbourhood_crime_rates_4326.csv",
+      "package": "neighbourhood-crime-rates",
+      "resource": "neighbourhood-crime-rates - 4326.csv",
+      "bytes": 2122301,
+      "retrieved": "2026-11-11"
+    },
+    "csi": {
+      "name": "toronto_community_safety_indicators.csv",
+      "package": "major-crime-indicators",
+      "resource": "Community Safety Indicators.csv",
+      "bytes": 142225817,
+      "retrieved": "2026-11-11"
+    },
+    "shootings": {
+      "name": "toronto_shootings_4326.csv",
+      "package": "shootings-firearm-discharges",
+      "resource": "shootings-firearm-discharges - 4326.csv",
+      "bytes": 1803462,
+      "retrieved": "2026-11-11"
+    },
+    "homicides": {
+      "name": "toronto_homicides_4326.csv",
+      "package": "police-annual-statistical-report-homicide",
+      "resource": "Homicides - 4326.csv",
+      "bytes": 379370,
+      "retrieved": "2026-11-11"
+    },
+    "ksi": {
+      "name": "toronto_ksi_4326.csv",
+      "package": "motor-vehicle-collisions-involving-killed-or-seriously-injured-persons",
+      "resource": "Motor Vehicle Collisions with KSI Data - 4326.csv",
+      "bytes": 11012491,
+      "retrieved": "2026-11-11"
+    }
+  },
+  "categories": {
+    "assault": {
+      "years_complete": [
+        2014,
+        2025
+      ],
+      "basis": "report year"
+    },
+    "auto_theft": {
+      "years_complete": [
+        2014,
+        2025
+      ],
+      "basis": "report year"
+    },
+    "break_and_enter": {
+      "years_complete": [
+        2014,
+        2025
+      ],
+      "basis": "report year"
+    },
+    "homicides": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "homicides_other": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "homicides_shooting": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "homicides_stabbing": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_collisions": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_collisions_cyclist": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_collisions_fatal": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_collisions_motorcyclist": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_collisions_pedestrian": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_killed": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_killed_cyclist": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_killed_driver": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_killed_motorcyclist": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_killed_other": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_killed_passenger": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_killed_pedestrian": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_persons": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_persons_cyclist": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_persons_driver": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_persons_motorcyclist": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_persons_other": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_persons_passenger": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "ksi_persons_pedestrian": {
+      "years_complete": [
+        2006,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "robbery": {
+      "years_complete": [
+        2014,
+        2025
+      ],
+      "basis": "report year"
+    },
+    "shooting_injured": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "shooting_killed": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "shootings": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "shootings_all": {
+      "years_complete": [
+        2004,
+        2025
+      ],
+      "basis": "occurrence year"
+    },
+    "theft_over": {
+      "years_complete": [
+        2014,
+        2025
+      ],
+      "basis": "report year"
+    }
+  },
+  "rows": {
+    "by_nbhd": 35089,
+    "rates": 18644,
+    "population": 1896
+  },
+  "checks": {
+    "ncr_population": {
+      "implied_vs_other_categories_max_abs_diff": 0.0,
+      "implied_2025_vs_stated_max_abs_diff": 0,
+      "total_by_year": {
+        "2014": 2749687,
+        "2015": 2761715,
+        "2016": 2823026,
+        "2017": 2859156,
+        "2018": 2902249,
+        "2019": 2933545,
+        "2020": 2941433,
+        "2021": 2937349,
+        "2022": 3002269,
+        "2023": 3112380,
+        "2024": 3199635,
+        "2025": 3214722
+      }
+    },
+    "neighbourhoods": {
+      "ncr_rows": 158,
+      "ids_match_figures": true,
+      "names_match_insights": true
+    },
+    "csi": {
+      "rows": 486204,
+      "occurrences": 423899,
+      "rows_by_category": {
+        "assault": 261148,
+        "break_and_enter": 86150,
+        "auto_theft": 80726,
+        "robbery": 40885,
+        "theft_over": 17295
+      },
+      "years": [
+        2014,
+        2026
+      ],
+      "through": "2026-06-30",
+      "complete_through": 2025,
+      "rows_reported_since_2014_occurred_before": 1621,
+      "nsa": 7459,
+      "no_coordinates": 7092,
+      "offset_nodes": 19367,
+      "offset_nodes_in_several_nbhds": 2253,
+      "rows_at_those_nodes": 116674,
+      "placement": {
+        "records_with_both": 478745,
+        "agree": 0.8697,
+        "point_outside_das": 579,
+        "unassigned_with_point_inside_das": 255
+      }
+    },
+    "shootings": {
+      "rows": 6893,
+      "events": 6893,
+      "by_type": {
+        "Firearm Discharge": 3667,
+        "Shooting": 3226
+      },
+      "years": [
+        2004,
+        2026
+      ],
+      "through": "2026-06-23",
+      "complete_through": 2025,
+      "nsa": 69,
+      "nsa_by_year": {
+        "2004": 8,
+        "2005": 11,
+        "2006": 7,
+        "2007": 5,
+        "2008": 3,
+        "2009": 5,
+        "2010": 8,
+        "2011": 4,
+        "2012": 4,
+        "2013": 9,
+        "2020": 1,
+        "2021": 1,
+        "2023": 1,
+        "2024": 1,
+        "2025": 1
+      },
+      "placement": {
+        "records_with_both": 6824,
+        "agree": 0.902,
+        "point_outside_das": 7,
+        "unassigned_with_point_inside_das": 6
+      }
+    },
+    "homicides": {
+      "rows": 1542,
+      "events": 1444,
+      "by_type": {
+        "Shooting": 800,
+        "Other": 385,
+        "Stabbing": 357
+      },
+      "years": [
+        2004,
+        2026
+      ],
+      "through": "2026-06-20",
+      "complete_through": 2025,
+      "nsa": 3,
+      "placement": {
+        "records_with_both": 1539,
+        "agree": 0.8915,
+        "point_outside_das": 1,
+        "unassigned_with_point_inside_das": 2
+      }
+    },
+    "ksi": {
+      "rows": 20891,
+      "collisions": 7677,
+      "persons_ksi": 8285,
+      "persons_killed": 1109,
+      "fatal_collisions": 1073,
+      "collisions_without_a_ksi_person": 0,
+      "acclass": {
+        "Non-Fatal Injury": 6594,
+        "Fatal Injury": 1073,
+        "Property Damage Only": 8,
+        "Unknown": 1,
+        "nan": 1
+      },
+      "years": [
+        2006,
+        2026
+      ],
+      "through": "2026-10-22",
+      "complete_through": 2025,
+      "note": "records reach the City months to over a year late; the latest complete year is low",
+      "collisions_by_year": {
+        "2006": 481,
+        "2007": 453,
+        "2008": 417,
+        "2009": 438,
+        "2010": 400,
+        "2011": 400,
+        "2012": 453,
+        "2013": 431,
+        "2014": 350,
+        "2015": 350,
+        "2016": 386,
+        "2017": 392,
+        "2018": 422,
+        "2019": 367,
+        "2020": 270,
+        "2021": 270,
+        "2022": 295,
+        "2023": 334,
+        "2024": 296,
+        "2025": 256,
+        "2026": 216
+      },
+      "collisions_without_name": 45,
+      "collisions_without_name_placed_by_point": 24,
+      "collisions_unplaced": 21,
+      "placement": {
+        "records_with_both": 7632,
+        "agree": 0.9319,
+        "point_outside_das": 1,
+        "unassigned_with_point_inside_das": 24
+      }
+    },
+    "ncr_agreement": {
+      "assault": {
+        "cells": 1896,
+        "exact": 0.9552,
+        "within_1": 0.9884,
+        "ncr_total": 244385,
+        "recomputed_total": 244353,
+        "abs_diff": 118,
+        "r": 1.0
+      },
+      "auto_theft": {
+        "cells": 1896,
+        "exact": 0.9198,
+        "within_1": 0.9873,
+        "ncr_total": 75875,
+        "recomputed_total": 76058,
+        "abs_diff": 199,
+        "r": 1.0
+      },
+      "break_and_enter": {
+        "cells": 1896,
+        "exact": 0.9879,
+        "within_1": 0.9984,
+        "ncr_total": 82560,
+        "recomputed_total": 82544,
+        "abs_diff": 26,
+        "r": 1.0
+      },
+      "robbery": {
+        "cells": 1896,
+        "exact": 0.9879,
+        "within_1": 0.9989,
+        "ncr_total": 38498,
+        "recomputed_total": 38493,
+        "abs_diff": 25,
+        "r": 1.0
+      },
+      "theft_over": {
+        "cells": 1896,
+        "exact": 0.9784,
+        "within_1": 0.9958,
+        "ncr_total": 16038,
+        "recomputed_total": 15996,
+        "abs_diff": 52,
+        "r": 0.9998
+      },
+      "shootings_all": {
+        "cells": 1896,
+        "exact": 1.0,
+        "within_1": 1.0,
+        "ncr_total": 4498,
+        "recomputed_total": 4498,
+        "abs_diff": 0,
+        "r": 1.0
+      },
+      "homicides": {
+        "cells": 1896,
+        "exact": 1.0,
+        "within_1": 1.0,
+        "ncr_total": 862,
+        "recomputed_total": 862,
+        "abs_diff": 0,
+        "r": 1.0
+      }
+    },
+    "population_2021": {
+      "census": 2794356,
+      "environics": 2937349,
+      "r": 0.9994,
+      "ratio_range": [
+        0.967,
+        1.139
+      ]
+    }
+  }
+}

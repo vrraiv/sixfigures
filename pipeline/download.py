@@ -156,6 +156,54 @@ TORONTO = {
         "building-permits-cleared-permits", "Cleared Permits 2000 to 2016", b'"PERMIT_NUM"'),
     "toronto_permits_active.csv": (
         "building-permits-active-permits", "building-permits-active-permits.csv", b"_id,"),
+    # Crime and traffic injuries (crime.py), refreshed quarterly (police) and daily (KSI)
+    # upstream; delete them to fetch the current files.
+    "toronto_neighbourhood_crime_rates_4326.csv": (
+        "neighbourhood-crime-rates", "neighbourhood-crime-rates - 4326.csv", b"_id,"),
+    "toronto_community_safety_indicators.csv": (
+        "major-crime-indicators", "Community Safety Indicators.csv", b"_id,"),
+    "toronto_shootings_4326.csv": (
+        "shootings-firearm-discharges", "shootings-firearm-discharges - 4326.csv", b"_id,"),
+    "toronto_homicides_4326.csv": (
+        "police-annual-statistical-report-homicide", "Homicides - 4326.csv", b"_id,"),
+    "toronto_ksi_4326.csv": (
+        "motor-vehicle-collisions-involving-killed-or-seriously-injured-persons",
+        "Motor Vehicle Collisions with KSI Data - 4326.csv", b"_id,"),
+    # Short-term rental registrations (rentals.py): active numbers only, refreshed daily
+    "toronto_str_registrations.csv": (
+        "short-term-rentals-registration", "short-term-rental-registrations-data.csv", b"_id,"),
+    # Mayoral elections by voting subdivision (elections.py)
+    "toronto_election_results_2022.zip": ("election-results-official", "2022-results", b"PK"),
+    "toronto_byelection_mayor_2023.xlsx": (
+        "elections-official-by-election-results", "2023 Office of the Mayor", b"PK"),
+    "toronto_voter_statistics_2022.xlsx": ("elections-voter-statistics", "2022-voter-statistics", b"PK"),
+    "toronto_byelection_mayor_2023_voter_statistics.xlsx": (
+        "elections-by-election-voter-statistics", "2023-mayoral-by-election-voter-statistics", b"PK"),
+    "toronto_voting_subdivisions_2022_4326.geojson": (
+        "elections-subdivisions", "voting-subdivisions-2022 - 4326.geojson", b"{"),
+    "toronto_voting_subdivisions_2023_4326.geojson": (
+        "elections-subdivisions", "voting-subdivisions-2023 - 4326.geojson", b"{"),
+    # Street trees and 2018 land cover (trees.py); 145 MB and 436 MB
+    "toronto_street_trees_4326.csv": ("street-tree-data", "Street Tree Data - 4326.csv", b"_id,"),
+    "toronto_tree_canopy_2018.zip": ("forest-and-land-cover", "2018 Tree Canopy Study Geodatabase", b"PK"),
+    # DineSafe inspections (health.py), a rolling ~3-year window refreshed daily
+    "toronto_dinesafe.csv": ("dinesafe", "Dinesafe.csv", b"_id,"),
+}
+
+# Inside Airbnb Toronto listings (rentals.py), CC BY 4.0, into pipeline/raw/insideairbnb/: the
+# scrapes listed on insideairbnb.com/get-the-data (quarterly, ~last 12 months). Add each new date
+# here and to rentals.SNAPSHOTS.
+INSIDEAIRBNB_DIR = RAW / "insideairbnb"
+INSIDEAIRBNB = "https://data.insideairbnb.com/canada/on/toronto/{}/data/listings.csv.gz"
+INSIDEAIRBNB_DATES = ["2025-12-12", "2026-03-19", "2026-06-15", "2026-09-16"]
+
+# Deprivation indexes by 2021 DA (health.py), plain downloads (zip or xlsx).
+# ON-Marg: non-commercial use only, credit PHO and St. Michael's, no modification
+# (see health.py); CIMD: Statistics Canada Open Licence, from www150 (no bot challenge).
+HEALTH = {
+    "index-on-marg-2021.xlsx": "https://www.publichealthontario.ca/-/media/Data-Files/index-on-marg.xlsx",
+    "cimd_2021_on_csv.zip": ("https://www150.statcan.gc.ca/n1/pub/45-20-0001/2023001/csv/"
+                             "on_scores_quintiles_csv-eng.zip"),
 }
 
 
@@ -378,6 +426,23 @@ def main() -> int:
         print(f"fetch   schools/{name}")
         if not fetch(ONTARIO + path, dest, b"PK", attempts=3):
             missing.append((f"schools/{name}", ONTARIO + path))
+    INSIDEAIRBNB_DIR.mkdir(exist_ok=True)
+    for date in INSIDEAIRBNB_DATES:
+        dest = INSIDEAIRBNB_DIR / f"toronto_listings_{date}.csv.gz"
+        if dest.exists() and dest.open("rb").read(2) == b"\x1f\x8b":
+            print(f"ok      insideairbnb/{dest.name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   insideairbnb/{dest.name}")
+        if not fetch(INSIDEAIRBNB.format(date), dest, b"\x1f\x8b", attempts=3):
+            missing.append((f"insideairbnb/{dest.name}", INSIDEAIRBNB.format(date)))
+    for name, url in HEALTH.items():
+        dest = RAW / name
+        if dest.exists() and zipfile.is_zipfile(dest):
+            print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   {name}")
+        if not fetch(url, dest, b"PK", attempts=3):
+            missing.append((name, url))
     if optional:
         print("\nOptional downloads failed (overlays.py skips the FSA overlay without them).")
         print(f"To include them, download these in a browser and save them to {RAW.resolve()}:")

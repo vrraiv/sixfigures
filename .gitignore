@@ -47,6 +47,13 @@ pipeline/out/
 !pipeline/demography/*.csv
 # TRREB sale prices by community (trreb.py), a model input
 !pipeline/trreb/*.csv
+# Neighbourhood layers placed with pipeline/places.py: crime, health, elections,
+# trees and short-term rentals (crime.py, health.py, elections.py, trees.py, rentals.py)
+!pipeline/crime/*.csv
+!pipeline/health/*.csv
+!pipeline/elections/*.csv
+!pipeline/trees/*.csv
+!pipeline/rentals/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---

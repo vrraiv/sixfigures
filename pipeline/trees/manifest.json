@@ -1,0 +1,561 @@
+{
+  "built": "2026-11-11",
+  "da_outlines": "toronto_da.pmtiles z13",
+  "files": {
+    "street_trees": {
+      "name": "toronto_street_trees_4326.csv",
+      "bytes": 145151487,
+      "retrieved": "2026-11-11"
+    },
+    "canopy_2018": {
+      "name": "toronto_tree_canopy_2018.zip",
+      "bytes": 436398730,
+      "retrieved": "2026-11-11"
+    }
+  },
+  "landsat": {
+    "source": "Microsoft Planetary Computer STAC, collection landsat-c2-l2, asset lwir11 (ST_B10)",
+    "retrieved": "2026-11-11",
+    "summers": "June-August 2021-2025",
+    "max_scene_cloud": 10,
+    "min_clear": 0.9,
+    "own_minus_usgs_c": {
+      "pixels": 5303081,
+      "mean": -0.58,
+      "sd": 0.89,
+      "p5_p95": [
+        -2.31,
+        0.48
+      ]
+    },
+    "scenes_used": [
+      {
+        "date": "2022-06-14",
+        "wrs_path": "018",
+        "scenes": [
+          "LC09_L2SP_018029_20220614_02_T1",
+          "LC09_L2SP_018030_20220614_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          1.25,
+          4.03
+        ],
+        "clear": 0.995,
+        "usgs_st_share": 0.731,
+        "own_minus_usgs_c": {
+          "mean": -0.53,
+          "sd": 0.91
+        },
+        "city_mean_c": 38.14
+      },
+      {
+        "date": "2022-07-09",
+        "wrs_path": "017",
+        "scenes": [
+          "LC09_L2SP_017030_20220709_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          1.86
+        ],
+        "clear": 0.955,
+        "usgs_st_share": 0.72,
+        "own_minus_usgs_c": {
+          "mean": -0.52,
+          "sd": 0.95
+        },
+        "city_mean_c": 37.08
+      },
+      {
+        "date": "2023-06-01",
+        "wrs_path": "018",
+        "scenes": [
+          "LC09_L2SP_018029_20230601_02_T1",
+          "LC09_L2SP_018030_20230601_02_T1"
+        ],
+        "time_utc": "16:02",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          5.21,
+          3.55
+        ],
+        "clear": 0.949,
+        "usgs_st_share": 0.719,
+        "own_minus_usgs_c": {
+          "mean": -0.55,
+          "sd": 0.93
+        },
+        "city_mean_c": 41.23
+      },
+      {
+        "date": "2023-07-04",
+        "wrs_path": "017",
+        "scenes": [
+          "LC08_L2SP_017030_20230704_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          8.92
+        ],
+        "clear": 0.93,
+        "usgs_st_share": 0.723,
+        "own_minus_usgs_c": {
+          "mean": -0.62,
+          "sd": 0.87
+        },
+        "city_mean_c": 41.25
+      },
+      {
+        "date": "2023-07-20",
+        "wrs_path": "017",
+        "scenes": [
+          "LC08_L2SP_017030_20230720_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          6.67
+        ],
+        "clear": 0.929,
+        "usgs_st_share": 0.712,
+        "own_minus_usgs_c": {
+          "mean": -0.67,
+          "sd": 0.87
+        },
+        "city_mean_c": 38.67
+      },
+      {
+        "date": "2024-07-13",
+        "wrs_path": "018",
+        "scenes": [
+          "LC08_L2SP_018029_20240713_02_T1",
+          "LC08_L2SP_018030_20240713_02_T1"
+        ],
+        "time_utc": "16:02",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          5.94,
+          3.79
+        ],
+        "clear": 0.949,
+        "usgs_st_share": 0.725,
+        "own_minus_usgs_c": {
+          "mean": -0.64,
+          "sd": 0.88
+        },
+        "city_mean_c": 35.95
+      },
+      {
+        "date": "2024-07-14",
+        "wrs_path": "017",
+        "scenes": [
+          "LC09_L2SP_017030_20240714_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          2.13
+        ],
+        "clear": 0.915,
+        "usgs_st_share": 0.709,
+        "own_minus_usgs_c": {
+          "mean": -0.58,
+          "sd": 0.88
+        },
+        "city_mean_c": 37.76
+      },
+      {
+        "date": "2024-08-14",
+        "wrs_path": "018",
+        "scenes": [
+          "LC08_L2SP_018029_20240814_02_T1",
+          "LC08_L2SP_018030_20240814_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          0.03,
+          2.34
+        ],
+        "clear": 0.996,
+        "usgs_st_share": 0.731,
+        "own_minus_usgs_c": {
+          "mean": -0.66,
+          "sd": 0.89
+        },
+        "city_mean_c": 35.88
+      },
+      {
+        "date": "2024-08-15",
+        "wrs_path": "017",
+        "scenes": [
+          "LC09_L2SP_017030_20240815_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          0.37
+        ],
+        "clear": 0.949,
+        "usgs_st_share": 0.719,
+        "own_minus_usgs_c": {
+          "mean": -0.58,
+          "sd": 0.91
+        },
+        "city_mean_c": 36.7
+      },
+      {
+        "date": "2025-08-02",
+        "wrs_path": "017",
+        "scenes": [
+          "LC09_L2SP_017030_20250802_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          2.09
+        ],
+        "clear": 0.945,
+        "usgs_st_share": 0.717,
+        "own_minus_usgs_c": {
+          "mean": -0.56,
+          "sd": 0.92
+        },
+        "city_mean_c": 36.97
+      },
+      {
+        "date": "2025-08-10",
+        "wrs_path": "017",
+        "scenes": [
+          "LC08_L2SP_017030_20250810_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          4.84
+        ],
+        "clear": 0.93,
+        "usgs_st_share": 0.714,
+        "own_minus_usgs_c": {
+          "mean": -0.51,
+          "sd": 0.8
+        },
+        "city_mean_c": 34.72
+      }
+    ],
+    "scenes_rejected": [
+      {
+        "date": "2022-06-23",
+        "wrs_path": "017",
+        "scenes": [
+          "LC09_L2SP_017030_20220623_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          4.87
+        ],
+        "clear": 0.866,
+        "usgs_st_share": 0.715,
+        "own_minus_usgs_c": {
+          "mean": -0.46,
+          "sd": 0.88
+        }
+      },
+      {
+        "date": "2022-07-16",
+        "wrs_path": "018",
+        "scenes": [
+          "LC09_L2SP_018030_20220716_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          7.97
+        ],
+        "clear": 0.823,
+        "usgs_st_share": 0.727,
+        "own_minus_usgs_c": {
+          "mean": -0.58,
+          "sd": 0.94
+        }
+      },
+      {
+        "date": "2023-06-17",
+        "wrs_path": "018",
+        "scenes": [
+          "LC09_L2SP_018029_20230617_02_T1"
+        ],
+        "time_utc": "16:02",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          3.07
+        ],
+        "clear": 0.817,
+        "usgs_st_share": 0.706,
+        "own_minus_usgs_c": {
+          "mean": -0.55,
+          "sd": 0.94
+        }
+      },
+      {
+        "date": "2023-08-28",
+        "wrs_path": "018",
+        "scenes": [
+          "LC08_L2SP_018030_20230828_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          4.92
+        ],
+        "clear": 0.63,
+        "usgs_st_share": 0.764,
+        "own_minus_usgs_c": {
+          "mean": -0.61,
+          "sd": 0.84
+        }
+      },
+      {
+        "date": "2024-07-29",
+        "wrs_path": "018",
+        "scenes": [
+          "LC08_L2SP_018029_20240729_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          4.41
+        ],
+        "clear": 0.833,
+        "usgs_st_share": 0.703,
+        "own_minus_usgs_c": {
+          "mean": -0.69,
+          "sd": 0.9
+        }
+      },
+      {
+        "date": "2024-08-07",
+        "wrs_path": "017",
+        "scenes": [
+          "LC08_L2SP_017030_20240807_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          4.88
+        ],
+        "clear": 0.898,
+        "usgs_st_share": 0.711,
+        "own_minus_usgs_c": {
+          "mean": -0.69,
+          "sd": 0.89
+        }
+      },
+      {
+        "date": "2024-08-22",
+        "wrs_path": "018",
+        "scenes": [
+          "LC09_L2SP_018030_20240822_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-9",
+        "cloud_cover": [
+          5.59
+        ],
+        "clear": 0.49,
+        "usgs_st_share": 0.809,
+        "own_minus_usgs_c": {
+          "mean": -0.54,
+          "sd": 0.85
+        }
+      },
+      {
+        "date": "2025-06-07",
+        "wrs_path": "017",
+        "scenes": [
+          "LC08_L2SP_017030_20250607_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          6.76
+        ],
+        "clear": 0.299,
+        "usgs_st_share": 0.687,
+        "own_minus_usgs_c": {
+          "mean": -0.76,
+          "sd": 0.92
+        }
+      },
+      {
+        "date": "2025-06-14",
+        "wrs_path": "018",
+        "scenes": [
+          "LC08_L2SP_018029_20250614_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          2.99
+        ],
+        "clear": 0.818,
+        "usgs_st_share": 0.7,
+        "own_minus_usgs_c": {
+          "mean": -0.65,
+          "sd": 0.88
+        }
+      },
+      {
+        "date": "2025-06-23",
+        "wrs_path": "017",
+        "scenes": [
+          "LC08_L2SP_017030_20250623_02_T1"
+        ],
+        "time_utc": "15:57",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          3.28
+        ],
+        "clear": 0.801,
+        "usgs_st_share": 0.729,
+        "own_minus_usgs_c": {
+          "mean": -0.55,
+          "sd": 0.85
+        }
+      },
+      {
+        "date": "2025-07-16",
+        "wrs_path": "018",
+        "scenes": [
+          "LC08_L2SP_018029_20250716_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          7.78
+        ],
+        "clear": 0.726,
+        "usgs_st_share": 0.7,
+        "own_minus_usgs_c": {
+          "mean": -0.66,
+          "sd": 0.91
+        }
+      },
+      {
+        "date": "2025-08-01",
+        "wrs_path": "018",
+        "scenes": [
+          "LC08_L2SP_018029_20250801_02_T1"
+        ],
+        "time_utc": "16:03",
+        "platform": "landsat-8",
+        "cloud_cover": [
+          6.17
+        ],
+        "clear": 0.28,
+        "usgs_st_share": 0.668,
+        "own_minus_usgs_c": {
+          "mean": -0.64,
+          "sd": 0.91
+        }
+      }
+    ]
+  },
+  "rows": {
+    "by_da": 3743,
+    "by_nbhd": 158
+  },
+  "checks": {
+    "street_trees": {
+      "rows": 688335,
+      "max_id": 688335,
+      "placed": 688332,
+      "no_coordinates": 0,
+      "outside_das": 3,
+      "placed_share": 1.0,
+      "by_da_sum": 688332,
+      "by_nbhd_sum": 688332,
+      "dbh_missing": 3307,
+      "dbh_over_max": 39,
+      "dbh_median_city": 17.0,
+      "large_share_city": 0.1321,
+      "das_without_trees": 9,
+      "top_species_city": {
+        "Acer platanoides": 99736,
+        "Gleditsia triacanthos": 59904,
+        "Tilia cordata": 27342,
+        "Picea pungens": 24086,
+        "Quercus rubra": 23707,
+        "Gymnocladus dioicus": 21482,
+        "Acer x freemanii": 21171,
+        "Acer saccharinum": 20833,
+        "Syringa reticulata": 17580,
+        "Ginkgo biloba": 17464
+      }
+    },
+    "canopy": {
+      "polygons": 343873,
+      "class_km2": {
+        "(none)": 6.26,
+        "bare": 75.9,
+        "building": 106.43,
+        "grass": 51.84,
+        "other": 140.74,
+        "road": 62.78,
+        "shrub": 30.21,
+        "tree": 166.43,
+        "water": 2.75
+      },
+      "tree_km2": 166.43,
+      "tree_km2_in_das": 166.35,
+      "city_share": 0.2619
+    },
+    "vs_median_household_income_2021_by_da": {
+      "trees_per_ha": {
+        "n": 3675,
+        "r": 0.341,
+        "rho": 0.37
+      },
+      "canopy_share": {
+        "n": 3675,
+        "r": 0.426,
+        "rho": 0.411
+      },
+      "lst_c": {
+        "n": 3675,
+        "r": -0.186,
+        "rho": -0.14
+      },
+      "lst_anom": {
+        "n": 3675,
+        "r": -0.185,
+        "rho": -0.138
+      }
+    },
+    "lst_anom_vs_canopy_share_by_da": {
+      "n": 3743,
+      "r": -0.686,
+      "rho": -0.634
+    },
+    "lst_anom_vs_trees_per_ha_by_da": {
+      "n": 3743,
+      "r": 0.164,
+      "rho": 0.136
+    },
+    "lst": {
+      "scenes_used": 11,
+      "scenes_rejected": 12,
+      "das_with_lst": 3743,
+      "da_lst_c_range": [
+        28.15,
+        45.06
+      ],
+      "da_scenes_median": 11.0
+    }
+  }
+}

@@ -78,8 +78,16 @@ it's worth an enquiry, but the plan doesn't depend on it.
 | Social and affordable housing units | `active-affordable-and-social-housing-units` | quarterly, 2020-2026 | city-wide totals only | Not usable by neighbourhood | | |
 | Affordable rental housing pipeline | `upcoming-and-recently-completed-affordable-housing-units` | current snapshot (no dates) | coordinates | Driver (subsidized tenants) | today only | 277 projects; no history, so no backtest use |
 | Demolition and replacement of rental units | `demolition-and-replacement-of-rental-housing-units` | quarterly | address | Driver (rental loss) | oracle in backtest | addresses match |
-| Neighbourhood crime rates | `neighbourhood-crime-rates` | 2014-2025 | 158 neighbourhoods | Annual driver (exploratory) | known | 158 neighbourhoods, one row each |
-| Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | postal code | Exploratory | today only | 8,713 registrations; no history, so no backtest use |
+| Neighbourhood crime rates | `neighbourhood-crime-rates` | 2014-2025 | 158 neighbourhoods (HOOD_ID = nbhd_id) | Check; Environics population 2014-2025 (implied by count / rate) | known | ingested: `pipeline/crime/population.csv` |
+| Community Safety Indicators (formerly Major Crime Indicators) | `major-crime-indicators` ("Community Safety Indicators.csv") | reported 2014-today, quarterly | point offset to nearest intersection, with HOOD_158 | Annual driver (exploratory): assault, B&E, auto theft, robbery, theft over | known | recomputed by report year vs Neighbourhood Crime Rates: 92-99% of neighbourhood-years exact, totals within 0.3% |
+| Shootings & firearm discharges | `shootings-firearm-discharges` | 2004-today, quarterly | as above | Annual driver (exploratory) | known | 100% exact vs Crime Rates; discharges under-recorded before 2015 |
+| Homicides | `police-annual-statistical-report-homicide` ("Homicides - 4326.csv") | 2004-today, quarterly | as above; one row per victim | Annual driver (exploratory) | known | 100% exact vs Crime Rates (victims) |
+| KSI traffic collisions | `motor-vehicle-collisions-involving-killed-or-seriously-injured-persons` | 2006-today, daily; months-to-a-year reporting lag | coordinates + 158-model neighbourhood name; one row per person | Annual driver (exploratory): collisions, persons killed or seriously injured by road user | known | names match insights.json; point-in-polygon agrees 92% |
+| DineSafe | `dinesafe` | rolling ~3 years, daily | coordinates | Exploratory (food premises, inspections, infractions) | known | 20,118 establishments, all placed |
+| Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | address, FSA, ward | Exploratory | today only | 8,586 registrations (2026-11-11); no history, so no backtest use; ingested by `pipeline/rentals.py` |
+| Municipal election results (Mayor) | `election-results-official` (2022), `elections-official-by-election-results` (2023 by-election), `elections-voter-statistics`, `elections-by-election-voter-statistics`, `elections-subdivisions` | 2022, 2023 (2026 results posted, no boundaries yet) | voting subdivision to DA and neighbourhood | Exploratory (turnout and vote shares against census income) | known | ward and city totals equal the workbooks and the Clerk's declarations (551,890; 724,638); electors vs 2021 population r 0.94 by neighbourhood |
+| Street trees | `street-tree-data` | as available (2026-06-04) | points (geocoded, many to the parcel address) | Exploratory: trees per ha, DBH, species by DA | today only | 688,335 rows = datastore total; 22 outside DAs; City street trees only, no parks or private |
+| Forest and land cover (2018 Tree Canopy Study) | `forest-and-land-cover` | 2018 | 8-class land-cover polygons (EPSG:2952) | Exploratory: canopy share by DA | 2018 | 166.4 km2 tree class, 26.2% of DA area; canopy share vs median household income r 0.43 |
 | Toronto Employment Survey | `toronto-employment-survey-summary-tables` | annual | summary tables (geography to be checked) | City anchor (jobs) | known | |
 | TTC routes and schedules (GTFS); transit-oriented communities | `ttc-routes-and-schedules`, `transit-oriented-communities` | current | stops, sites | Driver (new rapid transit near a DA) | known for opened lines | |
 | Neighbourhood Profiles 2021 (158 model) | `neighbourhood-profiles` | 2021 | 158 neighbourhoods | Validation (already used) | | |
@@ -155,6 +163,75 @@ codes. Their distribution changes in the 2022-23 file (low income tops out at 45
 instead of about 70%, and many more schools sit at 10%), which suggests a switch from
 the 2016 to the 2021 Census; the Ministry's page doesn't name the vintage. A
 2016-to-2021 backtest should use only the files before 2022-23.
+
+### Neighbourhood layers (`pipeline/places.py`; `make layers`)
+
+Checked and ingested 2026-11-11. Each layer is placed with `pipeline/places.py`:
+point-in-polygon in the 2021 DAs (StatCan's boundary file when on disk, else the
+committed `toronto_da.pmtiles` at z13, with points in the slivers between tile
+pieces snapped to the nearest DA within 2 m), and DAs in neighbourhoods by
+`common.json`. Each script's docstring and `manifest.json` hold its checks.
+
+- **Crime and traffic injuries** (`pipeline/crime.py` → `pipeline/crime/`): the
+  police files in the City table above, by neighbourhood and year, with five-year
+  rates per 100,000 on 2021 population. The neighbourhood is the police's own
+  (assigned from the true location), not the intersection-offset point, so there is
+  no DA table. Sexual assaults are not in the file. Firearm discharges are
+  under-recorded before 2015; KSI's latest year fills in over a year or more.
+- **Deprivation and food premises** (`pipeline/health.py` → `pipeline/health/`):
+  - **CIMD 2021**, Ontario index (StatCan 45-20-0001, corrected 2024-10-22), by DA
+    and neighbourhood (population-weighted mean scores and the share in Ontario's
+    top quintile). Statistics Canada Open Licence. 17 Toronto DAs are dropped or
+    suppressed.
+  - **ON-Marg 2021** (Public Health Ontario and St. Michael's): same shape, r 0.84
+    to 0.96 with CIMD's matching dimensions. Its terms allow non-commercial use with
+    credit and forbid modifying the content without permission, so its values go to
+    `pipeline/out/` and are not committed until that is settled.
+  - **DineSafe**: establishments, inspections, outcomes and infractions by
+    neighbourhood and year.
+  - **OCHPP** chronic-disease tables (diabetes, asthma, COPD, high blood pressure,
+    mental health visits, premature mortality, on the 158 neighbourhoods) open only
+    after a click-through agreement limiting use to non-profit health and wellbeing
+    purposes, so they are not fetched.
+
+- **Short-term rentals** (`pipeline/rentals.py` → `pipeline/rentals/`):
+  - **Inside Airbnb** Toronto `listings.csv.gz`, CC BY 4.0 (credit "Source: Inside
+    Airbnb, Toronto, <dates>"). The page lists four quarterly scrapes (2025-12-12 to
+    2026-09-16); unlisted monthly files back to 2022-08 still answer at the URL
+    pattern but aren't used (older data is by request). Points are moved up to
+    150 m, so neighbourhoods only (93% of listings with a registration number fall in
+    the registered address's neighbourhood). Listings, room types, short-term (minimum
+    stay under 28 nights; 39% of listings), active (reviewed in the last 12 months),
+    Inside Airbnb's estimated nights, median price (none in 2025-12-12), multi-listing
+    hosts. The 2026-03-19 scrape is about 30% smaller than the others.
+  - **City registrations**: by ward and by neighbourhood (addresses matched, 99.7%),
+    against the latest snapshot: 8,586 registrations vs 8,554 short-term listings, and
+    93% of those listings show a registered number. Not a count of unregistered
+    rentals: one registration can cover several listings and platforms.
+
+- **Mayoral elections** (`pipeline/elections.py` → `pipeline/elections/`): the 2022
+  election and 2023 by-election by poll, 2021 DA and neighbourhood. Subdivisions are
+  split over DAs by estimated population (each DA's 2021 population spread by its
+  address points). Mail-in and advance polls (24% of 2022 votes, 22% in 2023) have no
+  boundary and are allocated within the ward, each candidate by their election-day
+  votes; the 2023 long-term care poll goes to its buildings' polygons. `turnout_day`
+  leaves the special polls out. Turnout against 2021 median household income: r 0.44
+  (2022) and 0.60 (2023) by neighbourhood. 2026 results are posted but its
+  subdivisions were renumbered and have no boundaries or voter statistics yet.
+  Elections Canada's 2025 poll results can be fetched by script, but no 2025
+  polling-division boundaries are published; Elections Ontario's are PDF only.
+
+- **Trees and heat** (`pipeline/trees.py` → `pipeline/trees/`): street trees and
+  2018 canopy share by DA and neighbourhood, and Landsat 8/9 Collection 2 Level-2
+  summer surface temperature from Microsoft Planetary Computer's STAC (anonymous SAS
+  token; USGS's AWS bucket is requester-pays). June-August 2022-2025, 11 passes at
+  least 90% clear over Toronto. USGS's ST_B10 is empty over ~28% of the city (missing
+  emissivity data), so LST is recomputed from the product's radiance and atmosphere
+  bands with NDVI emissivity (0.58 C cooler than ST_B10 where both exist, sd 0.89).
+  Per DA: median over passes of the mean (`lst_c`), and of the difference from each
+  pass's city mean (`lst_anom`: r -0.69 with canopy share, -0.19 with median household
+  income). Canopy share, not street trees per ha (r +0.16 with `lst_anom`), is the
+  measure for heat. Needs `rasterio`.
 
 ### Not pursued
 
