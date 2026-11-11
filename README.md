@@ -52,6 +52,18 @@ and homes sold (as counts or per 1,000 households), correlates them with the 202
 and compares the change in sale prices with the change in census dwelling values. Its
 data is `web/public/prices.json` (`pipeline/price_insights.py`).
 
+Safety Insights, `/insights/safety/`, covers police-reported crime (assaults, break and
+enters, auto thefts, robberies, thefts over $5,000; by year reported, 2014 on), shootings and
+homicides (2004 on) and people killed or seriously injured on the roads (2006 on): the City's
+counts by year, and by neighbourhood a map that crosses the chosen category with household
+income (a 3 × 3 bivariate key) or shows either alone, each category's rate in fifths of the
+neighbourhoods by income, rankings, the change between five-year periods, correlations with
+the 2021 Census and with school results, sale prices, tree canopy, surface heat, turnout and
+short-term rentals, and how the categories go together. Like the other Insights pages it draws
+the neighbourhoods as SVG and loads no map tiles. Rates are per 100,000 residents (2021
+Census), which overstates places people visit more than live in. Its data is
+`web/public/safety.json` (`pipeline/safety_insights.py`, from `pipeline/crime.py`).
+
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's

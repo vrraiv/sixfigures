@@ -276,5 +276,11 @@ layers: $(LAYERS)
 $(LAYERS):
 	$(PYTHON) pipeline/$@.py
 
+# The Safety Insights page's safety.json, from pipeline/crime/ (make crime) and the other
+# committed neighbourhood layers (schools.json, prices.json, pipeline/trees, elections, rentals).
+.PHONY: safety
+safety:
+	$(PYTHON) pipeline/safety_insights.py
+
 clean:
 	rm -rf pipeline/out
