@@ -5,7 +5,7 @@
 import "./style.css";
 import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
-import { BI, INCOME as INCOMES, biKey, breaks, cls, incomeFifths, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
+import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, incomeFifths, inkOn, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   fetch(`/safety.json?v=${__SAFETY_VERSION__}`).then((r) => r.json()),
@@ -166,9 +166,15 @@ function renderYears() {
 }
 
 // ---- 3. the map: crime, income, or both ---------------------------------------------------------
+// a pick redraws the page, so the scatters mark it too
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
-  writeHash();
+  render();
+});
+fillFinder($("find-nb"), nbhd.map((n) => n.name));
+$("find-nb").addEventListener("change", (e) => {
+  state.nb = e.target.value === "" ? null : +e.target.value;
+  render();
 });
 function renderMap() {
   const vs = values(), inc = income(), order = rankOrder(vs);
@@ -201,14 +207,14 @@ function renderMap() {
     $("bi-key").hidden = false;
     $("bi-key").innerHTML = biKey({ xName: `${CAT[state.m].short}, ${periodLabel()}, ${unitText()}`, xRanges: ci, xArrow: "More crime →",
       yName: `${CENSUS[state.inc].long}, 2021`, yRanges: incomeUp() ? ii : [...ii].reverse(), yArrow: incomeUp() ? "Higher income ↑" : "Less low income ↑" });
-    $("map-lede").innerHTML = `${describe()}, against ${escapeHTML(incName)} in 2021: each in thirds of the neighbourhoods. Red is more crime with lower income, teal higher income with less crime, and the darkest corner both high. Hover for figures.`;
+    $("map-lede").innerHTML = `${describe()}, against ${escapeHTML(incName)} in 2021: each in thirds of the neighbourhoods. Red is more crime with lower income, teal higher income with less crime, and the darkest corner both high. Hover or tap for figures.`;
   } else {
     $("bi-key").hidden = true;
     const [b, colours, f] = state.ov === "income" ? [inc6, blues, fi] : [crime6, reds, fmtV];
     $("map-key").innerHTML = rangeLabels(b.edges, b.zero, f).map((l, k) => `<li><span class="key-sq" style="background:${colours[k]}"></span>${escapeHTML(l)}</li>`).join("")
       + (state.ov === "income" && inc.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No figure</li>` : "");
     $("map-lede").innerHTML = state.ov === "income"
-      ? `${escapeHTML(CENSUS[state.inc].long)}, 2021 Census, in sixths of the neighbourhoods. Hover for the crime figure too.`
+      ? `${escapeHTML(CENSUS[state.inc].long)}, 2021 Census, in sixths of the neighbourhoods. Hover or tap for the crime figure too.`
       : `${describe()}, in classes of about equal numbers of neighbourhoods${crime6.zero ? ", with those that had none in a class of their own" : ""}. Rates are per resident, so places many people visit but few live in (downtown, the entertainment district, around Yorkdale) rank high.`;
   }
   markPick();
@@ -229,12 +235,12 @@ function renderIncome() {
     const lo = Math.min(...rs), hi = Math.max(...rs), ratio = rs[4] ? rs[0] / rs[4] : null;
     const cells = rs.map((r, q) => {
       const t = hi > lo ? (r - lo) / (hi - lo) : 0, c5 = Math.min(5, Math.floor(t * 6));
-      return `<td style="background:${REDS[c5]};color:${c5 >= 3 ? "#fff" : INK}" data-tip="${escapeHTML(`${c.short}, ${periodLabel(p)}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${fmtRate(r)}</b> per 100,000 a year`)}">${fmtRate(r)}</td>`;
+      return `<td style="background:${REDS[c5]};color:${inkOn(REDS[c5])}" data-tip="${escapeHTML(`${c.short}, ${periodLabel(p)}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${fmtRate(r)}</b> per 100,000 a year`)}">${fmtRate(r)}</td>`;
     }).join("");
-    return `<tr${c.key === state.m ? ' class="sel"' : ""}><th>${escapeHTML(c.short)}</th><td class="txt small">${periodLabel(p)}</td>${cells}<td>${fmtRate(city)}</td><td><b>${ratio == null ? "—" : `${ratio.toFixed(1)}×`}</b></td></tr>`;
+    return `<tr${c.key === state.m ? ' class="sel"' : ""}><th>${escapeHTML(c.short)}</th><td class="txt small hide-sm">${periodLabel(p)}</td>${cells}<td>${fmtRate(city)}</td><td><b>${ratio == null ? "—" : `${ratio.toFixed(1)}×`}</b></td></tr>`;
   }).join("");
   const head = ["Lowest", "Second", "Middle", "Fourth", "Highest"].map((n, q) => `<th>${n}<br><span class="small">${range(fifths[q])}</span></th>`).join("");
-  $("inc-table").innerHTML = `<thead><tr><th>Category</th><th class="txt">Years</th>${head}<th>City</th><th>Lowest ÷ highest</th></tr></thead><tbody>${rows}</tbody>`;
+  $("inc-table").innerHTML = `<thead><tr><th>Category</th><th class="txt hide-sm">Years</th>${head}<th>City</th><th>Lowest ÷ highest</th></tr></thead><tbody>${rows}</tbody>`;
   const r = $("inc-table").querySelector("tr.sel td:last-child")?.textContent;
   $("inc-lede").innerHTML = `The neighbourhoods in fifths by ${escapeHTML(CENSUS[state.inc].long.toLowerCase().replace("lim-at", "LIM-AT"))} (2021 Census${incomeUp() ? "" : "; the lowest-income fifth has the highest rate"}), about 31 each, and every category's rate in each fifth: its count over its residents, per 100,000 a year over the latest five years. For ${escapeHTML(lcName(state.m))}, the lowest-income fifth's rate is <b>${r}</b> the highest-income fifth's.`;
   $("inc-note").textContent = "Shading runs along each row, from the fifth with the lowest rate to the highest. Rates are per resident: a fifth that holds downtown counts visitors' and workers' incidents against a small population.";
@@ -321,8 +327,7 @@ function renderMatrix() {
   const rows = cats.map((a) => `<tr${a === state.m ? ' class="sel"' : ""}><th>${escapeHTML(CAT[a].short)}</th>${cats.map((b) => {
     if (a === b) return `<td class="none">·</td>`;
     const r = spearman(v[a], v[b])?.r;
-    const strong = Math.abs(r) >= 0.6;
-    return `<td style="background:${rColor(r)};color:${strong ? "#fff" : INK}" data-tip="${escapeHTML(`${CAT[a].short} and ${CAT[b].short}: Spearman <b>${fmtR(r)}</b>`)}">${fmtR(r)}</td>`;
+    return `<td style="background:${rColor(r)};color:${inkOn(rColor(r))}" data-tip="${escapeHTML(`${CAT[a].short} and ${CAT[b].short}: Spearman <b>${fmtR(r)}</b>`)}">${fmtR(r)}</td>`;
   }).join("")}</tr>`).join("");
   $("matrix").innerHTML = `<thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody>`;
   // the closest pair of different kinds, and the category that goes least with the rest
@@ -349,8 +354,10 @@ function render() {
   renderChange();
   renderCorr();
   renderMatrix();
+  $("find-nb").value = state.nb ?? "";
   writeHash();
 }
 renderCards();
 renderYears();
 render();
+buildToc($("toc"));

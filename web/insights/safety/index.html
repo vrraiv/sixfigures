@@ -33,7 +33,9 @@
     </header>
 
     <main class="insights">
-      <section class="ins-section" aria-labelledby="glance-h">
+      <nav class="toc" id="toc" aria-label="On this page"></nav>
+
+      <section class="ins-section" id="glance" data-toc="At a glance" aria-labelledby="glance-h">
         <div class="ins-head">
           <h2 id="glance-h">The city at a glance</h2>
         </div>
@@ -41,7 +43,7 @@
         <div id="cards" class="card-row"></div>
       </section>
 
-      <section class="ins-section" aria-labelledby="years-h">
+      <section class="ins-section" id="years" data-toc="Year by year" aria-labelledby="years-h">
         <div class="ins-head">
           <h2 id="years-h">Year by year</h2>
         </div>
@@ -49,14 +51,14 @@
       </section>
 
       <!-- The category, period and units for the neighbourhood sections below. -->
-      <div class="measure-bar" id="measure-bar">
+      <div class="measure-bar compact" id="measure-bar">
         <label for="measure">Neighbourhoods by</label>
         <select id="measure"></select>
         <div class="seg" id="period" role="group" aria-label="Period"></div>
         <label class="toggle"><input type="checkbox" id="rate" /> Per 100,000 residents</label>
       </div>
 
-      <section class="ins-section" aria-labelledby="map-h">
+      <section class="ins-section" id="on-map" data-toc="The map" aria-labelledby="map-h">
         <div class="ins-head">
           <h2 id="map-h">Neighbourhoods on the map</h2>
           <div class="seg-row">
@@ -65,15 +67,16 @@
           </div>
         </div>
         <p class="ins-lede" id="map-lede"></p>
+        <div class="find-row"><select id="find-nb" class="inline-select" aria-label="Find a neighbourhood"></select></div>
         <div class="map-wrap">
           <figure class="nb-map" id="nb-map"></figure>
           <div class="bi-key" id="bi-key" hidden></div>
         </div>
-        <p class="nb-pick" id="map-pick" hidden></p>
+        <p class="nb-pick" id="map-pick" data-empty="No neighbourhood picked. Pick one on the map, in a list or on a chart, or find it by name, to mark it everywhere on the page."></p>
         <ul class="corr-key" id="map-key"></ul>
       </section>
 
-      <section class="ins-section" aria-labelledby="inc-h">
+      <section class="ins-section" id="by-income" data-toc="By income" aria-labelledby="inc-h">
         <div class="ins-head">
           <h2 id="inc-h">By neighbourhood income</h2>
         </div>
@@ -82,7 +85,7 @@
         <p class="tbl-note" id="inc-note"></p>
       </section>
 
-      <section class="ins-section" aria-labelledby="rank-h">
+      <section class="ins-section" id="ranks" data-toc="Highest and lowest" aria-labelledby="rank-h">
         <div class="ins-head">
           <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
         </div>
@@ -93,7 +96,7 @@
         </div>
       </section>
 
-      <section class="ins-section" aria-labelledby="chg-h">
+      <section class="ins-section" id="then" data-toc="Then and now" aria-labelledby="chg-h">
         <div class="ins-head">
           <h2 id="chg-h">Then and now</h2>
         </div>
@@ -101,7 +104,7 @@
         <figure class="scatter"><div id="chg-scatter"></div></figure>
       </section>
 
-      <section class="ins-section" aria-labelledby="corr-h">
+      <section class="ins-section" id="corr" data-toc="What goes with what" aria-labelledby="corr-h">
         <div class="ins-head">
           <h2 id="corr-h">What goes with what</h2>
         </div>
@@ -118,7 +121,7 @@
         </div>
       </section>
 
-      <section class="ins-section" aria-labelledby="mx-h">
+      <section class="ins-section" id="together" data-toc="Category against category" aria-labelledby="mx-h">
         <div class="ins-head">
           <h2 id="mx-h">How the categories go together</h2>
         </div>

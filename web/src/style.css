@@ -787,6 +787,73 @@ section[hidden] { display: none; }
 #cc-city td.cc-up { color: #184f95; font-weight: 600; }
 #cc-city td.cc-down { color: #8f1c1c; font-weight: 600; }
 
+/* ---- UX pass over the Safety, Trees and Explorer pages ---- */
+/* a chart's last date label ends at the chart's edge instead of sticking out past the page */
+.ch-xticks span:last-child { left: auto !important; right: 0; transform: none; }
+/* the DAs' map keeps its place while its outlines load */
+.da-map { min-height: 300px; }
+/* the contents list at the top of a long page */
+.toc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 12px 0 0; font-size: 13px; }
+.toc-label { color: var(--ink-3); margin-right: 2px; }
+.toc a { padding: 3px 10px; color: var(--ink-2); text-decoration: none; background: #fff; border: 1px solid #d6d6cf; border-radius: 999px; white-space: nowrap; }
+.toc a:hover, .toc a:focus-visible { color: var(--accent); border-color: var(--accent); }
+.toc:empty { display: none; }
+/* the measure menu sticks only while its own sections are on screen */
+.bar-scope > .ins-section:last-of-type { border-bottom: 1px solid var(--rule); }
+/* the picked-neighbourhood bar when nothing is picked: a hint, in its usual place */
+.nb-pick.empty { color: var(--ink-3); font-size: 12px; }
+/* the neighbourhood finder */
+.find-row { display: flex; justify-content: flex-end; margin: 0 0 6px; }
+.find-row .inline-select, .ex-actions .inline-select { max-width: 260px; }
+/* nothing wider than a 320 px screen */
+.inline-select { min-width: 0; max-width: 100%; }
+.seg-row { min-width: 0; max-width: 100%; }
+.in-body > * { min-width: 0; }
+.in-stats { grid-template-columns: auto minmax(0, 1fr); }
+.in-stats button.nm { white-space: normal; }
+.ins-head > .seg-row, .ins-head > .inline-select { flex: 0 1 auto; }
+/* how each canopy figure is measured, under its name */
+.cc-how { display: block; max-width: 44ch; font-size: 11px; font-weight: 400; color: var(--ink-3); white-space: normal; }
+#cc-city tbody th { white-space: normal; }
+@media (max-width: 640px) {
+  /* a row of period buttons wider than the screen scrolls instead of being cut off */
+  .seg { max-width: 100%; overflow-x: auto; }
+  .seg button { flex: none; }
+  .toc { flex-wrap: nowrap; overflow-x: auto; margin-right: -16px; padding: 2px 16px 6px 0; scrollbar-width: thin; }
+  .toc-label { flex: none; }
+  /* rankings without a change column give the name the room */
+  .rank-list li:has(> .move:empty) { grid-template-columns: 22px minmax(0, 2.4fr) minmax(32px, 1fr) auto 0; }
+  /* names in the correlation lists wrap instead of cutting off ("People who moved in the past…") */
+  .corr-cols .cl-name, .ex-lag .cl-name { white-space: normal; }
+  /* the Explorer's pickers are too tall to pin on a phone */
+  .ex-bar { position: static; }
+  /* a pinned menu on a phone: no label, the period and the units on one line */
+  .measure-bar.compact > label[for="measure"] { display: none; }
+  .measure-bar.compact { gap: 8px; }
+  .measure-bar.compact .seg button { padding: 5px 6px; }
+  .measure-bar.compact .toggle { font-size: 12px; gap: 4px; }
+  .hide-sm { display: none; }
+  /* wide tables: slimmer cells, and the first column stays put while the rest scroll */
+  .tbl.heat td, .tbl.heat th { padding: 4px 6px; }
+  .tbl.heat td { min-width: 46px; }
+  .tbl.heat tbody th { position: sticky; left: 0; z-index: 1; max-width: 132px; white-space: normal; background: var(--surface); }
+  .tbl.heat tr.sel th { background: #eef4fc; }
+  .find-row { justify-content: stretch; }
+  .find-row .inline-select, .ex-actions .inline-select { max-width: none; flex: 1 1 100%; }
+}
+/* fingers need bigger targets than a mouse */
+@media (pointer: coarse) {
+  .insights button.nm { padding: 7px 0; }
+  .day-step { min-width: 40px; min-height: 40px; }
+  .ex-period input[type="range"] { height: 32px; }
+  .toggle input, .hv-factors input { width: 20px; height: 20px; }
+  .hv-factors label { padding: 4px 0; }
+  .corr-list button { padding: 9px 0; }
+  .toc a { padding: 7px 12px; }
+  .inline-select { padding: 8px 8px; }
+  .seg button { min-height: 36px; }
+}
+
 /* ---- Forecasts ---- */
 .fc-doc p, .fc-doc li { max-width: 78ch; font-size: 14px; }
 .fc-doc ul { padding-left: 20px; }

@@ -4,7 +4,7 @@
 import "./style.css";
 import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
-import { BI, INCOME as INCOMES, biKey, breaks, cls, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
+import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, fitLine, incomeFifths, inkOn, rangeLabels, rankOrder, scatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   fetch(`/trees.json?v=${__TREES_VERSION__}`).then((r) => r.json()),
@@ -145,10 +145,30 @@ function renderShade() {
 // ---- 3. the map ----------------------------------------------------------------------------------
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
-  renderInside();
-  renderPlanted();
-  renderHV();
-  writeHash();
+  render();
+});
+// The page's other maps pick a neighbourhood too, and every map marks the one picked.
+const OTHER_MAPS = ["hv-map", "day-map", "cc-map"];
+document.addEventListener("click", (e) => {
+  const p = e.target.closest(".nb-map path[data-i]");
+  if (!p || $("nb-map").contains(p)) return;
+  state.nb = state.nb === +p.dataset.i ? null : +p.dataset.i;
+  render();
+});
+function markOtherMaps() {
+  for (const id of OTHER_MAPS) {
+    const fig = $(id), p = state.nb == null ? null : fig.querySelector(`path[data-i="${state.nb}"]`);
+    fig.classList.toggle("has-pick", !!p);
+    if (p) {
+      p.classList.add("pick");
+      p.parentNode.append(p);
+    }
+  }
+}
+fillFinder($("find-nb"), nbhd.map((n) => n.name));
+$("find-nb").addEventListener("change", (e) => {
+  state.nb = e.target.value === "" ? null : +e.target.value;
+  render();
 });
 function renderMap() {
   const def = M[state.m], vs = vals(), inc = income(), order = rankOrder(vs);
@@ -180,13 +200,13 @@ function renderMap() {
     const mr = rangeLabels(m3.edges, m3.zero, def.fmt);
     $("bi-key").innerHTML = biKey({ xName: def.label, xRanges: def.bad ? mr : [...mr].reverse(), xArrow: `${def.bad ? def.more : def.less} →`,
       yName: `${incName}, 2021`, yRanges: incomeUp() ? ii : [...ii].reverse(), yArrow: incomeUp() ? "Higher income ↑" : "Less low income ↑" });
-    $("map-lede").innerHTML = `${escapeHTML(def.label)}, against ${escapeHTML(lc(incName)).replace("lim-at", "LIM-AT")} in 2021: each in thirds of the neighbourhoods. Reds are ${escapeHTML(lc(def.bad ? def.more : def.less))} with lower income; teals higher income with ${escapeHTML(lc(def.bad ? def.less : def.more))}; the darkest corner, ${escapeHTML(lc(def.bad ? def.more : def.less))} with higher income. Hover for figures.`;
+    $("map-lede").innerHTML = `${escapeHTML(def.label)}, against ${escapeHTML(lc(incName)).replace("lim-at", "LIM-AT")} in 2021: each in thirds of the neighbourhoods. Reds are ${escapeHTML(lc(def.bad ? def.more : def.less))} with lower income; teals higher income with ${escapeHTML(lc(def.bad ? def.less : def.more))}; the darkest corner, ${escapeHTML(lc(def.bad ? def.more : def.less))} with higher income. Hover or tap for figures.`;
   } else {
     $("bi-key").hidden = true;
     const [b, colours, f] = state.ov === "income" ? [inc6, blues, fi] : [m6, ramp, def.fmt];
     $("map-key").innerHTML = rangeLabels(b.edges, b.zero, f).map((l, k) => `<li><span class="key-sq" style="background:${colours[k]}"></span>${escapeHTML(l)}</li>`).join("")
       + (state.ov === "income" && inc.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No figure</li>` : "");
-    $("map-lede").innerHTML = state.ov === "income" ? `${escapeHTML(incName)}, 2021 Census, in sixths of the neighbourhoods. Hover for the tree and heat figures too.`
+    $("map-lede").innerHTML = state.ov === "income" ? `${escapeHTML(incName)}, 2021 Census, in sixths of the neighbourhoods. Hover or tap for the tree and heat figures too.`
       : `${escapeHTML(def.label)}, in sixths of the neighbourhoods.${def.hot ? " Neighbourhoods 1 and 2 (the north-west corner) rest on 4 or 5 passes rather than up to 11." : ""}`;
   }
   markPick();
@@ -204,7 +224,7 @@ function renderIncome() {
     const lo = Math.min(...rs), hi = Math.max(...rs), ramp = def.ramp;
     const cells = rs.map((r, q) => {
       const c5 = Math.min(5, Math.floor((hi > lo ? (r - lo) / (hi - lo) : 0) * 6));
-      return `<td style="background:${ramp[c5]};color:${c5 >= 3 || (def.hot && c5 === 0) ? "#fff" : INK}" data-tip="${escapeHTML(`${def.short}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${def.fmt(r)}</b><br>${def.poolNote}`)}">${def.fmt(r)}</td>`;
+      return `<td style="background:${ramp[c5]};color:${inkOn(ramp[c5])}" data-tip="${escapeHTML(`${def.short}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${def.fmt(r)}</b><br>${def.poolNote}`)}">${def.fmt(r)}</td>`;
     }).join("");
     const gap = rs[4] - rs[0];
     return `<tr${k === state.m ? ' class="sel"' : ""}><th>${escapeHTML(def.short)}</th>${cells}<td>${def.fmt(city)}</td><td><b>${def.gap === "x" ? `${(rs[4] / rs[0]).toFixed(2)}×` : def.gap === "d" ? `${sign(+gap.toFixed(2))}${Math.abs(gap).toFixed(2)}` : `${sign(+gap.toFixed(1))}${Math.abs(gap).toFixed(1)}${def.gap === "C" ? "°C" : " pts"}`}</b></td></tr>`;
@@ -374,7 +394,7 @@ function renderHV() {
   // the map: heat (columns) against vulnerability (rows, the most vulnerable at the bottom, where the reds are)
   const shapes = nbhd.map((n, i) => {
     const t = `${escapeHTML(n.name)}<br>Surface heat: <b>${fmtC(NB.heat[i])}</b><br>Vulnerability: <b>${Math.round(vuln[i])}</b> of 100<br>${ks.map((k) => `${escapeHTML(CENSUS[k].short)}: ${census.measures[k].values["2021"][i].toFixed(1)}%`).join("<br>")}`;
-    return `<path d="${n.path}" fill="${BI[2 - cls(v3.edges, vuln[i])][cls(h3.edges, NB.heat[i])]}"${both[i] ? ' class="hv-out"' : ""} data-tip="${t}"/>`;
+    return `<path d="${n.path}" fill="${BI[2 - cls(v3.edges, vuln[i])][cls(h3.edges, NB.heat[i])]}"${both[i] ? ' class="hv-out"' : ""} data-i="${i}" data-tip="${t}"/>`;
   });
   const order = [...nbhd.keys()].filter((i) => !both[i]).concat(idx);
   $("hv-map").innerHTML = `<svg viewBox="0 0 ${census.map.width} ${census.map.height}" role="img" aria-label="Map of the neighbourhoods by surface heat and vulnerability">${order.map((i) => shapes[i]).join("")}</svg>`;
@@ -457,7 +477,7 @@ function renderGoal() {
     <span class="barcell" data-tip="${escapeHTML(`${nbhd[i].name}<br>Canopy ${M.canopy.fmt(NB.canopy[i])} of ${fmtN(NB.area_ha[i])} ha<br>Short of 40%: <b>${NB.gap_pts[i].toFixed(1)} pts</b>, <b>${fmtN(NB.gap_ha[i])} ha</b><br>Surface heat ${fmtC(NB.heat[i])}`)}"><span class="bar-fill" style="width:${((NB[key][i] / max) * 100).toFixed(1)}%;background:${ORANGES[3]}"></span></span>
     <span class="vl">${key === "gap_ha" ? `${fmtN(NB.gap_ha[i])} ha` : `${NB.gap_pts[i].toFixed(1)} pts`}</span>
     <span class="gl-extra">now ${M.canopy.fmt(NB.canopy[i])} · ~${(NB.gap_pts[i] * slope).toFixed(1)}°C cooler?</span></li>`).join("");
-  $("goal-note").textContent = `The 15 neighbourhoods furthest from 40% canopy, by ${goalSort === "pts" ? "points (the share of their area)" : "hectares (big neighbourhoods weigh more)"}. "Cooler?" applies the city-wide slope across DAs (${fmtC(D.da_fit.slope_per_10)} for every 10 points of canopy) to the gap: an association between places, not a forecast, and canopy can't go everywhere (highways, rail yards, the airport and the lake don't take trees). Map either gap with the menu above.`;
+  $("goal-note").innerHTML = `The 15 neighbourhoods furthest from 40% canopy, by ${goalSort === "pts" ? "points (the share of their area)" : "hectares (big neighbourhoods weigh more)"}. <span class="hide-sm">"Cooler?" applies the city-wide slope across DAs (${fmtC(D.da_fit.slope_per_10)} for every 10 points of canopy) to the gap: an association between places, not a forecast. </span>Canopy can't go everywhere: highways, rail yards, the airport and the lake don't take trees. Map either gap with the menu above.`;
 }
 
 // ---- 8. day by day: each Landsat pass --------------------------------------------------------------------
@@ -516,8 +536,8 @@ function renderCanopyChange() {
   seg($("cc-basis"), [["tree", "2018: trees only"], ["ts", "2018: trees and shrubs"]], ccBasis, (k) => { ccBasis = k; renderCanopyChange(); writeHash(); });
   const now = ts ? X.treeshrub_2018 : X.tree_2018, rel = ts ? NB.chg_ts : NB.chg, cityChg = X.city_change[key];
   const pts = (v, d = 1) => `${sign(+v.toFixed(d))}${Math.abs(v).toFixed(d)}`;
-  const row = (name, a, b, note, sel) => `<tr${sel ? ' class="sel"' : ""}><th>${name}</th><td>${a.toFixed(1)}%</td><td>${b.toFixed(1)}%</td><td class="${b > a ? "cc-up" : "cc-down"}">${pts(b - a)} pts</td><td class="txt small">${note}</td></tr>`;
-  $("cc-city").innerHTML = `<thead><tr><th>City-wide canopy</th><th>2008</th><th>2018</th><th>Change</th><th class="txt">How it is measured</th></tr></thead><tbody>
+  const row = (name, a, b, note, sel) => `<tr${sel ? ' class="sel"' : ""}><th>${name}</th><td>${a.toFixed(1)}%</td><td>${b.toFixed(1)}%</td><td class="${b > a ? "cc-up" : "cc-down"}">${pts(b - a)} pts</td></tr>`.replace("</th>", `<span class="cc-how">${note}</span></th>`);
+  $("cc-city").innerHTML = `<thead><tr><th>City-wide canopy</th><th>2008</th><th>2018</th><th>Change</th></tr></thead><tbody>
     ${row("The City's headline", X.sampled["2008"], X.sampled["2018"], "trees and shrubs at 10,000 sample points on aerial photos; the only one with a margin of error", false)}
     ${row("The maps, 2018 as trees only", X.city.tree_2008, X.city.tree_2018, "the comparison in the study's own table by neighbourhood", !ts)}
     ${row("The maps, 2018 as trees and shrubs", X.city.tree_2008, X.city.treeshrub_2018, "what the study quotes for 2018's map (31%)", ts)}</tbody>`;
@@ -556,9 +576,12 @@ function render() {
   renderPlanted();
   renderGoal();
   renderCanopyChange();
+  renderDay();
+  markOtherMaps();
+  $("find-nb").value = state.nb ?? "";
   writeHash();
 }
 renderCards();
-renderDay();
 renderAlways();
 render();
+buildToc($("toc"));
