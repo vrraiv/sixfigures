@@ -288,5 +288,11 @@ safety:
 trees-page:
 	$(PYTHON) pipeline/trees_insights.py
 
+# The Data Explorer's catalogue and per-source data (web/public/explorer/), from the pages'
+# JSON files and pipeline/elections and pipeline/rentals. Run after any of them is rebuilt.
+.PHONY: explorer
+explorer:
+	$(PYTHON) pipeline/explorer_data.py
+
 clean:
 	rm -rf pipeline/out

@@ -89,6 +89,29 @@ one colour scale and lists the neighbourhoods in the hottest sixth on nearly eve
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 
+The Data Explorer, `/insights/explorer/` (a button above the Insights tabs on every Insights
+page), offers every neighbourhood measure on the site in one menu: 67 measures from the census,
+safety, schools, sale prices, housing, trees and heat, elections and short-term rentals. Up to
+three can be chosen, each with its own period, and the page shows the view that suits the number:
+- **One:** the map with a period slider (one colour scale for all periods), the spread, the
+  highest and lowest neighbourhoods, the median neighbourhood over time with the middle half and
+  middle 80% (and a picked neighbourhood's line), the biggest rises and falls between two periods,
+  how stable the ranking is, and the other measures it goes with, from other sources and its own
+  (picking one adds it as the second measure).
+- **Two:** the scatter with its rank correlation, both on one two-colour map, the second across
+  fifths of the first, the neighbourhoods furthest from the pattern (in ranks), the correlation
+  at each time both have a figure (on a fixed -1 to 1 scale), change against change, leads and
+  lags (two yearly measures), and the two spreads. Sections that need a history say why when a
+  measure is a single figure or the two don't overlap.
+- **Three:** the three pairs in ranks, the first two coloured by thirds of the third with the
+  correlation within each third and the partial rank correlation, three small maps, a picked
+  neighbourhood's percentile on each, and the eight high/low combinations on a map.
+The picked neighbourhood is marked in every chart, the link holds every choice, and Download CSV
+gives the chosen measures at their chosen periods. Its data is `web/public/explorer/`
+(`pipeline/explorer_data.py`): a catalogue and one file per source, fetched when a measure from
+it is first used. The code is `web/src/explorer.js` (pickers, link, picks, CSV), `explorer-core.js`
+and one module per view.
+
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's
