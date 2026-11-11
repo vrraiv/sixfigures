@@ -55,7 +55,8 @@ export function fitLine(xs, ys) {
 
 // A scatter of the neighbourhoods; a dot picks its neighbourhood (data-nb). The axes end
 // at the 98th percentile (and the 2nd, where an axis isn't anchored at zero).
-export function scatter({ xs, ys, xLabel, yLabel, fx, fy, tip, pick = null, diag = false, zeroX = true, zeroY = true, fit = null }) {
+// guides: {x, y} draws dashed lines at those values (a quadrant's edges); mark(i) adds a class to a dot.
+export function scatter({ xs, ys, xLabel, yLabel, fx, fy, tip, pick = null, diag = false, zeroX = true, zeroY = true, fit = null, guides = null, mark = () => "" }) {
   const idx = xs.map((_, i) => i).filter((i) => xs[i] != null && ys[i] != null);
   const sx = idx.map((i) => xs[i]).sort((a, b) => a - b), sy = idx.map((i) => ys[i]).sort((a, b) => a - b);
   let xa = zeroX ? Math.min(0, sx[0]) : sx[0], xb = quantile(sx, 0.98);
@@ -69,12 +70,17 @@ export function scatter({ xs, ys, xLabel, yLabel, fx, fy, tip, pick = null, diag
     const y = (x) => fit.intercept + fit.slope * x;
     line = `<line x1="0" y1="${(100 - ((y(xa) - ya) / (yb - ya)) * 100).toFixed(2)}" x2="100" y2="${(100 - ((y(xb) - ya) / (yb - ya)) * 100).toFixed(2)}" stroke="#1a1a19" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
   }
+  if (guides) {
+    const gx = guides.x == null ? null : ((guides.x - xa) / (xb - xa)) * 100, gy = guides.y == null ? null : 100 - ((guides.y - ya) / (yb - ya)) * 100;
+    if (gx != null) line += `<line x1="${gx.toFixed(2)}" y1="0" x2="${gx.toFixed(2)}" y2="100" stroke="#9a9a93" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>`;
+    if (gy != null) line += `<line x1="0" y1="${gy.toFixed(2)}" x2="100" y2="${gy.toFixed(2)}" stroke="#9a9a93" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>`;
+  }
   const svg = line ? `<svg class="sc-diag" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${line}</svg>` : "";
   const hi = (f, b, s) => (f === 1 && b < s.at(-1) ? "+" : "");
   return { n: idx.length, html: `<div class="sc-y">${yLabel}</div>
     <div class="sc-box">${q.slice(1, -1).map((f) => `<span class="sc-gx" style="left:${f * 100}%"></span><span class="sc-gy" style="bottom:${f * 100}%"></span>`).join("")}${svg}
       ${q.map((f) => `<span class="sc-ytick" style="bottom:${f * 100}%">${!zeroY && f === 0 && ya > sy[0] ? "≤" : !zeroY && f === 1 && yb < sy.at(-1) ? "≥" : ""}${fy(ya + f * (yb - ya))}${zeroY ? hi(f, yb, sy) : ""}</span>`).join("")}
-      ${idx.map((i) => `<span class="sc-dot${i === pick ? " pick" : ""}" style="left:${px(xs[i]).toFixed(2)}%;bottom:${py(ys[i]).toFixed(2)}%" data-nb="${i}" data-tip="${escapeHTML(tip(i))}"></span>`).join("")}</div>
+      ${idx.map((i) => `<span class="sc-dot${i === pick ? " pick" : ""}${mark(i)}" style="left:${px(xs[i]).toFixed(2)}%;bottom:${py(ys[i]).toFixed(2)}%" data-nb="${i}" data-tip="${escapeHTML(tip(i))}"></span>`).join("")}</div>
     <div class="sc-xticks">${q.map((f) => `<span style="left:${f * 100}%">${fx(xa + f * (xb - xa))}${hi(f, xb, sx)}</span>`).join("")}</div>
     <div class="sc-x">${xLabel}</div>` };
 }

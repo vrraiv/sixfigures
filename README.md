@@ -73,7 +73,10 @@ household income or shows either alone, each measure in fifths of the neighbourh
 income, rankings, and correlations with the 2021 Census, crime, school results, sale prices,
 turnout and short-term rentals. Inside the neighbourhood draws a chosen neighbourhood's DAs (on
 the city-wide DA classes) with its hottest and coolest DA and the heat gap between its 10th and
-90th percentile DAs, and lists the widest gaps; those outlines are `trees_da.json` (0.6 MB,
+90th percentile DAs, and lists the widest gaps. Hot and vulnerable scores each neighbourhood's
+vulnerability as its mean percentile rank on census measures the reader ticks (65 and over, low
+income and 5+ storey apartments by default; renters, crowding, children) and maps it against
+heat, listing the neighbourhoods in the top third on both; those outlines are `trees_da.json` (0.6 MB,
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 

@@ -665,6 +665,13 @@ body.doc { display: block; height: auto; }
 .in-list-h { margin-top: 22px; }
 .spread-list { max-width: 760px; }
 
+/* Trees and Heat: hot and vulnerable */
+.hv-factors { display: flex; flex-wrap: wrap; gap: 6px 18px; border: 0; margin: 8px 0 12px; padding: 0; font-size: 13px; color: var(--ink-2); }
+.hv-factors legend { float: left; margin-right: 6px; padding: 0; font-weight: 600; }
+.hv-factors label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.sc-dot.hv { background: #c85a5a; opacity: 0.95; }
+.nb-map path.hv-out { stroke: var(--ink); stroke-width: 2; }
+
 /* ---- Forecasts ---- */
 .fc-doc p, .fc-doc li { max-width: 78ch; font-size: 14px; }
 .fc-doc ul { padding-left: 20px; }

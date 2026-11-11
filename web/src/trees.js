@@ -60,7 +60,7 @@ const state = {
   nb: nbIndex(hash.get("nb")),
 };
 const writeHash = () => {
-  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc });
+  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc, hv: [...hvState].join(",") });
   if (state.sx) h.set("sx", state.sx);
   if (state.nb != null) h.set("nb", nbhd[state.nb].id);
   history.replaceState(null, "", `#${h}`);
@@ -126,6 +126,7 @@ function renderShade() {
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   renderInside();
+  renderHV();
   writeHash();
 });
 function renderMap() {
@@ -320,6 +321,59 @@ document.addEventListener("click", (e) => {
   $("inside").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
+// ---- 5. hot and vulnerable ---------------------------------------------------------------------------
+// A neighbourhood's vulnerability is the mean of its percentile ranks on the chosen census measures;
+// "hot and vulnerable" is the top third of the neighbourhoods on both that and surface heat.
+const FACTORS = [
+  ["age65", "People 65 and over", true], ["lim_at", "People in low income", true], ["apt5", "Homes in apartments of 5+ storeys", true],
+  ["renter", "Renter households", false], ["crowded", "Crowded housing", false], ["age0_14", "Children 0 to 14", false],
+];
+const pctRank = (vs) => {
+  const s = vs.filter((v) => v != null).sort((a, b) => a - b);
+  return vs.map((v) => (v == null ? null : (s.filter((x) => x < v).length + s.filter((x) => x === v).length / 2) / s.length * 100));
+};
+const hvState = new Set((hash.get("hv") ?? FACTORS.filter((f) => f[2]).map((f) => f[0]).join(",")).split(",").filter((k) => FACTORS.some((f) => f[0] === k)));
+if (!hvState.size) hvState.add("age65");
+$("hv-factors").insertAdjacentHTML("beforeend", FACTORS.map(([k, l]) => `<label><input type="checkbox" value="${k}"${hvState.has(k) ? " checked" : ""}/> ${escapeHTML(l)}</label>`).join(""));
+$("hv-factors").addEventListener("change", (e) => {
+  if (e.target.checked) hvState.add(e.target.value);
+  else if (hvState.size > 1) hvState.delete(e.target.value);
+  else e.target.checked = true; // at least one
+  renderHV();
+  writeHash();
+});
+function renderHV() {
+  const ks = [...hvState], ranks = ks.map((k) => pctRank(census.measures[k].values["2021"]));
+  const vuln = nbhd.map((_, i) => sum(ranks.map((r) => r[i])) / ks.length), heatR = pctRank(NB.heat);
+  const v3 = breaks(vuln, 3), h3 = breaks(NB.heat, 3);
+  const both = nbhd.map((_, i) => cls(v3.edges, vuln[i]) === 2 && cls(h3.edges, NB.heat[i]) === 2);
+  const idx = [...nbhd.keys()].filter((i) => both[i]).sort((a, b) => (vuln[b] + heatR[b]) - (vuln[a] + heatR[a]));
+  const names = ks.map((k) => lc(FACTORS.find((f) => f[0] === k)[1]));
+  const fmtList = (xs) => (xs.length < 2 ? xs[0] : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
+  // the map: heat (columns) against vulnerability (rows, the most vulnerable at the bottom, where the reds are)
+  const shapes = nbhd.map((n, i) => {
+    const t = `${escapeHTML(n.name)}<br>Surface heat: <b>${fmtC(NB.heat[i])}</b><br>Vulnerability: <b>${Math.round(vuln[i])}</b> of 100<br>${ks.map((k) => `${escapeHTML(CENSUS[k].short)}: ${census.measures[k].values["2021"][i].toFixed(1)}%`).join("<br>")}`;
+    return `<path d="${n.path}" fill="${BI[2 - cls(v3.edges, vuln[i])][cls(h3.edges, NB.heat[i])]}"${both[i] ? ' class="hv-out"' : ""} data-tip="${t}"/>`;
+  });
+  const order = [...nbhd.keys()].filter((i) => !both[i]).concat(idx);
+  $("hv-map").innerHTML = `<svg viewBox="0 0 ${census.map.width} ${census.map.height}" role="img" aria-label="Map of the neighbourhoods by surface heat and vulnerability">${order.map((i) => shapes[i]).join("")}</svg>`;
+  const vr = rangeLabels(v3.edges, false, (v) => String(Math.round(v)));
+  $("hv-key").innerHTML = biKey({ xName: "Summer surface heat against the city's", xRanges: rangeLabels(h3.edges, false, fmtC), xArrow: "Hotter →",
+    yName: "Vulnerability score, 0 to 100", yRanges: [...vr].reverse(), yArrow: "Less vulnerable ↑" })
+    + `<p class="tbl-note">Outlined: the top third on both.</p>`;
+  const s = scatter({ xs: vuln, ys: NB.heat, zeroX: true, zeroY: false, fx: (v) => String(Math.round(v)), fy: fmtC, pick: state.nb,
+    guides: { x: v3.edges[1], y: h3.edges[1] }, mark: (i) => (both[i] ? " hv" : ""),
+    xLabel: `Vulnerability score: the mean percentile rank on ${escapeHTML(fmtList(names))}`, yLabel: "Summer surface heat against the city's",
+    tip: (i) => `${nbhd[i].name}<br>Vulnerability: <b>${Math.round(vuln[i])}</b><br>Surface heat: <b>${fmtC(NB.heat[i])}</b>` });
+  $("hv-scatter").innerHTML = s.html;
+  const pop = sum(idx.map((i) => D.pop[i])), seniors = sum(idx.map((i) => (D.pop[i] * census.measures.age65.values["2021"][i]) / 100));
+  const r = spearman(vuln, NB.heat)?.r;
+  $("hv-lede").innerHTML = `Heat harms some people more than others: older people, people with less money to cool their homes, and people in high-rise apartments, which hold heat and often lack air conditioning (the census doesn't ask about it). Each neighbourhood's vulnerability score is the mean of its percentile ranks on ${escapeHTML(fmtList(names))}; <b>${idx.length}</b> neighbourhoods are in the top third on both that and summer surface heat, home to <b>${fmtN(pop)}</b> people${hvState.has("age65") ? `, about ${fmtN(Math.round(seniors / 100) * 100)} of them 65 or over` : ""}. Across all ${N}, vulnerability and heat go together at Spearman <b>${fmtR(r)}</b>${Math.abs(r) < 0.2 ? ": hardly at all, so the hot and vulnerable are a particular set of places, not the rule" : r > 0 ? ": the more vulnerable places tend to be hotter" : ": the more vulnerable places tend to be cooler"}. On the map, red is hot and vulnerable; dark, hot and less vulnerable; teal, cooler and less vulnerable; light grey, vulnerable but cooler. Tick the measures to count.`;
+  $("hv-list-h").textContent = `The ${idx.length} hot and vulnerable neighbourhoods`;
+  $("hv-table").innerHTML = `<thead><tr><th>Neighbourhood</th><th>Heat</th><th>Score</th>${ks.map((k) => `<th>${escapeHTML(CENSUS[k].short)}</th>`).join("")}<th>Canopy</th><th>Residents</th></tr></thead><tbody>${idx.map((i) => `<tr><th><button type="button" class="nm" data-nb="${i}">${escapeHTML(nbhd[i].name)}</button></th><td>${fmtC(NB.heat[i])}</td><td>${Math.round(vuln[i])}</td>${ks.map((k) => `<td>${census.measures[k].values["2021"][i].toFixed(1)}%</td>`).join("")}<td>${M.canopy.fmt(NB.canopy[i])}</td><td>${fmtN(D.pop[i])}</td></tr>`).join("")}</tbody>`;
+  $("hv-note").textContent = "Sorted by heat and vulnerability rank together. Neighbourhood figures describe places, not people: not everyone in a hot, vulnerable neighbourhood is at risk, nor everyone at risk in one. Surface heat is the ground and roofs at midday, not the air indoors at night, which is what does most harm in a heat wave.";
+}
+
 function render() {
   controls();
   renderMap();
@@ -328,6 +382,7 @@ function render() {
   renderCorr();
   renderShade();
   renderInside();
+  renderHV();
   writeHash();
 }
 renderCards();
