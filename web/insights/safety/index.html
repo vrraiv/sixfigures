@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto Safety Insights</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="Crime, shootings, homicides and road injuries in Toronto's 158 neighbourhoods, year by year, mapped against household income and set beside the census, school results, sale prices, tree cover and turnout." />
+  </head>
+  <body class="with-nav doc">
+    <nav class="wordmark" aria-label="Site">
+      <a href="/">2016 · 2021</a>
+      <span class="brand">Toronto by DA</span>
+      <a href="/2011/">2011</a>
+      <a href="/insights/" aria-current="page">Insights</a>
+      <a href="/forecasts/">Forecasts</a>
+    </nav>
+    <header class="bar">
+      <h1>Safety Insights <span class="sub">Crime, gun violence and road injuries in Toronto and its 158 neighbourhoods</span></h1>
+      <nav class="themes" aria-label="Insights">
+        <a href="/insights/">Census</a>
+        <a href="/insights/schools/">Schools</a>
+        <a href="/insights/housing/">Housing</a>
+        <a href="/insights/prices/">Sale prices</a>
+        <a href="/insights/safety/" aria-current="page">Safety</a>
+      </nav>
+    </header>
+
+    <main class="insights">
+      <section class="ins-section" aria-labelledby="glance-h">
+        <div class="ins-head">
+          <h2 id="glance-h">The city at a glance</h2>
+        </div>
+        <p class="ins-lede" id="glance-lede"></p>
+        <div id="cards" class="card-row"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="years-h">
+        <div class="ins-head">
+          <h2 id="years-h">Year by year</h2>
+        </div>
+        <div id="panels" class="panels"></div>
+      </section>
+
+      <!-- The category, period and units for the neighbourhood sections below. -->
+      <div class="measure-bar" id="measure-bar">
+        <label for="measure">Neighbourhoods by</label>
+        <select id="measure"></select>
+        <div class="seg" id="period" role="group" aria-label="Period"></div>
+        <label class="toggle"><input type="checkbox" id="rate" /> Per 100,000 residents</label>
+      </div>
+
+      <section class="ins-section" aria-labelledby="map-h">
+        <div class="ins-head">
+          <h2 id="map-h">Neighbourhoods on the map</h2>
+          <div class="seg-row">
+            <div class="seg" id="overlay" role="group" aria-label="Map shows"></div>
+            <select id="income" class="inline-select" aria-label="Income measure"></select>
+          </div>
+        </div>
+        <p class="ins-lede" id="map-lede"></p>
+        <div class="map-wrap">
+          <figure class="nb-map" id="nb-map"></figure>
+          <div class="bi-key" id="bi-key" hidden></div>
+        </div>
+        <p class="nb-pick" id="map-pick" hidden></p>
+        <ul class="corr-key" id="map-key"></ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="inc-h">
+        <div class="ins-head">
+          <h2 id="inc-h">By neighbourhood income</h2>
+        </div>
+        <p class="ins-lede" id="inc-lede"></p>
+        <div class="tbl-wrap"><table class="tbl heat" id="inc-table"></table></div>
+        <p class="tbl-note" id="inc-note"></p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rank-h">
+        <div class="ins-head">
+          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
+        </div>
+        <p class="ins-lede" id="rank-lede"></p>
+        <div class="ranks" id="rank-body">
+          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
+        </div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="chg-h">
+        <div class="ins-head">
+          <h2 id="chg-h">Then and now</h2>
+        </div>
+        <p class="ins-lede" id="chg-lede"></p>
+        <figure class="scatter"><div id="chg-scatter"></div></figure>
+      </section>
+
+      <section class="ins-section" aria-labelledby="corr-h">
+        <div class="ins-head">
+          <h2 id="corr-h">What goes with what</h2>
+        </div>
+        <p class="ins-lede" id="corr-lede"></p>
+        <div id="corr-body">
+          <div class="corr-cols">
+            <div><h3 class="sub-h">2021 Census</h3><ol id="census-list" class="corr-list shown"></ol></div>
+            <div><h3 class="sub-h">Schools, prices, trees, turnout, rentals</h3><ol id="other-list" class="corr-list shown"></ol></div>
+          </div>
+          <figure class="scatter" id="scatter-fig">
+            <figcaption id="scatter-caption"></figcaption>
+            <div id="scatter"></div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="mx-h">
+        <div class="ins-head">
+          <h2 id="mx-h">How the categories go together</h2>
+        </div>
+        <p class="ins-lede" id="mx-lede"></p>
+        <div class="tbl-wrap"><table class="tbl heat" id="matrix"></table></div>
+      </section>
+      <div id="tip" class="tip" role="tooltip" hidden></div>
+    </main>
+
+    <footer class="foot">
+      <p class="downloads" id="method-note"></p>
+      City of Toronto Open Data: Toronto Police Service Community Safety Indicators (formerly Major Crime Indicators),
+      shootings and firearm discharges, homicides, and motor vehicle collisions involving killed or seriously injured
+      persons; neighbourhood boundaries and election results; the 2018 Tree Canopy Study; contains information licensed
+      under the <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
+      Statistics Canada, 2021 Census of Population, under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      EQAO results through the Ontario Ministry of Education; TRREB community reports; Landsat 8/9 (USGS) through
+      Microsoft Planetary Computer; Inside Airbnb (insideairbnb.com), CC BY 4.0.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/safety.js"></script>
+  </body>
+</html>
