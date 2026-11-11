@@ -651,6 +651,20 @@ body.doc { display: block; height: auto; }
 .tbl th.rot span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: left; }
 .sc-dot.pick { background: var(--ink); opacity: 1; z-index: 2; }
 
+/* Trees and Heat: inside a neighbourhood */
+.in-body { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px 28px; align-items: start; margin-top: 8px; }
+@media (max-width: 760px) { .in-body { grid-template-columns: 1fr; } }
+.da-map { margin: 0; }
+.da-map svg { display: block; width: 100%; height: auto; max-height: 520px; }
+.da-map path { stroke: #fff; stroke-width: 0.6; stroke-linejoin: round; }
+.da-map path:hover { stroke: var(--ink); stroke-width: 1.5; }
+.da-map path.hot, .da-map path.cool { stroke: var(--ink); stroke-width: 2; }
+.in-stats { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
+.in-stats dt { color: var(--ink-2); }
+.in-stats dd { margin: 0; font-variant-numeric: tabular-nums; }
+.in-list-h { margin-top: 22px; }
+.spread-list { max-width: 760px; }
+
 /* ---- Forecasts ---- */
 .fc-doc p, .fc-doc li { max-width: 78ch; font-size: 14px; }
 .fc-doc ul { padding-left: 20px; }

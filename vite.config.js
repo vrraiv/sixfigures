@@ -38,6 +38,7 @@ export default defineConfig({
     __PRICES_VERSION__: JSON.stringify(version("web/public/prices.json")),
     __SAFETY_VERSION__: JSON.stringify(version("web/public/safety.json")),
     __TREES_VERSION__: JSON.stringify(version("web/public/trees.json")),
+    __TREES_DA_VERSION__: JSON.stringify(version("web/public/trees_da.json")),
     __FORECASTS_VERSION__: JSON.stringify(version("web/public/forecasts.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),

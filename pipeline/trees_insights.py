@@ -25,11 +25,24 @@ reads, and the other neighbourhood layers, and writes:
                     (C per 10 points of canopy), intercept, Pearson r and n. DAs
                     are the finer test: within a neighbourhood, the leafier
                     streets are the cooler ones
+  spread            by neighbourhood, the 10th to 90th percentile range of its
+                    DAs' heat (C): how much hotter its hottest streets are than
+                    its coolest; null for the 11 with fewer than SPREAD_MIN_DAS (12)
+                    DAs
   other             the measures the page correlates with, as safety_insights.py
                     builds them (school score, sale price, turnout, short-term
                     rentals; canopy and heat are this page's own), and crime:
                     assaults and shootings in which someone was hit, per 100,000
                     residents a year, 2021-2025 (crime.py's rates.csv)
+
+and web/public/trees_da.json, loaded when the page's "Inside the neighbourhood"
+section is first drawn (about 0.6 MB, 0.23 MB compressed, so it stays out of the first load): for each
+neighbourhood in insights.json's order, its DAs' outlines as SVG path data in a
+box of its own (width DA_W, north up; the DA outlines from places.da_polygons(),
+simplified to DA_SIMPLIFY metres) and their figures: dauid, pop21, canopy,
+trees_ha, large, dbh, heat, lst, as in by_da.csv. A DA belongs to the
+neighbourhood the 2021 figures file assigns it, so a neighbourhood drawn from its
+DAs can differ slightly from its official outline where a DA straddles two.
 """
 import json
 import sys
@@ -43,6 +56,40 @@ from safety_insights import COMMON, INSIGHTS, WEB, other_measures, r1
 HERE = Path(__file__).parent
 TREES = HERE / "trees"
 OUT = WEB / "trees.json"
+OUT_DA = WEB / "trees_da.json"
+DA_W = 400  # px, each neighbourhood's box
+DA_SIMPLIFY = 4  # metres
+SPREAD_MIN_DAS = 12
+
+
+def da_shapes(ids: list[int], d: pd.DataFrame) -> list[dict]:
+    """Each neighbourhood's DAs as SVG paths in a box of their own, with their figures."""
+    import places
+    g = places.da_polygons().merge(d.drop(columns=["nbhd_id"]).astype({"dauid": str}), on="dauid", how="left")
+    pop = places.common().set_index("dauid").pop21
+    g["geometry"] = g.geometry.simplify(DA_SIMPLIFY, preserve_topology=True)
+    out = []
+    for nid in ids:
+        sub = g[g.nbhd_id == nid].sort_values("dauid")
+        x0, y0, x1, y1 = sub.total_bounds
+        k = DA_W / max(x1 - x0, y1 - y0)
+        w, h = round((x1 - x0) * k), round((y1 - y0) * k)
+
+        def ring(coords):
+            pts = [(round((x - x0) * k), round((y1 - y) * k)) for x, y in coords]
+            pts = [p for i, p in enumerate(pts) if i == 0 or p != pts[i - 1]]
+            return "M" + "L".join(f"{x} {y}" for x, y in pts[:-1]) + "Z"
+
+        paths = []
+        for geom in sub.geometry:
+            polys = geom.geoms if geom.geom_type == "MultiPolygon" else [geom]
+            paths.append("".join(ring(p.exterior.coords) + "".join(ring(r.coords) for r in p.interiors) for p in polys))
+        col = lambda c, f=1, k=1: [None if pd.isna(v) else round(float(v) * f, k) for v in sub[c]]
+        out.append({"w": w, "h": h, "dauid": sub.dauid.tolist(), "path": paths,
+                    "pop": [int(pop[x]) for x in sub.dauid], "canopy": col("canopy_share", 100),
+                    "trees_ha": col("trees_per_ha"), "large": col("large_share", 100), "dbh": col("dbh_median", 1, 0),
+                    "heat": col("lst_anom", 1, 2), "lst": col("lst_c", 1, 2)})
+    return out
 
 
 def main() -> int:
@@ -92,10 +139,21 @@ def main() -> int:
         other.append({"key": key, "label": label, "short": short, "unit": "rate", "source": "Toronto Police Service (crime.py)",
                       "values": [r1(v) for v in s]})
 
+    q = d.groupby("nbhd_id").lst_anom.quantile([0.1, 0.9]).unstack()
+    # percentiles of a handful of DAs are noise: under SPREAD_MIN_DAS (11 neighbourhoods) no figure
+    count = d.groupby("nbhd_id").size()
+    spread = (q[0.9] - q[0.1]).where(count >= SPREAD_MIN_DAS).reindex(ids)
+
     out = {"built": pd.Timestamp.today().date().isoformat(),
            "retrieved": manifest["files"]["street_trees"]["retrieved"],
-           "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit, "other": other}
+           "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit,
+           "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread], "other": other}
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
+    das = da_shapes(ids, d)
+    if sum(len(x["dauid"]) for x in das) != len(d):
+        sys.exit("DAs in trees_da.json don't add up to by_da.csv")
+    OUT_DA.write_text(json.dumps({"built": out["built"], "nbhd": das}, separators=(",", ":")) + "\n")
+    print(f"wrote {OUT_DA} ({OUT_DA.stat().st_size:,} bytes)")
     print("city:", city)
     print(f"wrote {OUT} ({OUT.stat().st_size:,} bytes)")
     return 0

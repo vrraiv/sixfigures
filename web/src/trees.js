@@ -125,6 +125,7 @@ function renderShade() {
 // ---- 3. the map ----------------------------------------------------------------------------------
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
+  renderInside();
   writeHash();
 });
 function renderMap() {
@@ -250,6 +251,75 @@ $("method-note").textContent = `Built ${D.built} from files retrieved ${D.retrie
   + "surface temperature is Landsat 8/9 Collection 2 Level-2 thermal data, recomputed with emissivity from vegetation where USGS's surface temperature band is empty (about 28% of the city), "
   + "which reads about 0.6°C cooler than USGS's where both exist. Map classes are sixths (thirds when crossed with income) of the neighbourhoods. Correlations are Spearman's.";
 
+// ---- 4. inside the neighbourhood: its DAs ----------------------------------------------------------
+// trees_da.json is fetched when the section nears the screen. DAs are coloured on classes of all
+// the city's DAs, so a colour means the same in every neighbourhood.
+let DA = null, daBreaks = {};
+const widest = rankOrder(D.spread);
+const inNb = () => state.nb ?? widest[0];
+$("in-nb").innerHTML = [...nbhd.keys()].sort((a, b) => nbhd[a].name.localeCompare(nbhd[b].name))
+  .map((i) => `<option value="${i}">${escapeHTML(nbhd[i].name)}</option>`).join("");
+$("in-nb").addEventListener("change", (e) => {
+  state.nb = +e.target.value;
+  render();
+});
+new IntersectionObserver(async (entries, obs) => {
+  if (!entries.some((e) => e.isIntersecting)) return;
+  obs.disconnect();
+  DA = await fetch(`/trees_da.json?v=${__TREES_DA_VERSION__}`).then((r) => r.json());
+  for (const m of Object.keys(M)) daBreaks[m] = breaks(DA.nbhd.flatMap((n) => n[m]));
+  renderInside();
+}, { rootMargin: "600px 0px" }).observe($("inside"));
+const quant = (vs, q) => {
+  const s = vs.filter((v) => v != null).sort((a, b) => a - b);
+  const pos = (s.length - 1) * q, lo = Math.floor(pos);
+  return s[lo] + (s[Math.ceil(pos)] - s[lo]) * (pos - lo);
+};
+function renderInside() {
+  const i = inNb(), def = M[state.m];
+  $("in-nb").value = i;
+  renderSpread();
+  if (!DA) return;
+  const n = DA.nbhd[i], vs = n[state.m], b = daBreaks[state.m];
+  const ramp = def.ramp.slice(def.ramp.length - b.edges.length - 1);
+  const heat = n.heat, okH = heat.map((v, k) => (v == null ? null : k)).filter((k) => k != null);
+  const hot = okH.reduce((a, k) => (heat[k] > heat[a] ? k : a), okH[0]), cool = okH.reduce((a, k) => (heat[k] < heat[a] ? k : a), okH[0]);
+  const shapes = n.path.map((d, k) => {
+    const t = `DA ${n.dauid[k]}<br>${escapeHTML(def.short)}: <b>${vs[k] == null ? "—" : def.fmt(vs[k])}</b><br>Canopy ${n.canopy[k] == null ? "—" : M.canopy.fmt(n.canopy[k])} · heat ${fmtC(heat[k])}<br>${fmtN(n.pop[k])} residents`;
+    return `<path d="${d}" fill="${vs[k] == null ? "url(#da-hatch)" : ramp[cls(b.edges, vs[k])]}"${k === hot ? ' class="hot"' : k === cool ? ' class="cool"' : ""} data-tip="${escapeHTML(t)}"/>`;
+  });
+  // the hottest and coolest DAs drawn last, so their outlines show
+  const order = [...n.path.keys()].filter((k) => k !== hot && k !== cool).concat([cool, hot]);
+  $("da-map").innerHTML = `<svg viewBox="-2 -2 ${n.w + 4} ${n.h + 4}" role="img" aria-label="${escapeHTML(`${nbhd[i].name}'s DAs by ${lc(def.label)}`)}">
+    <defs><pattern id="da-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="6" stroke="#c9c9c3" stroke-width="2"/></pattern></defs>
+    ${order.map((k) => shapes[k]).join("")}</svg>`;
+  $("in-key").innerHTML = rangeLabels(b.edges, b.zero, def.fmt).map((l, k) => `<li><span class="key-sq" style="background:${ramp[k]}"></span>${escapeHTML(l)}</li>`).join("")
+    + `<li><span class="key-sq" style="background:#fff;box-shadow:inset 0 0 0 2px ${INK}"></span>Hottest and coolest DA</li>`;
+  const r = pearson(n.canopy, heat, 8);
+  const p10 = quant(heat, 0.1), p90 = quant(heat, 0.9), city = D.spread;
+  const rank = rankOrder(city).indexOf(i) + 1;
+  $("in-stats").innerHTML = `<dt>DAs</dt><dd>${n.dauid.length} · ${fmtN(sum(n.pop))} residents</dd>
+    <dt>Neighbourhood</dt><dd>canopy ${M.canopy.fmt(NB.canopy[i])} · heat ${fmtC(NB.heat[i])}</dd>
+    <dt>Hottest DA</dt><dd>${fmtC(heat[hot])} · canopy ${M.canopy.fmt(n.canopy[hot])} · ${fmtN(n.pop[hot])} residents</dd>
+    <dt>Coolest DA</dt><dd>${fmtC(heat[cool])} · canopy ${M.canopy.fmt(n.canopy[cool])} · ${fmtN(n.pop[cool])} residents</dd>
+    <dt>Heat gap</dt><dd><b>${(p90 - p10).toFixed(1)}°C</b> between its 10th and 90th percentile DAs ${rank ? `(${ordinal(rank)} widest of ${widest.length})` : "(too few DAs to rank)"}</dd>
+    <dt>Canopy and heat</dt><dd>${r ? `Pearson r <b>${fmtR(r.r)}</b> across its DAs` : "too few DAs to say"}</dd>`;
+  $("in-lede").innerHTML = `${escapeHTML(nbhd[i].name)}'s ${n.dauid.length} dissemination areas by ${escapeHTML(lc(def.label))}, on the same classes as all the city's DAs (so a colour means the same in every neighbourhood). Heat is against the city's on the same days, as above; a DA is a few blocks, but the thermal pixels are 100 m, so a small DA's figure includes its surroundings. Pick a neighbourhood on the map or from the list.`;
+}
+function renderSpread() {
+  const order = widest.slice(0, 10), max = D.spread[order[0]];
+  $("spread-list").innerHTML = order.map((i, k) => `<li><span class="rk">${k + 1}</span><button type="button" class="nm" data-in="${i}">${escapeHTML(nbhd[i].name)}</button>
+    <span class="barcell"><span class="bar-fill" style="width:${((D.spread[i] / max) * 100).toFixed(1)}%;background:${HEAT[4]}"></span></span><span class="vl">${D.spread[i].toFixed(1)}°C</span><span class="move"></span></li>`).join("");
+  $("spread-note").textContent = `The difference between each neighbourhood's 10th and 90th percentile DA in summer surface heat, for the ${widest.length} with 12 DAs or more. The typical neighbourhood's is ${quant(D.spread, 0.5).toFixed(1)}°C. Pick one to see it.`;
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-in]");
+  if (!b) return;
+  state.nb = +b.dataset.in;
+  render();
+  $("inside").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 function render() {
   controls();
   renderMap();
@@ -257,6 +327,7 @@ function render() {
   renderRanks();
   renderCorr();
   renderShade();
+  renderInside();
   writeHash();
 }
 renderCards();

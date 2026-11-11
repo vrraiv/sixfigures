@@ -71,7 +71,10 @@ neighbourhood: the canopy against heat (about 1.3°C cooler ground for every 10 
 of canopy, across neighbourhoods and DAs alike), a map that crosses the chosen measure with
 household income or shows either alone, each measure in fifths of the neighbourhoods by
 income, rankings, and correlations with the 2021 Census, crime, school results, sale prices,
-turnout and short-term rentals. No map tiles. Its data is `web/public/trees.json`
+turnout and short-term rentals. Inside the neighbourhood draws a chosen neighbourhood's DAs (on
+the city-wide DA classes) with its hottest and coolest DA and the heat gap between its 10th and
+90th percentile DAs, and lists the widest gaps; those outlines are `trees_da.json` (0.6 MB,
+0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
