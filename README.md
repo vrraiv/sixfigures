@@ -82,7 +82,10 @@ genus over 20%, family over 30%), and species diversity, Norway maple's share an
 genus's share can be mapped (`pipeline/trees.py --species` writes the species tables). Toward 40%
 canopy sets the City's target (40% canopy cover by 2050, city-wide; reaffirmed by Council in 2021)
 against the canopy measured here (26.2%; the City's own 2018 estimate is 28.4-31%) and lists the
-neighbourhoods furthest from 40% of their area, in hectares or points; those outlines are `trees_da.json` (0.6 MB,
+neighbourhoods furthest from 40% of their area, in hectares or points, and points to the City's
+Tree Equity Score Analyzer for planting priorities. Day by day maps each of the 11 Landsat days on
+one colour scale and lists the neighbourhoods in the hottest sixth on nearly every day
+(`pipeline/trees.py` writes `lst_by_pass_nbhd.csv`); those outlines are `trees_da.json` (0.6 MB,
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 

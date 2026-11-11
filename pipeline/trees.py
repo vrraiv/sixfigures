@@ -12,6 +12,9 @@ pipeline/trees/:
                  (lst_c, lst_anom, lst_scenes)
   by_nbhd.csv    the same for the 158 neighbourhoods, from the trees, canopy
                  area and pixels themselves (not averages of DA figures)
+  lst_by_pass_nbhd.csv  each Landsat pass's mean surface temperature by
+                        neighbourhood (pooled pixels) and its difference from
+                        that pass's city mean: nbhd_id, date, lst_c, lst_anom
   species_city.csv      every street-tree species city-wide: species, common
                         name, genus, family, trees, share
   species_by_nbhd.csv   each neighbourhood's TOP_SPECIES (12) commonest species
@@ -488,6 +491,17 @@ def lst_summary(s: pd.DataFrame, c: pd.DataFrame, city: dict, key: pd.Series | N
     return pd.DataFrame({"lst_c": mean.median(axis=1), "lst_anom": anom.median(axis=1), "lst_scenes": mean.notna().sum(axis=1)})
 
 
+def lst_by_pass(s: pd.DataFrame, c: pd.DataFrame, city: dict, key: pd.Series) -> pd.DataFrame:
+    """Each pass's mean LST by `key` (the neighbourhood, pooling its DAs' pixels) and its
+    difference from that pass's city mean, long: key, date, lst_c, lst_anom."""
+    s, c = s.groupby(key.values).sum(min_count=1), c.groupby(key.values).sum()
+    mean = s.where(c > 0) / c.where(c > 0)
+    anom = mean - pd.Series(city)
+    out = pd.concat({"lst_c": mean.stack(), "lst_anom": anom.stack()}, axis=1).round(2)
+    out.index.names = ["nbhd_id", "date"]
+    return out.reset_index()
+
+
 # ---------------------------------------------------------------- checks
 
 def corr(x: pd.Series, y: pd.Series) -> dict:
@@ -559,6 +573,7 @@ def main() -> int:
                            "scenes_used": log["used"], "scenes_rejected": log["rejected"]}
     l_da = lst_summary(s, c, log["city_means"])
     l_nb = lst_summary(s, c, log["city_means"], nbhd)
+    lst_by_pass(s, c, log["city_means"], nbhd).to_csv(OUT / "lst_by_pass_nbhd.csv", index=False, lineterminator="\n")
 
     out = by_da.assign(area_ha=da_area)
     out["trees"] = out.trees.fillna(0).astype(int)

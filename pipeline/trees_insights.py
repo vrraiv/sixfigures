@@ -28,6 +28,10 @@ reads, and the other neighbourhood layers, and writes:
                     neighbourhoods' gaps, how many are at or above 40%, and the
                     City's own published 2018 estimate (28.4-31%, a different
                     method from the land-cover polygons used here, which give 26.2%)
+  days              each Landsat pass (as in passes): by neighbourhood, its mean
+                    surface temperature (lst) and difference from that day's city
+                    mean (anom); null where clouds or the scene's edge left it
+                    without a figure (lst_by_pass_nbhd.csv)
   species_city      the 20 commonest species city-wide (species, common name,
                     genus, % and trees), the counts of species, genera and
                     families, the commonest genus and family with their %, and ash's (Fraxinus) %
@@ -168,6 +172,11 @@ def main() -> int:
     goal = {"target": GOAL, "year": 2050, "city_gap_ha": round(float(GOAL / 100 * n.area_ha.sum() - n.canopy_ha.sum())),
             "nbhd_gap_ha": round(float(gap.sum())), "above": int((n.canopy_share * 100 >= GOAL).sum()),
             "published_2018": "28.4-31", "source": GOAL_SOURCE}
+    lp = pd.read_csv(TREES / "lst_by_pass_nbhd.csv")
+    days = []
+    for p in manifest["landsat"]["scenes_used"]:
+        d1 = lp[lp.date == p["date"]].set_index("nbhd_id").reindex(ids)
+        days.append({"date": p["date"], "anom": col(d1.lst_anom, 2), "lst": col(d1.lst_c, 2)})
     w = n.trees
     city = {"trees": int(n.trees.sum()), "area_ha": round(float(n.area_ha.sum()), 1),
             "canopy_ha": round(float(n.canopy_ha.sum()), 1),
@@ -195,7 +204,7 @@ def main() -> int:
            "retrieved": manifest["files"]["street_trees"]["retrieved"],
            "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit,
            "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread],
-           "species_city": species_city, "goal": goal, "species": species_lists, "other": other}
+           "species_city": species_city, "goal": goal, "days": days, "species": species_lists, "other": other}
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
     das = da_shapes(ids, d)
     if sum(len(x["dauid"]) for x in das) != len(d):
