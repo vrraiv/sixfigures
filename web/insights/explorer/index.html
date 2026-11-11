@@ -7,7 +7,7 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="Explore any measure of Toronto's 158 neighbourhoods from the census, crime, schools, sale prices, housing, trees and heat, elections and short-term rentals: its map, spread, trend, biggest changes and what it goes with." />
+    <meta name="description" content="Explore any measure of Toronto's 158 neighbourhoods from the census, crime, schools, sale prices, housing, trees and heat, elections and short-term rentals: alone or two or three together: maps, spreads, trends, correlations over time and the exceptions." />
   </head>
   <body class="with-nav doc">
     <nav class="wordmark" aria-label="Site">
@@ -33,78 +33,179 @@
     </header>
 
     <main class="insights">
-      <!-- The measure and its period. Two- and three-measure views come next. -->
+      <!-- Up to three measures, each with its period. The view below follows how many are chosen. -->
       <div class="measure-bar ex-bar" id="measure-bar">
-        <label for="measure">Measure</label>
-        <select id="measure"></select>
-        <div class="ex-period" id="period-wrap">
-          <button type="button" class="day-step" id="p-prev" aria-label="Earlier">‹</button>
-          <input type="range" id="period" min="0" step="1" aria-label="Period" />
-          <button type="button" class="day-step" id="p-next" aria-label="Later">›</button>
-          <output id="period-label" for="period"></output>
+        <div id="slots" class="ex-slots"></div>
+        <div class="ex-actions">
+          <button type="button" class="ex-btn" id="add"></button>
+          <button type="button" class="ex-btn" id="swap" hidden>Swap the first two</button>
+          <button type="button" class="ex-btn" id="csv">Download CSV</button>
         </div>
       </div>
+      <p class="nb-pick ex-pick" id="pick-bar" hidden></p>
       <p class="ins-lede ex-about" id="about"></p>
 
-      <section class="ins-section" aria-labelledby="map-h">
-        <div class="ins-head"><h2 id="map-h">On the map</h2></div>
-        <p class="ins-lede" id="map-lede"></p>
-        <figure class="nb-map" id="nb-map"></figure>
-        <p class="nb-pick" id="map-pick" hidden></p>
-        <ul class="corr-key" id="map-key"></ul>
-      </section>
+      <!-- ===== one measure ===== -->
+      <div id="view1" hidden>
+        <section class="ins-section" aria-labelledby="map-h">
+          <div class="ins-head"><h2 id="map-h">On the map</h2></div>
+          <p class="ins-lede" id="map-lede"></p>
+          <figure class="nb-map" id="nb-map"></figure>
+          <ul class="corr-key" id="map-key"></ul>
+        </section>
 
-      <section class="ins-section" aria-labelledby="dist-h">
-        <div class="ins-head"><h2 id="dist-h">How it's spread</h2></div>
-        <p class="ins-lede" id="dist-lede"></p>
-        <figure class="hist" id="hist"></figure>
-      </section>
+        <section class="ins-section" aria-labelledby="dist-h">
+          <div class="ins-head"><h2 id="dist-h">How it's spread</h2></div>
+          <p class="ins-lede" id="dist-lede"></p>
+          <figure class="hist" id="hist"></figure>
+        </section>
 
-      <section class="ins-section" aria-labelledby="rank-h">
-        <div class="ins-head"><h2 id="rank-h">Highest and lowest neighbourhoods</h2></div>
-        <p class="ins-lede" id="rank-lede"></p>
-        <div class="ranks">
-          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
-          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
-        </div>
-      </section>
-
-      <section class="ins-section" id="trend-sec" aria-labelledby="trend-h">
-        <div class="ins-head"><h2 id="trend-h">Over time</h2></div>
-        <p class="ins-lede" id="trend-lede"></p>
-        <figure class="panel" id="trend"></figure>
-      </section>
-
-      <section class="ins-section" id="change-sec" aria-labelledby="chg-h">
-        <div class="ins-head">
-          <h2 id="chg-h">Biggest changes</h2>
-          <div class="seg-row">
-            <select id="chg-from" class="inline-select" aria-label="From"></select>
-            <span class="ex-to">to</span>
-            <select id="chg-to" class="inline-select" aria-label="To"></select>
+        <section class="ins-section" aria-labelledby="rank-h">
+          <div class="ins-head"><h2 id="rank-h">Highest and lowest neighbourhoods</h2></div>
+          <p class="ins-lede" id="rank-lede"></p>
+          <div class="ranks">
+            <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+            <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
           </div>
-        </div>
-        <p class="ins-lede" id="chg-lede"></p>
-        <div class="ranks">
-          <div class="rank-col"><h3>Rose most</h3><ol id="chg-up" class="rank-list"></ol></div>
-          <div class="rank-col"><h3>Fell most</h3><ol id="chg-down" class="rank-list"></ol></div>
-        </div>
-      </section>
+        </section>
 
-      <section class="ins-section" id="stab-sec" aria-labelledby="stab-h">
-        <div class="ins-head"><h2 id="stab-h">How stable the order is</h2></div>
-        <p class="ins-lede" id="stab-lede"></p>
-        <ol id="stab-list" class="corr-list shown"></ol>
-      </section>
+        <section class="ins-section" id="trend-sec" aria-labelledby="trend-h">
+          <div class="ins-head"><h2 id="trend-h">Over time</h2></div>
+          <p class="ins-lede" id="trend-lede"></p>
+          <figure class="panel" id="trend"></figure>
+        </section>
 
-      <section class="ins-section" aria-labelledby="rel-h">
-        <div class="ins-head"><h2 id="rel-h">What it goes with</h2></div>
-        <p class="ins-lede" id="rel-lede"></p>
-        <div class="corr-cols" id="rel-cols">
-          <div><h3 class="sub-h">From other sources</h3><ol id="rel-other" class="corr-list shown ex-rel"></ol></div>
-          <div><h3 class="sub-h" id="rel-same-h">From the same source</h3><ol id="rel-same" class="corr-list shown ex-rel"></ol></div>
-        </div>
-      </section>
+        <section class="ins-section" id="change-sec" aria-labelledby="chg-h">
+          <div class="ins-head">
+            <h2 id="chg-h">Biggest changes</h2>
+            <div class="seg-row">
+              <select id="chg-from" class="inline-select" aria-label="From"></select>
+              <span class="ex-to">to</span>
+              <select id="chg-to" class="inline-select" aria-label="To"></select>
+            </div>
+          </div>
+          <p class="ins-lede" id="chg-lede"></p>
+          <div class="ranks">
+            <div class="rank-col"><h3>Rose most</h3><ol id="chg-up" class="rank-list"></ol></div>
+            <div class="rank-col"><h3>Fell most</h3><ol id="chg-down" class="rank-list"></ol></div>
+          </div>
+        </section>
+
+        <section class="ins-section" id="stab-sec" aria-labelledby="stab-h">
+          <div class="ins-head"><h2 id="stab-h">How stable the order is</h2></div>
+          <p class="ins-lede" id="stab-lede"></p>
+          <ol id="stab-list" class="corr-list shown"></ol>
+        </section>
+
+        <section class="ins-section" aria-labelledby="rel-h">
+          <div class="ins-head"><h2 id="rel-h">What it goes with</h2></div>
+          <p class="ins-lede" id="rel-lede"></p>
+          <div class="corr-cols" id="rel-cols">
+            <div><h3 class="sub-h">From other sources</h3><ol id="rel-other" class="corr-list shown ex-rel"></ol></div>
+            <div><h3 class="sub-h" id="rel-same-h">From the same source</h3><ol id="rel-same" class="corr-list shown ex-rel"></ol></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ===== two measures ===== -->
+      <div id="view2" hidden>
+        <section class="ins-section" aria-labelledby="t-sc-h">
+          <div class="ins-head"><h2 id="t-sc-h">One against the other</h2></div>
+          <p class="ins-lede" id="t-sum"></p>
+          <figure class="scatter ex-first"><div id="t-scatter"></div></figure>
+        </section>
+
+        <section class="ins-section" aria-labelledby="t-map-h">
+          <div class="ins-head"><h2 id="t-map-h">Both on one map</h2></div>
+          <p class="ins-lede" id="t-map-lede"></p>
+          <figure class="nb-map" id="t-map"></figure>
+          <div class="bi-key" id="t-key"></div>
+        </section>
+
+        <section class="ins-section" aria-labelledby="t-fifths-h">
+          <div class="ins-head"><h2 id="t-fifths-h">Step by step</h2></div>
+          <p class="ins-lede" id="t-fifths-lede"></p>
+          <div class="tbl-wrap"><table class="tbl heat" id="t-fifths"></table></div>
+        </section>
+
+        <section class="ins-section" aria-labelledby="t-out-h">
+          <div class="ins-head"><h2 id="t-out-h">The exceptions</h2></div>
+          <p class="ins-lede" id="t-out-lede"></p>
+          <div class="ranks">
+            <div class="rank-col"><h3 id="t-out-up-h"></h3><ol id="t-out-up" class="rank-list"></ol></div>
+            <div class="rank-col"><h3 id="t-out-down-h"></h3><ol id="t-out-down" class="rank-list"></ol></div>
+          </div>
+        </section>
+
+        <section class="ins-section" aria-labelledby="t-time-h">
+          <div class="ins-head"><h2 id="t-time-h">The relationship over time</h2></div>
+          <p class="ins-lede" id="t-time-lede"></p>
+          <figure class="panel ex-time" id="t-time"></figure>
+        </section>
+
+        <section class="ins-section" aria-labelledby="t-chg-h">
+          <div class="ins-head">
+            <h2 id="t-chg-h">Change against change</h2>
+            <div class="seg-row" id="t-chg-controls">
+              <select id="t-chg-from" class="inline-select" aria-label="From"></select>
+              <span class="ex-to">to</span>
+              <select id="t-chg-to" class="inline-select" aria-label="To"></select>
+            </div>
+          </div>
+          <p class="ins-lede" id="t-chg-lede"></p>
+          <figure class="scatter ex-first"><div id="t-chg"></div></figure>
+        </section>
+
+        <section class="ins-section" id="t-lag-sec" aria-labelledby="t-lag-h">
+          <div class="ins-head"><h2 id="t-lag-h">Leads and lags</h2></div>
+          <p class="ins-lede" id="t-lag-lede"></p>
+          <ol id="t-lag" class="corr-list shown ex-lag"></ol>
+        </section>
+
+        <section class="ins-section" aria-labelledby="t-dist-h">
+          <div class="ins-head"><h2 id="t-dist-h">The two spreads</h2></div>
+          <p class="ins-lede">Each measure's neighbourhoods on its own scale: the dark line is the median neighbourhood, the orange one a picked neighbourhood. A long tail to the right means a few neighbourhoods far above the rest.</p>
+          <div class="corr-cols">
+            <figure class="hist"><h3 class="sub-h" id="t-dist-h0"></h3><div id="t-dist0"></div><p class="tbl-note" id="t-dist-note0"></p></figure>
+            <figure class="hist"><h3 class="sub-h" id="t-dist-h1"></h3><div id="t-dist1"></div><p class="tbl-note" id="t-dist-note1"></p></figure>
+          </div>
+        </section>
+      </div>
+
+      <!-- ===== three measures ===== -->
+      <div id="view3" hidden>
+        <section class="ins-section" aria-labelledby="th-pairs-h">
+          <div class="ins-head"><h2 id="th-pairs-h">Two at a time</h2></div>
+          <p class="ins-lede" id="th-pairs-lede"></p>
+          <div class="th-pairs" id="th-pairs"></div>
+        </section>
+
+        <section class="ins-section" aria-labelledby="th-sc-h">
+          <div class="ins-head"><h2 id="th-sc-h">The first two, coloured by the third</h2></div>
+          <p class="ins-lede" id="th-scatter-lede"></p>
+          <figure class="scatter ex-first th-scatter"><div id="th-scatter"></div></figure>
+          <ul class="corr-key" id="th-scatter-key"></ul>
+        </section>
+
+        <section class="ins-section" aria-labelledby="th-maps-h">
+          <div class="ins-head"><h2 id="th-maps-h">Three maps</h2></div>
+          <p class="ins-lede">Each measure in sixths of the neighbourhoods, light to dark. Pick a neighbourhood on any of them to mark it on all three.</p>
+          <div class="th-maps" id="th-maps"></div>
+        </section>
+
+        <section class="ins-section" aria-labelledby="th-profile-h">
+          <div class="ins-head"><h2 id="th-profile-h">One neighbourhood on all three</h2></div>
+          <p class="ins-lede" id="th-profile-lede"></p>
+          <ol id="th-profile" class="corr-list shown th-profile"></ol>
+        </section>
+
+        <section class="ins-section" aria-labelledby="th-combo-h">
+          <div class="ins-head"><h2 id="th-combo-h">The eight combinations</h2></div>
+          <p class="ins-lede" id="th-combo-lede"></p>
+          <figure class="nb-map th-combo-map" id="th-combo-map"></figure>
+          <div class="tbl-wrap"><table class="tbl" id="th-combo"></table></div>
+        </section>
+      </div>
       <div id="tip" class="tip" role="tooltip" hidden></div>
     </main>
 

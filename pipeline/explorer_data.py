@@ -66,7 +66,7 @@ CATALOGUE_JS = HERE.parent / "web" / "src" / "catalogue.js"
 RARE_YEARS = 3  # years averaged for rare events and lumpy flows
 
 SOURCES = [
-    ("census", "Census", "2006, 2011, 2016 and 2021 Censuses; dollars restated in the latest year's"),
+    ("census", "Census", "2006, 2011, 2016 and 2021 Censuses"),
     ("safety", "Safety", "Toronto Police Service and the City's collision records, per 100,000 residents of 2021"),
     ("schools", "Schools", "EQAO Grade 3 and 6 results of the schools inside the neighbourhood"),
     ("prices", "Sale prices", "TRREB community reports; several neighbourhoods share a community"),
@@ -82,6 +82,18 @@ CENSUS_GROUPS = {"income": "Income", "low": "Low income and transfers", "housing
 def span(y: int) -> str:
     """The label of the RARE_YEARS years ending in y: 2023–25."""
     return f"{y - RARE_YEARS + 1}–{str(y)[2:]}"
+
+
+# The census catalogue's short names are for a menu grouped by topic ("Household, total");
+# the Explorer uses them inside sentences, so these stand in for the ones that need their topic.
+CENSUS_SHORT = {"med_hh_tot": "Household income", "med_hh_at": "After-tax household income", "med_ind_tot": "Individual income",
+                "med_ind_at": "After-tax individual income", "avg_hh_tot": "Average household income",
+                "degree": "Bachelor's degree or higher", "own_cost": "Owners' monthly costs", "rent": "Monthly rent",
+                "owner30": "Owners spending 30%+ on shelter", "tenant30": "Tenants spending 30%+ on shelter",
+                "shelter30": "Households spending 30%+ on shelter", "detached": "Single-detached houses",
+                "apt5": "Apartments of 5+ storeys", "built_new": "Homes built in the past 5 years",
+                "built_old": "Homes built 1960 or before", "crowded": "Crowded housing", "age0_14": "Children 0 to 14",
+                "age65": "People 65 and over", "moved1": "Moved in the past year", "moved5": "Moved in the past 5 years"}
 
 
 class Book:
@@ -134,7 +146,7 @@ def census(b: Book, insights: dict):
                 "" if dated else " Incomes are for the year before each census.")
         if "cerb: true" in rest:
             note += " 2021's figure (2020 incomes) is moved by pandemic benefits."
-        b.add("census", key, long, short, "money" if unit == "money" else "pct", years, years, "census", cols,
+        b.add("census", key, long, CENSUS_SHORT.get(key, short), "money" if unit == "money" else "pct", years, years, "census", cols,
               group=CENSUS_GROUPS[group], note=note.strip(), digits=0 if unit == "money" else 1)
 
 
