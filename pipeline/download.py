@@ -172,6 +172,17 @@ TORONTO = {
     # Short-term rental registrations (rentals.py): active numbers only, refreshed daily
     "toronto_str_registrations.csv": (
         "short-term-rentals-registration", "short-term-rental-registrations-data.csv", b"_id,"),
+    # Mayoral elections by voting subdivision (elections.py)
+    "toronto_election_results_2022.zip": ("election-results-official", "2022-results", b"PK"),
+    "toronto_byelection_mayor_2023.xlsx": (
+        "elections-official-by-election-results", "2023 Office of the Mayor", b"PK"),
+    "toronto_voter_statistics_2022.xlsx": ("elections-voter-statistics", "2022-voter-statistics", b"PK"),
+    "toronto_byelection_mayor_2023_voter_statistics.xlsx": (
+        "elections-by-election-voter-statistics", "2023-mayoral-by-election-voter-statistics", b"PK"),
+    "toronto_voting_subdivisions_2022_4326.geojson": (
+        "elections-subdivisions", "voting-subdivisions-2022 - 4326.geojson", b"{"),
+    "toronto_voting_subdivisions_2023_4326.geojson": (
+        "elections-subdivisions", "voting-subdivisions-2023 - 4326.geojson", b"{"),
     # DineSafe inspections (health.py), a rolling ~3-year window refreshed daily
     "toronto_dinesafe.csv": ("dinesafe", "Dinesafe.csv", b"_id,"),
 }

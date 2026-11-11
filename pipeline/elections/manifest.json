@@ -1,0 +1,1021 @@
+{
+  "built": "2026-11-11",
+  "da_outlines": "toronto_da.pmtiles z13",
+  "leading_share": 0.04,
+  "files": {
+    "toronto_election_results_2022.zip": {
+      "package": "election-results-official",
+      "resource": "2022-results",
+      "bytes": 939065,
+      "retrieved": "2026-11-11"
+    },
+    "toronto_byelection_mayor_2023.xlsx": {
+      "package": "elections-official-by-election-results",
+      "resource": "2023 Office of the Mayor",
+      "bytes": 553579,
+      "retrieved": "2026-11-11"
+    },
+    "toronto_voter_statistics_2022.xlsx": {
+      "package": "elections-voter-statistics",
+      "resource": "2022-voter-statistics",
+      "bytes": 185514,
+      "retrieved": "2026-11-11"
+    },
+    "toronto_byelection_mayor_2023_voter_statistics.xlsx": {
+      "package": "elections-by-election-voter-statistics",
+      "resource": "2023-mayoral-by-election-voter-statistics",
+      "bytes": 139993,
+      "retrieved": "2026-11-11"
+    },
+    "toronto_voting_subdivisions_2022_4326.geojson": {
+      "package": "elections-subdivisions",
+      "resource": "voting-subdivisions-2022 - 4326.geojson",
+      "bytes": 4967952,
+      "retrieved": "2026-11-11"
+    },
+    "toronto_voting_subdivisions_2023_4326.geojson": {
+      "package": "elections-subdivisions",
+      "resource": "voting-subdivisions-2023 - 4326.geojson",
+      "bytes": 4918707,
+      "retrieved": "2026-11-11"
+    },
+    "toronto_address_points_4326.csv": {
+      "package": "address-points-municipal-toronto-one-address-repository",
+      "resource": "Address Points - 4326.csv",
+      "bytes": 183420679,
+      "retrieved": "2026-11-11"
+    }
+  },
+  "address_points": {
+    "all": 525191,
+    "used": 505487
+  },
+  "not_included": {
+    "2026 general election": "official poll-by-poll results posted 2026-10-29 (election-results-official, 2026-results), but no 2026 subdivision boundaries or voter statistics on the portal as of 2026-11-11"
+  },
+  "rows_by_da": 7486,
+  "rows_by_nbhd": 316,
+  "rows_by_poll": 2986,
+  "checks": {
+    "2022": {
+      "wards": 25,
+      "workbook_totals_match": true,
+      "declared": {
+        "source": "City Clerk's Declaration of Results",
+        "candidates": true,
+        "total": 551890,
+        "leaders": true,
+        "votes_tory": 342158,
+        "votes_penalosa": 98525,
+        "votes_brown": 34821
+      },
+      "voter_statistics": {
+        "subdivisions_add_to_ward_and_grand_totals": true,
+        "electors": 1898750,
+        "voted": 563124,
+        "turnout": 0.2966
+      },
+      "official": {
+        "electors": 1898750,
+        "voted": 563124,
+        "votes": 551890,
+        "votes_tory": 342158,
+        "votes_penalosa": 98525,
+        "votes_brown": 34821,
+        "votes_other": 76386
+      },
+      "official_by_ward": {
+        "1": {
+          "electors": 70797,
+          "voted": 16962,
+          "votes": 16512,
+          "votes_tory": 11146,
+          "votes_penalosa": 1019,
+          "votes_brown": 979,
+          "votes_other": 3368
+        },
+        "2": {
+          "electors": 89491,
+          "voted": 26784,
+          "votes": 26532,
+          "votes_tory": 19743,
+          "votes_penalosa": 2637,
+          "votes_brown": 1072,
+          "votes_other": 3080
+        },
+        "3": {
+          "electors": 102797,
+          "voted": 33544,
+          "votes": 32973,
+          "votes_tory": 21983,
+          "votes_penalosa": 5067,
+          "votes_brown": 1838,
+          "votes_other": 4085
+        },
+        "4": {
+          "electors": 83800,
+          "voted": 32223,
+          "votes": 31415,
+          "votes_tory": 15692,
+          "votes_penalosa": 10011,
+          "votes_brown": 2348,
+          "votes_other": 3364
+        },
+        "5": {
+          "electors": 76907,
+          "voted": 21807,
+          "votes": 21056,
+          "votes_tory": 13663,
+          "votes_penalosa": 2449,
+          "votes_brown": 1356,
+          "votes_other": 3588
+        },
+        "6": {
+          "electors": 68296,
+          "voted": 17124,
+          "votes": 16769,
+          "votes_tory": 12064,
+          "votes_penalosa": 1427,
+          "votes_brown": 807,
+          "votes_other": 2471
+        },
+        "7": {
+          "electors": 66162,
+          "voted": 14616,
+          "votes": 13995,
+          "votes_tory": 9409,
+          "votes_penalosa": 1101,
+          "votes_brown": 895,
+          "votes_other": 2590
+        },
+        "8": {
+          "electors": 79418,
+          "voted": 25082,
+          "votes": 24600,
+          "votes_tory": 17884,
+          "votes_penalosa": 3320,
+          "votes_brown": 1014,
+          "votes_other": 2382
+        },
+        "9": {
+          "electors": 81355,
+          "voted": 24869,
+          "votes": 24308,
+          "votes_tory": 9485,
+          "votes_penalosa": 9158,
+          "votes_brown": 2827,
+          "votes_other": 2838
+        },
+        "10": {
+          "electors": 95433,
+          "voted": 23293,
+          "votes": 22923,
+          "votes_tory": 10185,
+          "votes_penalosa": 7273,
+          "votes_brown": 2581,
+          "votes_other": 2884
+        },
+        "11": {
+          "electors": 80347,
+          "voted": 25690,
+          "votes": 25238,
+          "votes_tory": 12108,
+          "votes_penalosa": 8579,
+          "votes_brown": 2220,
+          "votes_other": 2331
+        },
+        "12": {
+          "electors": 83877,
+          "voted": 28153,
+          "votes": 27826,
+          "votes_tory": 16331,
+          "votes_penalosa": 7136,
+          "votes_brown": 1862,
+          "votes_other": 2497
+        },
+        "13": {
+          "electors": 80096,
+          "voted": 23073,
+          "votes": 22754,
+          "votes_tory": 10506,
+          "votes_penalosa": 7263,
+          "votes_brown": 2277,
+          "votes_other": 2708
+        },
+        "14": {
+          "electors": 79533,
+          "voted": 28406,
+          "votes": 27878,
+          "votes_tory": 14178,
+          "votes_penalosa": 8190,
+          "votes_brown": 2048,
+          "votes_other": 3462
+        },
+        "15": {
+          "electors": 69118,
+          "voted": 22522,
+          "votes": 22300,
+          "votes_tory": 16105,
+          "votes_penalosa": 3091,
+          "votes_brown": 875,
+          "votes_other": 2229
+        },
+        "16": {
+          "electors": 61583,
+          "voted": 18785,
+          "votes": 18482,
+          "votes_tory": 13132,
+          "votes_penalosa": 1863,
+          "votes_brown": 885,
+          "votes_other": 2602
+        },
+        "17": {
+          "electors": 70517,
+          "voted": 18700,
+          "votes": 18372,
+          "votes_tory": 13039,
+          "votes_penalosa": 1615,
+          "votes_brown": 720,
+          "votes_other": 2998
+        },
+        "18": {
+          "electors": 69996,
+          "voted": 20438,
+          "votes": 19811,
+          "votes_tory": 13764,
+          "votes_penalosa": 2350,
+          "votes_brown": 774,
+          "votes_other": 2923
+        },
+        "19": {
+          "electors": 77782,
+          "voted": 28315,
+          "votes": 27969,
+          "votes_tory": 16421,
+          "votes_penalosa": 6355,
+          "votes_brown": 1987,
+          "votes_other": 3206
+        },
+        "20": {
+          "electors": 74104,
+          "voted": 23967,
+          "votes": 23526,
+          "votes_tory": 15632,
+          "votes_penalosa": 2699,
+          "votes_brown": 1254,
+          "votes_other": 3941
+        },
+        "21": {
+          "electors": 71240,
+          "voted": 18867,
+          "votes": 18471,
+          "votes_tory": 12512,
+          "votes_penalosa": 1394,
+          "votes_brown": 977,
+          "votes_other": 3588
+        },
+        "22": {
+          "electors": 67123,
+          "voted": 17469,
+          "votes": 16838,
+          "votes_tory": 11318,
+          "votes_penalosa": 1111,
+          "votes_brown": 640,
+          "votes_other": 3769
+        },
+        "23": {
+          "electors": 61338,
+          "voted": 15388,
+          "votes": 14892,
+          "votes_tory": 9663,
+          "votes_penalosa": 944,
+          "votes_brown": 668,
+          "votes_other": 3617
+        },
+        "24": {
+          "electors": 64080,
+          "voted": 16999,
+          "votes": 16680,
+          "votes_tory": 11887,
+          "votes_penalosa": 1148,
+          "votes_brown": 824,
+          "votes_other": 2821
+        },
+        "25": {
+          "electors": 73560,
+          "voted": 20048,
+          "votes": 19770,
+          "votes_tory": 14308,
+          "votes_penalosa": 1325,
+          "votes_brown": 1093,
+          "votes_other": 3044
+        }
+      },
+      "apportioned_minus_official": {
+        "electors": 0.0,
+        "voted": 0.0,
+        "votes": 0.0,
+        "votes_tory": 0.0,
+        "votes_penalosa": 0.0,
+        "votes_brown": 0.0,
+        "votes_other": 0.0
+      },
+      "apportioned_minus_official_by_ward_max_abs": 0.0,
+      "piece_shares_sum_to_one_max_error": 0.0,
+      "subdivisions": {
+        "polling": 1460,
+        "advance": 50,
+        "mail": 25
+      },
+      "special_share": {
+        "mail_advance": {
+          "city": 0.2423,
+          "ward_min": 0.1656,
+          "ward_max": 0.3135,
+          "by_ward": {
+            "1": 0.2537,
+            "2": 0.2733,
+            "3": 0.2453,
+            "4": 0.2416,
+            "5": 0.2103,
+            "6": 0.2393,
+            "7": 0.1656,
+            "8": 0.2569,
+            "9": 0.2103,
+            "10": 0.2121,
+            "11": 0.2115,
+            "12": 0.2646,
+            "13": 0.2434,
+            "14": 0.2474,
+            "15": 0.2198,
+            "16": 0.2087,
+            "17": 0.2608,
+            "18": 0.2849,
+            "19": 0.2308,
+            "20": 0.2452,
+            "21": 0.2455,
+            "22": 0.2696,
+            "23": 0.3135,
+            "24": 0.2388,
+            "25": 0.2657
+          }
+        }
+      },
+      "pieces": {
+        "pieces": 10260,
+        "subdivisions_per_da_median": 2.0,
+        "das_per_subdivision_median": 7.0,
+        "subdivisions_in_one_da_95pct": 624,
+        "fallback": {
+          "none": 10240,
+          "da_area": 10,
+          "poll_area": 10
+        },
+        "das_reached": 3743,
+        "das": 3743,
+        "overlap_km2": 0.0
+      },
+      "leaders": {
+        "votes_tory": "Tory John",
+        "votes_penalosa": "Penalosa Gil",
+        "votes_brown": "Brown Chloe-Marie"
+      },
+      "city_sums": {
+        "by_da": {
+          "electors": 1898750.0,
+          "voted": 563124.0,
+          "votes": 551890.0,
+          "votes_tory": 342158.0,
+          "votes_penalosa": 98525.0,
+          "votes_brown": 34821.0
+        },
+        "by_nbhd": {
+          "electors": 1898750.0,
+          "voted": 563124.0,
+          "votes": 551890.0,
+          "votes_tory": 342158.0,
+          "votes_penalosa": 98525.0,
+          "votes_brown": 34821.0
+        }
+      },
+      "electors_vs_pop21_by_nbhd": {
+        "n": 158,
+        "r": 0.943,
+        "rho": 0.949,
+        "ratio_city": 0.679,
+        "ratio_min": 0.498,
+        "ratio_max": 0.897
+      },
+      "income": {
+        "measure": "2021 median household total income (med_hh_tot); neighbourhoods: household-weighted mean of their DAs' medians",
+        "da_min_electors": 50,
+        "turnout_by_da": {
+          "n": 3675,
+          "r": 0.224,
+          "rho": 0.276
+        },
+        "turnout_day_by_da": {
+          "n": 3675,
+          "r": 0.21,
+          "rho": 0.251
+        },
+        "turnout_by_nbhd": {
+          "n": 158,
+          "r": 0.441,
+          "rho": 0.541
+        },
+        "share_tory_by_da": {
+          "n": 3675,
+          "r": 0.309,
+          "rho": 0.319
+        },
+        "share_penalosa_by_da": {
+          "n": 3675,
+          "r": -0.054,
+          "rho": -0.005
+        },
+        "share_brown_by_da": {
+          "n": 3675,
+          "r": -0.324,
+          "rho": -0.312
+        },
+        "share_tory_by_nbhd": {
+          "n": 158,
+          "r": 0.341,
+          "rho": 0.304
+        },
+        "share_penalosa_by_nbhd": {
+          "n": 158,
+          "r": -0.021,
+          "rho": 0.135
+        },
+        "share_brown_by_nbhd": {
+          "n": 158,
+          "r": -0.388,
+          "rho": -0.327
+        }
+      },
+      "vs_area_weighting": {
+        "turnout_by_da": {
+          "n": 3731,
+          "r": 0.983,
+          "rho": 0.987,
+          "median_abs_diff": 0.0002
+        },
+        "turnout_by_nbhd": {
+          "n": 158,
+          "r": 0.996,
+          "rho": 0.996,
+          "max_abs_diff": 0.0186
+        },
+        "share_tory_by_nbhd": {
+          "n": 158,
+          "r": 0.999,
+          "rho": 0.998,
+          "max_abs_diff": 0.0251
+        }
+      }
+    },
+    "2023by": {
+      "wards": 25,
+      "workbook_totals_match": true,
+      "declared": {
+        "source": "City Clerk's Declaration of Results",
+        "candidates": true,
+        "total": 724638,
+        "leaders": true,
+        "votes_chow": 269372,
+        "votes_bailao": 235175,
+        "votes_saunders": 62167,
+        "votes_furey": 35899,
+        "votes_matlow": 35572
+      },
+      "voter_statistics": {
+        "subdivisions_add_to_ward_and_grand_totals": true,
+        "electors": 1947242,
+        "voted": 724638,
+        "turnout": 0.3721
+      },
+      "official": {
+        "electors": 1947242,
+        "voted": 724638,
+        "votes": 724638,
+        "votes_chow": 269372,
+        "votes_bailao": 235175,
+        "votes_saunders": 62167,
+        "votes_furey": 35899,
+        "votes_matlow": 35572,
+        "votes_other": 86453
+      },
+      "official_by_ward": {
+        "1": {
+          "electors": 71599,
+          "voted": 17822,
+          "votes": 17822,
+          "votes_chow": 4972,
+          "votes_bailao": 5748,
+          "votes_saunders": 2744,
+          "votes_furey": 1031,
+          "votes_matlow": 313,
+          "votes_other": 3014
+        },
+        "2": {
+          "electors": 91745,
+          "voted": 37925,
+          "votes": 37925,
+          "votes_chow": 8049,
+          "votes_bailao": 16943,
+          "votes_saunders": 5166,
+          "votes_furey": 3139,
+          "votes_matlow": 1063,
+          "votes_other": 3565
+        },
+        "3": {
+          "electors": 106335,
+          "voted": 42189,
+          "votes": 42189,
+          "votes_chow": 12424,
+          "votes_bailao": 16967,
+          "votes_saunders": 4306,
+          "votes_furey": 2996,
+          "votes_matlow": 1387,
+          "votes_other": 4109
+        },
+        "4": {
+          "electors": 86457,
+          "voted": 39170,
+          "votes": 39170,
+          "votes_chow": 19569,
+          "votes_bailao": 10181,
+          "votes_saunders": 1892,
+          "votes_furey": 1695,
+          "votes_matlow": 2056,
+          "votes_other": 3777
+        },
+        "5": {
+          "electors": 78321,
+          "voted": 25024,
+          "votes": 25024,
+          "votes_chow": 7399,
+          "votes_bailao": 9826,
+          "votes_saunders": 2470,
+          "votes_furey": 1163,
+          "votes_matlow": 617,
+          "votes_other": 3549
+        },
+        "6": {
+          "electors": 69983,
+          "voted": 22703,
+          "votes": 22703,
+          "votes_chow": 5444,
+          "votes_bailao": 9411,
+          "votes_saunders": 2557,
+          "votes_furey": 1408,
+          "votes_matlow": 905,
+          "votes_other": 2978
+        },
+        "7": {
+          "electors": 66972,
+          "voted": 15936,
+          "votes": 15936,
+          "votes_chow": 4485,
+          "votes_bailao": 4487,
+          "votes_saunders": 1710,
+          "votes_furey": 663,
+          "votes_matlow": 239,
+          "votes_other": 4352
+        },
+        "8": {
+          "electors": 81608,
+          "voted": 34449,
+          "votes": 34449,
+          "votes_chow": 8183,
+          "votes_bailao": 16121,
+          "votes_saunders": 2932,
+          "votes_furey": 1828,
+          "votes_matlow": 2668,
+          "votes_other": 2717
+        },
+        "9": {
+          "electors": 83706,
+          "voted": 34215,
+          "votes": 34215,
+          "votes_chow": 17031,
+          "votes_bailao": 10312,
+          "votes_saunders": 1240,
+          "votes_furey": 935,
+          "votes_matlow": 1381,
+          "votes_other": 3316
+        },
+        "10": {
+          "electors": 100319,
+          "voted": 33568,
+          "votes": 33568,
+          "votes_chow": 16688,
+          "votes_bailao": 8206,
+          "votes_saunders": 2086,
+          "votes_furey": 1251,
+          "votes_matlow": 1406,
+          "votes_other": 3931
+        },
+        "11": {
+          "electors": 83871,
+          "voted": 34804,
+          "votes": 34804,
+          "votes_chow": 16307,
+          "votes_bailao": 10188,
+          "votes_saunders": 1883,
+          "votes_furey": 1191,
+          "votes_matlow": 2243,
+          "votes_other": 2992
+        },
+        "12": {
+          "electors": 87018,
+          "voted": 40149,
+          "votes": 40149,
+          "votes_chow": 13468,
+          "votes_bailao": 12165,
+          "votes_saunders": 2232,
+          "votes_furey": 1614,
+          "votes_matlow": 7738,
+          "votes_other": 2932
+        },
+        "13": {
+          "electors": 84155,
+          "voted": 31397,
+          "votes": 31397,
+          "votes_chow": 17142,
+          "votes_bailao": 6498,
+          "votes_saunders": 1545,
+          "votes_furey": 950,
+          "votes_matlow": 1590,
+          "votes_other": 3672
+        },
+        "14": {
+          "electors": 81837,
+          "voted": 37692,
+          "votes": 37692,
+          "votes_chow": 19560,
+          "votes_bailao": 9180,
+          "votes_saunders": 1750,
+          "votes_furey": 1265,
+          "votes_matlow": 1972,
+          "votes_other": 3965
+        },
+        "15": {
+          "electors": 70626,
+          "voted": 30858,
+          "votes": 30858,
+          "votes_chow": 8067,
+          "votes_bailao": 13299,
+          "votes_saunders": 3155,
+          "votes_furey": 1496,
+          "votes_matlow": 2528,
+          "votes_other": 2313
+        },
+        "16": {
+          "electors": 62566,
+          "voted": 21958,
+          "votes": 21958,
+          "votes_chow": 7358,
+          "votes_bailao": 7373,
+          "votes_saunders": 2155,
+          "votes_furey": 1340,
+          "votes_matlow": 938,
+          "votes_other": 2794
+        },
+        "17": {
+          "electors": 72324,
+          "voted": 24777,
+          "votes": 24777,
+          "votes_chow": 8381,
+          "votes_bailao": 8625,
+          "votes_saunders": 2878,
+          "votes_furey": 1457,
+          "votes_matlow": 785,
+          "votes_other": 2651
+        },
+        "18": {
+          "electors": 71500,
+          "voted": 23788,
+          "votes": 23788,
+          "votes_chow": 8293,
+          "votes_bailao": 8244,
+          "votes_saunders": 2680,
+          "votes_furey": 1417,
+          "votes_matlow": 960,
+          "votes_other": 2194
+        },
+        "19": {
+          "electors": 79791,
+          "voted": 36944,
+          "votes": 36944,
+          "votes_chow": 15910,
+          "votes_bailao": 10429,
+          "votes_saunders": 2099,
+          "votes_furey": 1874,
+          "votes_matlow": 1737,
+          "votes_other": 4895
+        },
+        "20": {
+          "electors": 75240,
+          "voted": 27958,
+          "votes": 27958,
+          "votes_chow": 9981,
+          "votes_bailao": 8559,
+          "votes_saunders": 2762,
+          "votes_furey": 1822,
+          "votes_matlow": 806,
+          "votes_other": 4028
+        },
+        "21": {
+          "electors": 72175,
+          "voted": 23061,
+          "votes": 23061,
+          "votes_chow": 7970,
+          "votes_bailao": 7062,
+          "votes_saunders": 2576,
+          "votes_furey": 1261,
+          "votes_matlow": 504,
+          "votes_other": 3688
+        },
+        "22": {
+          "electors": 67878,
+          "voted": 22707,
+          "votes": 22707,
+          "votes_chow": 9065,
+          "votes_bailao": 6595,
+          "votes_saunders": 2544,
+          "votes_furey": 1013,
+          "votes_matlow": 598,
+          "votes_other": 2892
+        },
+        "23": {
+          "electors": 61863,
+          "voted": 18960,
+          "votes": 18960,
+          "votes_chow": 8940,
+          "votes_bailao": 4482,
+          "votes_saunders": 2013,
+          "votes_furey": 529,
+          "votes_matlow": 294,
+          "votes_other": 2702
+        },
+        "24": {
+          "electors": 64855,
+          "voted": 21136,
+          "votes": 21136,
+          "votes_chow": 6448,
+          "votes_bailao": 5997,
+          "votes_saunders": 2088,
+          "votes_furey": 1244,
+          "votes_matlow": 339,
+          "votes_other": 5020
+        },
+        "25": {
+          "electors": 74498,
+          "voted": 25448,
+          "votes": 25448,
+          "votes_chow": 8238,
+          "votes_bailao": 8277,
+          "votes_saunders": 2704,
+          "votes_furey": 1317,
+          "votes_matlow": 505,
+          "votes_other": 4407
+        }
+      },
+      "apportioned_minus_official": {
+        "electors": 0.0,
+        "voted": 0.0,
+        "votes": 0.0,
+        "votes_chow": 0.0,
+        "votes_bailao": 0.0,
+        "votes_saunders": 0.0,
+        "votes_furey": 0.0,
+        "votes_matlow": 0.0,
+        "votes_other": 0.0
+      },
+      "apportioned_minus_official_by_ward_max_abs": 0.0,
+      "piece_shares_sum_to_one_max_error": 0.0,
+      "subdivisions": {
+        "polling": 1351,
+        "advance": 50,
+        "ltc": 25,
+        "mail": 25
+      },
+      "special_share": {
+        "mail_advance": {
+          "city": 0.2177,
+          "ward_min": 0.1552,
+          "ward_max": 0.2672,
+          "by_ward": {
+            "1": 0.1687,
+            "2": 0.2272,
+            "3": 0.1988,
+            "4": 0.2284,
+            "5": 0.1895,
+            "6": 0.184,
+            "7": 0.1552,
+            "8": 0.195,
+            "9": 0.2118,
+            "10": 0.2278,
+            "11": 0.224,
+            "12": 0.2526,
+            "13": 0.266,
+            "14": 0.2481,
+            "15": 0.1699,
+            "16": 0.1817,
+            "17": 0.228,
+            "18": 0.2267,
+            "19": 0.2153,
+            "20": 0.2174,
+            "21": 0.2169,
+            "22": 0.2412,
+            "23": 0.2672,
+            "24": 0.2196,
+            "25": 0.2229
+          }
+        },
+        "ltc": {
+          "city": 0.0036,
+          "ward_min": 0.0003,
+          "ward_max": 0.0073,
+          "by_ward": {
+            "1": 0.0073,
+            "2": 0.0053,
+            "3": 0.001,
+            "4": 0.0039,
+            "5": 0.004,
+            "6": 0.0026,
+            "7": 0.0039,
+            "8": 0.0053,
+            "9": 0.0003,
+            "10": 0.0021,
+            "11": 0.0044,
+            "12": 0.0052,
+            "13": 0.0036,
+            "14": 0.0037,
+            "15": 0.0027,
+            "16": 0.0011,
+            "17": 0.0023,
+            "18": 0.0033,
+            "19": 0.0038,
+            "20": 0.0069,
+            "21": 0.0052,
+            "22": 0.0026,
+            "23": 0.0016,
+            "24": 0.0062,
+            "25": 0.0026
+          }
+        }
+      },
+      "pieces": {
+        "pieces": 10211,
+        "subdivisions_per_da_median": 2.0,
+        "das_per_subdivision_median": 7.0,
+        "subdivisions_in_one_da_95pct": 625,
+        "fallback": {
+          "none": 10190,
+          "poll_area": 11,
+          "da_area": 10
+        },
+        "das_reached": 3743,
+        "das": 3743,
+        "overlap_km2": 0.0
+      },
+      "leaders": {
+        "votes_chow": "Chow Olivia",
+        "votes_bailao": "Bailão Ana",
+        "votes_saunders": "Saunders Mark",
+        "votes_furey": "Furey Anthony",
+        "votes_matlow": "Matlow Josh"
+      },
+      "long_term_care": {
+        "buildings": 94,
+        "wards": 25,
+        "votes": 2606,
+        "electors": 7441,
+        "voter_count_missing": 13
+      },
+      "city_sums": {
+        "by_da": {
+          "electors": 1947242.0,
+          "voted": 724638.0,
+          "votes": 724638.0,
+          "votes_chow": 269372.0,
+          "votes_bailao": 235175.0,
+          "votes_saunders": 62167.0,
+          "votes_furey": 35899.0,
+          "votes_matlow": 35572.0
+        },
+        "by_nbhd": {
+          "electors": 1947242.0,
+          "voted": 724638.0,
+          "votes": 724638.0,
+          "votes_chow": 269372.0,
+          "votes_bailao": 235175.0,
+          "votes_saunders": 62167.0,
+          "votes_furey": 35899.0,
+          "votes_matlow": 35572.0
+        }
+      },
+      "electors_vs_pop21_by_nbhd": {
+        "n": 158,
+        "r": 0.936,
+        "rho": 0.945,
+        "ratio_city": 0.697,
+        "ratio_min": 0.521,
+        "ratio_max": 0.898
+      },
+      "income": {
+        "measure": "2021 median household total income (med_hh_tot); neighbourhoods: household-weighted mean of their DAs' medians",
+        "da_min_electors": 50,
+        "turnout_by_da": {
+          "n": 3675,
+          "r": 0.416,
+          "rho": 0.417
+        },
+        "turnout_day_by_da": {
+          "n": 3675,
+          "r": 0.438,
+          "rho": 0.425
+        },
+        "turnout_by_nbhd": {
+          "n": 158,
+          "r": 0.603,
+          "rho": 0.663
+        },
+        "share_chow_by_da": {
+          "n": 3675,
+          "r": -0.358,
+          "rho": -0.318
+        },
+        "share_bailao_by_da": {
+          "n": 3675,
+          "r": 0.52,
+          "rho": 0.427
+        },
+        "share_saunders_by_da": {
+          "n": 3675,
+          "r": 0.041,
+          "rho": 0.063
+        },
+        "share_furey_by_da": {
+          "n": 3675,
+          "r": 0.127,
+          "rho": 0.181
+        },
+        "share_matlow_by_da": {
+          "n": 3675,
+          "r": 0.181,
+          "rho": 0.161
+        },
+        "share_chow_by_nbhd": {
+          "n": 158,
+          "r": -0.395,
+          "rho": -0.324
+        },
+        "share_bailao_by_nbhd": {
+          "n": 158,
+          "r": 0.612,
+          "rho": 0.462
+        },
+        "share_saunders_by_nbhd": {
+          "n": 158,
+          "r": 0.033,
+          "rho": -0.052
+        },
+        "share_furey_by_nbhd": {
+          "n": 158,
+          "r": 0.203,
+          "rho": 0.232
+        },
+        "share_matlow_by_nbhd": {
+          "n": 158,
+          "r": 0.261,
+          "rho": 0.33
+        }
+      },
+      "vs_area_weighting": {
+        "turnout_by_da": {
+          "n": 3731,
+          "r": 0.988,
+          "rho": 0.989,
+          "median_abs_diff": 0.0002
+        },
+        "turnout_by_nbhd": {
+          "n": 158,
+          "r": 0.995,
+          "rho": 0.993,
+          "max_abs_diff": 0.048
+        },
+        "share_chow_by_nbhd": {
+          "n": 158,
+          "r": 0.999,
+          "rho": 0.999,
+          "max_abs_diff": 0.0235
+        }
+      }
+    }
+  }
+}

@@ -263,7 +263,9 @@ eqao:
 #              is computed but kept in pipeline/out/ for its licence)
 #   rentals    Inside Airbnb listings by snapshot and neighbourhood; City short-term rental
 #              registrations by ward and neighbourhood against the latest snapshot
-LAYERS := crime health rentals
+#   elections  the 2022 mayoral election and 2023 by-election by voting subdivision,
+#              2021 DA and neighbourhood (special polls allocated within the ward)
+LAYERS := crime health rentals elections
 .PHONY: layers $(LAYERS)
 
 layers: $(LAYERS)

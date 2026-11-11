@@ -85,6 +85,7 @@ it's worth an enquiry, but the plan doesn't depend on it.
 | KSI traffic collisions | `motor-vehicle-collisions-involving-killed-or-seriously-injured-persons` | 2006-today, daily; months-to-a-year reporting lag | coordinates + 158-model neighbourhood name; one row per person | Annual driver (exploratory): collisions, persons killed or seriously injured by road user | known | names match insights.json; point-in-polygon agrees 92% |
 | DineSafe | `dinesafe` | rolling ~3 years, daily | coordinates | Exploratory (food premises, inspections, infractions) | known | 20,118 establishments, all placed |
 | Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | address, FSA, ward | Exploratory | today only | 8,586 registrations (2026-11-11); no history, so no backtest use; ingested by `pipeline/rentals.py` |
+| Municipal election results (Mayor) | `election-results-official` (2022), `elections-official-by-election-results` (2023 by-election), `elections-voter-statistics`, `elections-by-election-voter-statistics`, `elections-subdivisions` | 2022, 2023 (2026 results posted, no boundaries yet) | voting subdivision to DA and neighbourhood | Exploratory (turnout and vote shares against census income) | known | ward and city totals equal the workbooks and the Clerk's declarations (551,890; 724,638); electors vs 2021 population r 0.94 by neighbourhood |
 | Toronto Employment Survey | `toronto-employment-survey-summary-tables` | annual | summary tables (geography to be checked) | City anchor (jobs) | known | |
 | TTC routes and schedules (GTFS); transit-oriented communities | `ttc-routes-and-schedules`, `transit-oriented-communities` | current | stops, sites | Driver (new rapid transit near a DA) | known for opened lines | |
 | Neighbourhood Profiles 2021 (158 model) | `neighbourhood-profiles` | 2021 | 158 neighbourhoods | Validation (already used) | | |
@@ -205,6 +206,18 @@ pieces snapped to the nearest DA within 2 m), and DAs in neighbourhoods by
     against the latest snapshot: 8,586 registrations vs 8,554 short-term listings, and
     93% of those listings show a registered number. Not a count of unregistered
     rentals: one registration can cover several listings and platforms.
+
+- **Mayoral elections** (`pipeline/elections.py` → `pipeline/elections/`): the 2022
+  election and 2023 by-election by poll, 2021 DA and neighbourhood. Subdivisions are
+  split over DAs by estimated population (each DA's 2021 population spread by its
+  address points). Mail-in and advance polls (24% of 2022 votes, 22% in 2023) have no
+  boundary and are allocated within the ward, each candidate by their election-day
+  votes; the 2023 long-term care poll goes to its buildings' polygons. `turnout_day`
+  leaves the special polls out. Turnout against 2021 median household income: r 0.44
+  (2022) and 0.60 (2023) by neighbourhood. 2026 results are posted but its
+  subdivisions were renumbered and have no boundaries or voter statistics yet.
+  Elections Canada's 2025 poll results can be fetched by script, but no 2025
+  polling-division boundaries are published; Elections Ontario's are PDF only.
 
 ### Not pursued
 
