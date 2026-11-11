@@ -1,0 +1,195 @@
+"""The Trees and Heat Insights page's figures: web/public/trees.json.
+
+    python pipeline/trees_insights.py
+
+Reads what trees.py writes (pipeline/trees/by_nbhd.csv, by_da.csv and
+manifest.json), the neighbourhoods and 2021 figures that safety_insights.py
+reads, and the other neighbourhood layers, and writes:
+
+  built, retrieved  this file's date and the street-tree file's retrieval date
+  city              the City's street trees, area, canopy area and share, and
+                    the share of measured trees 50 cm or more across (trees-
+                    weighted over the neighbourhoods)
+  nbhd              by neighbourhood, in insights.json's order: trees, area_ha,
+                    canopy_ha, canopy (share of area, %), trees_ha (street trees
+                    per hectare), large (% of measured trees 50 cm or more), dbh
+                    (median trunk diameter, cm), heat (lst_anom: summer surface
+                    temperature against the city's, C), lst (lst_c, C), scenes
+                    (Landsat passes behind heat), species and species_share (the
+                    commonest street tree and its share)
+                    and from diversity_by_nbhd.csv: shannon, species_n, maple (Norway
+                    maple, % of street trees), species_top, genus, family (the
+                    commonest species', genus' and family's %), genus_name,
+                    family_name, meets (the 10-20-30 rule)
+  species_city      the 20 commonest species city-wide (species, common name,
+                    genus, % and trees), the counts of species, genera and
+                    families, the commonest genus and family with their %, and ash's (Fraxinus) %
+  species           each neighbourhood's 12 commonest species as [index into
+                    names, trees]
+  pop               2021 Census population by neighbourhood (for the average
+                    resident's heat in each income fifth)
+  passes            the Landsat passes: date, platform, the city's mean surface
+                    temperature over its clear DA pixels and the clear share
+  da_fit            canopy against heat over the 3,743 DAs: least-squares slope
+                    (C per 10 points of canopy), intercept, Pearson r and n. DAs
+                    are the finer test: within a neighbourhood, the leafier
+                    streets are the cooler ones
+  spread            by neighbourhood, the 10th to 90th percentile range of its
+                    DAs' heat (C): how much hotter its hottest streets are than
+                    its coolest; null for the 11 with fewer than SPREAD_MIN_DAS (12)
+                    DAs
+  other             the measures the page correlates with, as safety_insights.py
+                    builds them (school score, sale price, turnout, short-term
+                    rentals; canopy and heat are this page's own), and crime:
+                    assaults and shootings in which someone was hit, per 100,000
+                    residents a year, 2021-2025 (crime.py's rates.csv)
+
+and web/public/trees_da.json, loaded when the page's "Inside the neighbourhood"
+section is first drawn (about 0.6 MB, 0.23 MB compressed, so it stays out of the first load): for each
+neighbourhood in insights.json's order, its DAs' outlines as SVG path data in a
+box of its own (width DA_W, north up; the DA outlines from places.da_polygons(),
+simplified to DA_SIMPLIFY metres) and their figures: dauid, pop21, canopy,
+trees_ha, large, dbh, heat, lst, as in by_da.csv. A DA belongs to the
+neighbourhood the 2021 figures file assigns it, so a neighbourhood drawn from its
+DAs can differ slightly from its official outline where a DA straddles two.
+"""
+import json
+import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from safety_insights import COMMON, INSIGHTS, WEB, other_measures, r1
+
+HERE = Path(__file__).parent
+TREES = HERE / "trees"
+OUT = WEB / "trees.json"
+OUT_DA = WEB / "trees_da.json"
+DA_W = 400  # px, each neighbourhood's box
+DA_SIMPLIFY = 4  # metres
+SPREAD_MIN_DAS = 12
+
+
+def da_shapes(ids: list[int], d: pd.DataFrame) -> list[dict]:
+    """Each neighbourhood's DAs as SVG paths in a box of their own, with their figures."""
+    import places
+    g = places.da_polygons().merge(d.drop(columns=["nbhd_id"]).astype({"dauid": str}), on="dauid", how="left")
+    pop = places.common().set_index("dauid").pop21
+    g["geometry"] = g.geometry.simplify(DA_SIMPLIFY, preserve_topology=True)
+    out = []
+    for nid in ids:
+        sub = g[g.nbhd_id == nid].sort_values("dauid")
+        x0, y0, x1, y1 = sub.total_bounds
+        k = DA_W / max(x1 - x0, y1 - y0)
+        w, h = round((x1 - x0) * k), round((y1 - y0) * k)
+
+        def ring(coords):
+            pts = [(round((x - x0) * k), round((y1 - y) * k)) for x, y in coords]
+            pts = [p for i, p in enumerate(pts) if i == 0 or p != pts[i - 1]]
+            return "M" + "L".join(f"{x} {y}" for x, y in pts[:-1]) + "Z"
+
+        paths = []
+        for geom in sub.geometry:
+            polys = geom.geoms if geom.geom_type == "MultiPolygon" else [geom]
+            paths.append("".join(ring(p.exterior.coords) + "".join(ring(r.coords) for r in p.interiors) for p in polys))
+        col = lambda c, f=1, k=1: [None if pd.isna(v) else round(float(v) * f, k) for v in sub[c]]
+        out.append({"w": w, "h": h, "dauid": sub.dauid.tolist(), "path": paths,
+                    "pop": [int(pop[x]) for x in sub.dauid], "canopy": col("canopy_share", 100),
+                    "trees_ha": col("trees_per_ha"), "large": col("large_share", 100), "dbh": col("dbh_median", 1, 0),
+                    "heat": col("lst_anom", 1, 2), "lst": col("lst_c", 1, 2)})
+    return out
+
+
+def main() -> int:
+    for f in (TREES / "by_nbhd.csv", TREES / "by_da.csv", TREES / "manifest.json", INSIGHTS, COMMON):
+        if not f.exists():
+            sys.exit(f"{f} is missing (make trees)")
+    manifest = json.loads((TREES / "manifest.json").read_text())
+    insights = json.loads(INSIGHTS.read_text())
+    ids = [n["id"] for n in insights["nbhd"]]
+    n = pd.read_csv(TREES / "by_nbhd.csv").set_index("nbhd_id").reindex(ids)
+    if n.trees.isna().any():
+        sys.exit("trees by_nbhd.csv is missing neighbourhoods")
+    c = json.loads(COMMON.read_text())
+    pop = pd.DataFrame({k: c[k] for k in ("nbhd_id", "pop21")}).groupby("nbhd_id").pop21.sum().reindex(ids)
+
+    d = pd.read_csv(TREES / "by_da.csv")
+    ok = d.canopy_share.notna() & d.lst_anom.notna()
+    x, y = d.canopy_share[ok] * 100, d.lst_anom[ok]
+    slope, intercept = np.polyfit(x, y, 1)
+    da_fit = {"slope_per_10": round(float(slope * 10), 2), "intercept": round(float(intercept), 2),
+              "r": round(float(np.corrcoef(x, y)[0, 1]), 3), "n": int(ok.sum())}
+    print("DA fit:", da_fit)
+
+    col = lambda s, k=1: [None if pd.isna(v) else round(float(v), k) for v in s]
+    nb = {
+        "trees": n.trees.astype(int).tolist(), "area_ha": col(n.area_ha), "canopy_ha": col(n.canopy_ha),
+        "canopy": col(n.canopy_share * 100), "trees_ha": col(n.trees_per_ha), "large": col(n.large_share * 100),
+        "dbh": col(n.dbh_median, 0), "heat": col(n.lst_anom, 2), "lst": col(n.lst_c, 2),
+        "scenes": n.lst_scenes.astype(int).tolist(), "species": n.top_species_common.fillna("").tolist(),
+        "species_share": col(n.top_species_share * 100),
+    }
+    dv = pd.read_csv(TREES / "diversity_by_nbhd.csv").set_index("nbhd_id").reindex(ids)
+    nb.update({"shannon": col(dv.shannon, 2), "species_n": dv.species_n.astype(int).tolist(),
+               "maple": col(dv.norway_maple_share * 100), "genus": col(dv.top_genus_share * 100),
+               "genus_name": dv.top_genus.tolist(), "family_name": dv.top_family.tolist(),
+               "family": col(dv.top_family_share * 100), "species_top": col(dv.top_species_share * 100),
+               "meets": dv.meets_10_20_30.astype(bool).tolist()})
+    sc = pd.read_csv(TREES / "species_city.csv")
+    fam = sc.groupby("family").trees.sum().sort_values(ascending=False) / sc.trees.sum()
+    gen = sc.groupby("genus").trees.sum().sort_values(ascending=False) / sc.trees.sum()
+    species_city = {"top": [{"species": r.species, "common": r.common, "genus": r.genus, "share": round(r.share * 100, 2),
+                             "trees": int(r.trees)} for r in sc.head(20).itertuples()],
+                    "n": int(len(sc)), "genera": int(sc.genus.nunique()), "families": int(sc.family.nunique()),
+                    "top_genus": [gen.index[0], round(float(gen.iloc[0]) * 100, 1)],
+                    "top_family": [fam.index[0], round(float(fam.iloc[0]) * 100, 1)],
+                    "ash": round(float(gen.get("Fraxinus", 0)) * 100, 1)}
+    # each neighbourhood's 12 commonest species as [name index, trees], names in `names`
+    sb = pd.read_csv(TREES / "species_by_nbhd.csv")
+    names = sorted(sb.common.fillna(sb.species).unique())
+    ix = {k: j for j, k in enumerate(names)}
+    lists = {nid: [[ix[c if isinstance(c, str) else sp], int(t)] for sp, c, t in zip(g.species, g.common, g.trees)]
+             for nid, g in sb.groupby("nbhd_id")}
+    species_lists = {"names": names, "nbhd": [lists.get(i, []) for i in ids]}
+    w = n.trees
+    city = {"trees": int(n.trees.sum()), "area_ha": round(float(n.area_ha.sum()), 1),
+            "canopy_ha": round(float(n.canopy_ha.sum()), 1),
+            "canopy": round(float(n.canopy_ha.sum() / n.area_ha.sum() * 100), 1),
+            "trees_ha": round(float(n.trees.sum() / n.area_ha.sum()), 2),
+            "large": round(float((n.large_share * w).sum() / w.sum() * 100), 1)}
+    passes = [{"date": p["date"], "platform": p["platform"], "city_c": p["city_mean_c"], "clear": p["clear"]}
+              for p in manifest["landsat"]["scenes_used"]]
+
+    other = [o for o in other_measures(insights, ids) if o["key"] not in ("canopy", "heat")]
+    rates = pd.read_csv(HERE / "crime" / "rates.csv")
+    for key, cat, label, short in (("assault", "assault", "Assaults per 100,000 residents a year, 2021-2025", "Assaults"),
+                                   ("shootings", "shootings", "Shootings in which someone was hit, per 100,000 a year, 2021-2025",
+                                    "Shootings")):
+        s = rates[(rates.category == cat) & (rates.period == "2021-2025")].set_index("nbhd_id").per_100k.reindex(ids)
+        other.append({"key": key, "label": label, "short": short, "unit": "rate", "source": "Toronto Police Service (crime.py)",
+                      "values": [r1(v) for v in s]})
+
+    q = d.groupby("nbhd_id").lst_anom.quantile([0.1, 0.9]).unstack()
+    # percentiles of a handful of DAs are noise: under SPREAD_MIN_DAS (11 neighbourhoods) no figure
+    count = d.groupby("nbhd_id").size()
+    spread = (q[0.9] - q[0.1]).where(count >= SPREAD_MIN_DAS).reindex(ids)
+
+    out = {"built": pd.Timestamp.today().date().isoformat(),
+           "retrieved": manifest["files"]["street_trees"]["retrieved"],
+           "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit,
+           "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread],
+           "species_city": species_city, "species": species_lists, "other": other}
+    OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
+    das = da_shapes(ids, d)
+    if sum(len(x["dauid"]) for x in das) != len(d):
+        sys.exit("DAs in trees_da.json don't add up to by_da.csv")
+    OUT_DA.write_text(json.dumps({"built": out["built"], "nbhd": das}, separators=(",", ":")) + "\n")
+    print(f"wrote {OUT_DA} ({OUT_DA.stat().st_size:,} bytes)")
+    print("city:", city)
+    print(f"wrote {OUT} ({OUT.stat().st_size:,} bytes)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

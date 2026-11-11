@@ -12,8 +12,18 @@ pipeline/trees/:
                  (lst_c, lst_anom, lst_scenes)
   by_nbhd.csv    the same for the 158 neighbourhoods, from the trees, canopy
                  area and pixels themselves (not averages of DA figures)
+  species_city.csv      every street-tree species city-wide: species, common
+                        name, genus, family, trees, share
+  species_by_nbhd.csv   each neighbourhood's TOP_SPECIES (12) commonest species
+  diversity_by_nbhd.csv by neighbourhood: trees, species_n, Shannon index, the
+                        commonest species, genus and family with their shares,
+                        family_mapped_share, norway_maple_share, meets_10_20_30
+                        (no species over 10%, genus over 20%, family over 30%)
   manifest.json  retrieval dates, file sizes, the Landsat scenes, match rates
                  and checks
+
+`python pipeline/trees.py --species` rewrites only the three species files (and
+the manifest's diversity checks), without the canopy and Landsat steps.
 
 Street trees (City of Toronto Open Data, `street-tree-data`, resource "Street
 Tree Data - 4326.csv"; 688,335 rows, the same as the CKAN datastore's total,
@@ -189,6 +199,95 @@ def tree_stats(t: pd.DataFrame, key: str) -> pd.DataFrame:
     names = names.sort_values(["species", "n", "COMMON_NAME"], ascending=[True, False, True]).drop_duplicates("species")
     out["top_species_common"] = out.top_species.map(names.set_index("species").COMMON_NAME)
     return out
+
+
+# Botanical family of each genus in the file, for the 10-20-30 rule (no species over 10% of
+# a street-tree population, no genus over 20%, no family over 30%; Santamour 1990).
+# "Allianthus" and "Crategus" are the file's spellings of Ailanthus and Crataegus;
+# "Alix" (0.01%) is left unmapped.
+FAMILY = {
+    "Sapindaceae": "Acer Aesculus Koelreuteria", "Fabaceae": "Gleditsia Gymnocladus Robinia Cercis Cladrastis Maackia Sophora Laburnum Caragana",
+    "Fagaceae": "Quercus Fagus Castanea", "Malvaceae": "Tilia", "Pinaceae": "Picea Pinus Abies Pseudotsuga Tsuga Larix",
+    "Ulmaceae": "Ulmus Zelkova", "Rosaceae": "Malus Pyrus Prunus Amelanchier Sorbus Crataegus Crategus",
+    "Oleaceae": "Syringa Fraxinus", "Ginkgoaceae": "Ginkgo", "Cannabaceae": "Celtis",
+    "Betulaceae": "Betula Corylus Ostrya Carpinus Alnus", "Platanaceae": "Platanus",
+    "Cupressaceae": "Thuja Juniperus Chamaecyparis Metasequoia Xanthocyparis Taxodium", "Magnoliaceae": "Liriodendron Magnolia",
+    "Bignoniaceae": "Catalpa", "Moraceae": "Morus", "Juglandaceae": "Juglans Carya", "Cercidiphyllaceae": "Cercidiphyllum",
+    "Salicaceae": "Salix Populus", "Simaroubaceae": "Ailanthus Allianthus", "Taxaceae": "Taxus", "Rutaceae": "Phellodendron Ptelea",
+    "Cornaceae": "Cornus", "Nyssaceae": "Nyssa", "Altingiaceae": "Liquidambar", "Elaeagnaceae": "Elaeagnus",
+    "Anacardiaceae": "Cotinus Rhus", "Rhamnaceae": "Rhamnus Frangula", "Lauraceae": "Sassafras", "Hamamelidaceae": "Hamamelis",
+    "Celastraceae": "Euonymus", "Araliaceae": "Aralia", "Viburnaceae": "Sambucus", "Annonaceae": "Asimina",
+}
+GENUS_FAMILY = {g: f for f, gs in FAMILY.items() for g in gs.split()}
+NORWAY_MAPLE = "Acer platanoides"
+TOP_SPECIES = 12  # species listed per neighbourhood in species_by_nbhd.csv
+
+
+def diversity(t: pd.DataFrame) -> dict:
+    """Species, genus and family make-up of the street trees, city-wide and by neighbourhood:
+    writes species_city.csv, species_by_nbhd.csv and diversity_by_nbhd.csv; returns checks."""
+    t = t[t.species.notna()].copy()
+    t["genus"] = t.species.str.split().str[0]
+    t["family"] = t.genus.map(GENUS_FAMILY)
+    names = t.groupby(["species", "COMMON_NAME"]).size().rename("n").reset_index()
+    common_name = names.sort_values(["species", "n", "COMMON_NAME"], ascending=[True, False, True]).drop_duplicates("species").set_index("species").COMMON_NAME
+
+    city = t.species.value_counts().rename("trees").rename_axis("species").reset_index()
+    city["common"] = city.species.map(common_name)
+    city["genus"] = city.species.str.split().str[0]
+    city["family"] = city.genus.map(GENUS_FAMILY)
+    city["share"] = (city.trees / city.trees.sum()).round(5)
+    city.to_csv(OUT / "species_city.csv", index=False, lineterminator="\n")
+
+    p = t[t.nbhd_id.notna()].copy()
+    p["nbhd_id"] = p.nbhd_id.astype(int)
+    sp = p.groupby(["nbhd_id", "species"]).size().rename("trees").reset_index()
+    sp = sp.sort_values(["nbhd_id", "trees", "species"], ascending=[True, False, True])
+    top = sp.groupby("nbhd_id").head(TOP_SPECIES).copy()
+    top["common"] = top.species.map(common_name)
+    top[["nbhd_id", "species", "common", "trees"]].to_csv(OUT / "species_by_nbhd.csv", index=False, lineterminator="\n")
+
+    def top_of(col):
+        n = p.groupby(["nbhd_id", col]).size().rename("n").reset_index()
+        n = n.sort_values(["nbhd_id", "n", col], ascending=[True, False, True]).drop_duplicates("nbhd_id").set_index("nbhd_id")
+        return n[col], n.n
+
+    total = p.groupby("nbhd_id").size()
+    shares = sp.assign(q=sp.trees / sp.nbhd_id.map(total))
+    out = pd.DataFrame({"trees": total, "species_n": sp.groupby("nbhd_id").size(),
+                        "shannon": shares.groupby("nbhd_id").q.apply(lambda q: float(-(q * np.log(q)).sum())).round(3)})
+    for col in ("species", "genus", "family"):
+        name, n = top_of(col)
+        out[f"top_{col}"] = name
+        out[f"top_{col}_share"] = (n / total).round(4)
+    out["family_mapped_share"] = (p.groupby("nbhd_id").family.count() / total).round(4)
+    out["norway_maple_share"] = (p[p.species == NORWAY_MAPLE].groupby("nbhd_id").size().reindex(total.index, fill_value=0) / total).round(4)
+    out["meets_10_20_30"] = (out.top_species_share <= 0.10) & (out.top_genus_share <= 0.20) & (out.top_family_share <= 0.30)
+    out.index.name = "nbhd_id"
+    out.reset_index().to_csv(OUT / "diversity_by_nbhd.csv", index=False, lineterminator="\n")
+
+    g = t.genus.value_counts(normalize=True)
+    f = t.family.value_counts(normalize=True)
+    return {"species": int(t.species.nunique()), "genera": int(t.genus.nunique()), "families": int(t.family.nunique()),
+            "family_unmapped": sorted(t.genus[t.family.isna()].unique().tolist()),
+            "family_mapped_share": round(float(t.family.notna().mean()), 5),
+            "top_species": [city.species[0], round(float(city.share[0]), 4)],
+            "top_genus": [g.index[0], round(float(g.iloc[0]), 4)], "top_family": [f.index[0], round(float(f.iloc[0]), 4)],
+            "nbhds_meeting_10_20_30": int(out.meets_10_20_30.sum()),
+            "species_by_nbhd_rows": int(len(top)), "trees_in_nbhds": int(total.sum())}
+
+
+def species_only() -> int:
+    """`python pipeline/trees.py --species`: rewrite the species files and their checks only."""
+    OUT.mkdir(exist_ok=True)
+    t = street_trees()
+    checks = diversity(t)
+    m = OUT / "manifest.json"
+    manifest = json.loads(m.read_text()) if m.exists() else {}
+    manifest.setdefault("checks", {})["diversity"] = checks
+    m.write_text(json.dumps(manifest, indent=2) + "\n")
+    print(json.dumps(checks, indent=2))
+    return 0
 
 
 # ---------------------------------------------------------------- canopy
@@ -442,6 +541,7 @@ def main() -> int:
     if not (checks["street_trees"]["by_da_sum"] == checks["street_trees"]["by_nbhd_sum"] == placed):
         sys.exit(f"tree sums don't match: {checks['street_trees']}")
     print(json.dumps({k: v for k, v in checks["street_trees"].items() if k != "top_species_city"}))
+    checks["diversity"] = diversity(t)
 
     print("canopy")
     m2, info = canopy(da)
@@ -503,4 +603,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(species_only() if "--species" in sys.argv[1:] else main())

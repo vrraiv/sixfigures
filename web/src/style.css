@@ -515,6 +515,12 @@ body.doc { display: block; height: auto; }
 .themes a + a { border-left: 1px solid #c9c9c3; }
 .themes a:hover { background: #eef4fc; color: var(--accent); }
 .themes a[aria-current="page"] { background: var(--accent); color: #fff; font-weight: 600; }
+/* six tabs don't fit a phone in one row: a 3-column grid, the gaps drawing the rules */
+@media (max-width: 640px) {
+  .themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #c9c9c3; width: 100%; }
+  .themes a { text-align: center; white-space: nowrap; }
+  .themes a + a { border-left: 0; }
+}
 
 /* ---- School Insights ---- */
 .seg-row { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -644,6 +650,36 @@ body.doc { display: block; height: auto; }
 .tbl th.rot { height: 120px; vertical-align: bottom; padding: 0 2px; min-width: 40px; }
 .tbl th.rot span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: left; }
 .sc-dot.pick { background: var(--ink); opacity: 1; z-index: 2; }
+
+/* Trees and Heat: inside a neighbourhood */
+.in-body { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px 28px; align-items: start; margin-top: 8px; }
+@media (max-width: 760px) { .in-body { grid-template-columns: 1fr; } }
+.da-map { margin: 0; }
+.da-map svg { display: block; width: 100%; height: auto; max-height: 520px; }
+.da-map path { stroke: #fff; stroke-width: 0.6; stroke-linejoin: round; }
+.da-map path:hover { stroke: var(--ink); stroke-width: 1.5; }
+.da-map path.hot, .da-map path.cool { stroke: var(--ink); stroke-width: 2; }
+.in-stats { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
+.in-stats dt { color: var(--ink-2); }
+.in-stats dd { margin: 0; font-variant-numeric: tabular-nums; }
+.in-list-h { margin-top: 22px; }
+.spread-list { max-width: 760px; }
+
+/* Trees and Heat: hot and vulnerable */
+.hv-factors { display: flex; flex-wrap: wrap; gap: 6px 18px; border: 0; margin: 8px 0 12px; padding: 0; font-size: 13px; color: var(--ink-2); }
+.hv-factors legend { float: left; margin-right: 6px; padding: 0; font-weight: 600; }
+.hv-factors label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.sc-dot.hv { background: #c85a5a; opacity: 0.95; }
+.nb-map path.hv-out { stroke: var(--ink); stroke-width: 2; }
+
+/* Trees and Heat: what's planted */
+.pl-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; margin-top: 8px; }
+@media (max-width: 760px) { .pl-cols { grid-template-columns: 1fr; } }
+.pl-cols .rank-list li { grid-template-columns: 24px minmax(0, 1.6fr) minmax(60px, 1fr) 52px 0; }
+.rule-list li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(90px, 1fr) 52px; gap: 8px; align-items: center; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #f0f0ec; }
+.rule-bar { position: relative; height: 14px; background: #f0f0ec; border-radius: 2px; }
+.rule-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; }
+.rule-lim { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); }
 
 /* ---- Forecasts ---- */
 .fc-doc p, .fc-doc li { max-width: 78ch; font-size: 14px; }

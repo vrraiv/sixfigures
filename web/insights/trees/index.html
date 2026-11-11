@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto Trees and Heat</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="Toronto's tree canopy, street trees and summer surface temperature in its 158 neighbourhoods, mapped against household income and set beside the census, crime, school results and sale prices." />
+  </head>
+  <body class="with-nav doc">
+    <nav class="wordmark" aria-label="Site">
+      <a href="/">2016 · 2021</a>
+      <span class="brand">Toronto by DA</span>
+      <a href="/2011/">2011</a>
+      <a href="/insights/" aria-current="page">Insights</a>
+      <a href="/forecasts/">Forecasts</a>
+    </nav>
+    <header class="bar">
+      <h1>Trees and Heat <span class="sub">Tree canopy, street trees and summer surface temperature in Toronto's 158 neighbourhoods</span></h1>
+      <nav class="themes" aria-label="Insights">
+        <a href="/insights/">Census</a>
+        <a href="/insights/schools/">Schools</a>
+        <a href="/insights/housing/">Housing</a>
+        <a href="/insights/prices/">Sale prices</a>
+        <a href="/insights/safety/">Safety</a>
+        <a href="/insights/trees/" aria-current="page">Trees</a>
+      </nav>
+    </header>
+
+    <main class="insights">
+      <section class="ins-section" aria-labelledby="glance-h">
+        <div class="ins-head">
+          <h2 id="glance-h">The city at a glance</h2>
+        </div>
+        <p class="ins-lede" id="glance-lede"></p>
+        <div id="cards" class="card-row"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="shade-h">
+        <div class="ins-head">
+          <h2 id="shade-h">Shade and heat</h2>
+        </div>
+        <p class="ins-lede" id="shade-lede"></p>
+        <figure class="scatter"><div id="shade-scatter"></div></figure>
+        <div id="panels" class="panels"></div>
+      </section>
+
+      <!-- The measure for the neighbourhood sections below. -->
+      <div class="measure-bar" id="measure-bar">
+        <label for="measure">Neighbourhoods by</label>
+        <select id="measure"></select>
+      </div>
+
+      <section class="ins-section" aria-labelledby="map-h">
+        <div class="ins-head">
+          <h2 id="map-h">Neighbourhoods on the map</h2>
+          <div class="seg-row">
+            <div class="seg" id="overlay" role="group" aria-label="Map shows"></div>
+            <select id="income" class="inline-select" aria-label="Income measure"></select>
+          </div>
+        </div>
+        <p class="ins-lede" id="map-lede"></p>
+        <div class="map-wrap">
+          <figure class="nb-map" id="nb-map"></figure>
+          <div class="bi-key" id="bi-key" hidden></div>
+        </div>
+        <p class="nb-pick" id="map-pick" hidden></p>
+        <ul class="corr-key" id="map-key"></ul>
+      </section>
+
+      <section class="ins-section" id="inside" aria-labelledby="in-h">
+        <div class="ins-head">
+          <h2 id="in-h">Inside the neighbourhood</h2>
+          <select id="in-nb" class="inline-select" aria-label="Neighbourhood"></select>
+        </div>
+        <p class="ins-lede" id="in-lede"></p>
+        <div class="in-body">
+          <figure class="da-map" id="da-map"><p class="tbl-note">Loading the DAs…</p></figure>
+          <div class="in-side">
+            <dl class="in-stats" id="in-stats"></dl>
+            <ul class="corr-key" id="in-key"></ul>
+          </div>
+        </div>
+        <h3 class="sub-h in-list-h">The widest heat gaps inside a neighbourhood</h3>
+        <p class="tbl-note" id="spread-note"></p>
+        <ol class="rank-list spread-list" id="spread-list"></ol>
+      </section>
+
+      <section class="ins-section" id="planted" aria-labelledby="pl-h">
+        <div class="ins-head">
+          <h2 id="pl-h">What's planted</h2>
+        </div>
+        <p class="ins-lede" id="pl-lede"></p>
+        <div class="pl-cols">
+          <div>
+            <h3 class="sub-h">The city's commonest street trees</h3>
+            <ol class="rank-list" id="pl-city"></ol>
+            <h3 class="sub-h in-list-h">Against the 10-20-30 limits</h3>
+            <ol class="corr-list shown rule-list" id="pl-city-rule"></ol>
+          </div>
+          <div>
+            <h3 class="sub-h" id="pl-nb-h"></h3>
+            <ol class="rank-list" id="pl-nb"></ol>
+            <ol class="corr-list shown rule-list" id="pl-nb-rule"></ol>
+            <p class="tbl-note" id="pl-nb-note"></p>
+          </div>
+        </div>
+        <p class="tbl-note">Bars against the limits run to 40%; the tick is the limit. Species diversity, Norway maple and the commonest genus can be mapped with the menu above.</p>
+      </section>
+
+      <section class="ins-section" id="hv" aria-labelledby="hv-h">
+        <div class="ins-head">
+          <h2 id="hv-h">Hot and vulnerable</h2>
+        </div>
+        <p class="ins-lede" id="hv-lede"></p>
+        <fieldset class="hv-factors" id="hv-factors"><legend>Vulnerability counts</legend></fieldset>
+        <div class="map-wrap">
+          <figure class="nb-map" id="hv-map"></figure>
+          <div class="bi-key" id="hv-key"></div>
+        </div>
+        <figure class="scatter"><div id="hv-scatter"></div></figure>
+        <h3 class="sub-h in-list-h" id="hv-list-h"></h3>
+        <div class="tbl-wrap"><table class="tbl" id="hv-table"></table></div>
+        <p class="tbl-note" id="hv-note"></p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="inc-h">
+        <div class="ins-head">
+          <h2 id="inc-h">By neighbourhood income</h2>
+        </div>
+        <p class="ins-lede" id="inc-lede"></p>
+        <div class="tbl-wrap"><table class="tbl heat" id="inc-table"></table></div>
+        <p class="tbl-note" id="inc-note"></p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rank-h">
+        <div class="ins-head">
+          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
+        </div>
+        <p class="ins-lede" id="rank-lede"></p>
+        <div class="ranks" id="rank-body">
+          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
+        </div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="corr-h">
+        <div class="ins-head">
+          <h2 id="corr-h">What goes with what</h2>
+        </div>
+        <p class="ins-lede" id="corr-lede"></p>
+        <div id="corr-body">
+          <div class="corr-cols">
+            <div><h3 class="sub-h">2021 Census</h3><ol id="census-list" class="corr-list shown"></ol></div>
+            <div><h3 class="sub-h">Crime, schools, prices, turnout, rentals</h3><ol id="other-list" class="corr-list shown"></ol></div>
+          </div>
+          <figure class="scatter" id="scatter-fig">
+            <figcaption id="scatter-caption"></figcaption>
+            <div id="scatter"></div>
+          </figure>
+        </div>
+      </section>
+      <div id="tip" class="tip" role="tooltip" hidden></div>
+    </main>
+
+    <footer class="foot">
+      <p class="downloads" id="method-note"></p>
+      City of Toronto Open Data: Street Tree Data, the 2018 Tree Canopy Study (forest and land cover), neighbourhood
+      boundaries, Toronto Police Service crime data and election results; contains information licensed under the
+      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
+      Landsat 8 and 9 Collection 2 Level-2 courtesy of the U.S. Geological Survey, through Microsoft Planetary Computer.
+      Statistics Canada, 2021 Census of Population, under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      EQAO results through the Ontario Ministry of Education; TRREB community reports; Inside Airbnb (insideairbnb.com), CC BY 4.0.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/trees.js"></script>
+  </body>
+</html>

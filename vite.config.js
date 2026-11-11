@@ -37,6 +37,8 @@ export default defineConfig({
     __HOUSING_VERSION__: JSON.stringify(version("web/public/housing.json")),
     __PRICES_VERSION__: JSON.stringify(version("web/public/prices.json")),
     __SAFETY_VERSION__: JSON.stringify(version("web/public/safety.json")),
+    __TREES_VERSION__: JSON.stringify(version("web/public/trees.json")),
+    __TREES_DA_VERSION__: JSON.stringify(version("web/public/trees_da.json")),
     __FORECASTS_VERSION__: JSON.stringify(version("web/public/forecasts.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),
@@ -44,10 +46,10 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Ten pages: / (2016 and 2021), /2011/, the Insights pages /insights/ (census),
-    // /insights/schools/, /insights/housing/, /insights/prices/ and /insights/safety/, and the Forecasts
+    // Eleven pages: / (2016 and 2021), /2011/, the Insights pages /insights/ (census),
+    // /insights/schools/, /insights/housing/, /insights/prices/, /insights/safety/ and /insights/trees/, and the Forecasts
     // pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
-    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
+    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling" } },

@@ -64,6 +64,25 @@ the neighbourhoods as SVG and loads no map tiles. Rates are per 100,000 resident
 Census), which overstates places people visit more than live in. Its data is
 `web/public/safety.json` (`pipeline/safety_insights.py`, from `pipeline/crime.py`).
 
+Trees and Heat, `/insights/trees/`, covers the 2018 tree canopy (the City's Tree Canopy
+Study), the City's 688,000 street trees (per hectare, large trees, trunk size, commonest
+species) and summer surface temperature from 11 clear Landsat 8/9 passes in 2022-2025, by
+neighbourhood: the canopy against heat (about 1.3°C cooler ground for every 10 more points
+of canopy, across neighbourhoods and DAs alike), a map that crosses the chosen measure with
+household income or shows either alone, each measure in fifths of the neighbourhoods by
+income, rankings, and correlations with the 2021 Census, crime, school results, sale prices,
+turnout and short-term rentals. Inside the neighbourhood draws a chosen neighbourhood's DAs (on
+the city-wide DA classes) with its hottest and coolest DA and the heat gap between its 10th and
+90th percentile DAs, and lists the widest gaps. Hot and vulnerable scores each neighbourhood's
+vulnerability as its mean percentile rank on census measures the reader ticks (65 and over, low
+income and 5+ storey apartments by default; renters, crowding, children) and maps it against
+heat, listing the neighbourhoods in the top third on both. What's planted lists the commonest street
+trees city-wide and in a picked neighbourhood against the 10-20-30 rule (no species over 10%,
+genus over 20%, family over 30%), and species diversity, Norway maple's share and the commonest
+genus's share can be mapped (`pipeline/trees.py --species` writes the species tables); those outlines are `trees_da.json` (0.6 MB,
+0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
+(`pipeline/trees_insights.py`, from `pipeline/trees.py`).
+
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's
