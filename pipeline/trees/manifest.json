@@ -498,6 +498,30 @@
         "Ginkgo biloba": 17464
       }
     },
+    "diversity": {
+      "species": 220,
+      "genera": 75,
+      "families": 34,
+      "family_unmapped": [
+        "Alix"
+      ],
+      "family_mapped_share": 0.99985,
+      "top_species": [
+        "Acer platanoides",
+        0.1449
+      ],
+      "top_genus": [
+        "Acer",
+        0.2697
+      ],
+      "top_family": [
+        "Sapindaceae",
+        0.2872
+      ],
+      "nbhds_meeting_10_20_30": 2,
+      "species_by_nbhd_rows": 1896,
+      "trees_in_nbhds": 688276
+    },
     "canopy": {
       "polygons": 343873,
       "class_km2": {
@@ -556,30 +580,6 @@
         45.06
       ],
       "da_scenes_median": 11.0
-    },
-    "diversity": {
-      "species": 220,
-      "genera": 75,
-      "families": 34,
-      "family_unmapped": [
-        "Alix"
-      ],
-      "family_mapped_share": 0.99985,
-      "top_species": [
-        "Acer platanoides",
-        0.1449
-      ],
-      "top_genus": [
-        "Acer",
-        0.2697
-      ],
-      "top_family": [
-        "Sapindaceae",
-        0.2872
-      ],
-      "nbhds_meeting_10_20_30": 2,
-      "species_by_nbhd_rows": 1896,
-      "trees_in_nbhds": 688276
     }
   }
 }

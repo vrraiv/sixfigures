@@ -75,7 +75,7 @@ const state = {
   nb: nbIndex(hash.get("nb")),
 };
 const writeHash = () => {
-  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc, hv: [...hvState].join(","), gs: goalSort });
+  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc, hv: [...hvState].join(","), gs: goalSort, day: DAYS[day].date });
   if (state.sx) h.set("sx", state.sx);
   if (state.nb != null) h.set("nb", nbhd[state.nb].id);
   history.replaceState(null, "", `#${h}`);
@@ -446,13 +446,58 @@ function renderGoal() {
     <span class="goal-lab down" style="left:${x((b0 + b1) / 2)}">City's estimate ${G.published_2018.replace("-", "–")}%</span>
     <span class="goal-lab down" style="left:0;transform:none">0%</span><span class="goal-lab down" style="left:100%;transform:translateX(-100%)">50%</span>`;
   const hot = breaks(NB.heat, 3).edges[1], inHot = sum(NB.gap_ha.filter((_, i) => NB.heat[i] >= hot));
-  $("goal-lede").innerHTML = `Toronto's target is <b>${G.target}% tree canopy by ${G.year}</b>, city-wide: set in the 2013 Strategic Forest Management Plan and reaffirmed by Council in 2021 (<a href="${G.source}">report</a>). The City puts 2018 canopy at ${G.published_2018.replace("-", "–")}%; the land-cover polygons this page uses give ${C.canopy}%, so the gaps here are on that measure: about <b>${fmtN(G.city_gap_ha)} hectares</b> (${Math.round(G.city_gap_ha / 100)} km²) more canopy city-wide. ${G.above} neighbourhoods are already at 40% or more. Of the ${fmtN(G.nbhd_gap_ha)} hectares the other neighbourhoods are short, <b>${Math.round((inHot / G.nbhd_gap_ha) * 100)}%</b> are in the hottest third of neighbourhoods.`;
+  $("goal-lede").innerHTML = `Toronto's target is <b>${G.target}% tree canopy by ${G.year}</b>, city-wide: set in the 2013 Strategic Forest Management Plan and reaffirmed by Council in 2021 (<a href="${G.source}">report</a>). The City puts 2018 canopy at ${G.published_2018.replace("-", "–")}%; the land-cover polygons this page uses give ${C.canopy}%, so the gaps here are on that measure: about <b>${fmtN(G.city_gap_ha)} hectares</b> (${Math.round(G.city_gap_ha / 100)} km²) more canopy city-wide. ${G.above} neighbourhoods are already at 40% or more. Of the ${fmtN(G.nbhd_gap_ha)} hectares the other neighbourhoods are short, <b>${Math.round((inHot / G.nbhd_gap_ha) * 100)}%</b> are in the hottest third of neighbourhoods. For where to plant, the City's own <a href="https://www.toronto.ca/services-payments/water-environment/trees/tree-equity/">Tree Equity Score Analyzer</a> (with American Forests and LEAF) scores each census tract's canopy need from canopy, surface temperature, income, health, age and other measures; this page adds street-tree species, recent summer heat and the heat inside each neighbourhood.`;
   const key = goalSort === "pts" ? "gap_pts" : "gap_ha", order = rankOrder(NB[key]).slice(0, 15), max = NB[key][order[0]];
   $("goal-list").innerHTML = order.map((i, k) => `<li><span class="rk">${k + 1}</span><button type="button" class="nm" data-nb="${i}">${escapeHTML(nbhd[i].name)}</button>
     <span class="barcell" data-tip="${escapeHTML(`${nbhd[i].name}<br>Canopy ${M.canopy.fmt(NB.canopy[i])} of ${fmtN(NB.area_ha[i])} ha<br>Short of 40%: <b>${NB.gap_pts[i].toFixed(1)} pts</b>, <b>${fmtN(NB.gap_ha[i])} ha</b><br>Surface heat ${fmtC(NB.heat[i])}`)}"><span class="bar-fill" style="width:${((NB[key][i] / max) * 100).toFixed(1)}%;background:${ORANGES[3]}"></span></span>
     <span class="vl">${key === "gap_ha" ? `${fmtN(NB.gap_ha[i])} ha` : `${NB.gap_pts[i].toFixed(1)} pts`}</span>
     <span class="gl-extra">now ${M.canopy.fmt(NB.canopy[i])} · ~${(NB.gap_pts[i] * slope).toFixed(1)}°C cooler?</span></li>`).join("");
   $("goal-note").textContent = `The 15 neighbourhoods furthest from 40% canopy, by ${goalSort === "pts" ? "points (the share of their area)" : "hectares (big neighbourhoods weigh more)"}. "Cooler?" applies the city-wide slope across DAs (${fmtC(D.da_fit.slope_per_10)} for every 10 points of canopy) to the gap: an association between places, not a forecast, and canopy can't go everywhere (highways, rail yards, the airport and the lake don't take trees). Map either gap with the menu above.`;
+}
+
+// ---- 8. day by day: each Landsat pass --------------------------------------------------------------------
+// One colour scale for every day (sixths of all the days' neighbourhood figures pooled), so a colour
+// means the same on a hot day and a mild one. "Hot nearly every time": the days a neighbourhood was
+// in that day's hottest sixth.
+const DAYS = D.days, dayBreaks = breaks(DAYS.flatMap((d) => d.anom));
+const dayR = DAYS.map((d) => spearman(d.anom, NB.heat)?.r ?? 0);
+const fmtDay = (d) => new Date(`${d}T12:00`).toLocaleDateString("en-CA", { weekday: "short", month: "long", day: "numeric", year: "numeric" });
+let day = Math.max(0, DAYS.findIndex((d) => d.date === hash.get("day")));
+if (!hash.get("day")) day = D.passes.reduce((a, p, k) => (p.city_c > D.passes[a].city_c ? k : a), 0); // open on the hottest
+$("day").innerHTML = DAYS.map((d, k) => `<option value="${k}">${fmtDay(d.date)} · city ${D.passes[k].city_c.toFixed(1)}°C</option>`).join("");
+$("day").addEventListener("change", (e) => { day = +e.target.value; renderDay(); writeHash(); });
+$("day-prev").addEventListener("click", () => { day = Math.max(0, day - 1); renderDay(); writeHash(); });
+$("day-next").addEventListener("click", () => { day = Math.min(DAYS.length - 1, day + 1); renderDay(); writeHash(); });
+function renderDay() {
+  const d = DAYS[day], P = D.passes[day], vs = d.anom, b = dayBreaks;
+  $("day").value = day;
+  $("day-prev").disabled = day === 0;
+  $("day-next").disabled = day === DAYS.length - 1;
+  const order = rankOrder(vs), rank = new Map(order.map((i, k) => [i, k + 1]));
+  const shapes = nbhd.map((n, i) => `<path d="${n.path}" fill="${vs[i] == null ? "url(#day-hatch)" : HEAT[cls(b.edges, vs[i])]}" data-i="${i}"
+    data-tip="${escapeHTML(`${n.name}<br>${fmtDay(d.date)}<br><b>${fmtC(vs[i])}</b> against the city (${d.lst[i] == null ? "—" : `${d.lst[i].toFixed(1)}°C`})${rank.get(i) ? ` · ${ordinal(rank.get(i))} hottest` : ""}<br>All days (median): ${fmtC(NB.heat[i])}`)}"/>`).join("");
+  $("day-map").innerHTML = `<svg viewBox="0 0 ${census.map.width} ${census.map.height}" role="img" aria-label="${escapeHTML(`Map of surface heat by neighbourhood on ${fmtDay(d.date)}`)}">
+    <defs><pattern id="day-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>${shapes}</svg>`;
+  $("day-key").innerHTML = rangeLabels(b.edges, false, fmtC).map((l, k) => `<li><span class="key-sq" style="background:${HEAT[k]}"></span>${escapeHTML(l)}</li>`).join("")
+    + (vs.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>Cloud or the scene's edge</li>` : "");
+  const r = spearman(vs, NB.heat)?.r, top = order.slice(0, 3), low = order.slice(-3).reverse();
+  const nm = (i) => `<button type="button" class="nm" data-nb="${i}">${escapeHTML(nbhd[i].name)}</button> ${fmtC(vs[i])}`;
+  $("day-stats").innerHTML = `<dt>City, clear land</dt><dd><b>${P.city_c.toFixed(1)}°C</b> at about noon (${P.platform.replace("landsat-", "Landsat ")}; ${Math.round(P.clear * 100)}% clear)</dd>
+    <dt>Hottest</dt><dd>${top.map(nm).join("<br>")}</dd>
+    <dt>Coolest</dt><dd>${low.map(nm).join("<br>")}</dd>
+    <dt>Against all days</dt><dd>Spearman <b>${fmtR(r)}</b> with the median map</dd>`;
+  const hottest = D.passes.reduce((a, p, k) => (p.city_c > D.passes[a].city_c ? k : a), 0), mildest = D.passes.reduce((a, p, k) => (p.city_c < D.passes[a].city_c ? k : a), 0);
+  $("day-lede").innerHTML = `Each of the ${DAYS.length} clear summer days Landsat passed over, on one colour scale (each neighbourhood against the city's mean that day). The days ran from ${D.passes[mildest].city_c.toFixed(1)}°C (${fmtDay(D.passes[mildest].date)}) to ${D.passes[hottest].city_c.toFixed(1)}°C (${fmtDay(D.passes[hottest].date)}) across the city's clear land, but the pattern barely moves: each day ranks the neighbourhoods much as the median of all days does (Spearman ${fmtR(Math.min(...dayR))} to ${fmtR(Math.max(...dayR))}), so the same places run hot whatever the day. Step through with the arrows.`;
+}
+function renderAlways() {
+  const n6 = DAYS.map((d) => breaks(d.anom).edges.at(-1));
+  const hits = nbhd.map((_, i) => DAYS.filter((d, k) => d.anom[i] != null && d.anom[i] >= n6[k]).length);
+  const seen = nbhd.map((_, i) => DAYS.filter((d) => d.anom[i] != null).length);
+  const order = [...nbhd.keys()].sort((a, b) => hits[b] / seen[b] - hits[a] / seen[a] || NB.heat[b] - NB.heat[a]).slice(0, 10);
+  const every = nbhd.filter((_, i) => hits[i] === seen[i] && seen[i] > 0).length;
+  $("always-list").innerHTML = order.map((i, k) => `<li><span class="rk">${k + 1}</span><button type="button" class="nm" data-nb="${i}">${escapeHTML(nbhd[i].name)}</button>
+    <span class="barcell"><span class="bar-fill" style="width:${((hits[i] / seen[i]) * 100).toFixed(1)}%;background:${HEAT[5]}"></span></span><span class="vl">${hits[i]} of ${seen[i]}</span><span class="move"></span></li>`).join("");
+  $("always-note").textContent = `The days each neighbourhood was in that day's hottest sixth of neighbourhoods, out of the days it had a figure. ${every} were in it every time.`;
 }
 
 function render() {
@@ -469,4 +514,6 @@ function render() {
   writeHash();
 }
 renderCards();
+renderDay();
+renderAlways();
 render();

@@ -47,6 +47,28 @@
         <div id="panels" class="panels"></div>
       </section>
 
+      <section class="ins-section" id="days" aria-labelledby="days-h">
+        <div class="ins-head">
+          <h2 id="days-h">Day by day</h2>
+          <div class="seg-row">
+            <button type="button" class="day-step" id="day-prev" aria-label="Previous day">‹</button>
+            <select id="day" class="inline-select" aria-label="Landsat pass"></select>
+            <button type="button" class="day-step" id="day-next" aria-label="Next day">›</button>
+          </div>
+        </div>
+        <p class="ins-lede" id="day-lede"></p>
+        <div class="in-body">
+          <figure class="nb-map" id="day-map"></figure>
+          <div class="in-side">
+            <dl class="in-stats" id="day-stats"></dl>
+            <ul class="corr-key" id="day-key"></ul>
+          </div>
+        </div>
+        <h3 class="sub-h in-list-h">Hot nearly every time</h3>
+        <p class="tbl-note" id="always-note"></p>
+        <ol class="rank-list spread-list" id="always-list"></ol>
+      </section>
+
       <!-- The measure for the neighbourhood sections below. -->
       <div class="measure-bar" id="measure-bar">
         <label for="measure">Neighbourhoods by</label>
@@ -182,6 +204,7 @@
       boundaries, Toronto Police Service crime data and election results; contains information licensed under the
       <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
       Landsat 8 and 9 Collection 2 Level-2 courtesy of the U.S. Geological Survey, through Microsoft Planetary Computer.
+      For planting priorities, see the City's <a href="https://www.toronto.ca/services-payments/water-environment/trees/tree-equity/">Tree Equity Score Analyzer</a>.
       Statistics Canada, 2021 Census of Population, under the
       <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
       EQAO results through the Ontario Ministry of Education; TRREB community reports; Inside Airbnb (insideairbnb.com), CC BY 4.0.
