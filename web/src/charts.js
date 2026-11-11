@@ -143,7 +143,7 @@ export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l,
   }
   const tips = labels.map((l, k) => {
     const rows = [...bars, ...lines].filter((s) => s.values[k] != null).map((s) => `${s.name}: <b>${fmt(s.values[k])}</b>`).join("<br>");
-    return `<span class="ch-hit" style="left:${k * bw}%;width:${bw}%" data-tip="${escapeHTML(`${tipLabel(l)}<br>${rows}`)}"></span>`;
+    return `<span class="ch-hit" style="left:${k * bw}%;width:${bw}%" data-tip="${escapeHTML(`${tipLabel(l, k)}<br>${rows}`)}"></span>`;
   }).join("");
   const yt = ticks.map((v) => `<span class="sc-ytick" style="bottom:${100 - y(v)}%">${fmt(v)}</span><span class="sc-gy" style="bottom:${100 - y(v)}%"></span>`).join("");
   const every = Math.ceil(n / (String(labels[0]).length > 4 ? 5 : 8)); // month labels are wider

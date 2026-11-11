@@ -4,7 +4,8 @@
 // tiles: the map is the neighbourhoods' SVG outlines, as on the other Insights pages.
 import "./style.css";
 import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
-import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
+import { chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
+import { BI, INCOME as INCOMES, biKey, breaks, cls, incomeFifths, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   fetch(`/safety.json?v=${__SAFETY_VERSION__}`).then((r) => r.json()),
@@ -14,12 +15,10 @@ const nbhd = census.nbhd, N = nbhd.length, LAST = D.last, INK = "#1a1a19";
 // Crime is drawn in a red ramp so it never reads as income (blue).
 const REDS = ["#fbe3df", "#f5b8ae", "#ea8a7d", "#d75e52", "#b03a32", "#74201c"];
 const ORANGE = "#c2410c", GREY = "#9a9a93";
-// 3 x 3 bivariate scheme (J. Stevens' blue-red): rows income low -> high, columns crime low -> high.
-const BI = [["#e8e8e8", "#e4acac", "#c85a5a"], ["#b0d5df", "#ad9ea5", "#985356"], ["#64acbe", "#627f8c", "#574249"]];
 const CAT = Object.fromEntries(D.categories.map((c) => [c.key, c]));
 const censusMeasures = Object.keys(CENSUS).filter((m) => census.measures[m]?.values["2021"]);
 const OTHER = Object.fromEntries(D.other.map((o) => [o.key, o]));
-const INCOME = ["med_hh_tot", "med_hh_at", "avg_hh_tot", "med_ind_tot", "lim_at"].filter((m) => census.measures[m]);
+const INCOME = INCOMES.filter((m) => census.measures[m]);
 const sum = (vs) => vs.reduce((a, v) => a + (v ?? 0), 0);
 const fmtN = (v) => (v == null ? "—" : Math.round(v).toLocaleString("en-CA"));
 const fmtRate = (v) => (v == null ? "—" : v === 0 ? "0" : v >= 100 ? fmtN(v) : v >= 10 ? v.toFixed(1) : v.toFixed(2));
@@ -167,27 +166,10 @@ function renderYears() {
 }
 
 // ---- 3. the map: crime, income, or both ---------------------------------------------------------
-// Sixths of the neighbourhoods; where more than a sixth have none, none is a class of its own.
-function breaks(vs, n = 6) {
-  const s = vs.filter((v) => v != null).sort((a, b) => a - b);
-  const uniq = (qs) => qs.filter((q, k) => k === 0 || q > qs[k - 1]);
-  if (s[0] === 0 && s.filter((v) => v === 0).length > s.length / n) {
-    const pos = s.filter((v) => v > 0);
-    return { edges: [Number.MIN_VALUE, ...uniq(Array.from({ length: n - 2 }, (_, k) => quantile(pos, (k + 1) / (n - 1))))], zero: true };
-  }
-  return { edges: uniq(Array.from({ length: n - 1 }, (_, k) => quantile(s, (k + 1) / n))), zero: false };
-}
-const cls = (edges, v) => edges.filter((e) => v >= e).length;
-const rankOrder = (vs) => vs.map((v, i) => [v, i]).filter(([v]) => v != null).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   writeHash();
 });
-function rangeLabels(edges, zero, f) {
-  const e = [null, ...edges, null];
-  return e.slice(0, -1).map((_, k) => (zero && k === 0 ? "None" : zero && k === 1 ? `under ${f(e[2])}`
-    : e[k] == null ? `under ${f(e[k + 1])}` : e[k + 1] == null ? `${f(e[k])} or more` : `${f(e[k])} to ${f(e[k + 1])}`));
-}
 function renderMap() {
   const vs = values(), inc = income(), order = rankOrder(vs);
   const rank = new Map(order.map((i, k) => [i, k + 1]));
@@ -216,12 +198,9 @@ function renderMap() {
   if (state.ov === "both") {
     $("map-key").innerHTML = "";
     const ci = rangeLabels(crime3.edges, crime3.zero, fmtV), ii = rangeLabels(inc3.edges, inc3.zero, fi);
-    const rows = [2, 1, 0].map((r) => `<div class="bi-row">${[0, 1, 2].map((c) => `<span style="background:${BI[r][c]}"></span>`).join("")}</div>`).join("");
-    const incTicks = incomeUp() ? ii : [...ii].reverse();
     $("bi-key").hidden = false;
-    $("bi-key").innerHTML = `<div class="bi-grid" aria-hidden="true"><div class="bi-y">${incomeUp() ? "Higher income ↑" : "Less low income ↑"}</div><div class="bi-cells">${rows}</div><div class="bi-x">More crime →</div></div>
-      <dl class="bi-text"><dt>${escapeHTML(CAT[state.m].short)}, ${periodLabel()}, ${unitText()} (columns)</dt><dd>${ci.map(escapeHTML).join(" · ")}</dd>
-      <dt>${escapeHTML(CENSUS[state.inc].long)}, 2021 (rows, bottom to top)</dt><dd>${incTicks.map(escapeHTML).join(" · ")}</dd></dl>`;
+    $("bi-key").innerHTML = biKey({ xName: `${CAT[state.m].short}, ${periodLabel()}, ${unitText()}`, xRanges: ci, xArrow: "More crime →",
+      yName: `${CENSUS[state.inc].long}, 2021`, yRanges: incomeUp() ? ii : [...ii].reverse(), yArrow: incomeUp() ? "Higher income ↑" : "Less low income ↑" });
     $("map-lede").innerHTML = `${describe()}, against ${escapeHTML(incName)} in 2021: each in thirds of the neighbourhoods. Red is more crime with lower income, teal higher income with less crime, and the darkest corner both high. Hover for figures.`;
   } else {
     $("bi-key").hidden = true;
@@ -239,9 +218,7 @@ function renderMap() {
 // The neighbourhoods in fifths by the chosen income measure (about 32 each), and each category's
 // pooled rate in each fifth over its latest five years.
 function renderIncome() {
-  const inc = income(), idx = nbhd.map((_, i) => i).filter((i) => inc[i] != null);
-  idx.sort((a, b) => (incomeUp() ? inc[a] - inc[b] : inc[b] - inc[a]));
-  const fifths = [0, 1, 2, 3, 4].map((q) => idx.slice(Math.round((q * idx.length) / 5), Math.round(((q + 1) * idx.length) / 5)));
+  const inc = income(), { idx, fifths } = incomeFifths(inc, incomeUp());
   const range = (g) => {
     const v = g.map((i) => inc[i]).sort((a, b) => a - b);
     return `${fmtInc(v[0])}–${fmtInc(v.at(-1))}`;
@@ -276,21 +253,6 @@ function renderRanks() {
 }
 
 // ---- 6. then and now ---------------------------------------------------------------------------------
-function scatter({ xs, ys, xLabel, yLabel, fx, fy, tip, diag = false, zeroX = true }) {
-  const idx = nbhd.map((_, i) => i).filter((i) => xs[i] != null && ys[i] != null);
-  const sx = idx.map((i) => xs[i]).sort((a, b) => a - b), sy = idx.map((i) => ys[i]).sort((a, b) => a - b);
-  let xa = zeroX ? Math.min(0, sx[0]) : sx[0], xb = quantile(sx, 0.98), ya = Math.min(0, sy[0]), yb = quantile(sy, 0.98);
-  if (diag) xa = ya = Math.min(xa, ya), xb = yb = Math.max(xb, yb);
-  const px = (v) => Math.min(100, Math.max(0, ((v - xa) / (xb - xa || 1)) * 100)), py = (v) => Math.min(100, Math.max(0, ((v - ya) / (yb - ya || 1)) * 100));
-  const q = [0, 0.25, 0.5, 0.75, 1];
-  const line = diag ? `<svg class="sc-diag" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="100" x2="100" y2="0" stroke="#9a9a93" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/></svg>` : "";
-  return { n: idx.length, html: `<div class="sc-y">${yLabel}</div>
-    <div class="sc-box">${q.slice(1, -1).map((f) => `<span class="sc-gx" style="left:${f * 100}%"></span><span class="sc-gy" style="bottom:${f * 100}%"></span>`).join("")}${line}
-      ${q.map((f) => `<span class="sc-ytick" style="bottom:${f * 100}%">${fy(ya + f * (yb - ya))}${f === 1 && yb < sy.at(-1) ? "+" : ""}</span>`).join("")}
-      ${idx.map((i) => `<span class="sc-dot${i === state.nb ? " pick" : ""}" style="left:${px(xs[i]).toFixed(2)}%;bottom:${py(ys[i]).toFixed(2)}%" data-nb="${i}" data-tip="${escapeHTML(tip(i))}"></span>`).join("")}</div>
-    <div class="sc-xticks">${q.map((f) => `<span style="left:${f * 100}%">${fx(xa + f * (xb - xa))}${f === 1 && xb < sx.at(-1) ? "+" : ""}</span>`).join("")}</div>
-    <div class="sc-x">${xLabel}</div>` };
-}
 function renderChange() {
   const ws = periods(state.m).slice(0, -1);
   if (ws.length < 2) {
@@ -302,7 +264,7 @@ function renderChange() {
   const a = values(state.m, p0, true), b = values(state.m, p1, true);
   const all = nbhd.map((_, i) => i), c0 = pooled(state.m, p0, all), c1 = pooled(state.m, p1, all);
   const up = all.filter((i) => b[i] > a[i]).length, down = all.filter((i) => b[i] < a[i]).length;
-  const s = scatter({ xs: a, ys: b, diag: true, fx: fmtRate, fy: fmtRate,
+  const s = nbScatter({ pick: state.nb, xs: a, ys: b, diag: true, fx: fmtRate, fy: fmtRate,
     xLabel: `${escapeHTML(CAT[state.m].short)} per 100,000 a year, ${periodLabel(p0)}`, yLabel: `${periodLabel(p1)}`,
     tip: (i) => `${nbhd[i].name}<br>${periodLabel(p0)}: <b>${fmtRate(a[i])}</b><br>${periodLabel(p1)}: <b>${fmtRate(b[i])}</b>` });
   $("chg-scatter").innerHTML = s.html;
@@ -335,7 +297,7 @@ function renderCorr() {
   $("other-list").innerHTML = ro.map(({ k, v }) => corrItem(k, v)).join("");
   $("corr-lede").innerHTML = `How closely ${escapeHTML(lcName(state.m))} per 100,000 residents (${periodLabel()}) follows each measure across the neighbourhoods: Spearman rank correlation, 1 the same order, −1 the reverse. Correlation across neighbourhoods says nothing about individual people, and much of it runs through what the measures share (density, renting, downtown). Choose a measure to see its neighbourhoods.`;
   const x = corrX(state.sx);
-  const s = scatter({ xs: x.values, ys: vs, zeroX: false, fx: (v) => fmtU(x.unit, v, true), fy: fmtRate,
+  const s = nbScatter({ pick: state.nb, xs: x.values, ys: vs, zeroX: false, fx: (v) => fmtU(x.unit, v, true), fy: fmtRate,
     xLabel: `${escapeHTML(x.label)}${x.year ? `, ${x.year}` : ""}`, yLabel: `${escapeHTML(CAT[state.m].short)} per 100,000 a year, ${periodLabel()}`,
     tip: (i) => `${nbhd[i].name}<br>${x.short}: <b>${fmtU(x.unit, x.values[i])}</b><br>${CAT[state.m].short}: <b>${fmtRate(vs[i])}</b>` });
   $("scatter").innerHTML = s.html;

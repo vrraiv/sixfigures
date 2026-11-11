@@ -515,6 +515,12 @@ body.doc { display: block; height: auto; }
 .themes a + a { border-left: 1px solid #c9c9c3; }
 .themes a:hover { background: #eef4fc; color: var(--accent); }
 .themes a[aria-current="page"] { background: var(--accent); color: #fff; font-weight: 600; }
+/* six tabs don't fit a phone in one row: a 3-column grid, the gaps drawing the rules */
+@media (max-width: 640px) {
+  .themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #c9c9c3; width: 100%; }
+  .themes a { text-align: center; white-space: nowrap; }
+  .themes a + a { border-left: 0; }
+}
 
 /* ---- School Insights ---- */
 .seg-row { display: flex; flex-wrap: wrap; gap: 8px; }

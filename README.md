@@ -64,6 +64,16 @@ the neighbourhoods as SVG and loads no map tiles. Rates are per 100,000 resident
 Census), which overstates places people visit more than live in. Its data is
 `web/public/safety.json` (`pipeline/safety_insights.py`, from `pipeline/crime.py`).
 
+Trees and Heat, `/insights/trees/`, covers the 2018 tree canopy (the City's Tree Canopy
+Study), the City's 688,000 street trees (per hectare, large trees, trunk size, commonest
+species) and summer surface temperature from 11 clear Landsat 8/9 passes in 2022-2025, by
+neighbourhood: the canopy against heat (about 1.3°C cooler ground for every 10 more points
+of canopy, across neighbourhoods and DAs alike), a map that crosses the chosen measure with
+household income or shows either alone, each measure in fifths of the neighbourhoods by
+income, rankings, and correlations with the 2021 Census, crime, school results, sale prices,
+turnout and short-term rentals. No map tiles. Its data is `web/public/trees.json`
+(`pipeline/trees_insights.py`, from `pipeline/trees.py`).
+
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's

@@ -282,5 +282,11 @@ $(LAYERS):
 safety:
 	$(PYTHON) pipeline/safety_insights.py
 
+# The Trees and Heat page's trees.json, from pipeline/trees/ (make trees) and the layers
+# safety.json correlates with, plus pipeline/crime/rates.csv.
+.PHONY: trees-page
+trees-page:
+	$(PYTHON) pipeline/trees_insights.py
+
 clean:
 	rm -rf pipeline/out
