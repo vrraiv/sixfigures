@@ -156,6 +156,30 @@ TORONTO = {
         "building-permits-cleared-permits", "Cleared Permits 2000 to 2016", b'"PERMIT_NUM"'),
     "toronto_permits_active.csv": (
         "building-permits-active-permits", "building-permits-active-permits.csv", b"_id,"),
+    # Crime and traffic injuries (crime.py), refreshed quarterly (police) and daily (KSI)
+    # upstream; delete them to fetch the current files.
+    "toronto_neighbourhood_crime_rates_4326.csv": (
+        "neighbourhood-crime-rates", "neighbourhood-crime-rates - 4326.csv", b"_id,"),
+    "toronto_community_safety_indicators.csv": (
+        "major-crime-indicators", "Community Safety Indicators.csv", b"_id,"),
+    "toronto_shootings_4326.csv": (
+        "shootings-firearm-discharges", "shootings-firearm-discharges - 4326.csv", b"_id,"),
+    "toronto_homicides_4326.csv": (
+        "police-annual-statistical-report-homicide", "Homicides - 4326.csv", b"_id,"),
+    "toronto_ksi_4326.csv": (
+        "motor-vehicle-collisions-involving-killed-or-seriously-injured-persons",
+        "Motor Vehicle Collisions with KSI Data - 4326.csv", b"_id,"),
+    # DineSafe inspections (health.py), a rolling ~3-year window refreshed daily
+    "toronto_dinesafe.csv": ("dinesafe", "Dinesafe.csv", b"_id,"),
+}
+
+# Deprivation indexes by 2021 DA (health.py), plain downloads (zip or xlsx).
+# ON-Marg: non-commercial use only, credit PHO and St. Michael's, no modification
+# (see health.py); CIMD: Statistics Canada Open Licence, from www150 (no bot challenge).
+HEALTH = {
+    "index-on-marg-2021.xlsx": "https://www.publichealthontario.ca/-/media/Data-Files/index-on-marg.xlsx",
+    "cimd_2021_on_csv.zip": ("https://www150.statcan.gc.ca/n1/pub/45-20-0001/2023001/csv/"
+                             "on_scores_quintiles_csv-eng.zip"),
 }
 
 
@@ -378,6 +402,14 @@ def main() -> int:
         print(f"fetch   schools/{name}")
         if not fetch(ONTARIO + path, dest, b"PK", attempts=3):
             missing.append((f"schools/{name}", ONTARIO + path))
+    for name, url in HEALTH.items():
+        dest = RAW / name
+        if dest.exists() and zipfile.is_zipfile(dest):
+            print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   {name}")
+        if not fetch(url, dest, b"PK", attempts=3):
+            missing.append((name, url))
     if optional:
         print("\nOptional downloads failed (overlays.py skips the FSA overlay without them).")
         print(f"To include them, download these in a browser and save them to {RAW.resolve()}:")

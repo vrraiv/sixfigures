@@ -11,7 +11,8 @@ scripts from fetching it, so without it they are read from the committed
 web/public/toronto_da.pmtiles at its deepest zoom (z13), whose tiles cut each
 DA along tile edges; the pieces are dissolved by DAUID. At z13 a tile's 4096
 units are about 1.4 m in Toronto, so only points within a metre or two of a DA
-boundary can land in the neighbouring DA.
+boundary can land in the neighbouring DA, and a point in a sliver between
+pieces goes to the nearest DA within SNAP (2 m).
 
     da_polygons()        GeoDataFrame dauid, nbhd_id, geometry (EPSG:2952)
     place(df, lon, lat)  df with dauid and nbhd_id (NaN outside Toronto's DAs)
@@ -33,6 +34,7 @@ COMMON = WEB / "data" / "figures" / "2021" / "common.json"
 BOUNDARY = RAW / "lda_000b21a_e.zip"
 TILES = WEB / "toronto_da.pmtiles"
 METRIC_CRS = 2952  # NAD83(CSRS) MTM zone 10, metres
+SNAP = 2  # metres: a point off every DA goes to the nearest within this
 
 
 @lru_cache
@@ -73,8 +75,16 @@ def place(df: pd.DataFrame, lon: str = "lon", lat: str = "lat", crs: int = 4326)
     ok = out[lon].notna() & out[lat].notna()
     pts = gpd.GeoDataFrame(out.loc[ok, []], geometry=gpd.points_from_xy(out.loc[ok, lon], out.loc[ok, lat]),
                            crs=crs).to_crs(METRIC_CRS)
-    j = gpd.sjoin(pts, da_polygons(), how="left", predicate="within")
+    das = da_polygons()
+    j = gpd.sjoin(pts, das, how="left", predicate="within")
     j = j[~j.index.duplicated()]  # a point exactly on a shared edge: first DA
+    # The tiles' pieces leave slivers between DAs (median 0.14 m): a point in
+    # one goes to the nearest DA within SNAP metres
+    miss = j.dauid.isna()
+    if miss.any():
+        near = gpd.sjoin_nearest(pts[miss], das, how="left", max_distance=SNAP)
+        near = near[~near.index.duplicated()]
+        j.loc[near.index, ["dauid", "nbhd_id"]] = near[["dauid", "nbhd_id"]].to_numpy()
     out["dauid"] = j.dauid.reindex(out.index)
     out["nbhd_id"] = j.nbhd_id.reindex(out.index)
     return out

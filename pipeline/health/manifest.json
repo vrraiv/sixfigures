@@ -1,0 +1,397 @@
+{
+  "built": "2026-11-11",
+  "files": {
+    "onmarg": {
+      "name": "index-on-marg-2021.xlsx",
+      "bytes": 2608641,
+      "md5": "1bce223ff56cbac9c9ae376f47d5e44c",
+      "retrieved": "2026-11-11"
+    },
+    "cimd": {
+      "name": "cimd_2021_on_csv.zip",
+      "bytes": 302494,
+      "md5": "c56adf457c15e2c45cdd48e3dedcf940",
+      "retrieved": "2026-11-11"
+    },
+    "dinesafe": {
+      "name": "toronto_dinesafe.csv",
+      "bytes": 47199430,
+      "md5": "d187e20376649820cfeb70933119f454",
+      "retrieved": "2026-11-11"
+    }
+  },
+  "rows": {
+    "by_da": 3743,
+    "by_nbhd": 158,
+    "dinesafe_by_nbhd": 628
+  },
+  "checks": {
+    "onmarg": {
+      "das": 3743,
+      "das_found": 3743,
+      "das_scored": 3743,
+      "pop21_covered": 1.0,
+      "unscored": [],
+      "pop_share_by_quintile": {
+        "hd": {
+          "1": 0.094,
+          "2": 0.12,
+          "3": 0.128,
+          "4": 0.197,
+          "5": 0.461
+        },
+        "mr": {
+          "1": 0.228,
+          "2": 0.138,
+          "3": 0.134,
+          "4": 0.198,
+          "5": 0.302
+        },
+        "al": {
+          "1": 0.294,
+          "2": 0.242,
+          "3": 0.185,
+          "4": 0.155,
+          "5": 0.124
+        },
+        "rn": {
+          "1": 0.007,
+          "2": 0.054,
+          "3": 0.159,
+          "4": 0.256,
+          "5": 0.523
+        }
+      },
+      "vs_lim_at_da": {
+        "hd": {
+          "n": 3662,
+          "r": 0.607,
+          "rho": 0.637
+        },
+        "mr": {
+          "n": 3662,
+          "r": 0.58,
+          "rho": 0.48
+        },
+        "al": {
+          "n": 3662,
+          "r": 0.194,
+          "rho": -0.093
+        },
+        "rn": {
+          "n": 3662,
+          "r": 0.389,
+          "rho": 0.468
+        }
+      },
+      "scored_zero_pop": [
+        "35200313",
+        "35200829",
+        "35203649",
+        "35204258",
+        "35204790",
+        "35204854",
+        "35204860",
+        "35204878",
+        "35204899"
+      ],
+      "pop_equals_pop21": 3743
+    },
+    "cimd": {
+      "das": 3743,
+      "das_found": 3726,
+      "das_scored": 3726,
+      "pop21_covered": 0.9993,
+      "unscored": [
+        {
+          "dauid": "35200313",
+          "pop21": 0
+        },
+        {
+          "dauid": "35200545",
+          "pop21": 225
+        },
+        {
+          "dauid": "35200829",
+          "pop21": 0
+        },
+        {
+          "dauid": "35201461",
+          "pop21": 119
+        },
+        {
+          "dauid": "35203185",
+          "pop21": 116
+        },
+        {
+          "dauid": "35203649",
+          "pop21": 0
+        },
+        {
+          "dauid": "35203717",
+          "pop21": 68
+        },
+        {
+          "dauid": "35204258",
+          "pop21": 0
+        },
+        {
+          "dauid": "35204479",
+          "pop21": 45
+        },
+        {
+          "dauid": "35204571",
+          "pop21": 828
+        },
+        {
+          "dauid": "35204599",
+          "pop21": 298
+        },
+        {
+          "dauid": "35204701",
+          "pop21": 144
+        },
+        {
+          "dauid": "35204790",
+          "pop21": 0
+        },
+        {
+          "dauid": "35204854",
+          "pop21": 0
+        },
+        {
+          "dauid": "35204860",
+          "pop21": 0
+        },
+        {
+          "dauid": "35204878",
+          "pop21": 0
+        },
+        {
+          "dauid": "35204899",
+          "pop21": 0
+        }
+      ],
+      "pop_share_by_quintile": {
+        "ri": {
+          "1": 0.091,
+          "2": 0.096,
+          "3": 0.134,
+          "4": 0.182,
+          "5": 0.497
+        },
+        "ec": {
+          "1": 0.008,
+          "2": 0.043,
+          "3": 0.144,
+          "4": 0.263,
+          "5": 0.542
+        },
+        "ed": {
+          "1": 0.265,
+          "2": 0.197,
+          "3": 0.205,
+          "4": 0.184,
+          "5": 0.149
+        },
+        "sv": {
+          "1": 0.315,
+          "2": 0.154,
+          "3": 0.155,
+          "4": 0.176,
+          "5": 0.199
+        }
+      },
+      "vs_lim_at_da": {
+        "ri": {
+          "n": 3661,
+          "r": 0.619,
+          "rho": 0.664
+        },
+        "ec": {
+          "n": 3661,
+          "r": 0.379,
+          "rho": 0.405
+        },
+        "ed": {
+          "n": 3661,
+          "r": 0.27,
+          "rho": 0.062
+        },
+        "sv": {
+          "n": 3661,
+          "r": 0.364,
+          "rho": 0.307
+        }
+      },
+      "pop_vs_pop21": {
+        "sum_cimd_pop": 2760950,
+        "sum_pop21_scored": 2792513
+      }
+    },
+    "vs_census_da": {
+      "onmarg_mr~transfers": {
+        "n": 3643,
+        "r": 0.903,
+        "rho": 0.906
+      },
+      "onmarg_mr~degree": {
+        "n": 3727,
+        "r": -0.759,
+        "rho": -0.82
+      },
+      "onmarg_hd~renter": {
+        "n": 3727,
+        "r": 0.778,
+        "rho": 0.826
+      },
+      "onmarg_al~age65": {
+        "n": 3734,
+        "r": 0.915,
+        "rho": 0.889
+      },
+      "onmarg_rn~imm_recent": {
+        "n": 3727,
+        "r": 0.759,
+        "rho": 0.735
+      },
+      "cimd_sv~degree": {
+        "n": 3726,
+        "r": -0.742,
+        "rho": -0.799
+      },
+      "cimd_ri~renter": {
+        "n": 3726,
+        "r": 0.842,
+        "rho": 0.875
+      },
+      "cimd_ed~age65": {
+        "n": 3726,
+        "r": 0.742,
+        "rho": 0.661
+      },
+      "cimd_ec~imm_recent": {
+        "n": 3726,
+        "r": 0.526,
+        "rho": 0.522
+      }
+    },
+    "onmarg_vs_cimd_da": {
+      "hd~ri": {
+        "n": 3726,
+        "r": 0.964,
+        "rho": 0.953
+      },
+      "rn~ec": {
+        "n": 3726,
+        "r": 0.844,
+        "rho": 0.85
+      },
+      "al~ed": {
+        "n": 3726,
+        "r": 0.876,
+        "rho": 0.843
+      },
+      "mr~sv": {
+        "n": 3726,
+        "r": 0.882,
+        "rho": 0.878
+      }
+    },
+    "vs_lim_at_nbhd": {
+      "note": "LIM-AT share of pop21 in DAs with a value, against each index",
+      "onmarg_hd": {
+        "n": 158,
+        "r": 0.577,
+        "rho": 0.483
+      },
+      "onmarg_mr": {
+        "n": 158,
+        "r": 0.354,
+        "rho": 0.407
+      },
+      "onmarg_al": {
+        "n": 158,
+        "r": -0.167,
+        "rho": -0.14
+      },
+      "onmarg_rn": {
+        "n": 158,
+        "r": 0.61,
+        "rho": 0.652
+      },
+      "cimd_ri": {
+        "n": 158,
+        "r": 0.641,
+        "rho": 0.58
+      },
+      "cimd_ec": {
+        "n": 158,
+        "r": 0.429,
+        "rho": 0.511
+      },
+      "cimd_ed": {
+        "n": 158,
+        "r": -0.116,
+        "rho": -0.024
+      },
+      "cimd_sv": {
+        "n": 158,
+        "r": 0.266,
+        "rho": 0.319
+      }
+    },
+    "nbhds": 158,
+    "dinesafe": {
+      "rows": 126558,
+      "establishments": 20118,
+      "inspections": 85028,
+      "infractions": 79784,
+      "window": [
+        "2023-11-10",
+        "2026-11-09"
+      ],
+      "establishments_placed": 1.0,
+      "inspections_placed": 1.0,
+      "inspection_outcomes": {
+        "Pass": 79859,
+        "Conditional Pass": 5082,
+        "Closed": 86,
+        "Temporarily Not Operating": 1
+      },
+      "infraction_severity": {
+        "minor": 45715,
+        "significant": 24850,
+        "admin": 5679,
+        "crucial": 3540
+      },
+      "fine_outcomes": {
+        "Pending": 203,
+        "Conviction - Fined": 162,
+        "Conviction: Fined": 98,
+        "Cancelled": 8,
+        "Charges Withdrawn": 4,
+        "Charges Quashed": 1
+      },
+      "boundaries": "toronto_da.pmtiles z13",
+      "top_nbhds_by_inspections": {
+        "170": 3943,
+        "78": 3803,
+        "164": 3027,
+        "1": 1977,
+        "166": 1975
+      },
+      "nbhds": 158,
+      "infractions_per_inspection_vs_onmarg_mr": {
+        "n": 158,
+        "r": 0.058,
+        "rho": 0.006
+      },
+      "inspections_vs_pop21": {
+        "n": 158,
+        "r": 0.337,
+        "rho": 0.512
+      }
+    }
+  }
+}

@@ -254,5 +254,20 @@ forecast-pages:
 eqao:
 	$(PYTHON) pipeline/eqao.py
 
+# Neighbourhood layers (exploratory model inputs, not yet on the site), each placed
+# with pipeline/places.py and written with its checks to pipeline/<layer>/manifest.json.
+# Their raw files come from `make download`; each script stops if one is missing.
+#   crime      police crime, shootings, homicides and KSI collisions by neighbourhood
+#              and year, checked against the police's Neighbourhood Crime Rates
+#   health     CIMD 2021 by DA and neighbourhood, DineSafe by neighbourhood (ON-Marg
+#              is computed but kept in pipeline/out/ for its licence)
+LAYERS := crime health
+.PHONY: layers $(LAYERS)
+
+layers: $(LAYERS)
+
+$(LAYERS):
+	$(PYTHON) pipeline/$@.py
+
 clean:
 	rm -rf pipeline/out
