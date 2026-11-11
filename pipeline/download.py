@@ -169,9 +169,19 @@ TORONTO = {
     "toronto_ksi_4326.csv": (
         "motor-vehicle-collisions-involving-killed-or-seriously-injured-persons",
         "Motor Vehicle Collisions with KSI Data - 4326.csv", b"_id,"),
+    # Short-term rental registrations (rentals.py): active numbers only, refreshed daily
+    "toronto_str_registrations.csv": (
+        "short-term-rentals-registration", "short-term-rental-registrations-data.csv", b"_id,"),
     # DineSafe inspections (health.py), a rolling ~3-year window refreshed daily
     "toronto_dinesafe.csv": ("dinesafe", "Dinesafe.csv", b"_id,"),
 }
+
+# Inside Airbnb Toronto listings (rentals.py), CC BY 4.0, into pipeline/raw/insideairbnb/: the
+# scrapes listed on insideairbnb.com/get-the-data (quarterly, ~last 12 months). Add each new date
+# here and to rentals.SNAPSHOTS.
+INSIDEAIRBNB_DIR = RAW / "insideairbnb"
+INSIDEAIRBNB = "https://data.insideairbnb.com/canada/on/toronto/{}/data/listings.csv.gz"
+INSIDEAIRBNB_DATES = ["2025-12-12", "2026-03-19", "2026-06-15", "2026-09-16"]
 
 # Deprivation indexes by 2021 DA (health.py), plain downloads (zip or xlsx).
 # ON-Marg: non-commercial use only, credit PHO and St. Michael's, no modification
@@ -402,6 +412,15 @@ def main() -> int:
         print(f"fetch   schools/{name}")
         if not fetch(ONTARIO + path, dest, b"PK", attempts=3):
             missing.append((f"schools/{name}", ONTARIO + path))
+    INSIDEAIRBNB_DIR.mkdir(exist_ok=True)
+    for date in INSIDEAIRBNB_DATES:
+        dest = INSIDEAIRBNB_DIR / f"toronto_listings_{date}.csv.gz"
+        if dest.exists() and dest.open("rb").read(2) == b"\x1f\x8b":
+            print(f"ok      insideairbnb/{dest.name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   insideairbnb/{dest.name}")
+        if not fetch(INSIDEAIRBNB.format(date), dest, b"\x1f\x8b", attempts=3):
+            missing.append((f"insideairbnb/{dest.name}", INSIDEAIRBNB.format(date)))
     for name, url in HEALTH.items():
         dest = RAW / name
         if dest.exists() and zipfile.is_zipfile(dest):

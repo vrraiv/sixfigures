@@ -84,7 +84,7 @@ it's worth an enquiry, but the plan doesn't depend on it.
 | Homicides | `police-annual-statistical-report-homicide` ("Homicides - 4326.csv") | 2004-today, quarterly | as above; one row per victim | Annual driver (exploratory) | known | 100% exact vs Crime Rates (victims) |
 | KSI traffic collisions | `motor-vehicle-collisions-involving-killed-or-seriously-injured-persons` | 2006-today, daily; months-to-a-year reporting lag | coordinates + 158-model neighbourhood name; one row per person | Annual driver (exploratory): collisions, persons killed or seriously injured by road user | known | names match insights.json; point-in-polygon agrees 92% |
 | DineSafe | `dinesafe` | rolling ~3 years, daily | coordinates | Exploratory (food premises, inspections, infractions) | known | 20,118 establishments, all placed |
-| Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | postal code | Exploratory | today only | 8,713 registrations; no history, so no backtest use |
+| Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | address, FSA, ward | Exploratory | today only | 8,586 registrations (2026-11-11); no history, so no backtest use; ingested by `pipeline/rentals.py` |
 | Toronto Employment Survey | `toronto-employment-survey-summary-tables` | annual | summary tables (geography to be checked) | City anchor (jobs) | known | |
 | TTC routes and schedules (GTFS); transit-oriented communities | `ttc-routes-and-schedules`, `transit-oriented-communities` | current | stops, sites | Driver (new rapid transit near a DA) | known for opened lines | |
 | Neighbourhood Profiles 2021 (158 model) | `neighbourhood-profiles` | 2021 | 158 neighbourhoods | Validation (already used) | | |
@@ -190,6 +190,21 @@ pieces snapped to the nearest DA within 2 m), and DAs in neighbourhoods by
     mental health visits, premature mortality, on the 158 neighbourhoods) open only
     after a click-through agreement limiting use to non-profit health and wellbeing
     purposes, so they are not fetched.
+
+- **Short-term rentals** (`pipeline/rentals.py` → `pipeline/rentals/`):
+  - **Inside Airbnb** Toronto `listings.csv.gz`, CC BY 4.0 (credit "Source: Inside
+    Airbnb, Toronto, <dates>"). The page lists four quarterly scrapes (2025-12-12 to
+    2026-09-16); unlisted monthly files back to 2022-08 still answer at the URL
+    pattern but aren't used (older data is by request). Points are moved up to
+    150 m, so neighbourhoods only (93% of listings with a registration number fall in
+    the registered address's neighbourhood). Listings, room types, short-term (minimum
+    stay under 28 nights; 39% of listings), active (reviewed in the last 12 months),
+    Inside Airbnb's estimated nights, median price (none in 2025-12-12), multi-listing
+    hosts. The 2026-03-19 scrape is about 30% smaller than the others.
+  - **City registrations**: by ward and by neighbourhood (addresses matched, 99.7%),
+    against the latest snapshot: 8,586 registrations vs 8,554 short-term listings, and
+    93% of those listings show a registered number. Not a count of unregistered
+    rentals: one registration can cover several listings and platforms.
 
 ### Not pursued
 

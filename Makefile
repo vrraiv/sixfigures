@@ -261,7 +261,9 @@ eqao:
 #              and year, checked against the police's Neighbourhood Crime Rates
 #   health     CIMD 2021 by DA and neighbourhood, DineSafe by neighbourhood (ON-Marg
 #              is computed but kept in pipeline/out/ for its licence)
-LAYERS := crime health
+#   rentals    Inside Airbnb listings by snapshot and neighbourhood; City short-term rental
+#              registrations by ward and neighbourhood against the latest snapshot
+LAYERS := crime health rentals
 .PHONY: layers $(LAYERS)
 
 layers: $(LAYERS)
