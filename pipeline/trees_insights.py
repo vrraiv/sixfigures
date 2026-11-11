@@ -17,6 +17,15 @@ reads, and the other neighbourhood layers, and writes:
                     temperature against the city's, C), lst (lst_c, C), scenes
                     (Landsat passes behind heat), species and species_share (the
                     commonest street tree and its share)
+                    and from diversity_by_nbhd.csv: shannon, species_n, maple (Norway
+                    maple, % of street trees), species_top, genus, family (the
+                    commonest species', genus' and family's %), genus_name,
+                    family_name, meets (the 10-20-30 rule)
+  species_city      the 20 commonest species city-wide (species, common name,
+                    genus, % and trees), the counts of species, genera and
+                    families, the commonest genus and family with their %, and ash's (Fraxinus) %
+  species           each neighbourhood's 12 commonest species as [index into
+                    names, trees]
   pop               2021 Census population by neighbourhood (for the average
                     resident's heat in each income fifth)
   passes            the Landsat passes: date, platform, the city's mean surface
@@ -121,6 +130,28 @@ def main() -> int:
         "scenes": n.lst_scenes.astype(int).tolist(), "species": n.top_species_common.fillna("").tolist(),
         "species_share": col(n.top_species_share * 100),
     }
+    dv = pd.read_csv(TREES / "diversity_by_nbhd.csv").set_index("nbhd_id").reindex(ids)
+    nb.update({"shannon": col(dv.shannon, 2), "species_n": dv.species_n.astype(int).tolist(),
+               "maple": col(dv.norway_maple_share * 100), "genus": col(dv.top_genus_share * 100),
+               "genus_name": dv.top_genus.tolist(), "family_name": dv.top_family.tolist(),
+               "family": col(dv.top_family_share * 100), "species_top": col(dv.top_species_share * 100),
+               "meets": dv.meets_10_20_30.astype(bool).tolist()})
+    sc = pd.read_csv(TREES / "species_city.csv")
+    fam = sc.groupby("family").trees.sum().sort_values(ascending=False) / sc.trees.sum()
+    gen = sc.groupby("genus").trees.sum().sort_values(ascending=False) / sc.trees.sum()
+    species_city = {"top": [{"species": r.species, "common": r.common, "genus": r.genus, "share": round(r.share * 100, 2),
+                             "trees": int(r.trees)} for r in sc.head(20).itertuples()],
+                    "n": int(len(sc)), "genera": int(sc.genus.nunique()), "families": int(sc.family.nunique()),
+                    "top_genus": [gen.index[0], round(float(gen.iloc[0]) * 100, 1)],
+                    "top_family": [fam.index[0], round(float(fam.iloc[0]) * 100, 1)],
+                    "ash": round(float(gen.get("Fraxinus", 0)) * 100, 1)}
+    # each neighbourhood's 12 commonest species as [name index, trees], names in `names`
+    sb = pd.read_csv(TREES / "species_by_nbhd.csv")
+    names = sorted(sb.common.fillna(sb.species).unique())
+    ix = {k: j for j, k in enumerate(names)}
+    lists = {nid: [[ix[c if isinstance(c, str) else sp], int(t)] for sp, c, t in zip(g.species, g.common, g.trees)]
+             for nid, g in sb.groupby("nbhd_id")}
+    species_lists = {"names": names, "nbhd": [lists.get(i, []) for i in ids]}
     w = n.trees
     city = {"trees": int(n.trees.sum()), "area_ha": round(float(n.area_ha.sum()), 1),
             "canopy_ha": round(float(n.canopy_ha.sum()), 1),
@@ -147,7 +178,8 @@ def main() -> int:
     out = {"built": pd.Timestamp.today().date().isoformat(),
            "retrieved": manifest["files"]["street_trees"]["retrieved"],
            "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit,
-           "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread], "other": other}
+           "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread],
+           "species_city": species_city, "species": species_lists, "other": other}
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
     das = da_shapes(ids, d)
     if sum(len(x["dauid"]) for x in das) != len(d):

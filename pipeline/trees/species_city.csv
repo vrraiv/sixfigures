@@ -1,0 +1,221 @@
+species,trees,common,genus,family,share
+Acer platanoides,99736,"Maple, Norway",Acer,Sapindaceae,0.14491
+Gleditsia triacanthos,59904,Honey locust,Gleditsia,Fabaceae,0.08703
+Tilia cordata,27342,"Linden, littleleaf",Tilia,Malvaceae,0.03973
+Picea pungens,24086,"Spruce, Colorado blue",Picea,Pinaceae,0.03499
+Quercus rubra,23707,"Oak, red",Quercus,Fagaceae,0.03444
+Gymnocladus dioicus,21482,Kentucky coffeetree,Gymnocladus,Fabaceae,0.03121
+Acer x freemanii,21171,"Maple, Freeman Autumn Blaze",Acer,Sapindaceae,0.03076
+Acer saccharinum,20833,"Maple, silver",Acer,Sapindaceae,0.03027
+Syringa reticulata,17580,"Lilac, Japanese",Syringa,Oleaceae,0.02554
+Ginkgo biloba,17464,Ginkgo,Ginkgo,Ginkgoaceae,0.02537
+Malus sargentii,16897,"Apple, Sargents",Malus,Rosaceae,0.02455
+Celtis occidentalis,14147,Hackberry,Celtis,Cannabaceae,0.02055
+Acer saccharum,12896,"Maple, sugar",Acer,Sapindaceae,0.01874
+Amelanchier canadensis,12062,Serviceberry,Amelanchier,Rosaceae,0.01752
+Pinus nigra,11335,"Pine, Austrian",Pinus,Pinaceae,0.01647
+Pyrus calleryana,9844,Pear Chanticleer,Pyrus,Rosaceae,0.0143
+Ulmus pumila,9802,"Elm, Siberian",Ulmus,Ulmaceae,0.01424
+Picea glauca,9782,"Spruce, white",Picea,Pinaceae,0.01421
+Tilia americana,9419,"Basswood, Redmond",Tilia,Malvaceae,0.01368
+Tilia,9318,Linden,Tilia,Malvaceae,0.01354
+Platanus x acerifolia,9170,"Planetree, London",Platanus,Platanaceae,0.01332
+Ulmus americana,8570,"Elm, American Valley Forge",Ulmus,Ulmaceae,0.01245
+Betula papyrifera,8525,"Birch, white",Betula,Betulaceae,0.01239
+Quercus macrocarpa,7915,"Oak, bur",Quercus,Fagaceae,0.0115
+Acer rubrum,7869,"Maple, red",Acer,Sapindaceae,0.01143
+Liriodendron tulipifera,7752,Tulip tree,Liriodendron,Magnoliaceae,0.01126
+Catalpa speciosa,7496,"Catalpa, northern",Catalpa,Bignoniaceae,0.01089
+Acer negundo,6696,"Maple, Manitoba",Acer,Sapindaceae,0.00973
+Thuja occidentalis,6384,"Cedar, white",Thuja,Cupressaceae,0.00928
+Quercus bicolor,6270,"Oak, swamp white",Quercus,Fagaceae,0.00911
+Fraxinus pennsylvanica,6082,"Ash, green",Fraxinus,Oleaceae,0.00884
+Morus alba,5510,"Mulberry, white weeping",Morus,Moraceae,0.00801
+Prunus spp.,4664,Cherry,Prunus,Rosaceae,0.00678
+Acer tataricum,4248,"Maple, Amur",Acer,Sapindaceae,0.00617
+Ulmus davidiana,4226,"Elm, Accolade",Ulmus,Ulmaceae,0.00614
+Ulmus,4190,Elm,Ulmus,Ulmaceae,0.00609
+Quercus robur,4038,"Oak, English",Quercus,Fagaceae,0.00587
+Fagus sylvatica,3993,"Beech, European",Fagus,Fagaceae,0.0058
+Quercus alba,3807,"Oak, white",Quercus,Fagaceae,0.00553
+Aesculus hippocastanum,3630,Horsechestnut,Aesculus,Sapindaceae,0.00527
+Picea abies,3552,"Spruce, Norway",Picea,Pinaceae,0.00516
+Acer campestre,3420,"Maple, hedge",Acer,Sapindaceae,0.00497
+Acer palmatum,3335,"Maple, Japanese",Acer,Sapindaceae,0.00485
+Picea,3294,Spruce,Picea,Pinaceae,0.00479
+Betula,3028,Birch,Betula,Betulaceae,0.0044
+Robinia pseudoacacia,2941,Black locust,Robinia,Fabaceae,0.00427
+Aesculus glabra,2913,"Buckeye, Ohio",Aesculus,Sapindaceae,0.00423
+Cercis canadensis,2899,Redbud,Cercis,Fabaceae,0.00421
+Prunus virginiana,2747,"Cherry, choke Shubert",Prunus,Rosaceae,0.00399
+Aesculus flava,2714,"Buckeye, yellow",Aesculus,Sapindaceae,0.00394
+Acer nigrum,2692,"Maple, black",Acer,Sapindaceae,0.00391
+Magnolia x soulngeana,2688,"Magnolia, saucer",Magnolia,Magnoliaceae,0.00391
+Cercidiphyllum japonicum,2667,"Katsura, Japanese",Cercidiphyllum,Cercidiphyllaceae,0.00387
+Aesculus x carnea,2656,"Horsechestnut, Ruby red",Aesculus,Sapindaceae,0.00386
+Pinus strobus,2581,"Pine, eastern white",Pinus,Pinaceae,0.00375
+Pinus sylvestris,2515,Pine scots,Pinus,Pinaceae,0.00365
+Acer,2275,Maple,Acer,Sapindaceae,0.00331
+Fraxinus americana,2215,"Ash, white",Fraxinus,Oleaceae,0.00322
+Quercus palustris,2135,"Oak, pin",Quercus,Fagaceae,0.0031
+Ostrya virginiana,2034,Ironwood,Ostrya,Betulaceae,0.00296
+Corylus colurna,1997,"Hazel, Turkish",Corylus,Betulaceae,0.0029
+Malus,1977,Apple,Malus,Rosaceae,0.00287
+Juglans nigra,1955,"Walnut, black",Juglans,Juglandaceae,0.00284
+Thuja,1945,Cedar,Thuja,Cupressaceae,0.00283
+Juniperus virginiana,1932,"Cedar, eastern red",Juniperus,Cupressaceae,0.00281
+Cladrastis kentukea,1926,"Yellowwood, Kentucky",Cladrastis,Fabaceae,0.0028
+Morus,1740,Mulberry,Morus,Moraceae,0.00253
+Prunus serrulata,1725,"Cherry, Japanese",Prunus,Rosaceae,0.00251
+Pyrus,1720,Pear,Pyrus,Rosaceae,0.0025
+Quercus,1580,Oak,Quercus,Fagaceae,0.0023
+Sorbus thuringiaca,1547,"Mountain ash, oak leaf",Sorbus,Rosaceae,0.00225
+Allianthus altissima,1535,Tree of heaven,Allianthus,Simaroubaceae,0.00223
+Juniperus,1509,Juniper,Juniperus,Cupressaceae,0.00219
+Sorbus aucuparia,1430,"Mountain ash, European",Sorbus,Rosaceae,0.00208
+Zelkova,1394,Zelkova,Zelkova,Ulmaceae,0.00203
+Phellodendron amurense,1383,"Cork tree, Amur",Phellodendron,Rutaceae,0.00201
+Crataegus,1371,Hawthorn,Crataegus,Rosaceae,0.00199
+Taxus,1285,Yew,Taxus,Taxaceae,0.00187
+Ulmus parvifolia,1150,"Elm, Chinese",Ulmus,Ulmaceae,0.00167
+Pseudotsuga menziesii,1148,Douglas fir,Pseudotsuga,Pinaceae,0.00167
+Abies balsamaea,1132,"Fir, balsam",Abies,Pinaceae,0.00164
+Syringa,1086,Lilac,Syringa,Oleaceae,0.00158
+Fraxinus,961,Ash,Fraxinus,Oleaceae,0.0014
+Quercus velutina,943,"Oak, black",Quercus,Fagaceae,0.00137
+Crataegus viridis,920,"Hawthorn, green Winter King",Crataegus,Rosaceae,0.00134
+Zelkova serrata,861,"Zelkova, Japanese Village Green",Zelkova,Ulmaceae,0.00125
+Sorbus,854,Mountain ash,Sorbus,Rosaceae,0.00124
+Tsuga canadensis,731,"Hemlock, eastern",Tsuga,Pinaceae,0.00106
+Pinus,725,Pine,Pinus,Pinaceae,0.00105
+Liquidambar styraciflua,722,Sweetgum,Liquidambar,Altingiaceae,0.00105
+Chamaecyparis pisifera,719,"Falsecypress, Japanese",Chamaecyparis,Cupressaceae,0.00104
+Quercus muehlenbergii,684,"Oak, chinquapin",Quercus,Fagaceae,0.00099
+Elaeagnus angustifolia,683,"Olive, Russian",Elaeagnus,Elaeagnaceae,0.00099
+Fraxinus excelsior,617,"Ash, European",Fraxinus,Oleaceae,0.0009
+Magnolia acuminata,617,Cucumbertree,Magnolia,Magnoliaceae,0.0009
+Larix laricina,608,Larch,Larix,Pinaceae,0.00088
+Abies,593,Fir,Abies,Pinaceae,0.00086
+Ulmus glabra,589,"Elm, wych",Ulmus,Ulmaceae,0.00086
+Juglans cinerea,576,Butternut,Juglans,Juglandaceae,0.00084
+Salix,547,Willow,Salix,Salicaceae,0.00079
+Salix x sepulcralis,545,"Willow, golden weeping",Salix,Salicaceae,0.00079
+Fagus grandifolia,497,"Beech, American",Fagus,Fagaceae,0.00072
+Crataegus crus-galli,478,"Hawthorn, cockspur",Crataegus,Rosaceae,0.00069
+Sorbus americana,467,"Mountain ash, American",Sorbus,Rosaceae,0.00068
+Cornus florida,462,"Dogwood, flowering",Cornus,Cornaceae,0.00067
+Prunus persica,431,Peach,Prunus,Rosaceae,0.00063
+Betula nigra,428,"Birch, river",Betula,Betulaceae,0.00062
+Ulmus x hollandica,425,"Elm, Pioneer",Ulmus,Ulmaceae,0.00062
+Carpinus betulus,401,"Hornbeam, European",Carpinus,Betulaceae,0.00058
+Populus,397,Poplar,Populus,Salicaceae,0.00058
+Cornus,395,Dogwood,Cornus,Cornaceae,0.00057
+Cotinus obovatus,367,"Smoketree, American",Cotinus,Anacardiaceae,0.00053
+Salix nigra,362,"Willow, black",Salix,Salicaceae,0.00053
+Pinus resinosa,361,"Pine, red",Pinus,Pinaceae,0.00052
+Carpinus caroliniana,348,Blue Beech,Carpinus,Betulaceae,0.00051
+Nyssa sylvatica,346,Blackgum,Nyssa,Nyssaceae,0.0005
+Ulmus rubra,338,"Elm, slippery",Ulmus,Ulmaceae,0.00049
+Picea omorica,331,"Spruce, Serbian",Picea,Pinaceae,0.00048
+Prunus armeniaca,330,Apricot,Prunus,Rosaceae,0.00048
+Fagus,314,Beech,Fagus,Fagaceae,0.00046
+Betula pendula,304,"Birch, European",Betula,Betulaceae,0.00044
+Abies concolor,296,"Fir, white",Abies,Pinaceae,0.00043
+Rhamnus cathartica,289,"Buckthorn, European",Rhamnus,Rhamnaceae,0.00042
+Alnus glutinosa,289,"Alder, European",Alnus,Betulaceae,0.00042
+Abies alba,270,"Fir, European white",Abies,Pinaceae,0.00039
+Prunus serotina,254,"Cherry, black",Prunus,Rosaceae,0.00037
+Populus x canadensis,249,"Poplar, Carolina",Populus,Salicaceae,0.00036
+Ulmus thomasii,249,"Elm, rock",Ulmus,Ulmaceae,0.00036
+Acer pseudoplatanus,242,"Maple, sycamore",Acer,Sapindaceae,0.00035
+Sophora japonica,218,"Pagoda, Japanese",Sophora,Fabaceae,0.00032
+Laburnum x watereri,216,Golden chain tree,Laburnum,Fabaceae,0.00031
+Populus tremuloides,211,"Aspen, trembling",Populus,Salicaceae,0.00031
+Quercus shumardii,210,"Oak, Shumard",Quercus,Fagaceae,0.00031
+Metasequoia glyptostroboides,196,Dawn redwood,Metasequoia,Cupressaceae,0.00028
+Juglans regia,192,"Walnut, English",Juglans,Juglandaceae,0.00028
+Juglans,186,Walnut,Juglans,Juglandaceae,0.00027
+Populus deltoides,186,"Poplar, eastern cottonwood",Populus,Salicaceae,0.00027
+Salix matsudana,161,"Willow, corkscrew",Salix,Salicaceae,0.00023
+Taxus cuspidata,152,"Yew, Japanese",Taxus,Taxaceae,0.00022
+Tilia x euchlora,151,"Linden, Crimean",Tilia,Malvaceae,0.00022
+Quercus imbricaria,149,"Oak, shingle",Quercus,Fagaceae,0.00022
+Catalpa bignonioides,140,"Catalpa, mop head",Catalpa,Bignoniaceae,0.0002
+Quercus coccinea,134,"Oak, scarlett",Quercus,Fagaceae,0.00019
+Prunus x cistena,133,"Cherry, purple-leaf sand",Prunus,Rosaceae,0.00019
+Betula populifolia,128,"Birch, grey",Betula,Betulaceae,0.00019
+Acer griseum,110,"Maple, paperbark",Acer,Sapindaceae,0.00016
+Koelreuteria paniculata,106,Golden rain tree,Koelreuteria,Sapindaceae,0.00015
+Populus nigra,104,"Poplar, black Lombardy",Populus,Salicaceae,0.00015
+Salix discolor,104,"Willow, pussy",Salix,Salicaceae,0.00015
+Alix ×,101,"Willow, weeping",Alix,,0.00015
+Populus alba,93,"Poplar, white Boleana",Populus,Salicaceae,0.00014
+Morus rubra,84,"Mulberry, red",Morus,Moraceae,0.00012
+Picea mariana,83,"Spruce, black",Picea,Pinaceae,0.00012
+Maackia amurensis,83,Maackia,Maackia,Fabaceae,0.00012
+Malus coronaria,82,"Apple, wild crab",Malus,Rosaceae,0.00012
+Carya laciniosa,79,"Hickory, big shellbark",Carya,Juglandaceae,0.00011
+Cornus mas,79,"Dogwood, cornelian cherry",Cornus,Cornaceae,0.00011
+Acer truncatum,79,"Maple, Pacific sunset",Acer,Sapindaceae,0.00011
+Rhus typhina,78,"Sumac, staghorn",Rhus,Anacardiaceae,0.00011
+Platanus occidentalis,72,Sycamore,Platanus,Platanaceae,0.0001
+Carya cordiformis,72,"Hickory, bitternut",Carya,Juglandaceae,0.0001
+Betula alleghaniensis,54,"Birch, yellow",Betula,Betulaceae,8e-05
+Populus balsamifera,51,"Poplar, balsam",Populus,Salicaceae,7e-05
+Fraxinus nigra,51,"Ash, black",Fraxinus,Oleaceae,7e-05
+Carya,49,Hickory,Carya,Juglandaceae,7e-05
+Betula utilis,46,"Birch, Himalayan Jacquemonti",Betula,Betulaceae,7e-05
+Caragana arboresense,43,"Peashrub, Siberian",Caragana,Fabaceae,6e-05
+Tilia tomentosa,43,"Linden, silver",Tilia,Malvaceae,6e-05
+Populus grandidentata,43,"Aspen, large tooth",Populus,Salicaceae,6e-05
+Carya ovata,41,"Hickory, shagbark",Carya,Juglandaceae,6e-05
+Larix decidua,41,"Larch, European",Larix,Pinaceae,6e-05
+Sorbus decora,40,"Mountain ash, showy",Sorbus,Rosaceae,6e-05
+Alnus,39,Alder,Alnus,Betulaceae,6e-05
+Prunus subhirtella,38,"Cherry, weeping Higan",Prunus,Rosaceae,6e-05
+Pinus banksiana,35,"Pine, jack",Pinus,Pinaceae,5e-05
+Crataegus laevigata,34,"Hawthorn, Morden",Crataegus,Rosaceae,5e-05
+Prunus sargentii,34,"Cherry, sargent",Prunus,Rosaceae,5e-05
+Prunus x yedoensis,31,"Cherry, Japanese Yoshino",Prunus,Rosaceae,5e-05
+Corylus,30,Hazel,Corylus,Betulaceae,4e-05
+Xanthocyparis nootkatensis,27,Cypress Nootka,Xanthocyparis,Cupressaceae,4e-05
+Sassafras albidum,26,Sassafras,Sassafras,Lauraceae,4e-05
+Castanea dentata,24,"Chestnut, American",Castanea,Fagaceae,3e-05
+Prunus pensylvanica,23,"Cherry, pin",Prunus,Rosaceae,3e-05
+Prunus triloba,22,"Almond, flowering",Prunus,Rosaceae,3e-05
+Fraxinus quadrangulata,22,"Ash, blue",Fraxinus,Oleaceae,3e-05
+Hamamelis virginiana,17,Witch-hazel,Hamamelis,Hamamelidaceae,2e-05
+Amelanchier x grandiflora,15,"Serviceberry, Robin Hill",Amelanchier,Rosaceae,2e-05
+Ulmus minor,15,"Elm, English",Ulmus,Ulmaceae,2e-05
+Salix pentandra,13,"Willow, laurel",Salix,Salicaceae,2e-05
+Euonymus altus,12,"Spindletree, winged",Euonymus,Celastraceae,2e-05
+Malus sylvestris,12,"Apple, common",Malus,Rosaceae,2e-05
+Acer spicatum,11,"Maple, mountain",Acer,Sapindaceae,2e-05
+Thuja plicata,10,"Cedar, western red",Thuja,Cupressaceae,1e-05
+Corylus americana,9,"Hazel, American",Corylus,Betulaceae,1e-05
+Magnolia kobus,8,"Magnolia, kobus",Magnolia,Magnoliaceae,1e-05
+Prunus avium,7,"Cherry, sweet",Prunus,Rosaceae,1e-05
+Larix kaempferi,6,"Larch, Japanese",Larix,Pinaceae,1e-05
+Salix fragilis,6,"Willow, crack",Salix,Salicaceae,1e-05
+Aralia spinosa,5,Devil's walking stick,Aralia,Araliaceae,1e-05
+Acer miyabei,5,"Maple, State Street",Acer,Sapindaceae,1e-05
+Ptelea trifoliata,5,Hop tree,Ptelea,Rutaceae,1e-05
+Sorbus aria,4,"Mountain ash, whitebeam",Sorbus,Rosaceae,1e-05
+Populus simonii,4,"Poplar, Chinese",Populus,Salicaceae,1e-05
+Acer pensylvanicum,3,"Maple, striped",Acer,Sapindaceae,0.0
+Castanea sativa,3,"Chestnut, sweet",Castanea,Fagaceae,0.0
+Sambucus canadensis,3,"Elder, American",Sambucus,Viburnaceae,0.0
+Quercus acutissima,3,"Oak, sawtooth",Quercus,Fagaceae,0.0
+Amelanchier laevis,2,"Serviceberry, smooth",Amelanchier,Rosaceae,0.0
+Frangula frangula,2,"Buckthorn, glossy",Frangula,Rhamnaceae,0.0
+Malus baccata,2,"Apple, Siberian",Malus,Rosaceae,0.0
+Crategus crus,2,"Hawthorn, Crusade",Crategus,Rosaceae,0.0
+Prunus nigra,2,"Plum, Canada",Prunus,Rosaceae,0.0
+Tilia platyphyllos,2,"Linden, broad-leaved",Tilia,Malvaceae,0.0
+Prunus cerasus,1,"Cherry, sour",Prunus,Rosaceae,0.0
+Magnolia brooklynensis,1,Magnolia Yellowbird,Magnolia,Magnoliaceae,0.0
+Carya glabra,1,"Hickory, pignut",Carya,Juglandaceae,0.0
+Asimina triloba,1,Pawpaw,Asimina,Annonaceae,0.0
+Cornus foemina,1,"Dogwood, grey",Cornus,Cornaceae,0.0
+Betula lenta,1,"Birch, black",Betula,Betulaceae,0.0
+Taxodium distichum,1,Bald cypress,Taxodium,Cupressaceae,0.0

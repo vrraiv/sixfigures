@@ -1,0 +1,1897 @@
+nbhd_id,species,common,trees
+1,Gleditsia triacanthos,Honey locust,2618
+1,Acer platanoides,"Maple, Norway",2554
+1,Gymnocladus dioicus,Kentucky coffeetree,1495
+1,Ginkgo biloba,Ginkgo,789
+1,Tilia americana,"Basswood, Redmond",608
+1,Tilia,Linden,500
+1,Tilia cordata,"Linden, littleleaf",486
+1,Catalpa speciosa,"Catalpa, northern",482
+1,Quercus rubra,"Oak, red",474
+1,Celtis occidentalis,Hackberry,431
+1,Syringa reticulata,"Lilac, Japanese",367
+1,Picea pungens,"Spruce, Colorado blue",341
+2,Gleditsia triacanthos,Honey locust,668
+2,Acer platanoides,"Maple, Norway",634
+2,Gymnocladus dioicus,Kentucky coffeetree,319
+2,Ginkgo biloba,Ginkgo,267
+2,Celtis occidentalis,Hackberry,248
+2,Quercus rubra,"Oak, red",211
+2,Tilia americana,"Basswood, Redmond",191
+2,Tilia,Linden,181
+2,Acer saccharinum,"Maple, silver",148
+2,Tilia cordata,"Linden, littleleaf",137
+2,Quercus bicolor,"Oak, swamp white",126
+2,Quercus macrocarpa,"Oak, bur",123
+3,Acer platanoides,"Maple, Norway",893
+3,Gleditsia triacanthos,Honey locust,309
+3,Quercus rubra,"Oak, red",160
+3,Tilia,Linden,160
+3,Picea pungens,"Spruce, Colorado blue",143
+3,Gymnocladus dioicus,Kentucky coffeetree,138
+3,Ginkgo biloba,Ginkgo,131
+3,Syringa reticulata,"Lilac, Japanese",131
+3,Picea glauca,"Spruce, white",129
+3,Acer negundo,"Maple, Manitoba",115
+3,Tilia cordata,"Linden, littleleaf",115
+3,Pinus nigra,"Pine, Austrian",106
+4,Acer platanoides,"Maple, Norway",730
+4,Gleditsia triacanthos,Honey locust,403
+4,Syringa reticulata,"Lilac, Japanese",202
+4,Gymnocladus dioicus,Kentucky coffeetree,190
+4,Malus sargentii,"Apple, Sargents",184
+4,Ginkgo biloba,Ginkgo,131
+4,Quercus rubra,"Oak, red",115
+4,Acer campestre,"Maple, hedge",100
+4,Picea pungens,"Spruce, Colorado blue",99
+4,Tilia cordata,"Linden, littleleaf",96
+4,Tilia,Linden,80
+4,Tilia americana,"Basswood, Redmond",78
+5,Acer platanoides,"Maple, Norway",405
+5,Gleditsia triacanthos,Honey locust,229
+5,Tilia cordata,"Linden, littleleaf",170
+5,Gymnocladus dioicus,Kentucky coffeetree,132
+5,Quercus rubra,"Oak, red",114
+5,Ginkgo biloba,Ginkgo,103
+5,Syringa reticulata,"Lilac, Japanese",89
+5,Picea pungens,"Spruce, Colorado blue",87
+5,Malus sargentii,"Apple, Sargents",79
+5,Quercus macrocarpa,"Oak, bur",70
+5,Catalpa speciosa,"Catalpa, northern",64
+5,Fraxinus pennsylvanica,"Ash, green",60
+6,Acer platanoides,"Maple, Norway",957
+6,Gleditsia triacanthos,Honey locust,319
+6,Syringa reticulata,"Lilac, Japanese",217
+6,Tilia cordata,"Linden, littleleaf",186
+6,Picea pungens,"Spruce, Colorado blue",182
+6,Quercus rubra,"Oak, red",150
+6,Acer x freemanii,"Maple, Freeman Autumn Blaze",143
+6,Gymnocladus dioicus,Kentucky coffeetree,133
+6,Celtis occidentalis,Hackberry,128
+6,Malus sargentii,"Apple, Sargents",112
+6,Ginkgo biloba,Ginkgo,99
+6,Acer campestre,"Maple, hedge",86
+7,Acer platanoides,"Maple, Norway",2200
+7,Gleditsia triacanthos,Honey locust,570
+7,Tilia cordata,"Linden, littleleaf",476
+7,Tilia,Linden,325
+7,Gymnocladus dioicus,Kentucky coffeetree,321
+7,Acer x freemanii,"Maple, Freeman Autumn Blaze",265
+7,Picea pungens,"Spruce, Colorado blue",236
+7,Quercus rubra,"Oak, red",229
+7,Celtis occidentalis,Hackberry,201
+7,Ginkgo biloba,Ginkgo,198
+7,Syringa reticulata,"Lilac, Japanese",185
+7,Betula,Birch,168
+8,Acer platanoides,"Maple, Norway",667
+8,Picea pungens,"Spruce, Colorado blue",181
+8,Gleditsia triacanthos,Honey locust,166
+8,Picea glauca,"Spruce, white",126
+8,Quercus rubra,"Oak, red",122
+8,Acer x freemanii,"Maple, Freeman Autumn Blaze",113
+8,Acer saccharum,"Maple, sugar",101
+8,Tilia,Linden,99
+8,Acer saccharinum,"Maple, silver",95
+8,Syringa reticulata,"Lilac, Japanese",93
+8,Gymnocladus dioicus,Kentucky coffeetree,83
+8,Ulmus pumila,"Elm, Siberian",79
+9,Acer platanoides,"Maple, Norway",1029
+9,Picea pungens,"Spruce, Colorado blue",763
+9,Gleditsia triacanthos,Honey locust,489
+9,Quercus rubra,"Oak, red",425
+9,Malus sargentii,"Apple, Sargents",276
+9,Acer saccharinum,"Maple, silver",243
+9,Tilia cordata,"Linden, littleleaf",240
+9,Acer x freemanii,"Maple, Freeman Autumn Blaze",237
+9,Pinus nigra,"Pine, Austrian",211
+9,Picea glauca,"Spruce, white",193
+9,Betula,Birch,160
+9,Syringa reticulata,"Lilac, Japanese",158
+10,Acer platanoides,"Maple, Norway",1435
+10,Picea pungens,"Spruce, Colorado blue",695
+10,Gleditsia triacanthos,Honey locust,379
+10,Malus sargentii,"Apple, Sargents",288
+10,Quercus rubra,"Oak, red",269
+10,Betula,Birch,227
+10,Acer saccharum,"Maple, sugar",207
+10,Picea glauca,"Spruce, white",207
+10,Quercus alba,"Oak, white",183
+10,Acer x freemanii,"Maple, Freeman Autumn Blaze",182
+10,Gymnocladus dioicus,Kentucky coffeetree,166
+10,Pinus nigra,"Pine, Austrian",161
+11,Acer platanoides,"Maple, Norway",1863
+11,Gleditsia triacanthos,Honey locust,774
+11,Tilia,Linden,440
+11,Tilia cordata,"Linden, littleleaf",387
+11,Picea pungens,"Spruce, Colorado blue",287
+11,Malus sargentii,"Apple, Sargents",285
+11,Acer x freemanii,"Maple, Freeman Autumn Blaze",284
+11,Syringa reticulata,"Lilac, Japanese",277
+11,Gymnocladus dioicus,Kentucky coffeetree,270
+11,Quercus rubra,"Oak, red",251
+11,Celtis occidentalis,Hackberry,216
+11,Ginkgo biloba,Ginkgo,213
+12,Acer platanoides,"Maple, Norway",669
+12,Gleditsia triacanthos,Honey locust,281
+12,Malus sargentii,"Apple, Sargents",213
+12,Tilia,Linden,191
+12,Picea pungens,"Spruce, Colorado blue",162
+12,Acer saccharum,"Maple, sugar",123
+12,Acer x freemanii,"Maple, Freeman Autumn Blaze",121
+12,Syringa reticulata,"Lilac, Japanese",120
+12,Tilia cordata,"Linden, littleleaf",117
+12,Quercus rubra,"Oak, red",110
+12,Betula,Birch,103
+12,Gymnocladus dioicus,Kentucky coffeetree,82
+13,Acer platanoides,"Maple, Norway",394
+13,Gleditsia triacanthos,Honey locust,204
+13,Malus sargentii,"Apple, Sargents",136
+13,Tilia cordata,"Linden, littleleaf",130
+13,Syringa reticulata,"Lilac, Japanese",85
+13,Tilia,Linden,85
+13,Celtis occidentalis,Hackberry,80
+13,Acer x freemanii,"Maple, Freeman Autumn Blaze",57
+13,Ginkgo biloba,Ginkgo,56
+13,Picea pungens,"Spruce, Colorado blue",56
+13,Gymnocladus dioicus,Kentucky coffeetree,55
+13,Betula,Birch,52
+15,Acer platanoides,"Maple, Norway",778
+15,Acer saccharinum,"Maple, silver",436
+15,Picea pungens,"Spruce, Colorado blue",425
+15,Quercus rubra,"Oak, red",353
+15,Gleditsia triacanthos,Honey locust,187
+15,Acer x freemanii,"Maple, Freeman Autumn Blaze",158
+15,Syringa reticulata,"Lilac, Japanese",146
+15,Acer saccharum,"Maple, sugar",143
+15,Acer rubrum,"Maple, red",125
+15,Picea glauca,"Spruce, white",116
+15,Ulmus pumila,"Elm, Siberian",116
+15,Malus sargentii,"Apple, Sargents",111
+16,Acer platanoides,"Maple, Norway",2031
+16,Picea pungens,"Spruce, Colorado blue",694
+16,Gleditsia triacanthos,Honey locust,641
+16,Syringa reticulata,"Lilac, Japanese",420
+16,Acer x freemanii,"Maple, Freeman Autumn Blaze",376
+16,Quercus rubra,"Oak, red",360
+16,Malus sargentii,"Apple, Sargents",338
+16,Ulmus pumila,"Elm, Siberian",292
+16,Acer saccharinum,"Maple, silver",284
+16,Acer campestre,"Maple, hedge",281
+16,Ginkgo biloba,Ginkgo,279
+16,Acer negundo,"Maple, Manitoba",259
+18,Acer platanoides,"Maple, Norway",363
+18,Gleditsia triacanthos,Honey locust,330
+18,Malus sargentii,"Apple, Sargents",246
+18,Syringa reticulata,"Lilac, Japanese",206
+18,Ginkgo biloba,Ginkgo,191
+18,Quercus rubra,"Oak, red",145
+18,Acer x freemanii,"Maple, Freeman Autumn Blaze",140
+18,Acer saccharinum,"Maple, silver",128
+18,Acer saccharum,"Maple, sugar",107
+18,Amelanchier canadensis,Serviceberry,104
+18,Gymnocladus dioicus,Kentucky coffeetree,94
+18,Acer negundo,"Maple, Manitoba",90
+19,Acer platanoides,"Maple, Norway",345
+19,Gleditsia triacanthos,Honey locust,251
+19,Acer saccharinum,"Maple, silver",229
+19,Quercus rubra,"Oak, red",227
+19,Picea pungens,"Spruce, Colorado blue",193
+19,Picea glauca,"Spruce, white",151
+19,Ginkgo biloba,Ginkgo,148
+19,Malus sargentii,"Apple, Sargents",127
+19,Acer x freemanii,"Maple, Freeman Autumn Blaze",105
+19,Fraxinus pennsylvanica,"Ash, green",105
+19,Acer rubrum,"Maple, red",102
+19,Gymnocladus dioicus,Kentucky coffeetree,96
+20,Acer platanoides,"Maple, Norway",1118
+20,Gleditsia triacanthos,Honey locust,408
+20,Quercus rubra,"Oak, red",213
+20,Gymnocladus dioicus,Kentucky coffeetree,201
+20,Acer x freemanii,"Maple, Freeman Autumn Blaze",200
+20,Tilia cordata,"Linden, littleleaf",194
+20,Acer campestre,"Maple, hedge",166
+20,Acer saccharinum,"Maple, silver",157
+20,Picea pungens,"Spruce, Colorado blue",148
+20,Syringa reticulata,"Lilac, Japanese",143
+20,Platanus x acerifolia,"Planetree, London",142
+20,Picea glauca,"Spruce, white",128
+21,Gleditsia triacanthos,Honey locust,1061
+21,Gymnocladus dioicus,Kentucky coffeetree,670
+21,Tilia americana,"Basswood, Redmond",337
+21,Syringa reticulata,"Lilac, Japanese",327
+21,Ginkgo biloba,Ginkgo,296
+21,Quercus rubra,"Oak, red",242
+21,Quercus bicolor,"Oak, swamp white",231
+21,Acer platanoides,"Maple, Norway",207
+21,Amelanchier canadensis,Serviceberry,185
+21,Pyrus calleryana,Pear Chanticleer,181
+21,Tilia cordata,"Linden, littleleaf",168
+21,Pinus nigra,"Pine, Austrian",152
+22,Acer platanoides,"Maple, Norway",380
+22,Gleditsia triacanthos,Honey locust,254
+22,Gymnocladus dioicus,Kentucky coffeetree,163
+22,Syringa reticulata,"Lilac, Japanese",113
+22,Quercus rubra,"Oak, red",98
+22,Ginkgo biloba,Ginkgo,91
+22,Malus sargentii,"Apple, Sargents",89
+22,Tilia cordata,"Linden, littleleaf",84
+22,Pyrus calleryana,Pear Chanticleer,80
+22,Amelanchier canadensis,Serviceberry,79
+22,Tilia americana,"Basswood, Redmond",71
+22,Picea pungens,"Spruce, Colorado blue",68
+23,Acer platanoides,"Maple, Norway",630
+23,Gleditsia triacanthos,Honey locust,278
+23,Picea pungens,"Spruce, Colorado blue",230
+23,Tilia cordata,"Linden, littleleaf",205
+23,Quercus rubra,"Oak, red",171
+23,Acer saccharinum,"Maple, silver",169
+23,Syringa reticulata,"Lilac, Japanese",157
+23,Gymnocladus dioicus,Kentucky coffeetree,145
+23,Acer x freemanii,"Maple, Freeman Autumn Blaze",140
+23,Malus sargentii,"Apple, Sargents",131
+23,Celtis occidentalis,Hackberry,129
+23,Picea glauca,"Spruce, white",115
+24,Gleditsia triacanthos,Honey locust,522
+24,Gymnocladus dioicus,Kentucky coffeetree,267
+24,Acer platanoides,"Maple, Norway",264
+24,Ginkgo biloba,Ginkgo,192
+24,Tilia americana,"Basswood, Redmond",180
+24,Pyrus calleryana,Pear Chanticleer,177
+24,Quercus rubra,"Oak, red",144
+24,Tilia cordata,"Linden, littleleaf",115
+24,Syringa reticulata,"Lilac, Japanese",107
+24,Acer saccharinum,"Maple, silver",91
+24,Quercus macrocarpa,"Oak, bur",87
+24,Celtis occidentalis,Hackberry,85
+25,Acer platanoides,"Maple, Norway",523
+25,Gleditsia triacanthos,Honey locust,429
+25,Gymnocladus dioicus,Kentucky coffeetree,256
+25,Tilia cordata,"Linden, littleleaf",248
+25,Ginkgo biloba,Ginkgo,219
+25,Syringa reticulata,"Lilac, Japanese",207
+25,Acer x freemanii,"Maple, Freeman Autumn Blaze",187
+25,Celtis occidentalis,Hackberry,165
+25,Malus sargentii,"Apple, Sargents",145
+25,Quercus rubra,"Oak, red",138
+25,Pyrus calleryana,Pear Chanticleer,130
+25,Amelanchier canadensis,Serviceberry,109
+27,Gleditsia triacanthos,Honey locust,1251
+27,Acer platanoides,"Maple, Norway",1152
+27,Gymnocladus dioicus,Kentucky coffeetree,928
+27,Tilia cordata,"Linden, littleleaf",469
+27,Celtis occidentalis,Hackberry,448
+27,Ginkgo biloba,Ginkgo,446
+27,Acer x freemanii,"Maple, Freeman Autumn Blaze",394
+27,Tilia americana,"Basswood, Redmond",367
+27,Quercus rubra,"Oak, red",334
+27,Quercus macrocarpa,"Oak, bur",304
+27,Ulmus americana,"Elm, American Valley Forge",300
+27,Acer saccharinum,"Maple, silver",226
+28,Acer platanoides,"Maple, Norway",333
+28,Picea pungens,"Spruce, Colorado blue",171
+28,Gleditsia triacanthos,Honey locust,154
+28,Syringa reticulata,"Lilac, Japanese",104
+28,Tilia cordata,"Linden, littleleaf",69
+28,Betula papyrifera,"Birch, white",68
+28,Morus alba,"Mulberry, white weeping",68
+28,Picea glauca,"Spruce, white",63
+28,Quercus rubra,"Oak, red",63
+28,Acer saccharinum,"Maple, silver",62
+28,Acer x freemanii,"Maple, Freeman Autumn Blaze",62
+28,Prunus virginiana,"Cherry, choke Shubert",57
+29,Acer platanoides,"Maple, Norway",455
+29,Gleditsia triacanthos,Honey locust,252
+29,Picea pungens,"Spruce, Colorado blue",239
+29,Syringa reticulata,"Lilac, Japanese",123
+29,Malus sargentii,"Apple, Sargents",113
+29,Picea glauca,"Spruce, white",111
+29,Amelanchier canadensis,Serviceberry,108
+29,Tilia cordata,"Linden, littleleaf",103
+29,Morus alba,"Mulberry, white weeping",95
+29,Quercus rubra,"Oak, red",90
+29,Gymnocladus dioicus,Kentucky coffeetree,85
+29,Acer x freemanii,"Maple, Freeman Autumn Blaze",79
+30,Acer platanoides,"Maple, Norway",514
+30,Gleditsia triacanthos,Honey locust,301
+30,Tilia cordata,"Linden, littleleaf",295
+30,Picea pungens,"Spruce, Colorado blue",193
+30,Gymnocladus dioicus,Kentucky coffeetree,115
+30,Picea glauca,"Spruce, white",107
+30,Ulmus americana,"Elm, American Valley Forge",106
+30,Acer x freemanii,"Maple, Freeman Autumn Blaze",105
+30,Malus sargentii,"Apple, Sargents",99
+30,Acer saccharum,"Maple, sugar",91
+30,Syringa reticulata,"Lilac, Japanese",90
+30,Celtis occidentalis,Hackberry,87
+31,Acer platanoides,"Maple, Norway",770
+31,Gleditsia triacanthos,Honey locust,582
+31,Gymnocladus dioicus,Kentucky coffeetree,355
+31,Picea pungens,"Spruce, Colorado blue",305
+31,Tilia cordata,"Linden, littleleaf",253
+31,Malus sargentii,"Apple, Sargents",210
+31,Acer x freemanii,"Maple, Freeman Autumn Blaze",197
+31,Quercus rubra,"Oak, red",186
+31,Celtis occidentalis,Hackberry,175
+31,Morus alba,"Mulberry, white weeping",149
+31,Picea glauca,"Spruce, white",138
+31,Amelanchier canadensis,Serviceberry,137
+32,Acer platanoides,"Maple, Norway",763
+32,Gleditsia triacanthos,Honey locust,373
+32,Picea pungens,"Spruce, Colorado blue",331
+32,Syringa reticulata,"Lilac, Japanese",221
+32,Pinus nigra,"Pine, Austrian",172
+32,Ulmus pumila,"Elm, Siberian",168
+32,Acer x freemanii,"Maple, Freeman Autumn Blaze",148
+32,Betula papyrifera,"Birch, white",137
+32,Malus sargentii,"Apple, Sargents",133
+32,Gymnocladus dioicus,Kentucky coffeetree,130
+32,Quercus rubra,"Oak, red",124
+32,Acer saccharinum,"Maple, silver",120
+33,Gleditsia triacanthos,Honey locust,788
+33,Acer platanoides,"Maple, Norway",784
+33,Picea pungens,"Spruce, Colorado blue",381
+33,Gymnocladus dioicus,Kentucky coffeetree,258
+33,Acer saccharinum,"Maple, silver",214
+33,Ulmus pumila,"Elm, Siberian",195
+33,Tilia cordata,"Linden, littleleaf",186
+33,Picea glauca,"Spruce, white",180
+33,Syringa reticulata,"Lilac, Japanese",172
+33,Malus sargentii,"Apple, Sargents",154
+33,Acer x freemanii,"Maple, Freeman Autumn Blaze",153
+33,Betula papyrifera,"Birch, white",135
+34,Acer platanoides,"Maple, Norway",776
+34,Picea pungens,"Spruce, Colorado blue",387
+34,Gleditsia triacanthos,Honey locust,338
+34,Morus alba,"Mulberry, white weeping",218
+34,Betula papyrifera,"Birch, white",213
+34,Malus sargentii,"Apple, Sargents",194
+34,Ulmus pumila,"Elm, Siberian",184
+34,Gymnocladus dioicus,Kentucky coffeetree,183
+34,Quercus rubra,"Oak, red",177
+34,Syringa reticulata,"Lilac, Japanese",159
+34,Picea glauca,"Spruce, white",156
+34,Pinus nigra,"Pine, Austrian",154
+35,Acer platanoides,"Maple, Norway",579
+35,Gleditsia triacanthos,Honey locust,376
+35,Picea pungens,"Spruce, Colorado blue",242
+35,Pinus nigra,"Pine, Austrian",131
+35,Betula papyrifera,"Birch, white",113
+35,Acer x freemanii,"Maple, Freeman Autumn Blaze",100
+35,Tilia cordata,"Linden, littleleaf",94
+35,Gymnocladus dioicus,Kentucky coffeetree,86
+35,Malus sargentii,"Apple, Sargents",81
+35,Celtis occidentalis,Hackberry,72
+35,Fraxinus pennsylvanica,"Ash, green",72
+35,Quercus rubra,"Oak, red",72
+36,Acer platanoides,"Maple, Norway",1197
+36,Gleditsia triacanthos,Honey locust,689
+36,Picea pungens,"Spruce, Colorado blue",391
+36,Malus sargentii,"Apple, Sargents",311
+36,Acer saccharinum,"Maple, silver",259
+36,Betula papyrifera,"Birch, white",223
+36,Picea glauca,"Spruce, white",193
+36,Acer x freemanii,"Maple, Freeman Autumn Blaze",185
+36,Tilia cordata,"Linden, littleleaf",185
+36,Gymnocladus dioicus,Kentucky coffeetree,183
+36,Quercus rubra,"Oak, red",181
+36,Syringa reticulata,"Lilac, Japanese",181
+37,Acer platanoides,"Maple, Norway",698
+37,Gleditsia triacanthos,Honey locust,473
+37,Picea pungens,"Spruce, Colorado blue",288
+37,Malus sargentii,"Apple, Sargents",260
+37,Acer x freemanii,"Maple, Freeman Autumn Blaze",211
+37,Syringa reticulata,"Lilac, Japanese",206
+37,Betula papyrifera,"Birch, white",160
+37,Tilia cordata,"Linden, littleleaf",157
+37,Gymnocladus dioicus,Kentucky coffeetree,154
+37,Picea glauca,"Spruce, white",150
+37,Amelanchier canadensis,Serviceberry,137
+37,Quercus rubra,"Oak, red",135
+38,Acer platanoides,"Maple, Norway",749
+38,Gleditsia triacanthos,Honey locust,513
+38,Picea pungens,"Spruce, Colorado blue",334
+38,Picea glauca,"Spruce, white",198
+38,Acer saccharinum,"Maple, silver",187
+38,Quercus rubra,"Oak, red",183
+38,Acer saccharum,"Maple, sugar",179
+38,Ulmus pumila,"Elm, Siberian",174
+38,Betula papyrifera,"Birch, white",170
+38,Syringa reticulata,"Lilac, Japanese",168
+38,Acer x freemanii,"Maple, Freeman Autumn Blaze",157
+38,Pinus nigra,"Pine, Austrian",147
+39,Acer platanoides,"Maple, Norway",1132
+39,Gleditsia triacanthos,Honey locust,761
+39,Picea pungens,"Spruce, Colorado blue",682
+39,Acer saccharinum,"Maple, silver",434
+39,Syringa reticulata,"Lilac, Japanese",413
+39,Tilia cordata,"Linden, littleleaf",326
+39,Malus sargentii,"Apple, Sargents",312
+39,Pyrus calleryana,Pear Chanticleer,296
+39,Acer x freemanii,"Maple, Freeman Autumn Blaze",294
+39,Pinus nigra,"Pine, Austrian",284
+39,Picea glauca,"Spruce, white",279
+39,Ginkgo biloba,Ginkgo,253
+40,Acer platanoides,"Maple, Norway",1871
+40,Picea pungens,"Spruce, Colorado blue",1212
+40,Gleditsia triacanthos,Honey locust,865
+40,Pinus nigra,"Pine, Austrian",777
+40,Betula papyrifera,"Birch, white",530
+40,Tilia cordata,"Linden, littleleaf",379
+40,Malus sargentii,"Apple, Sargents",345
+40,Thuja occidentalis,"Cedar, white",237
+40,Acer x freemanii,"Maple, Freeman Autumn Blaze",227
+40,Amelanchier canadensis,Serviceberry,219
+40,Picea glauca,"Spruce, white",217
+40,Acer saccharinum,"Maple, silver",216
+41,Acer platanoides,"Maple, Norway",1148
+41,Picea pungens,"Spruce, Colorado blue",883
+41,Pinus nigra,"Pine, Austrian",712
+41,Acer saccharinum,"Maple, silver",457
+41,Gleditsia triacanthos,Honey locust,370
+41,Picea glauca,"Spruce, white",343
+41,Betula papyrifera,"Birch, white",310
+41,Acer saccharum,"Maple, sugar",305
+41,Ulmus pumila,"Elm, Siberian",267
+41,Quercus rubra,"Oak, red",257
+41,Malus sargentii,"Apple, Sargents",239
+41,Thuja occidentalis,"Cedar, white",238
+42,Acer platanoides,"Maple, Norway",2182
+42,Picea pungens,"Spruce, Colorado blue",1198
+42,Gleditsia triacanthos,Honey locust,971
+42,Pinus nigra,"Pine, Austrian",900
+42,Betula papyrifera,"Birch, white",668
+42,Tilia cordata,"Linden, littleleaf",540
+42,Malus sargentii,"Apple, Sargents",460
+42,Acer saccharinum,"Maple, silver",396
+42,Quercus rubra,"Oak, red",343
+42,Acer saccharum,"Maple, sugar",342
+42,Picea glauca,"Spruce, white",322
+42,Acer x freemanii,"Maple, Freeman Autumn Blaze",307
+43,Acer platanoides,"Maple, Norway",517
+43,Picea pungens,"Spruce, Colorado blue",334
+43,Gleditsia triacanthos,Honey locust,316
+43,Malus sargentii,"Apple, Sargents",255
+43,Pinus nigra,"Pine, Austrian",217
+43,Betula papyrifera,"Birch, white",178
+43,Tilia cordata,"Linden, littleleaf",162
+43,Acer x freemanii,"Maple, Freeman Autumn Blaze",142
+43,Gymnocladus dioicus,Kentucky coffeetree,131
+43,Amelanchier canadensis,Serviceberry,129
+43,Celtis occidentalis,Hackberry,113
+43,Syringa reticulata,"Lilac, Japanese",106
+44,Acer platanoides,"Maple, Norway",391
+44,Pinus nigra,"Pine, Austrian",275
+44,Gleditsia triacanthos,Honey locust,156
+44,Ginkgo biloba,Ginkgo,78
+44,Acer saccharinum,"Maple, silver",71
+44,Malus sargentii,"Apple, Sargents",53
+44,Celtis occidentalis,Hackberry,50
+44,Quercus rubra,"Oak, red",48
+44,Syringa reticulata,"Lilac, Japanese",46
+44,Tilia cordata,"Linden, littleleaf",35
+44,Tilia,Linden,31
+44,Fraxinus pennsylvanica,"Ash, green",29
+46,Acer platanoides,"Maple, Norway",1017
+46,Tilia cordata,"Linden, littleleaf",450
+46,Gleditsia triacanthos,Honey locust,369
+46,Picea pungens,"Spruce, Colorado blue",250
+46,Malus sargentii,"Apple, Sargents",197
+46,Acer x freemanii,"Maple, Freeman Autumn Blaze",180
+46,Pinus nigra,"Pine, Austrian",123
+46,Quercus rubra,"Oak, red",120
+46,Betula papyrifera,"Birch, white",103
+46,Celtis occidentalis,Hackberry,100
+46,Juniperus,Juniper,98
+46,Catalpa speciosa,"Catalpa, northern",94
+47,Acer platanoides,"Maple, Norway",1336
+47,Picea pungens,"Spruce, Colorado blue",480
+47,Tilia cordata,"Linden, littleleaf",465
+47,Gleditsia triacanthos,Honey locust,421
+47,Malus sargentii,"Apple, Sargents",351
+47,Betula papyrifera,"Birch, white",247
+47,Pinus nigra,"Pine, Austrian",224
+47,Acer x freemanii,"Maple, Freeman Autumn Blaze",204
+47,Acer saccharinum,"Maple, silver",195
+47,Picea glauca,"Spruce, white",168
+47,Catalpa speciosa,"Catalpa, northern",136
+47,Gymnocladus dioicus,Kentucky coffeetree,128
+48,Acer platanoides,"Maple, Norway",1212
+48,Tilia cordata,"Linden, littleleaf",623
+48,Picea pungens,"Spruce, Colorado blue",536
+48,Gleditsia triacanthos,Honey locust,497
+48,Malus sargentii,"Apple, Sargents",454
+48,Pinus nigra,"Pine, Austrian",291
+48,Betula papyrifera,"Birch, white",239
+48,Acer x freemanii,"Maple, Freeman Autumn Blaze",209
+48,Celtis occidentalis,Hackberry,157
+48,Acer saccharinum,"Maple, silver",152
+48,Picea glauca,"Spruce, white",142
+48,Catalpa speciosa,"Catalpa, northern",140
+49,Acer platanoides,"Maple, Norway",760
+49,Gleditsia triacanthos,Honey locust,530
+49,Tilia cordata,"Linden, littleleaf",332
+49,Picea pungens,"Spruce, Colorado blue",278
+49,Malus sargentii,"Apple, Sargents",238
+49,Quercus rubra,"Oak, red",204
+49,Betula papyrifera,"Birch, white",174
+49,Acer x freemanii,"Maple, Freeman Autumn Blaze",154
+49,Pinus nigra,"Pine, Austrian",134
+49,Gymnocladus dioicus,Kentucky coffeetree,122
+49,Syringa reticulata,"Lilac, Japanese",122
+49,Amelanchier canadensis,Serviceberry,108
+50,Acer platanoides,"Maple, Norway",898
+50,Gleditsia triacanthos,Honey locust,473
+50,Picea pungens,"Spruce, Colorado blue",415
+50,Malus sargentii,"Apple, Sargents",231
+50,Tilia cordata,"Linden, littleleaf",224
+50,Acer saccharinum,"Maple, silver",213
+50,Betula papyrifera,"Birch, white",204
+50,Gymnocladus dioicus,Kentucky coffeetree,187
+50,Syringa reticulata,"Lilac, Japanese",183
+50,Picea glauca,"Spruce, white",161
+50,Acer saccharum,"Maple, sugar",151
+50,Acer x freemanii,"Maple, Freeman Autumn Blaze",127
+52,Acer platanoides,"Maple, Norway",871
+52,Picea pungens,"Spruce, Colorado blue",484
+52,Gleditsia triacanthos,Honey locust,457
+52,Malus sargentii,"Apple, Sargents",270
+52,Betula papyrifera,"Birch, white",229
+52,Tilia cordata,"Linden, littleleaf",203
+52,Pinus nigra,"Pine, Austrian",184
+52,Syringa reticulata,"Lilac, Japanese",180
+52,Acer x freemanii,"Maple, Freeman Autumn Blaze",178
+52,Ginkgo biloba,Ginkgo,163
+52,Quercus rubra,"Oak, red",159
+52,Gymnocladus dioicus,Kentucky coffeetree,136
+53,Acer platanoides,"Maple, Norway",339
+53,Tilia cordata,"Linden, littleleaf",136
+53,Picea pungens,"Spruce, Colorado blue",125
+53,Pinus nigra,"Pine, Austrian",119
+53,Gleditsia triacanthos,Honey locust,115
+53,Acer x freemanii,"Maple, Freeman Autumn Blaze",97
+53,Acer saccharinum,"Maple, silver",80
+53,Malus sargentii,"Apple, Sargents",80
+53,Betula papyrifera,"Birch, white",71
+53,Celtis occidentalis,Hackberry,67
+53,Ginkgo biloba,Ginkgo,52
+53,Tilia americana,"Basswood, Redmond",45
+54,Acer platanoides,"Maple, Norway",398
+54,Gleditsia triacanthos,Honey locust,277
+54,Picea pungens,"Spruce, Colorado blue",156
+54,Acer x freemanii,"Maple, Freeman Autumn Blaze",137
+54,Gymnocladus dioicus,Kentucky coffeetree,124
+54,Quercus rubra,"Oak, red",119
+54,Syringa reticulata,"Lilac, Japanese",95
+54,Amelanchier canadensis,Serviceberry,92
+54,Ginkgo biloba,Ginkgo,85
+54,Malus,Apple,76
+54,Tilia americana,"Basswood, Redmond",74
+54,Acer saccharinum,"Maple, silver",72
+55,Acer platanoides,"Maple, Norway",156
+55,Gleditsia triacanthos,Honey locust,144
+55,Acer x freemanii,"Maple, Freeman Autumn Blaze",118
+55,Quercus rubra,"Oak, red",92
+55,Gymnocladus dioicus,Kentucky coffeetree,79
+55,Celtis occidentalis,Hackberry,60
+55,Ginkgo biloba,Ginkgo,59
+55,Acer saccharinum,"Maple, silver",37
+55,Tilia cordata,"Linden, littleleaf",34
+55,Ulmus americana,"Elm, American Valley Forge",32
+55,Quercus macrocarpa,"Oak, bur",30
+55,Tilia americana,"Basswood, Redmond",25
+56,Acer platanoides,"Maple, Norway",1421
+56,Acer x freemanii,"Maple, Freeman Autumn Blaze",295
+56,Gleditsia triacanthos,Honey locust,287
+56,Quercus rubra,"Oak, red",240
+56,Acer saccharum,"Maple, sugar",180
+56,Acer rubrum,"Maple, red",163
+56,Ginkgo biloba,Ginkgo,142
+56,Liriodendron tulipifera,Tulip tree,134
+56,Syringa reticulata,"Lilac, Japanese",134
+56,Gymnocladus dioicus,Kentucky coffeetree,117
+56,Acer saccharinum,"Maple, silver",115
+56,Tilia cordata,"Linden, littleleaf",107
+57,Acer platanoides,"Maple, Norway",141
+57,Gleditsia triacanthos,Honey locust,104
+57,Amelanchier canadensis,Serviceberry,66
+57,Acer x freemanii,"Maple, Freeman Autumn Blaze",65
+57,Acer saccharinum,"Maple, silver",58
+57,Quercus rubra,"Oak, red",54
+57,Ulmus pumila,"Elm, Siberian",47
+57,Picea pungens,"Spruce, Colorado blue",43
+57,Gymnocladus dioicus,Kentucky coffeetree,41
+57,Acer campestre,"Maple, hedge",36
+57,Acer tataricum,"Maple, Amur",35
+57,Acer saccharum,"Maple, sugar",32
+58,Acer platanoides,"Maple, Norway",283
+58,Gleditsia triacanthos,Honey locust,190
+58,Acer x freemanii,"Maple, Freeman Autumn Blaze",80
+58,Picea pungens,"Spruce, Colorado blue",80
+58,Quercus rubra,"Oak, red",79
+58,Amelanchier canadensis,Serviceberry,77
+58,Gymnocladus dioicus,Kentucky coffeetree,73
+58,Ginkgo biloba,Ginkgo,62
+58,Malus,Apple,62
+58,Acer saccharum,"Maple, sugar",59
+58,Syringa reticulata,"Lilac, Japanese",59
+58,Juniperus,Juniper,47
+59,Acer platanoides,"Maple, Norway",340
+59,Gleditsia triacanthos,Honey locust,222
+59,Quercus rubra,"Oak, red",133
+59,Acer saccharinum,"Maple, silver",119
+59,Amelanchier canadensis,Serviceberry,118
+59,Gymnocladus dioicus,Kentucky coffeetree,115
+59,Ginkgo biloba,Ginkgo,110
+59,Picea pungens,"Spruce, Colorado blue",108
+59,Acer x freemanii,"Maple, Freeman Autumn Blaze",99
+59,Syringa reticulata,"Lilac, Japanese",79
+59,Ulmus pumila,"Elm, Siberian",77
+59,Acer saccharum,"Maple, sugar",76
+60,Acer platanoides,"Maple, Norway",177
+60,Acer saccharinum,"Maple, silver",78
+60,Gleditsia triacanthos,Honey locust,66
+60,Quercus rubra,"Oak, red",58
+60,Amelanchier canadensis,Serviceberry,53
+60,Picea pungens,"Spruce, Colorado blue",48
+60,Syringa reticulata,"Lilac, Japanese",45
+60,Picea glauca,"Spruce, white",43
+60,Ulmus pumila,"Elm, Siberian",40
+60,Acer negundo,"Maple, Manitoba",38
+60,Acer saccharum,"Maple, sugar",38
+60,Acer x freemanii,"Maple, Freeman Autumn Blaze",37
+61,Acer platanoides,"Maple, Norway",102
+61,Gleditsia triacanthos,Honey locust,48
+61,Acer saccharinum,"Maple, silver",35
+61,Ginkgo biloba,Ginkgo,34
+61,Liriodendron tulipifera,Tulip tree,30
+61,Acer saccharum,"Maple, sugar",27
+61,Amelanchier canadensis,Serviceberry,27
+61,Quercus rubra,"Oak, red",26
+61,Tilia americana,"Basswood, Redmond",24
+61,Acer x freemanii,"Maple, Freeman Autumn Blaze",22
+61,Celtis occidentalis,Hackberry,21
+61,Gymnocladus dioicus,Kentucky coffeetree,21
+62,Acer platanoides,"Maple, Norway",617
+62,Gleditsia triacanthos,Honey locust,307
+62,Quercus rubra,"Oak, red",252
+62,Acer saccharinum,"Maple, silver",162
+62,Tilia,Linden,141
+62,Acer x freemanii,"Maple, Freeman Autumn Blaze",137
+62,Ginkgo biloba,Ginkgo,133
+62,Acer saccharum,"Maple, sugar",132
+62,Quercus alba,"Oak, white",129
+62,Syringa reticulata,"Lilac, Japanese",111
+62,Amelanchier canadensis,Serviceberry,108
+62,Acer rubrum,"Maple, red",99
+63,Quercus rubra,"Oak, red",944
+63,Acer platanoides,"Maple, Norway",664
+63,Gleditsia triacanthos,Honey locust,279
+63,Fraxinus pennsylvanica,"Ash, green",269
+63,Quercus alba,"Oak, white",228
+63,Tilia,Linden,185
+63,Acer saccharinum,"Maple, silver",171
+63,Acer x freemanii,"Maple, Freeman Autumn Blaze",157
+63,Acer rubrum,"Maple, red",155
+63,Acer saccharum,"Maple, sugar",144
+63,Ginkgo biloba,Ginkgo,137
+63,Quercus velutina,"Oak, black",129
+64,Acer platanoides,"Maple, Norway",461
+64,Gleditsia triacanthos,Honey locust,189
+64,Quercus rubra,"Oak, red",137
+64,Tilia,Linden,104
+64,Acer saccharum,"Maple, sugar",92
+64,Acer x freemanii,"Maple, Freeman Autumn Blaze",88
+64,Amelanchier canadensis,Serviceberry,77
+64,Gymnocladus dioicus,Kentucky coffeetree,71
+64,Syringa reticulata,"Lilac, Japanese",68
+64,Acer rubrum,"Maple, red",61
+64,Ginkgo biloba,Ginkgo,57
+64,Fraxinus pennsylvanica,"Ash, green",53
+65,Acer platanoides,"Maple, Norway",391
+65,Gleditsia triacanthos,Honey locust,169
+65,Tilia,Linden,154
+65,Fraxinus pennsylvanica,"Ash, green",125
+65,Quercus rubra,"Oak, red",106
+65,Acer saccharinum,"Maple, silver",100
+65,Ginkgo biloba,Ginkgo,89
+65,Gymnocladus dioicus,Kentucky coffeetree,70
+65,Acer negundo,"Maple, Manitoba",68
+65,Acer saccharum,"Maple, sugar",62
+65,Ulmus,Elm,56
+65,Syringa reticulata,"Lilac, Japanese",52
+66,Acer platanoides,"Maple, Norway",245
+66,Gleditsia triacanthos,Honey locust,211
+66,Acer saccharinum,"Maple, silver",170
+66,Acer x freemanii,"Maple, Freeman Autumn Blaze",115
+66,Gymnocladus dioicus,Kentucky coffeetree,89
+66,Ginkgo biloba,Ginkgo,85
+66,Acer saccharum,"Maple, sugar",79
+66,Fraxinus pennsylvanica,"Ash, green",77
+66,Quercus rubra,"Oak, red",77
+66,Tilia,Linden,75
+66,Platanus x acerifolia,"Planetree, London",54
+66,Acer rubrum,"Maple, red",50
+67,Acer platanoides,"Maple, Norway",313
+67,Gleditsia triacanthos,Honey locust,143
+67,Acer saccharum,"Maple, sugar",68
+67,Quercus rubra,"Oak, red",68
+67,Acer x freemanii,"Maple, Freeman Autumn Blaze",58
+67,Acer saccharinum,"Maple, silver",55
+67,Ginkgo biloba,Ginkgo,52
+67,Tilia,Linden,46
+67,Gymnocladus dioicus,Kentucky coffeetree,45
+67,Amelanchier canadensis,Serviceberry,39
+67,Liriodendron tulipifera,Tulip tree,35
+67,Syringa reticulata,"Lilac, Japanese",32
+68,Acer platanoides,"Maple, Norway",376
+68,Acer saccharinum,"Maple, silver",302
+68,Gleditsia triacanthos,Honey locust,126
+68,Acer saccharum,"Maple, sugar",83
+68,Tilia,Linden,82
+68,Quercus rubra,"Oak, red",78
+68,Ginkgo biloba,Ginkgo,61
+68,Ulmus pumila,"Elm, Siberian",58
+68,Gymnocladus dioicus,Kentucky coffeetree,52
+68,Syringa reticulata,"Lilac, Japanese",52
+68,Amelanchier canadensis,Serviceberry,51
+68,Acer rubrum,"Maple, red",45
+69,Acer platanoides,"Maple, Norway",169
+69,Gleditsia triacanthos,Honey locust,132
+69,Tilia,Linden,61
+69,Ulmus pumila,"Elm, Siberian",55
+69,Acer saccharinum,"Maple, silver",44
+69,Acer x freemanii,"Maple, Freeman Autumn Blaze",42
+69,Fraxinus pennsylvanica,"Ash, green",42
+69,Quercus rubra,"Oak, red",42
+69,Acer saccharum,"Maple, sugar",39
+69,Syringa reticulata,"Lilac, Japanese",38
+69,Ginkgo biloba,Ginkgo,32
+69,Gymnocladus dioicus,Kentucky coffeetree,32
+70,Acer platanoides,"Maple, Norway",781
+70,Gleditsia triacanthos,Honey locust,431
+70,Acer saccharinum,"Maple, silver",303
+70,Quercus rubra,"Oak, red",245
+70,Fraxinus pennsylvanica,"Ash, green",225
+70,Gymnocladus dioicus,Kentucky coffeetree,156
+70,Acer saccharum,"Maple, sugar",152
+70,Tilia,Linden,146
+70,Acer x freemanii,"Maple, Freeman Autumn Blaze",131
+70,Amelanchier canadensis,Serviceberry,116
+70,Ginkgo biloba,Ginkgo,105
+70,Allianthus altissima,Tree of heaven,103
+71,Acer platanoides,"Maple, Norway",334
+71,Gleditsia triacanthos,Honey locust,181
+71,Quercus rubra,"Oak, red",111
+71,Acer saccharinum,"Maple, silver",106
+71,Tilia,Linden,92
+71,Aesculus hippocastanum,Horsechestnut,53
+71,Fraxinus pennsylvanica,"Ash, green",47
+71,Ulmus pumila,"Elm, Siberian",44
+71,Ginkgo biloba,Ginkgo,41
+71,Syringa reticulata,"Lilac, Japanese",39
+71,Allianthus altissima,Tree of heaven,37
+71,Tilia cordata,"Linden, littleleaf",34
+72,Platanus x acerifolia,"Planetree, London",123
+72,Gleditsia triacanthos,Honey locust,85
+72,Quercus rubra,"Oak, red",79
+72,Quercus bicolor,"Oak, swamp white",52
+72,Fagus sylvatica,"Beech, European",49
+72,Liriodendron tulipifera,Tulip tree,40
+72,Acer platanoides,"Maple, Norway",26
+72,Aesculus x carnea,"Horsechestnut, Ruby red",26
+72,Celtis occidentalis,Hackberry,26
+72,Aesculus glabra,"Buckeye, Ohio",23
+72,Tilia,Linden,23
+72,Fraxinus pennsylvanica,"Ash, green",22
+73,Gleditsia triacanthos,Honey locust,393
+73,Acer platanoides,"Maple, Norway",223
+73,Ulmus,Elm,115
+73,Gymnocladus dioicus,Kentucky coffeetree,67
+73,Tilia,Linden,64
+73,Acer saccharinum,"Maple, silver",63
+73,Fraxinus pennsylvanica,"Ash, green",63
+73,Allianthus altissima,Tree of heaven,62
+73,Celtis occidentalis,Hackberry,43
+73,Quercus rubra,"Oak, red",39
+73,Ginkgo biloba,Ginkgo,37
+73,Tilia cordata,"Linden, littleleaf",33
+74,Acer platanoides,"Maple, Norway",157
+74,Gleditsia triacanthos,Honey locust,72
+74,Ginkgo biloba,Ginkgo,67
+74,Ulmus pumila,"Elm, Siberian",34
+74,Fraxinus pennsylvanica,"Ash, green",25
+74,Acer saccharinum,"Maple, silver",23
+74,Pinus nigra,"Pine, Austrian",23
+74,Quercus rubra,"Oak, red",22
+74,Syringa reticulata,"Lilac, Japanese",20
+74,Gymnocladus dioicus,Kentucky coffeetree,17
+74,Tilia,Linden,15
+74,Celtis occidentalis,Hackberry,12
+78,Gleditsia triacanthos,Honey locust,538
+78,Acer platanoides,"Maple, Norway",218
+78,Aesculus hippocastanum,Horsechestnut,106
+78,Ulmus,Elm,101
+78,Acer saccharinum,"Maple, silver",96
+78,Thuja occidentalis,"Cedar, white",73
+78,Tilia,Linden,71
+78,Allianthus altissima,Tree of heaven,68
+78,Gymnocladus dioicus,Kentucky coffeetree,56
+78,Fraxinus pennsylvanica,"Ash, green",55
+78,Amelanchier canadensis,Serviceberry,53
+78,Tilia cordata,"Linden, littleleaf",53
+79,Acer platanoides,"Maple, Norway",335
+79,Gleditsia triacanthos,Honey locust,330
+79,Quercus rubra,"Oak, red",112
+79,Acer saccharinum,"Maple, silver",108
+79,Fraxinus pennsylvanica,"Ash, green",89
+79,Ulmus,Elm,80
+79,Aesculus hippocastanum,Horsechestnut,74
+79,Gymnocladus dioicus,Kentucky coffeetree,63
+79,Acer palmatum,"Maple, Japanese",60
+79,Acer x freemanii,"Maple, Freeman Autumn Blaze",60
+79,Tilia cordata,"Linden, littleleaf",57
+79,Celtis occidentalis,Hackberry,51
+80,Acer platanoides,"Maple, Norway",475
+80,Gleditsia triacanthos,Honey locust,235
+80,Acer saccharinum,"Maple, silver",183
+80,Thuja occidentalis,"Cedar, white",152
+80,Acer x freemanii,"Maple, Freeman Autumn Blaze",104
+80,Ginkgo biloba,Ginkgo,102
+80,Quercus rubra,"Oak, red",93
+80,Amelanchier canadensis,Serviceberry,91
+80,Gymnocladus dioicus,Kentucky coffeetree,85
+80,Morus alba,"Mulberry, white weeping",75
+80,Acer saccharum,"Maple, sugar",71
+80,Acer palmatum,"Maple, Japanese",67
+81,Acer platanoides,"Maple, Norway",480
+81,Gleditsia triacanthos,Honey locust,390
+81,Acer saccharinum,"Maple, silver",218
+81,Quercus rubra,"Oak, red",151
+81,Acer x freemanii,"Maple, Freeman Autumn Blaze",139
+81,Ulmus,Elm,104
+81,Acer saccharum,"Maple, sugar",101
+81,Gymnocladus dioicus,Kentucky coffeetree,95
+81,Ginkgo biloba,Ginkgo,92
+81,Tilia cordata,"Linden, littleleaf",84
+81,Fraxinus pennsylvanica,"Ash, green",79
+81,Thuja occidentalis,"Cedar, white",70
+83,Acer platanoides,"Maple, Norway",277
+83,Gleditsia triacanthos,Honey locust,269
+83,Acer saccharinum,"Maple, silver",117
+83,Tilia cordata,"Linden, littleleaf",84
+83,Quercus rubra,"Oak, red",77
+83,Gymnocladus dioicus,Kentucky coffeetree,72
+83,Ulmus pumila,"Elm, Siberian",70
+83,Morus alba,"Mulberry, white weeping",61
+83,Acer x freemanii,"Maple, Freeman Autumn Blaze",59
+83,Ginkgo biloba,Ginkgo,51
+83,Thuja occidentalis,"Cedar, white",50
+83,Acer saccharum,"Maple, sugar",47
+84,Gleditsia triacanthos,Honey locust,241
+84,Acer platanoides,"Maple, Norway",220
+84,Acer saccharinum,"Maple, silver",94
+84,Gymnocladus dioicus,Kentucky coffeetree,66
+84,Quercus rubra,"Oak, red",65
+84,Ginkgo biloba,Ginkgo,56
+84,Prunus spp.,Cherry,54
+84,Ulmus,Elm,54
+84,Morus alba,"Mulberry, white weeping",50
+84,Acer palmatum,"Maple, Japanese",49
+84,Picea pungens,"Spruce, Colorado blue",49
+84,Tilia cordata,"Linden, littleleaf",45
+85,Acer platanoides,"Maple, Norway",378
+85,Gleditsia triacanthos,Honey locust,263
+85,Quercus rubra,"Oak, red",188
+85,Acer saccharinum,"Maple, silver",174
+85,Acer x freemanii,"Maple, Freeman Autumn Blaze",113
+85,Tilia,Linden,112
+85,Gymnocladus dioicus,Kentucky coffeetree,110
+85,Fraxinus pennsylvanica,"Ash, green",105
+85,Quercus bicolor,"Oak, swamp white",96
+85,Quercus macrocarpa,"Oak, bur",89
+85,Tilia cordata,"Linden, littleleaf",82
+85,Ulmus pumila,"Elm, Siberian",81
+86,Gleditsia triacanthos,Honey locust,299
+86,Acer platanoides,"Maple, Norway",297
+86,Acer saccharinum,"Maple, silver",148
+86,Quercus rubra,"Oak, red",119
+86,Tilia cordata,"Linden, littleleaf",100
+86,Amelanchier canadensis,Serviceberry,89
+86,Acer x freemanii,"Maple, Freeman Autumn Blaze",81
+86,Morus alba,"Mulberry, white weeping",70
+86,Thuja occidentalis,"Cedar, white",67
+86,Aesculus hippocastanum,Horsechestnut,66
+86,Ulmus pumila,"Elm, Siberian",65
+86,Acer palmatum,"Maple, Japanese",64
+87,Acer platanoides,"Maple, Norway",1042
+87,Gleditsia triacanthos,Honey locust,491
+87,Quercus rubra,"Oak, red",422
+87,Ulmus pumila,"Elm, Siberian",407
+87,Ginkgo biloba,Ginkgo,331
+87,Picea pungens,"Spruce, Colorado blue",331
+87,Quercus velutina,"Oak, black",312
+87,Acer saccharinum,"Maple, silver",284
+87,Tilia cordata,"Linden, littleleaf",259
+87,Gymnocladus dioicus,Kentucky coffeetree,202
+87,Acer negundo,"Maple, Manitoba",182
+87,Celtis occidentalis,Hackberry,172
+88,Acer platanoides,"Maple, Norway",693
+88,Gleditsia triacanthos,Honey locust,282
+88,Quercus rubra,"Oak, red",220
+88,Acer saccharinum,"Maple, silver",213
+88,Tilia cordata,"Linden, littleleaf",172
+88,Ulmus pumila,"Elm, Siberian",127
+88,Picea pungens,"Spruce, Colorado blue",118
+88,Acer x freemanii,"Maple, Freeman Autumn Blaze",112
+88,Picea glauca,"Spruce, white",101
+88,Ginkgo biloba,Ginkgo,100
+88,Acer saccharum,"Maple, sugar",96
+88,Quercus velutina,"Oak, black",85
+89,Acer platanoides,"Maple, Norway",377
+89,Quercus rubra,"Oak, red",194
+89,Gleditsia triacanthos,Honey locust,189
+89,Quercus velutina,"Oak, black",125
+89,Acer palmatum,"Maple, Japanese",101
+89,Ginkgo biloba,Ginkgo,92
+89,Syringa reticulata,"Lilac, Japanese",86
+89,Ulmus pumila,"Elm, Siberian",85
+89,Tilia cordata,"Linden, littleleaf",83
+89,Amelanchier canadensis,Serviceberry,81
+89,Malus sargentii,"Apple, Sargents",79
+89,Acer x freemanii,"Maple, Freeman Autumn Blaze",76
+90,Acer platanoides,"Maple, Norway",435
+90,Gleditsia triacanthos,Honey locust,333
+90,Acer saccharinum,"Maple, silver",165
+90,Quercus rubra,"Oak, red",160
+90,Acer negundo,"Maple, Manitoba",123
+90,Ulmus pumila,"Elm, Siberian",122
+90,Quercus velutina,"Oak, black",116
+90,Tilia cordata,"Linden, littleleaf",109
+90,Acer x freemanii,"Maple, Freeman Autumn Blaze",104
+90,Ginkgo biloba,Ginkgo,85
+90,Acer rubrum,"Maple, red",84
+90,Gymnocladus dioicus,Kentucky coffeetree,79
+91,Acer platanoides,"Maple, Norway",280
+91,Gleditsia triacanthos,Honey locust,175
+91,Syringa reticulata,"Lilac, Japanese",84
+91,Acer saccharinum,"Maple, silver",81
+91,Tilia cordata,"Linden, littleleaf",66
+91,Acer negundo,"Maple, Manitoba",60
+91,Acer x freemanii,"Maple, Freeman Autumn Blaze",52
+91,Morus alba,"Mulberry, white weeping",51
+91,Gymnocladus dioicus,Kentucky coffeetree,49
+91,Tilia americana,"Basswood, Redmond",43
+91,Celtis occidentalis,Hackberry,42
+91,Quercus rubra,"Oak, red",42
+92,Acer platanoides,"Maple, Norway",371
+92,Gleditsia triacanthos,Honey locust,284
+92,Picea pungens,"Spruce, Colorado blue",110
+92,Morus alba,"Mulberry, white weeping",108
+92,Ginkgo biloba,Ginkgo,107
+92,Quercus rubra,"Oak, red",107
+92,Prunus spp.,Cherry,100
+92,Tilia cordata,"Linden, littleleaf",92
+92,Acer saccharinum,"Maple, silver",89
+92,Syringa reticulata,"Lilac, Japanese",86
+92,Gymnocladus dioicus,Kentucky coffeetree,71
+92,Acer x freemanii,"Maple, Freeman Autumn Blaze",69
+94,Acer platanoides,"Maple, Norway",506
+94,Gleditsia triacanthos,Honey locust,227
+94,Quercus rubra,"Oak, red",128
+94,Acer saccharinum,"Maple, silver",110
+94,Syringa reticulata,"Lilac, Japanese",106
+94,Pyrus calleryana,Pear Chanticleer,101
+94,Ginkgo biloba,Ginkgo,88
+94,Amelanchier canadensis,Serviceberry,86
+94,Picea pungens,"Spruce, Colorado blue",83
+94,Acer x freemanii,"Maple, Freeman Autumn Blaze",80
+94,Tilia,Linden,80
+94,Ulmus pumila,"Elm, Siberian",74
+95,Acer platanoides,"Maple, Norway",645
+95,Gleditsia triacanthos,Honey locust,531
+95,Acer saccharinum,"Maple, silver",329
+95,Tilia,Linden,182
+95,Quercus rubra,"Oak, red",151
+95,Ulmus,Elm,134
+95,Acer x freemanii,"Maple, Freeman Autumn Blaze",127
+95,Ginkgo biloba,Ginkgo,125
+95,Acer saccharum,"Maple, sugar",123
+95,Gymnocladus dioicus,Kentucky coffeetree,119
+95,Ulmus pumila,"Elm, Siberian",107
+95,Amelanchier canadensis,Serviceberry,94
+96,Acer platanoides,"Maple, Norway",658
+96,Quercus rubra,"Oak, red",231
+96,Gleditsia triacanthos,Honey locust,216
+96,Tilia cordata,"Linden, littleleaf",189
+96,Picea pungens,"Spruce, Colorado blue",163
+96,Acer saccharinum,"Maple, silver",148
+96,Fagus sylvatica,"Beech, European",139
+96,Amelanchier canadensis,Serviceberry,116
+96,Robinia pseudoacacia,Black locust,115
+96,Pyrus calleryana,Pear Chanticleer,99
+96,Acer x freemanii,"Maple, Freeman Autumn Blaze",93
+96,Ginkgo biloba,Ginkgo,90
+97,Acer platanoides,"Maple, Norway",306
+97,Gleditsia triacanthos,Honey locust,154
+97,Acer saccharinum,"Maple, silver",125
+97,Tilia cordata,"Linden, littleleaf",115
+97,Pyrus calleryana,Pear Chanticleer,82
+97,Quercus rubra,"Oak, red",72
+97,Ulmus pumila,"Elm, Siberian",67
+97,Amelanchier canadensis,Serviceberry,63
+97,Picea pungens,"Spruce, Colorado blue",63
+97,Acer saccharum,"Maple, sugar",62
+97,Fagus sylvatica,"Beech, European",61
+97,Ginkgo biloba,Ginkgo,53
+98,Acer platanoides,"Maple, Norway",1347
+98,Acer saccharinum,"Maple, silver",500
+98,Quercus rubra,"Oak, red",467
+98,Gleditsia triacanthos,Honey locust,403
+98,Thuja occidentalis,"Cedar, white",322
+98,Tilia cordata,"Linden, littleleaf",280
+98,Acer saccharum,"Maple, sugar",261
+98,Amelanchier canadensis,Serviceberry,248
+98,Fagus sylvatica,"Beech, European",219
+98,Acer x freemanii,"Maple, Freeman Autumn Blaze",203
+98,Picea pungens,"Spruce, Colorado blue",199
+98,Ulmus pumila,"Elm, Siberian",190
+99,Acer platanoides,"Maple, Norway",602
+99,Gleditsia triacanthos,Honey locust,319
+99,Tilia cordata,"Linden, littleleaf",204
+99,Syringa reticulata,"Lilac, Japanese",163
+99,Acer saccharum,"Maple, sugar",122
+99,Acer x freemanii,"Maple, Freeman Autumn Blaze",117
+99,Ginkgo biloba,Ginkgo,110
+99,Quercus rubra,"Oak, red",107
+99,Gymnocladus dioicus,Kentucky coffeetree,104
+99,Malus sargentii,"Apple, Sargents",92
+99,Amelanchier canadensis,Serviceberry,91
+99,Pyrus calleryana,Pear Chanticleer,85
+100,Acer platanoides,"Maple, Norway",618
+100,Gleditsia triacanthos,Honey locust,246
+100,Acer saccharum,"Maple, sugar",128
+100,Tilia cordata,"Linden, littleleaf",120
+100,Acer x freemanii,"Maple, Freeman Autumn Blaze",113
+100,Ginkgo biloba,Ginkgo,106
+100,Quercus rubra,"Oak, red",101
+100,Gymnocladus dioicus,Kentucky coffeetree,69
+100,Syringa reticulata,"Lilac, Japanese",68
+100,Picea pungens,"Spruce, Colorado blue",63
+100,Acer saccharinum,"Maple, silver",55
+100,Acer rubrum,"Maple, red",53
+101,Acer platanoides,"Maple, Norway",1274
+101,Picea pungens,"Spruce, Colorado blue",441
+101,Gleditsia triacanthos,Honey locust,337
+101,Pyrus calleryana,Pear Chanticleer,220
+101,Pinus nigra,"Pine, Austrian",190
+101,Tilia cordata,"Linden, littleleaf",185
+101,Fagus sylvatica,"Beech, European",183
+101,Ginkgo biloba,Ginkgo,142
+101,Acer x freemanii,"Maple, Freeman Autumn Blaze",140
+101,Acer saccharinum,"Maple, silver",127
+101,Malus sargentii,"Apple, Sargents",119
+101,Quercus rubra,"Oak, red",115
+102,Acer platanoides,"Maple, Norway",621
+102,Tilia cordata,"Linden, littleleaf",226
+102,Gleditsia triacanthos,Honey locust,211
+102,Platanus x acerifolia,"Planetree, London",144
+102,Picea pungens,"Spruce, Colorado blue",136
+102,Acer x freemanii,"Maple, Freeman Autumn Blaze",119
+102,Pinus nigra,"Pine, Austrian",76
+102,Tilia,Linden,75
+102,Acer saccharum,"Maple, sugar",69
+102,Quercus rubra,"Oak, red",64
+102,Ulmus pumila,"Elm, Siberian",62
+102,Ginkgo biloba,Ginkgo,59
+103,Acer platanoides,"Maple, Norway",1150
+103,Gleditsia triacanthos,Honey locust,405
+103,Acer saccharinum,"Maple, silver",293
+103,Acer x freemanii,"Maple, Freeman Autumn Blaze",271
+103,Tilia cordata,"Linden, littleleaf",263
+103,Acer saccharum,"Maple, sugar",245
+103,Quercus rubra,"Oak, red",194
+103,Picea pungens,"Spruce, Colorado blue",192
+103,Syringa reticulata,"Lilac, Japanese",175
+103,Ginkgo biloba,Ginkgo,168
+103,Malus sargentii,"Apple, Sargents",139
+103,Amelanchier canadensis,Serviceberry,125
+105,Acer platanoides,"Maple, Norway",797
+105,Gleditsia triacanthos,Honey locust,361
+105,Acer x freemanii,"Maple, Freeman Autumn Blaze",232
+105,Syringa reticulata,"Lilac, Japanese",171
+105,Acer saccharum,"Maple, sugar",164
+105,Ginkgo biloba,Ginkgo,150
+105,Tilia cordata,"Linden, littleleaf",147
+105,Quercus rubra,"Oak, red",143
+105,Picea pungens,"Spruce, Colorado blue",135
+105,Amelanchier canadensis,Serviceberry,115
+105,Malus sargentii,"Apple, Sargents",111
+105,Tilia,Linden,106
+106,Acer platanoides,"Maple, Norway",610
+106,Picea pungens,"Spruce, Colorado blue",223
+106,Gleditsia triacanthos,Honey locust,211
+106,Ulmus pumila,"Elm, Siberian",153
+106,Acer saccharinum,"Maple, silver",142
+106,Syringa reticulata,"Lilac, Japanese",126
+106,Quercus rubra,"Oak, red",114
+106,Acer negundo,"Maple, Manitoba",107
+106,Amelanchier canadensis,Serviceberry,102
+106,Tilia cordata,"Linden, littleleaf",95
+106,Ginkgo biloba,Ginkgo,91
+106,Acer x freemanii,"Maple, Freeman Autumn Blaze",90
+107,Acer platanoides,"Maple, Norway",413
+107,Gleditsia triacanthos,Honey locust,239
+107,Prunus spp.,Cherry,174
+107,Picea pungens,"Spruce, Colorado blue",163
+107,Syringa reticulata,"Lilac, Japanese",140
+107,Thuja,Cedar,123
+107,Prunus persica,Peach,105
+107,Ulmus pumila,"Elm, Siberian",100
+107,Acer negundo,"Maple, Manitoba",99
+107,Ginkgo biloba,Ginkgo,98
+107,Picea glauca,"Spruce, white",97
+107,Acer saccharinum,"Maple, silver",95
+108,Acer platanoides,"Maple, Norway",235
+108,Gleditsia triacanthos,Honey locust,141
+108,Prunus spp.,Cherry,131
+108,Ginkgo biloba,Ginkgo,104
+108,Syringa reticulata,"Lilac, Japanese",85
+108,Picea pungens,"Spruce, Colorado blue",80
+108,Thuja,Cedar,76
+108,Morus,Mulberry,67
+108,Acer x freemanii,"Maple, Freeman Autumn Blaze",61
+108,Pinus nigra,"Pine, Austrian",60
+108,Morus alba,"Mulberry, white weeping",56
+108,Quercus rubra,"Oak, red",52
+109,Acer platanoides,"Maple, Norway",144
+109,Morus alba,"Mulberry, white weeping",106
+109,Prunus spp.,Cherry,90
+109,Acer negundo,"Maple, Manitoba",86
+109,Picea pungens,"Spruce, Colorado blue",82
+109,Ulmus pumila,"Elm, Siberian",78
+109,Gleditsia triacanthos,Honey locust,75
+109,Picea,Spruce,69
+109,Thuja,Cedar,57
+109,Thuja occidentalis,"Cedar, white",56
+109,Quercus rubra,"Oak, red",52
+109,Ginkgo biloba,Ginkgo,51
+110,Acer platanoides,"Maple, Norway",195
+110,Acer negundo,"Maple, Manitoba",95
+110,Gleditsia triacanthos,Honey locust,89
+110,Ulmus pumila,"Elm, Siberian",68
+110,Malus sargentii,"Apple, Sargents",58
+110,Prunus spp.,Cherry,58
+110,Quercus rubra,"Oak, red",53
+110,Gymnocladus dioicus,Kentucky coffeetree,52
+110,Thuja,Cedar,50
+110,Ginkgo biloba,Ginkgo,47
+110,Picea pungens,"Spruce, Colorado blue",47
+110,Acer x freemanii,"Maple, Freeman Autumn Blaze",46
+111,Acer platanoides,"Maple, Norway",559
+111,Ulmus pumila,"Elm, Siberian",294
+111,Gleditsia triacanthos,Honey locust,263
+111,Acer negundo,"Maple, Manitoba",213
+111,Pinus nigra,"Pine, Austrian",172
+111,Picea pungens,"Spruce, Colorado blue",169
+111,Quercus rubra,"Oak, red",163
+111,Tilia cordata,"Linden, littleleaf",152
+111,Syringa reticulata,"Lilac, Japanese",126
+111,Acer x freemanii,"Maple, Freeman Autumn Blaze",116
+111,Ginkgo biloba,Ginkgo,115
+111,Gymnocladus dioicus,Kentucky coffeetree,115
+112,Acer platanoides,"Maple, Norway",252
+112,Gleditsia triacanthos,Honey locust,152
+112,Ulmus pumila,"Elm, Siberian",146
+112,Picea pungens,"Spruce, Colorado blue",102
+112,Quercus rubra,"Oak, red",81
+112,Ginkgo biloba,Ginkgo,67
+112,Gymnocladus dioicus,Kentucky coffeetree,66
+112,Acer x freemanii,"Maple, Freeman Autumn Blaze",62
+112,Pinus nigra,"Pine, Austrian",58
+112,Tilia cordata,"Linden, littleleaf",52
+112,Prunus spp.,Cherry,50
+112,Thuja occidentalis,"Cedar, white",49
+113,Acer platanoides,"Maple, Norway",600
+113,Acer saccharinum,"Maple, silver",222
+113,Gleditsia triacanthos,Honey locust,202
+113,Picea pungens,"Spruce, Colorado blue",125
+113,Quercus rubra,"Oak, red",124
+113,Acer saccharum,"Maple, sugar",107
+113,Acer rubrum,"Maple, red",92
+113,Ginkgo biloba,Ginkgo,87
+113,Syringa reticulata,"Lilac, Japanese",83
+113,Ulmus pumila,"Elm, Siberian",76
+113,Gymnocladus dioicus,Kentucky coffeetree,71
+113,Acer x freemanii,"Maple, Freeman Autumn Blaze",69
+114,Acer platanoides,"Maple, Norway",349
+114,Quercus rubra,"Oak, red",336
+114,Picea pungens,"Spruce, Colorado blue",185
+114,Thuja occidentalis,"Cedar, white",137
+114,Gleditsia triacanthos,Honey locust,132
+114,Acer negundo,"Maple, Manitoba",130
+114,Ulmus pumila,"Elm, Siberian",93
+114,Acer saccharinum,"Maple, silver",91
+114,Quercus velutina,"Oak, black",84
+114,Tilia cordata,"Linden, littleleaf",71
+114,Amelanchier canadensis,Serviceberry,61
+114,Acer palmatum,"Maple, Japanese",58
+115,Acer platanoides,"Maple, Norway",191
+115,Gleditsia triacanthos,Honey locust,176
+115,Ulmus pumila,"Elm, Siberian",97
+115,Acer x freemanii,"Maple, Freeman Autumn Blaze",76
+115,Acer negundo,"Maple, Manitoba",74
+115,Fraxinus pennsylvanica,"Ash, green",63
+115,Quercus rubra,"Oak, red",60
+115,Tilia cordata,"Linden, littleleaf",59
+115,Acer saccharinum,"Maple, silver",54
+115,Ginkgo biloba,Ginkgo,53
+115,Celtis occidentalis,Hackberry,51
+115,Gymnocladus dioicus,Kentucky coffeetree,51
+116,Acer platanoides,"Maple, Norway",1102
+116,Gleditsia triacanthos,Honey locust,971
+116,Tilia cordata,"Linden, littleleaf",531
+116,Acer x freemanii,"Maple, Freeman Autumn Blaze",266
+116,Celtis occidentalis,Hackberry,234
+116,Ginkgo biloba,Ginkgo,215
+116,Quercus rubra,"Oak, red",192
+116,Gymnocladus dioicus,Kentucky coffeetree,177
+116,Platanus x acerifolia,"Planetree, London",167
+116,Ulmus americana,"Elm, American Valley Forge",135
+116,Malus sargentii,"Apple, Sargents",119
+116,Tilia americana,"Basswood, Redmond",119
+118,Acer platanoides,"Maple, Norway",1145
+118,Tilia cordata,"Linden, littleleaf",596
+118,Gleditsia triacanthos,Honey locust,335
+118,Acer x freemanii,"Maple, Freeman Autumn Blaze",225
+118,Malus sargentii,"Apple, Sargents",217
+118,Quercus rubra,"Oak, red",195
+118,Syringa reticulata,"Lilac, Japanese",189
+118,Gymnocladus dioicus,Kentucky coffeetree,153
+118,Celtis occidentalis,Hackberry,147
+118,Ginkgo biloba,Ginkgo,131
+118,Fraxinus pennsylvanica,"Ash, green",128
+118,Acer saccharinum,"Maple, silver",119
+119,Acer platanoides,"Maple, Norway",702
+119,Gleditsia triacanthos,Honey locust,650
+119,Gymnocladus dioicus,Kentucky coffeetree,417
+119,Acer x freemanii,"Maple, Freeman Autumn Blaze",276
+119,Syringa reticulata,"Lilac, Japanese",227
+119,Tilia cordata,"Linden, littleleaf",220
+119,Quercus rubra,"Oak, red",209
+119,Amelanchier canadensis,Serviceberry,186
+119,Celtis occidentalis,Hackberry,173
+119,Ginkgo biloba,Ginkgo,160
+119,Platanus x acerifolia,"Planetree, London",158
+119,Acer saccharum,"Maple, sugar",144
+120,Gleditsia triacanthos,Honey locust,585
+120,Acer platanoides,"Maple, Norway",498
+120,Gymnocladus dioicus,Kentucky coffeetree,308
+120,Syringa reticulata,"Lilac, Japanese",280
+120,Acer x freemanii,"Maple, Freeman Autumn Blaze",275
+120,Tilia cordata,"Linden, littleleaf",236
+120,Quercus rubra,"Oak, red",202
+120,Celtis occidentalis,Hackberry,199
+120,Catalpa speciosa,"Catalpa, northern",182
+120,Acer saccharinum,"Maple, silver",180
+120,Ulmus americana,"Elm, American Valley Forge",127
+120,Ginkgo biloba,Ginkgo,120
+121,Gleditsia triacanthos,Honey locust,108
+121,Gymnocladus dioicus,Kentucky coffeetree,76
+121,Quercus rubra,"Oak, red",69
+121,Acer platanoides,"Maple, Norway",59
+121,Acer negundo,"Maple, Manitoba",57
+121,Syringa reticulata,"Lilac, Japanese",49
+121,Amelanchier canadensis,Serviceberry,44
+121,Acer x freemanii,"Maple, Freeman Autumn Blaze",42
+121,Picea pungens,"Spruce, Colorado blue",40
+121,Tilia cordata,"Linden, littleleaf",35
+121,Acer tataricum,"Maple, Amur",33
+121,Ulmus americana,"Elm, American Valley Forge",32
+122,Acer platanoides,"Maple, Norway",877
+122,Gleditsia triacanthos,Honey locust,512
+122,Quercus rubra,"Oak, red",367
+122,Acer saccharinum,"Maple, silver",259
+122,Picea pungens,"Spruce, Colorado blue",199
+122,Syringa reticulata,"Lilac, Japanese",184
+122,Tilia cordata,"Linden, littleleaf",184
+122,Gymnocladus dioicus,Kentucky coffeetree,170
+122,Picea,Spruce,152
+122,Acer x freemanii,"Maple, Freeman Autumn Blaze",142
+122,Pinus nigra,"Pine, Austrian",138
+122,Amelanchier canadensis,Serviceberry,129
+123,Acer platanoides,"Maple, Norway",594
+123,Gleditsia triacanthos,Honey locust,326
+123,Acer saccharinum,"Maple, silver",293
+123,Acer saccharum,"Maple, sugar",178
+123,Tilia cordata,"Linden, littleleaf",170
+123,Quercus rubra,"Oak, red",148
+123,Gymnocladus dioicus,Kentucky coffeetree,137
+123,Acer x freemanii,"Maple, Freeman Autumn Blaze",101
+123,Picea,Spruce,93
+123,Platanus x acerifolia,"Planetree, London",80
+123,Liriodendron tulipifera,Tulip tree,72
+123,Syringa reticulata,"Lilac, Japanese",71
+124,Gleditsia triacanthos,Honey locust,214
+124,Acer platanoides,"Maple, Norway",190
+124,Ulmus pumila,"Elm, Siberian",138
+124,Acer x freemanii,"Maple, Freeman Autumn Blaze",112
+124,Gymnocladus dioicus,Kentucky coffeetree,104
+124,Quercus rubra,"Oak, red",87
+124,Malus sargentii,"Apple, Sargents",78
+124,Syringa reticulata,"Lilac, Japanese",67
+124,Acer saccharinum,"Maple, silver",66
+124,Tilia cordata,"Linden, littleleaf",65
+124,Amelanchier canadensis,Serviceberry,63
+124,Platanus x acerifolia,"Planetree, London",62
+125,Acer platanoides,"Maple, Norway",174
+125,Gleditsia triacanthos,Honey locust,159
+125,Tilia cordata,"Linden, littleleaf",110
+125,Gymnocladus dioicus,Kentucky coffeetree,78
+125,Ginkgo biloba,Ginkgo,58
+125,Acer x freemanii,"Maple, Freeman Autumn Blaze",57
+125,Acer saccharinum,"Maple, silver",55
+125,Syringa reticulata,"Lilac, Japanese",51
+125,Celtis occidentalis,Hackberry,48
+125,Platanus x acerifolia,"Planetree, London",48
+125,Quercus rubra,"Oak, red",48
+125,Ulmus pumila,"Elm, Siberian",45
+126,Gleditsia triacanthos,Honey locust,499
+126,Acer platanoides,"Maple, Norway",425
+126,Gymnocladus dioicus,Kentucky coffeetree,222
+126,Tilia cordata,"Linden, littleleaf",189
+126,Syringa reticulata,"Lilac, Japanese",175
+126,Acer x freemanii,"Maple, Freeman Autumn Blaze",128
+126,Quercus rubra,"Oak, red",108
+126,Amelanchier canadensis,Serviceberry,97
+126,Acer saccharinum,"Maple, silver",94
+126,Celtis occidentalis,Hackberry,93
+126,Ulmus americana,"Elm, American Valley Forge",85
+126,Acer tataricum,"Maple, Amur",77
+128,Acer platanoides,"Maple, Norway",1059
+128,Gleditsia triacanthos,Honey locust,450
+128,Tilia cordata,"Linden, littleleaf",326
+128,Gymnocladus dioicus,Kentucky coffeetree,241
+128,Acer x freemanii,"Maple, Freeman Autumn Blaze",212
+128,Quercus rubra,"Oak, red",179
+128,Celtis occidentalis,Hackberry,168
+128,Malus sargentii,"Apple, Sargents",147
+128,Ginkgo biloba,Ginkgo,137
+128,Tilia americana,"Basswood, Redmond",128
+128,Acer saccharinum,"Maple, silver",127
+128,Platanus x acerifolia,"Planetree, London",120
+129,Acer platanoides,"Maple, Norway",1566
+129,Gleditsia triacanthos,Honey locust,966
+129,Tilia cordata,"Linden, littleleaf",637
+129,Malus sargentii,"Apple, Sargents",286
+129,Celtis occidentalis,Hackberry,284
+129,Acer x freemanii,"Maple, Freeman Autumn Blaze",279
+129,Ginkgo biloba,Ginkgo,249
+129,Platanus x acerifolia,"Planetree, London",229
+129,Gymnocladus dioicus,Kentucky coffeetree,215
+129,Quercus rubra,"Oak, red",208
+129,Ulmus americana,"Elm, American Valley Forge",189
+129,Acer saccharum,"Maple, sugar",136
+130,Acer platanoides,"Maple, Norway",1489
+130,Gleditsia triacanthos,Honey locust,1020
+130,Tilia cordata,"Linden, littleleaf",705
+130,Celtis occidentalis,Hackberry,340
+130,Acer x freemanii,"Maple, Freeman Autumn Blaze",329
+130,Quercus rubra,"Oak, red",275
+130,Gymnocladus dioicus,Kentucky coffeetree,274
+130,Ginkgo biloba,Ginkgo,229
+130,Tilia americana,"Basswood, Redmond",207
+130,Ulmus americana,"Elm, American Valley Forge",185
+130,Ulmus davidiana,"Elm, Accolade",170
+130,Malus sargentii,"Apple, Sargents",153
+133,Acer platanoides,"Maple, Norway",1035
+133,Gleditsia triacanthos,Honey locust,642
+133,Tilia cordata,"Linden, littleleaf",454
+133,Acer x freemanii,"Maple, Freeman Autumn Blaze",191
+133,Quercus rubra,"Oak, red",172
+133,Malus sargentii,"Apple, Sargents",161
+133,Syringa reticulata,"Lilac, Japanese",136
+133,Acer saccharinum,"Maple, silver",127
+133,Celtis occidentalis,Hackberry,125
+133,Ginkgo biloba,Ginkgo,108
+133,Quercus macrocarpa,"Oak, bur",102
+133,Acer saccharum,"Maple, sugar",101
+134,Acer platanoides,"Maple, Norway",695
+134,Gleditsia triacanthos,Honey locust,461
+134,Tilia cordata,"Linden, littleleaf",311
+134,Acer x freemanii,"Maple, Freeman Autumn Blaze",144
+134,Syringa reticulata,"Lilac, Japanese",136
+134,Acer saccharinum,"Maple, silver",133
+134,Quercus rubra,"Oak, red",133
+134,Celtis occidentalis,Hackberry,121
+134,Acer saccharum,"Maple, sugar",85
+134,Ginkgo biloba,Ginkgo,76
+134,Ulmus americana,"Elm, American Valley Forge",74
+134,Platanus x acerifolia,"Planetree, London",69
+135,Acer platanoides,"Maple, Norway",807
+135,Gleditsia triacanthos,Honey locust,378
+135,Tilia cordata,"Linden, littleleaf",214
+135,Acer x freemanii,"Maple, Freeman Autumn Blaze",149
+135,Quercus rubra,"Oak, red",148
+135,Malus sargentii,"Apple, Sargents",135
+135,Gymnocladus dioicus,Kentucky coffeetree,123
+135,Syringa reticulata,"Lilac, Japanese",123
+135,Celtis occidentalis,Hackberry,112
+135,Acer saccharum,"Maple, sugar",95
+135,Acer saccharinum,"Maple, silver",92
+135,Pyrus calleryana,Pear Chanticleer,87
+136,Acer platanoides,"Maple, Norway",752
+136,Gleditsia triacanthos,Honey locust,392
+136,Acer x freemanii,"Maple, Freeman Autumn Blaze",262
+136,Acer saccharinum,"Maple, silver",247
+136,Tilia cordata,"Linden, littleleaf",236
+136,Malus sargentii,"Apple, Sargents",217
+136,Syringa reticulata,"Lilac, Japanese",214
+136,Gymnocladus dioicus,Kentucky coffeetree,198
+136,Quercus rubra,"Oak, red",193
+136,Amelanchier canadensis,Serviceberry,153
+136,Celtis occidentalis,Hackberry,153
+136,Acer saccharum,"Maple, sugar",141
+138,Gleditsia triacanthos,Honey locust,400
+138,Acer platanoides,"Maple, Norway",328
+138,Tilia cordata,"Linden, littleleaf",275
+138,Syringa reticulata,"Lilac, Japanese",113
+138,Gymnocladus dioicus,Kentucky coffeetree,109
+138,Acer x freemanii,"Maple, Freeman Autumn Blaze",100
+138,Celtis occidentalis,Hackberry,93
+138,Quercus rubra,"Oak, red",91
+138,Malus sargentii,"Apple, Sargents",84
+138,Acer saccharinum,"Maple, silver",78
+138,Ginkgo biloba,Ginkgo,62
+138,Amelanchier canadensis,Serviceberry,56
+139,Acer platanoides,"Maple, Norway",307
+139,Gleditsia triacanthos,Honey locust,166
+139,Acer saccharinum,"Maple, silver",136
+139,Gymnocladus dioicus,Kentucky coffeetree,93
+139,Acer x freemanii,"Maple, Freeman Autumn Blaze",80
+139,Quercus rubra,"Oak, red",80
+139,Syringa reticulata,"Lilac, Japanese",60
+139,Tilia cordata,"Linden, littleleaf",53
+139,Celtis occidentalis,Hackberry,47
+139,Picea pungens,"Spruce, Colorado blue",46
+139,Platanus x acerifolia,"Planetree, London",46
+139,Ulmus americana,"Elm, American Valley Forge",45
+140,Acer platanoides,"Maple, Norway",483
+140,Fraxinus pennsylvanica,"Ash, green",358
+140,Tilia cordata,"Linden, littleleaf",262
+140,Gleditsia triacanthos,Honey locust,197
+140,Malus sargentii,"Apple, Sargents",165
+140,Quercus rubra,"Oak, red",155
+140,Acer x freemanii,"Maple, Freeman Autumn Blaze",146
+140,Fraxinus americana,"Ash, white",133
+140,Acer saccharinum,"Maple, silver",130
+140,Syringa reticulata,"Lilac, Japanese",130
+140,Acer saccharum,"Maple, sugar",115
+140,Amelanchier canadensis,Serviceberry,108
+141,Acer platanoides,"Maple, Norway",906
+141,Gleditsia triacanthos,Honey locust,692
+141,Tilia cordata,"Linden, littleleaf",453
+141,Syringa reticulata,"Lilac, Japanese",324
+141,Gymnocladus dioicus,Kentucky coffeetree,263
+141,Acer x freemanii,"Maple, Freeman Autumn Blaze",249
+141,Malus sargentii,"Apple, Sargents",214
+141,Pyrus calleryana,Pear Chanticleer,199
+141,Celtis occidentalis,Hackberry,197
+141,Amelanchier canadensis,Serviceberry,188
+141,Quercus rubra,"Oak, red",158
+141,Acer saccharinum,"Maple, silver",157
+142,Acer platanoides,"Maple, Norway",748
+142,Tilia cordata,"Linden, littleleaf",529
+142,Gleditsia triacanthos,Honey locust,464
+142,Gymnocladus dioicus,Kentucky coffeetree,297
+142,Acer x freemanii,"Maple, Freeman Autumn Blaze",232
+142,Syringa reticulata,"Lilac, Japanese",206
+142,Malus sargentii,"Apple, Sargents",172
+142,Quercus rubra,"Oak, red",156
+142,Ginkgo biloba,Ginkgo,152
+142,Ulmus davidiana,"Elm, Accolade",150
+142,Pyrus calleryana,Pear Chanticleer,149
+142,Acer saccharinum,"Maple, silver",130
+143,Acer platanoides,"Maple, Norway",1128
+143,Gleditsia triacanthos,Honey locust,664
+143,Tilia cordata,"Linden, littleleaf",307
+143,Acer x freemanii,"Maple, Freeman Autumn Blaze",230
+143,Celtis occidentalis,Hackberry,208
+143,Quercus rubra,"Oak, red",192
+143,Acer saccharinum,"Maple, silver",170
+143,Gymnocladus dioicus,Kentucky coffeetree,127
+143,Malus sargentii,"Apple, Sargents",123
+143,Ginkgo biloba,Ginkgo,120
+143,Syringa reticulata,"Lilac, Japanese",114
+143,Ulmus americana,"Elm, American Valley Forge",110
+144,Gleditsia triacanthos,Honey locust,915
+144,Acer x freemanii,"Maple, Freeman Autumn Blaze",866
+144,Tilia cordata,"Linden, littleleaf",717
+144,Acer platanoides,"Maple, Norway",459
+144,Celtis occidentalis,Hackberry,447
+144,Quercus rubra,"Oak, red",287
+144,Quercus macrocarpa,"Oak, bur",279
+144,Syringa reticulata,"Lilac, Japanese",262
+144,Gymnocladus dioicus,Kentucky coffeetree,254
+144,Ginkgo biloba,Ginkgo,247
+144,Acer saccharum,"Maple, sugar",197
+144,Pyrus calleryana,Pear Chanticleer,193
+145,Acer platanoides,"Maple, Norway",626
+145,Gleditsia triacanthos,Honey locust,462
+145,Tilia cordata,"Linden, littleleaf",374
+145,Acer x freemanii,"Maple, Freeman Autumn Blaze",201
+145,Celtis occidentalis,Hackberry,131
+145,Ulmus americana,"Elm, American Valley Forge",115
+145,Gymnocladus dioicus,Kentucky coffeetree,114
+145,Malus sargentii,"Apple, Sargents",99
+145,Quercus rubra,"Oak, red",93
+145,Acer saccharum,"Maple, sugar",79
+145,Tilia americana,"Basswood, Redmond",73
+145,Ginkgo biloba,Ginkgo,69
+146,Acer platanoides,"Maple, Norway",863
+146,Gleditsia triacanthos,Honey locust,726
+146,Tilia cordata,"Linden, littleleaf",467
+146,Acer x freemanii,"Maple, Freeman Autumn Blaze",244
+146,Celtis occidentalis,Hackberry,220
+146,Ulmus americana,"Elm, American Valley Forge",149
+146,Quercus rubra,"Oak, red",145
+146,Acer saccharinum,"Maple, silver",124
+146,Quercus macrocarpa,"Oak, bur",124
+146,Gymnocladus dioicus,Kentucky coffeetree,120
+146,Catalpa speciosa,"Catalpa, northern",114
+146,Ginkgo biloba,Ginkgo,112
+147,Acer platanoides,"Maple, Norway",1019
+147,Tilia cordata,"Linden, littleleaf",420
+147,Gleditsia triacanthos,Honey locust,350
+147,Acer x freemanii,"Maple, Freeman Autumn Blaze",207
+147,Celtis occidentalis,Hackberry,151
+147,Ginkgo biloba,Ginkgo,131
+147,Gymnocladus dioicus,Kentucky coffeetree,131
+147,Acer saccharinum,"Maple, silver",130
+147,Quercus rubra,"Oak, red",124
+147,Syringa reticulata,"Lilac, Japanese",97
+147,Malus sargentii,"Apple, Sargents",93
+147,Ulmus davidiana,"Elm, Accolade",93
+148,Acer platanoides,"Maple, Norway",837
+148,Gleditsia triacanthos,Honey locust,366
+148,Tilia cordata,"Linden, littleleaf",329
+148,Acer x freemanii,"Maple, Freeman Autumn Blaze",178
+148,Ginkgo biloba,Ginkgo,168
+148,Platanus x acerifolia,"Planetree, London",164
+148,Quercus rubra,"Oak, red",164
+148,Acer saccharinum,"Maple, silver",141
+148,Celtis occidentalis,Hackberry,137
+148,Gymnocladus dioicus,Kentucky coffeetree,112
+148,Malus sargentii,"Apple, Sargents",105
+148,Acer saccharum,"Maple, sugar",74
+149,Acer platanoides,"Maple, Norway",1212
+149,Picea pungens,"Spruce, Colorado blue",487
+149,Gleditsia triacanthos,Honey locust,405
+149,Betula papyrifera,"Birch, white",359
+149,Malus sargentii,"Apple, Sargents",278
+149,Pinus nigra,"Pine, Austrian",266
+149,Tilia cordata,"Linden, littleleaf",232
+149,Picea glauca,"Spruce, white",160
+149,Acer x freemanii,"Maple, Freeman Autumn Blaze",134
+149,Syringa reticulata,"Lilac, Japanese",123
+149,Acer saccharinum,"Maple, silver",120
+149,Acer saccharum,"Maple, sugar",113
+150,Acer platanoides,"Maple, Norway",566
+150,Gleditsia triacanthos,Honey locust,332
+150,Picea pungens,"Spruce, Colorado blue",200
+150,Tilia cordata,"Linden, littleleaf",145
+150,Betula papyrifera,"Birch, white",144
+150,Malus sargentii,"Apple, Sargents",144
+150,Pinus nigra,"Pine, Austrian",113
+150,Acer saccharum,"Maple, sugar",110
+150,Quercus rubra,"Oak, red",102
+150,Acer saccharinum,"Maple, silver",101
+150,Syringa reticulata,"Lilac, Japanese",97
+150,Picea glauca,"Spruce, white",89
+151,Gleditsia triacanthos,Honey locust,152
+151,Quercus rubra,"Oak, red",76
+151,Syringa reticulata,"Lilac, Japanese",65
+151,Ginkgo biloba,Ginkgo,59
+151,Tilia cordata,"Linden, littleleaf",50
+151,Acer platanoides,"Maple, Norway",46
+151,Acer x freemanii,"Maple, Freeman Autumn Blaze",39
+151,Gymnocladus dioicus,Kentucky coffeetree,38
+151,Celtis occidentalis,Hackberry,26
+151,Acer saccharum,"Maple, sugar",24
+151,Pyrus calleryana,Pear Chanticleer,23
+151,Acer saccharinum,"Maple, silver",22
+152,Acer platanoides,"Maple, Norway",890
+152,Gleditsia triacanthos,Honey locust,711
+152,Acer saccharinum,"Maple, silver",606
+152,Picea pungens,"Spruce, Colorado blue",416
+152,Picea glauca,"Spruce, white",335
+152,Malus sargentii,"Apple, Sargents",258
+152,Syringa reticulata,"Lilac, Japanese",232
+152,Ulmus pumila,"Elm, Siberian",216
+152,Tilia cordata,"Linden, littleleaf",183
+152,Amelanchier canadensis,Serviceberry,166
+152,Thuja occidentalis,"Cedar, white",152
+152,Ginkgo biloba,Ginkgo,148
+153,Gleditsia triacanthos,Honey locust,142
+153,Acer platanoides,"Maple, Norway",137
+153,Acer saccharinum,"Maple, silver",97
+153,Tilia cordata,"Linden, littleleaf",74
+153,Acer x freemanii,"Maple, Freeman Autumn Blaze",68
+153,Gymnocladus dioicus,Kentucky coffeetree,62
+153,Malus sargentii,"Apple, Sargents",53
+153,Quercus rubra,"Oak, red",52
+153,Quercus robur,"Oak, English",44
+153,Platanus x acerifolia,"Planetree, London",42
+153,Picea pungens,"Spruce, Colorado blue",41
+153,Syringa reticulata,"Lilac, Japanese",41
+154,Acer platanoides,"Maple, Norway",692
+154,Gleditsia triacanthos,Honey locust,484
+154,Gymnocladus dioicus,Kentucky coffeetree,284
+154,Picea pungens,"Spruce, Colorado blue",274
+154,Ginkgo biloba,Ginkgo,174
+154,Morus alba,"Mulberry, white weeping",165
+154,Syringa reticulata,"Lilac, Japanese",165
+154,Tilia cordata,"Linden, littleleaf",155
+154,Quercus rubra,"Oak, red",142
+154,Acer saccharinum,"Maple, silver",133
+154,Picea glauca,"Spruce, white",127
+154,Tilia americana,"Basswood, Redmond",127
+155,Gleditsia triacanthos,Honey locust,697
+155,Acer platanoides,"Maple, Norway",538
+155,Picea pungens,"Spruce, Colorado blue",311
+155,Gymnocladus dioicus,Kentucky coffeetree,253
+155,Ginkgo biloba,Ginkgo,196
+155,Celtis occidentalis,Hackberry,189
+155,Acer x freemanii,"Maple, Freeman Autumn Blaze",170
+155,Acer saccharinum,"Maple, silver",163
+155,Morus alba,"Mulberry, white weeping",161
+155,Quercus rubra,"Oak, red",150
+155,Syringa reticulata,"Lilac, Japanese",144
+155,Tilia cordata,"Linden, littleleaf",141
+156,Tilia cordata,"Linden, littleleaf",700
+156,Acer platanoides,"Maple, Norway",516
+156,Gleditsia triacanthos,Honey locust,365
+156,Quercus rubra,"Oak, red",193
+156,Gymnocladus dioicus,Kentucky coffeetree,183
+156,Syringa reticulata,"Lilac, Japanese",150
+156,Acer x freemanii,"Maple, Freeman Autumn Blaze",109
+156,Acer saccharinum,"Maple, silver",99
+156,Pyrus calleryana,Pear Chanticleer,94
+156,Malus sargentii,"Apple, Sargents",86
+156,Celtis occidentalis,Hackberry,77
+156,Platanus x acerifolia,"Planetree, London",72
+157,Acer platanoides,"Maple, Norway",405
+157,Gleditsia triacanthos,Honey locust,258
+157,Tilia cordata,"Linden, littleleaf",133
+157,Syringa reticulata,"Lilac, Japanese",114
+157,Gymnocladus dioicus,Kentucky coffeetree,105
+157,Acer x freemanii,"Maple, Freeman Autumn Blaze",92
+157,Acer saccharinum,"Maple, silver",76
+157,Malus sargentii,"Apple, Sargents",70
+157,Amelanchier canadensis,Serviceberry,59
+157,Acer saccharum,"Maple, sugar",58
+157,Catalpa speciosa,"Catalpa, northern",55
+157,Celtis occidentalis,Hackberry,50
+158,Acer platanoides,"Maple, Norway",1607
+158,Gleditsia triacanthos,Honey locust,475
+158,Picea pungens,"Spruce, Colorado blue",401
+158,Acer saccharinum,"Maple, silver",322
+158,Syringa reticulata,"Lilac, Japanese",294
+158,Tilia,Linden,262
+158,Tilia cordata,"Linden, littleleaf",250
+158,Acer saccharum,"Maple, sugar",225
+158,Ginkgo biloba,Ginkgo,222
+158,Malus sargentii,"Apple, Sargents",221
+158,Acer x freemanii,"Maple, Freeman Autumn Blaze",216
+158,Quercus rubra,"Oak, red",209
+159,Gleditsia triacanthos,Honey locust,641
+159,Acer platanoides,"Maple, Norway",584
+159,Acer x freemanii,"Maple, Freeman Autumn Blaze",286
+159,Gymnocladus dioicus,Kentucky coffeetree,231
+159,Celtis occidentalis,Hackberry,156
+159,Syringa reticulata,"Lilac, Japanese",155
+159,Ginkgo biloba,Ginkgo,144
+159,Ulmus pumila,"Elm, Siberian",125
+159,Pinus nigra,"Pine, Austrian",115
+159,Tilia cordata,"Linden, littleleaf",108
+159,Malus sargentii,"Apple, Sargents",93
+159,Picea pungens,"Spruce, Colorado blue",90
+160,Acer platanoides,"Maple, Norway",588
+160,Gleditsia triacanthos,Honey locust,421
+160,Acer saccharinum,"Maple, silver",326
+160,Picea pungens,"Spruce, Colorado blue",285
+160,Acer x freemanii,"Maple, Freeman Autumn Blaze",277
+160,Malus sargentii,"Apple, Sargents",226
+160,Ginkgo biloba,Ginkgo,217
+160,Syringa reticulata,"Lilac, Japanese",202
+160,Tilia cordata,"Linden, littleleaf",187
+160,Gymnocladus dioicus,Kentucky coffeetree,168
+160,Picea glauca,"Spruce, white",148
+160,Quercus rubra,"Oak, red",148
+161,Fraxinus americana,"Ash, white",179
+161,Fraxinus pennsylvanica,"Ash, green",129
+161,Gleditsia triacanthos,Honey locust,122
+161,Quercus rubra,"Oak, red",89
+161,Acer platanoides,"Maple, Norway",64
+161,Gymnocladus dioicus,Kentucky coffeetree,54
+161,Acer x freemanii,"Maple, Freeman Autumn Blaze",50
+161,Ginkgo biloba,Ginkgo,45
+161,Ulmus americana,"Elm, American Valley Forge",42
+161,Quercus macrocarpa,"Oak, bur",39
+161,Celtis occidentalis,Hackberry,38
+161,Acer saccharum,"Maple, sugar",30
+162,Gleditsia triacanthos,Honey locust,169
+162,Acer platanoides,"Maple, Norway",155
+162,Quercus rubra,"Oak, red",82
+162,Tilia cordata,"Linden, littleleaf",82
+162,Fraxinus pennsylvanica,"Ash, green",73
+162,Ginkgo biloba,Ginkgo,72
+162,Ulmus,Elm,72
+162,Gymnocladus dioicus,Kentucky coffeetree,66
+162,Acer x freemanii,"Maple, Freeman Autumn Blaze",65
+162,Acer saccharinum,"Maple, silver",60
+162,Pyrus calleryana,Pear Chanticleer,59
+162,Celtis occidentalis,Hackberry,37
+163,Quercus rubra,"Oak, red",153
+163,Gleditsia triacanthos,Honey locust,112
+163,Acer x freemanii,"Maple, Freeman Autumn Blaze",85
+163,Gymnocladus dioicus,Kentucky coffeetree,85
+163,Quercus robur,"Oak, English",77
+163,Celtis occidentalis,Hackberry,68
+163,Acer saccharinum,"Maple, silver",54
+163,Acer platanoides,"Maple, Norway",52
+163,Ginkgo biloba,Ginkgo,38
+163,Fraxinus americana,"Ash, white",37
+163,Quercus bicolor,"Oak, swamp white",34
+163,Tilia cordata,"Linden, littleleaf",33
+164,Gleditsia triacanthos,Honey locust,337
+164,Ulmus,Elm,152
+164,Gymnocladus dioicus,Kentucky coffeetree,69
+164,Quercus rubra,"Oak, red",62
+164,Ginkgo biloba,Ginkgo,48
+164,Ulmus davidiana,"Elm, Accolade",48
+164,Acer platanoides,"Maple, Norway",47
+164,Tilia,Linden,45
+164,Acer saccharinum,"Maple, silver",44
+164,Fraxinus pennsylvanica,"Ash, green",34
+164,Acer x freemanii,"Maple, Freeman Autumn Blaze",31
+164,Tilia cordata,"Linden, littleleaf",28
+165,Quercus rubra,"Oak, red",169
+165,Gleditsia triacanthos,Honey locust,164
+165,Acer x freemanii,"Maple, Freeman Autumn Blaze",130
+165,Ulmus,Elm,109
+165,Ulmus americana,"Elm, American Valley Forge",90
+165,Fraxinus pennsylvanica,"Ash, green",82
+165,Gymnocladus dioicus,Kentucky coffeetree,53
+165,Acer platanoides,"Maple, Norway",52
+165,Ginkgo biloba,Ginkgo,44
+165,Tilia,Linden,42
+165,Celtis occidentalis,Hackberry,37
+165,Acer,Maple,33
+166,Gleditsia triacanthos,Honey locust,391
+166,Ulmus,Elm,335
+166,Fraxinus pennsylvanica,"Ash, green",227
+166,Quercus rubra,"Oak, red",192
+166,Acer platanoides,"Maple, Norway",175
+166,Gymnocladus dioicus,Kentucky coffeetree,129
+166,Tilia,Linden,95
+166,Celtis occidentalis,Hackberry,91
+166,Acer,Maple,89
+166,Populus,Poplar,83
+166,Ginkgo biloba,Ginkgo,76
+166,Tilia cordata,"Linden, littleleaf",67
+167,Gleditsia triacanthos,Honey locust,133
+167,Acer platanoides,"Maple, Norway",112
+167,Ulmus,Elm,58
+167,Tilia cordata,"Linden, littleleaf",36
+167,Acer saccharinum,"Maple, silver",34
+167,Ginkgo biloba,Ginkgo,33
+167,Tilia,Linden,29
+167,Gymnocladus dioicus,Kentucky coffeetree,25
+167,Quercus rubra,"Oak, red",24
+167,Fraxinus pennsylvanica,"Ash, green",23
+167,Pinus nigra,"Pine, Austrian",19
+167,Ulmus pumila,"Elm, Siberian",17
+168,Gleditsia triacanthos,Honey locust,469
+168,Ulmus,Elm,136
+168,Acer platanoides,"Maple, Norway",95
+168,Quercus rubra,"Oak, red",60
+168,Tilia,Linden,58
+168,Gymnocladus dioicus,Kentucky coffeetree,52
+168,Fraxinus pennsylvanica,"Ash, green",48
+168,Ginkgo biloba,Ginkgo,32
+168,Malus sargentii,"Apple, Sargents",31
+168,Pyrus calleryana,Pear Chanticleer,19
+168,Acer,Maple,16
+168,Platanus x acerifolia,"Planetree, London",16
+169,Gleditsia triacanthos,Honey locust,218
+169,Quercus rubra,"Oak, red",102
+169,Ulmus,Elm,83
+169,Acer platanoides,"Maple, Norway",32
+169,Gymnocladus dioicus,Kentucky coffeetree,28
+169,Acer x freemanii,"Maple, Freeman Autumn Blaze",26
+169,Celtis occidentalis,Hackberry,26
+169,Ulmus americana,"Elm, American Valley Forge",24
+169,Fraxinus pennsylvanica,"Ash, green",23
+169,Ginkgo biloba,Ginkgo,20
+169,Tilia,Linden,19
+169,Quercus alba,"Oak, white",17
+170,Gleditsia triacanthos,Honey locust,326
+170,Ulmus,Elm,144
+170,Gymnocladus dioicus,Kentucky coffeetree,82
+170,Tilia cordata,"Linden, littleleaf",66
+170,Tilia,Linden,52
+170,Ginkgo biloba,Ginkgo,42
+170,Quercus rubra,"Oak, red",35
+170,Aesculus hippocastanum,Horsechestnut,31
+170,Malus sargentii,"Apple, Sargents",31
+170,Pyrus calleryana,Pear Chanticleer,25
+170,Fraxinus pennsylvanica,"Ash, green",21
+170,Quercus robur,"Oak, English",21
+171,Acer platanoides,"Maple, Norway",408
+171,Gleditsia triacanthos,Honey locust,223
+171,Acer saccharinum,"Maple, silver",119
+171,Tilia cordata,"Linden, littleleaf",118
+171,Quercus rubra,"Oak, red",101
+171,Pyrus calleryana,Pear Chanticleer,93
+171,Gymnocladus dioicus,Kentucky coffeetree,91
+171,Syringa reticulata,"Lilac, Japanese",88
+171,Amelanchier canadensis,Serviceberry,87
+171,Prunus spp.,Cherry,81
+171,Acer saccharum,"Maple, sugar",78
+171,Ginkgo biloba,Ginkgo,77
+172,Acer platanoides,"Maple, Norway",257
+172,Thuja occidentalis,"Cedar, white",156
+172,Gleditsia triacanthos,Honey locust,150
+172,Acer saccharinum,"Maple, silver",109
+172,Acer x freemanii,"Maple, Freeman Autumn Blaze",109
+172,Gymnocladus dioicus,Kentucky coffeetree,89
+172,Ginkgo biloba,Ginkgo,75
+172,Acer saccharum,"Maple, sugar",72
+172,Quercus rubra,"Oak, red",71
+172,Fraxinus pennsylvanica,"Ash, green",70
+172,Amelanchier canadensis,Serviceberry,68
+172,Picea pungens,"Spruce, Colorado blue",61
+173,Acer platanoides,"Maple, Norway",61
+173,Gleditsia triacanthos,Honey locust,48
+173,Quercus rubra,"Oak, red",24
+173,Pinus nigra,"Pine, Austrian",21
+173,Acer rubrum,"Maple, red",19
+173,Gymnocladus dioicus,Kentucky coffeetree,15
+173,Ginkgo biloba,Ginkgo,13
+173,Tilia,Linden,13
+173,Celtis occidentalis,Hackberry,12
+173,Pyrus calleryana,Pear Chanticleer,10
+173,Acer saccharinum,"Maple, silver",9
+173,Acer saccharum,"Maple, sugar",9
+174,Acer platanoides,"Maple, Norway",315
+174,Gleditsia triacanthos,Honey locust,263
+174,Tilia cordata,"Linden, littleleaf",69
+174,Quercus rubra,"Oak, red",58
+174,Syringa reticulata,"Lilac, Japanese",55
+174,Acer negundo,"Maple, Manitoba",48
+174,Gymnocladus dioicus,Kentucky coffeetree,41
+174,Acer saccharum,"Maple, sugar",40
+174,Acer saccharinum,"Maple, silver",39
+174,Pyrus calleryana,Pear Chanticleer,39
+174,Picea pungens,"Spruce, Colorado blue",38
+174,Ginkgo biloba,Ginkgo,32

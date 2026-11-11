@@ -14,6 +14,7 @@ const nbhd = census.nbhd, N = nbhd.length, INK = "#1a1a19", NB = D.nbhd;
 const GREENS = ["#e3f1dc", "#bfdfae", "#8fc67c", "#5ea852", "#357f34", "#1b5221"];
 // cool to hot, for surface temperature (classes, not centred on zero)
 const HEAT = ["#184f95", "#3987e5", "#9ec5f4", "#f2a39b", "#d9403f", "#8f1c1c"];
+const ORANGES = ["#fdebd3", "#fbcf9e", "#f6a85c", "#e57f2a", "#c25e12", "#8a3f0a"];
 const censusMeasures = Object.keys(CENSUS).filter((m) => census.measures[m]?.values["2021"]);
 const OTHER = Object.fromEntries(D.other.map((o) => [o.key, o]));
 const INCOME = INCOMES.filter((m) => census.measures[m]);
@@ -23,22 +24,30 @@ const fmtMoney = (v) => (v == null ? "—" : `$${Math.round(v).toLocaleString("e
 const fmtC = (v) => (v == null ? "—" : `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)}°C`);
 
 // ---- the measures ------------------------------------------------------------------------
-// up: what "more" means in words; ramp: its map colours. pool(idx) is the figure for a set
-// of neighbourhoods (the income fifths, the city).
+// more/less: the words for each end; bad: whether more is the concern (the red end on the
+// bivariate map); ramp: its map colours; gap: how the income table states highest vs lowest
+// fifth; da: false where there's no DA figure. pool(idx) is the figure for a set of
+// neighbourhoods (the income fifths, the city).
 const W = (vals, wts) => (idx) => sum(idx.map((i) => vals[i] * wts[i])) / sum(idx.map((i) => wts[i]));
 const M = {
-  canopy: { label: "Tree canopy, share of area (2018)", short: "Tree canopy", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: GREENS, more: "More canopy", less: "Less canopy",
+  canopy: { label: "Tree canopy, share of area (2018)", short: "Tree canopy", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: GREENS, more: "More canopy", less: "Less canopy", gap: "pts",
     pool: (idx) => (sum(idx.map((i) => NB.canopy_ha[i])) / sum(idx.map((i) => NB.area_ha[i]))) * 100, poolNote: "canopy area over land area" },
-  trees_ha: { label: "Street trees per hectare", short: "Street trees per ha", fmt: (v) => v.toFixed(1), axis: (v) => v.toFixed(0), ramp: GREENS, more: "More street trees", less: "Fewer street trees",
+  trees_ha: { label: "Street trees per hectare", short: "Street trees per ha", fmt: (v) => v.toFixed(1), axis: (v) => v.toFixed(0), ramp: GREENS, more: "More street trees", less: "Fewer street trees", gap: "x",
     pool: (idx) => sum(idx.map((i) => NB.trees[i])) / sum(idx.map((i) => NB.area_ha[i])), poolNote: "trees over area" },
-  large: { label: "Large street trees (trunk 50 cm or more), share", short: "Large trees", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: GREENS, more: "More large trees", less: "Fewer large trees",
+  large: { label: "Large street trees (trunk 50 cm or more), share", short: "Large trees", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: GREENS, more: "More large trees", less: "Fewer large trees", gap: "pts",
     pool: W(NB.large, NB.trees), poolNote: "weighted by street trees" },
-  dbh: { label: "Median trunk diameter of street trees (cm)", short: "Median trunk", fmt: (v) => `${Math.round(v)} cm`, axis: (v) => `${Math.round(v)}`, ramp: GREENS, more: "Bigger trees", less: "Smaller trees",
+  dbh: { label: "Median trunk diameter of street trees (cm)", short: "Median trunk", fmt: (v) => `${Math.round(v)} cm`, axis: (v) => `${Math.round(v)}`, ramp: GREENS, more: "Bigger trees", less: "Smaller trees", gap: "x",
     pool: W(NB.dbh, NB.trees), poolNote: "neighbourhood medians weighted by street trees" },
-  heat: { label: "Summer surface temperature against the city's (Landsat, 2022–2025)", short: "Surface heat", fmt: fmtC, axis: fmtC, ramp: HEAT, more: "Hotter", hot: true,
+  heat: { label: "Summer surface temperature against the city's (Landsat, 2022–2025)", short: "Surface heat", fmt: fmtC, axis: fmtC, ramp: HEAT, more: "Hotter ground", less: "Cooler ground", bad: true, hot: true, gap: "C",
     pool: W(NB.heat, D.pop), poolNote: "the average resident's: weighted by 2021 population" },
-  lst: { label: "Summer surface temperature, midday (Landsat, 2022–2025)", short: "Surface temperature", fmt: (v) => `${v.toFixed(1)}°C`, axis: (v) => `${Math.round(v)}°`, ramp: HEAT, more: "Hotter", hot: true,
+  lst: { label: "Summer surface temperature, midday (Landsat, 2022–2025)", short: "Surface temperature", fmt: (v) => `${v.toFixed(1)}°C`, axis: (v) => `${Math.round(v)}°`, ramp: HEAT, more: "Hotter ground", less: "Cooler ground", bad: true, hot: true, gap: "C",
     pool: W(NB.lst, D.pop), poolNote: "the average resident's: weighted by 2021 population" },
+  shannon: { label: "Street-tree species diversity (Shannon index)", short: "Species diversity", fmt: (v) => v.toFixed(2), axis: (v) => v.toFixed(1), ramp: GREENS,
+    more: "More diverse", less: "Less diverse", gap: "d", da: false, pool: W(NB.shannon, NB.trees), poolNote: "weighted by street trees" },
+  maple: { label: "Norway maple, share of street trees", short: "Norway maple", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: ORANGES,
+    more: "More Norway maple", less: "Less Norway maple", bad: true, gap: "pts", da: false, pool: W(NB.maple, NB.trees), poolNote: "weighted by street trees" },
+  genus: { label: "Commonest genus, share of street trees", short: "Commonest genus", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: ORANGES,
+    more: "More of one genus", less: "Less of one genus", bad: true, gap: "pts", da: false, pool: W(NB.genus, NB.trees), poolNote: "weighted by street trees" },
 };
 const vals = (m = state.m) => NB[m];
 const income = (m = state.inc) => census.measures[m].values["2021"];
@@ -69,7 +78,7 @@ initTip();
 
 // ---- controls ----------------------------------------------------------------------------
 const select = $("measure");
-select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["Heat", ["heat", "lst"]]]
+select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["What's planted", ["shannon", "maple", "genus"]], ["Heat", ["heat", "lst"]]]
   .map(([g, ms]) => `<optgroup label="${g}">${ms.map((m) => `<option value="${m}">${escapeHTML(M[m].label)}</option>`).join("")}</optgroup>`).join("");
 select.addEventListener("change", () => set({ m: select.value }));
 $("income").innerHTML = INCOME.map((m) => `<option value="${m}">${escapeHTML(CENSUS[m].long)}, 2021</option>`).join("");
@@ -126,6 +135,7 @@ function renderShade() {
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   renderInside();
+  renderPlanted();
   renderHV();
   writeHash();
 });
@@ -139,7 +149,7 @@ function renderMap() {
     if (!incomeUp()) ic = 2 - ic;
     // columns run toward the concern: less of the trees, more of the heat
     const mc = cls(m3.edges, vs[i]);
-    return BI[ic][def.hot ? mc : 2 - mc];
+    return BI[ic][def.bad ? mc : 2 - mc];
   };
   const fill = (i) => (state.ov === "income" ? (inc[i] == null ? "url(#nb-hatch)" : blues[cls(inc6.edges, inc[i])])
     : state.ov === "both" ? (inc[i] == null ? "url(#nb-hatch)" : biCell(i)) : ramp[cls(m6.edges, vs[i])]);
@@ -157,9 +167,9 @@ function renderMap() {
     const ii = rangeLabels(inc3.edges, inc3.zero, fi);
     $("bi-key").hidden = false;
     const mr = rangeLabels(m3.edges, m3.zero, def.fmt);
-    $("bi-key").innerHTML = biKey({ xName: def.label, xRanges: def.hot ? mr : [...mr].reverse(), xArrow: `${def.hot ? def.more : def.less} →`,
+    $("bi-key").innerHTML = biKey({ xName: def.label, xRanges: def.bad ? mr : [...mr].reverse(), xArrow: `${def.bad ? def.more : def.less} →`,
       yName: `${incName}, 2021`, yRanges: incomeUp() ? ii : [...ii].reverse(), yArrow: incomeUp() ? "Higher income ↑" : "Less low income ↑" });
-    $("map-lede").innerHTML = `${escapeHTML(def.label)}, against ${escapeHTML(lc(incName)).replace("lim-at", "LIM-AT")} in 2021: each in thirds of the neighbourhoods. Reds are ${def.hot ? "hotter ground" : escapeHTML(lc(def.less))} with lower income; teals higher income with ${def.hot ? "cooler ground" : escapeHTML(lc(def.more))}; the darkest corner, ${def.hot ? "hot ground with higher income" : `${escapeHTML(lc(def.less))} with higher income`}. Hover for figures.`;
+    $("map-lede").innerHTML = `${escapeHTML(def.label)}, against ${escapeHTML(lc(incName)).replace("lim-at", "LIM-AT")} in 2021: each in thirds of the neighbourhoods. Reds are ${escapeHTML(lc(def.bad ? def.more : def.less))} with lower income; teals higher income with ${escapeHTML(lc(def.bad ? def.less : def.more))}; the darkest corner, ${escapeHTML(lc(def.bad ? def.more : def.less))} with higher income. Hover for figures.`;
   } else {
     $("bi-key").hidden = true;
     const [b, colours, f] = state.ov === "income" ? [inc6, blues, fi] : [m6, ramp, def.fmt];
@@ -186,7 +196,7 @@ function renderIncome() {
       return `<td style="background:${ramp[c5]};color:${c5 >= 3 || (def.hot && c5 === 0) ? "#fff" : INK}" data-tip="${escapeHTML(`${def.short}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${def.fmt(r)}</b><br>${def.poolNote}`)}">${def.fmt(r)}</td>`;
     }).join("");
     const gap = rs[4] - rs[0];
-    return `<tr${k === state.m ? ' class="sel"' : ""}><th>${escapeHTML(def.short)}</th>${cells}<td>${def.fmt(city)}</td><td><b>${def.hot || k === "canopy" || k === "large" ? `${sign(+gap.toFixed(1))}${Math.abs(gap).toFixed(1)}${def.hot ? "°C" : " pts"}` : `${(rs[4] / rs[0]).toFixed(2)}×`}</b></td></tr>`;
+    return `<tr${k === state.m ? ' class="sel"' : ""}><th>${escapeHTML(def.short)}</th>${cells}<td>${def.fmt(city)}</td><td><b>${def.gap === "x" ? `${(rs[4] / rs[0]).toFixed(2)}×` : def.gap === "d" ? `${sign(+gap.toFixed(2))}${Math.abs(gap).toFixed(2)}` : `${sign(+gap.toFixed(1))}${Math.abs(gap).toFixed(1)}${def.gap === "C" ? "°C" : " pts"}`}</b></td></tr>`;
   }).join("");
   const head = ["Lowest", "Second", "Middle", "Fourth", "Highest"].map((n, q) => `<th>${n}<br><span class="small">${range(fifths[q])}</span></th>`).join("");
   $("inc-table").innerHTML = `<thead><tr><th>Measure</th>${head}<th>City</th><th>Highest vs lowest</th></tr></thead><tbody>${rows}</tbody>`;
@@ -268,7 +278,7 @@ new IntersectionObserver(async (entries, obs) => {
   if (!entries.some((e) => e.isIntersecting)) return;
   obs.disconnect();
   DA = await fetch(`/trees_da.json?v=${__TREES_DA_VERSION__}`).then((r) => r.json());
-  for (const m of Object.keys(M)) daBreaks[m] = breaks(DA.nbhd.flatMap((n) => n[m]));
+  for (const m of Object.keys(M)) if (M[m].da !== false) daBreaks[m] = breaks(DA.nbhd.flatMap((n) => n[m]));
   renderInside();
 }, { rootMargin: "600px 0px" }).observe($("inside"));
 const quant = (vs, q) => {
@@ -277,11 +287,11 @@ const quant = (vs, q) => {
   return s[lo] + (s[Math.ceil(pos)] - s[lo]) * (pos - lo);
 };
 function renderInside() {
-  const i = inNb(), def = M[state.m];
+  const i = inNb(), dm = M[state.m].da === false ? "canopy" : state.m, def = M[dm];
   $("in-nb").value = i;
   renderSpread();
   if (!DA) return;
-  const n = DA.nbhd[i], vs = n[state.m], b = daBreaks[state.m];
+  const n = DA.nbhd[i], vs = n[dm], b = daBreaks[dm];
   const ramp = def.ramp.slice(def.ramp.length - b.edges.length - 1);
   const heat = n.heat, okH = heat.map((v, k) => (v == null ? null : k)).filter((k) => k != null);
   const hot = okH.reduce((a, k) => (heat[k] > heat[a] ? k : a), okH[0]), cool = okH.reduce((a, k) => (heat[k] < heat[a] ? k : a), okH[0]);
@@ -305,7 +315,7 @@ function renderInside() {
     <dt>Coolest DA</dt><dd>${fmtC(heat[cool])} · canopy ${M.canopy.fmt(n.canopy[cool])} · ${fmtN(n.pop[cool])} residents</dd>
     <dt>Heat gap</dt><dd><b>${(p90 - p10).toFixed(1)}°C</b> between its 10th and 90th percentile DAs ${rank ? `(${ordinal(rank)} widest of ${widest.length})` : "(too few DAs to rank)"}</dd>
     <dt>Canopy and heat</dt><dd>${r ? `Pearson r <b>${fmtR(r.r)}</b> across its DAs` : "too few DAs to say"}</dd>`;
-  $("in-lede").innerHTML = `${escapeHTML(nbhd[i].name)}'s ${n.dauid.length} dissemination areas by ${escapeHTML(lc(def.label))}, on the same classes as all the city's DAs (so a colour means the same in every neighbourhood). Heat is against the city's on the same days, as above; a DA is a few blocks, but the thermal pixels are 100 m, so a small DA's figure includes its surroundings. Pick a neighbourhood on the map or from the list.`;
+  $("in-lede").innerHTML = `${escapeHTML(nbhd[i].name)}'s ${n.dauid.length} dissemination areas by ${escapeHTML(lc(def.label))}, on the same classes as all the city's DAs (so a colour means the same in every neighbourhood)${dm !== state.m ? `; ${escapeHTML(lc(M[state.m].short))} is only figured by neighbourhood, so this shows canopy` : ""}. Heat is against the city's on the same days, as above; a DA is a few blocks, but the thermal pixels are 100 m, so a small DA's figure includes its surroundings. Pick a neighbourhood on the map or from the list.`;
 }
 function renderSpread() {
   const order = widest.slice(0, 10), max = D.spread[order[0]];
@@ -374,6 +384,46 @@ function renderHV() {
   $("hv-note").textContent = "Sorted by heat and vulnerability rank together. Neighbourhood figures describe places, not people: not everyone in a hot, vulnerable neighbourhood is at risk, nor everyone at risk in one. Surface heat is the ground and roofs at midday, not the air indoors at night, which is what does most harm in a heat wave.";
 }
 
+// ---- 6. what's planted: species and the 10-20-30 rule -------------------------------------------------
+// The rule of thumb (Santamour 1990): no species over 10% of a street-tree population, no genus
+// over 20%, no family over 30%, so that one pest or disease can't take most of the trees.
+const RULE = [["species", 10], ["genus", 20], ["family", 30]];
+function ruleBars(vals) {
+  return RULE.map(([k, lim], j) => {
+    const [name, v] = vals[j], over = v > lim, w = Math.min(100, (v / 40) * 100);
+    return `<li><span class="cl-name">${k[0].toUpperCase() + k.slice(1)}: ${escapeHTML(name)}</span>
+      <span class="rule-bar"><span class="rule-fill" style="width:${w}%;background:${over ? ORANGES[4] : GREENS[3]}"></span><span class="rule-lim" style="left:${(lim / 40) * 100}%" title="Limit ${lim}%"></span></span>
+      <span class="cl-val">${v.toFixed(1)}%</span></li>`;
+  }).join("");
+}
+function speciesList(rows, total) {
+  const max = rows[0]?.[1] ?? 1;
+  return rows.map(([name, t], k) => `<li><span class="rk">${k + 1}</span><span class="nm">${escapeHTML(name)}</span>
+    <span class="barcell"><span class="bar-fill" style="width:${((t / max) * 100).toFixed(1)}%;background:${/maple/i.test(name) ? ORANGES[3] : GREENS[3]}"></span></span>
+    <span class="vl">${((t / total) * 100).toFixed(1)}%</span><span class="move"></span></li>`).join("");
+}
+function renderPlanted() {
+  const S = D.species_city, top = S.top;
+  const cityRows = top.slice(0, 12).map((x) => [`${x.common} (${x.species})`, x.trees]);
+  $("pl-city").innerHTML = speciesList(cityRows, D.city.trees);
+  $("pl-city-rule").innerHTML = ruleBars([[top[0].common, top[0].share], [S.top_genus[0], S.top_genus[1]], [S.top_family[0], S.top_family[1]]]);
+  const i = state.nb, meets = NB.meets.filter(Boolean).length;
+  const over = (k, lim) => NB[k].filter((v) => v > lim).length;
+  $("pl-lede").innerHTML = `The City's ${fmtN(D.city.trees)} street trees are ${S.n} species from ${S.genera} genera and ${S.families} families. A rule of thumb for a resilient street-tree population is no more than 10% of one species, 20% of one genus and 30% of one family, so one pest can't take most of them: since 2007 emerald ash borer has killed most of Toronto's ash, now <b>${S.ash}%</b> of street trees. City-wide, Norway maple, a European species considered invasive in Ontario's woodlands and ravines, is <b>${top[0].share.toFixed(1)}%</b> of street trees and maples together <b>${S.top_genus[1]}%</b>. Only <b>${meets}</b> of ${N} neighbourhoods meet all three limits: ${over("species_top", 10)} have one species over 10%, ${over("genus", 20)} one genus over 20%, ${over("family", 30)} one family over 30%.`;
+  if (i == null) {
+    $("pl-nb-h").textContent = "Pick a neighbourhood";
+    $("pl-nb").innerHTML = "";
+    $("pl-nb-rule").innerHTML = "";
+    $("pl-nb-note").textContent = "Pick one on the map, in a list, or under Inside the neighbourhood, to see its commonest street trees.";
+    return;
+  }
+  const rows = D.species.nbhd[i].map(([k, t]) => [D.species.names[k], t]);
+  $("pl-nb-h").textContent = nbhd[i].name;
+  $("pl-nb").innerHTML = speciesList(rows, NB.trees[i]);
+  $("pl-nb-rule").innerHTML = ruleBars([[rows[0]?.[0] ?? "—", NB.species_top[i]], [NB.genus_name[i], NB.genus[i]], [NB.family_name[i], NB.family[i]]]);
+  $("pl-nb-note").textContent = `${fmtN(NB.trees[i])} street trees of ${NB.species_n[i]} species; diversity (Shannon) ${NB.shannon[i].toFixed(2)}, ${ordinal(rankOrder(NB.shannon).indexOf(i) + 1)} of ${N}. ${NB.meets[i] ? "Meets all three limits." : "Over at least one limit."}`;
+}
+
 function render() {
   controls();
   renderMap();
@@ -383,6 +433,7 @@ function render() {
   renderShade();
   renderInside();
   renderHV();
+  renderPlanted();
   writeHash();
 }
 renderCards();

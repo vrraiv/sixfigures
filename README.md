@@ -76,7 +76,10 @@ the city-wide DA classes) with its hottest and coolest DA and the heat gap betwe
 90th percentile DAs, and lists the widest gaps. Hot and vulnerable scores each neighbourhood's
 vulnerability as its mean percentile rank on census measures the reader ticks (65 and over, low
 income and 5+ storey apartments by default; renters, crowding, children) and maps it against
-heat, listing the neighbourhoods in the top third on both; those outlines are `trees_da.json` (0.6 MB,
+heat, listing the neighbourhoods in the top third on both. What's planted lists the commonest street
+trees city-wide and in a picked neighbourhood against the 10-20-30 rule (no species over 10%,
+genus over 20%, family over 30%), and species diversity, Norway maple's share and the commonest
+genus's share can be mapped (`pipeline/trees.py --species` writes the species tables); those outlines are `trees_da.json` (0.6 MB,
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 
