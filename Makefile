@@ -282,6 +282,12 @@ $(LAYERS):
 safety:
 	$(PYTHON) pipeline/safety_insights.py
 
+# Canopy change 2008 to 2018 alone (pipeline/trees/canopy_change_nbhd.csv), without the canopy and
+# Landsat steps of `make trees`.
+.PHONY: canopy-change
+canopy-change:
+	$(PYTHON) pipeline/trees.py --canopy-change
+
 # The Trees and Heat page's trees.json, from pipeline/trees/ (make trees) and the layers
 # safety.json correlates with, plus pipeline/crime/rates.csv.
 .PHONY: trees-page

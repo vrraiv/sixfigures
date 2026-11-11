@@ -31,6 +31,7 @@ const F = {
   degC: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)}°C`,
   temp: (v) => `${v.toFixed(1)}°C`,
   index: (v) => v.toFixed(2),
+  pts: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)} pts`,
 };
 export const fmt = (d, v) => (v == null ? "—" : F[d.unit](v));
 export const fmtAxis = (d, v) => (d.unit === "money" && Math.abs(v) >= 10000 ? `$${Math.round(v / 1000)}k` : d.unit === "pct" ? `${+v.toFixed(1)}%` : fmt(d, v));
@@ -39,7 +40,7 @@ export const fmtDiff = (d, v) => {
   if (v == null) return "—";
   const a = Math.abs(v), s = sign(+v.toFixed(2));
   return d.unit === "money" ? `${s}$${num(Math.round(a), 0)}` : d.unit === "pct" ? `${s}${a.toFixed(1)} pp`
-    : d.unit === "degC" || d.unit === "temp" ? `${s}${a.toFixed(1)}°C` : `${s}${F[d.unit === "index" ? "index" : "rate"](a)}`;
+    : d.unit === "degC" || d.unit === "temp" ? `${s}${a.toFixed(1)}°C` : d.unit === "pts" ? `${s}${a.toFixed(1)} pts` : `${s}${F[d.unit === "index" ? "index" : "rate"](a)}`;
 };
 export const fmtDiffAxis = (d, v) => (d.unit === "money" && Math.abs(v) >= 1000 ? `${sign(Math.round(v))}$${+(Math.abs(v) / 1000).toFixed(Math.abs(v) < 10000 ? 1 : 0)}k` : fmtDiff(d, v));
 // a label inside a sentence: lower-case its first letter unless it is a name

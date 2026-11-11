@@ -1,0 +1,141 @@
+hood_140,name,tree_2008,tree_2018,change
+1,West Humber-Clairville,10.0,9.0,-0.8
+2,Mount Olive-Silverstone-Jamestown,29.0,24.0,-4.1
+3,Thistletown-Beaumond Heights,44.0,40.0,-4.4
+4,Rexdale-Kipling,30.0,27.0,-3.1
+5,Elms-Old Rexdale,34.0,30.0,-3.7
+6,Kingsview Village-The Westway,32.0,26.0,-6.6
+7,Willowridge-Martingrove-Richview,31.0,25.0,-6.0
+8,Humber Heights-Westmount,44.0,38.0,-6.6
+9,Edenbridge-Humber Valley,51.0,45.0,-5.9
+10,Princess-Rosethorn,39.0,38.0,-0.8
+11,Eringate-Centennial-West Deane,27.0,24.0,-3.7
+12,Markland Wood,36.0,32.0,-3.4
+13,Etobicoke West Mall,25.0,21.0,-3.8
+14,Islington-City Centre West,18.0,17.0,-1.4
+15,Kingsway South,53.0,47.0,-5.7
+16,Stonegate-Queensway,32.0,34.0,2.3
+17,Mimico (includes Humber Bay Shores),15.0,16.0,0.5
+18,New Toronto,15.0,15.0,-0.2
+19,Long Branch,33.0,31.0,-1.9
+20,Alderwood,22.0,21.0,-0.8
+21,Humber Summit,13.0,11.0,-1.7
+22,Humbermede,23.0,19.0,-3.3
+23,Pelmo Park-Humberlea,25.0,21.0,-4.1
+24,Black Creek,21.0,15.0,-6.8
+25,Glenfield-Jane Heights,23.0,17.0,-6.1
+26,Downsview-Roding-CFB,16.0,12.0,-4.1
+27,York University Heights,16.0,13.0,-2.6
+28,Rustic,26.0,18.0,-7.8
+29,Maple Leaf,32.0,23.0,-9.3
+30,Brookhaven-Amesbury,24.0,20.0,-4.1
+31,Yorkdale-Glen Park,11.0,9.0,-2.1
+32,Englemount-Lawrence,27.0,22.0,-4.4
+33,Clanton Park,25.0,19.0,-6.0
+34,Bathurst Manor,38.0,33.0,-4.8
+35,Westminster-Branson,38.0,32.0,-5.5
+36,Newtonbrook West,31.0,25.0,-6.3
+37,Willowdale West,39.0,29.0,-9.7
+38,Lansing-Westgate,53.0,46.0,-7.2
+39,Bedford Park-Nortown,42.0,34.0,-8.6
+40,St.Andrew-Windfields,43.0,37.0,-6.1
+41,Bridle Path-Sunnybrook-York Mills,62.0,54.0,-7.5
+42,Banbury-Don Mills,42.0,35.0,-7.6
+43,Victoria Village,32.0,28.0,-4.9
+44,Flemingdon Park,41.0,37.0,-3.8
+45,Parkwoods-Donalda,41.0,34.0,-7.1
+46,Pleasant View,28.0,20.0,-8.0
+47,Don Valley Village,33.0,26.0,-6.7
+48,Hillcrest Village,29.0,25.0,-4.2
+49,Bayview Woods-Steeles,46.0,41.0,-4.3
+50,Newtonbrook East,38.0,32.0,-6.4
+51,Willowdale East,37.0,29.0,-8.4
+52,Bayview Village,46.0,41.0,-5.6
+53,Henry Farm,26.0,20.0,-6.0
+54,O'Connor-Parkview,40.0,40.0,-0.6
+55,Thorncliffe Park,24.0,26.0,1.9
+56,Leaside-Bennington,46.0,43.0,-3.1
+57,Broadview North,38.0,39.0,1.1
+58,Old East York,32.0,33.0,0.9
+59,Danforth East York,19.0,20.0,0.8
+60,Woodbine-Lumsden,28.0,28.0,-0.3
+61,Taylor-Massey,34.0,35.0,1.1
+62,East End-Danforth,30.0,28.0,-1.2
+63,The Beaches,39.0,38.0,-1.4
+64,Woodbine Corridor,42.0,38.0,-3.9
+65,Greenwood-Coxwell,32.0,29.0,-2.2
+66,Danforth,25.0,24.0,-1.1
+67,Playter Estates-Danforth,35.0,32.0,-3.3
+68,North Riverdale,33.0,33.0,-0.3
+69,Blake-Jones,26.0,26.0,-0.2
+70,South Riverdale,14.0,16.0,1.6
+71,Cabbagetown-South St.James Town,44.0,45.0,1.0
+72,Regent Park,19.0,14.0,-4.9
+73,Moss Park,15.0,19.0,3.9
+74,North St.James Town,15.0,16.0,1.4
+75,Church-Yonge Corridor,9.0,11.0,2.4
+76,Bay Street Corridor,8.0,9.0,1.6
+77,Waterfront Communities-The Island,11.0,13.0,2.1
+78,Kensington-Chinatown,12.0,15.0,3.1
+79,University,17.0,21.0,3.9
+80,Palmerston-Little Italy,20.0,23.0,2.2
+81,Trinity-Bellwoods,14.0,20.0,5.8
+82,Niagara,9.0,12.0,3.6
+83,Dufferin Grove,18.0,19.0,0.9
+84,Little Portugal,10.0,14.0,4.3
+85,South Parkdale,16.0,19.0,3.6
+86,Roncesvalles,21.0,25.0,3.8
+87,High Park-Swansea,51.0,49.0,-2.6
+88,High Park North,38.0,32.0,-6.0
+89,Runnymede-Bloor West Village,33.0,31.0,-2.2
+90,Junction Area,18.0,16.0,-2.3
+91,Weston-Pellam Park,11.0,11.0,0.6
+92,Corso Italia-Davenport,18.0,20.0,2.0
+93,Dovercourt-Wallace Emerson- Junction,11.0,14.0,3.0
+94,Wychwood,27.0,27.0,-0.4
+95,Annex,28.0,28.0,-0.5
+96,Casa Loma,46.0,42.0,-4.5
+97,Yonge-St.Clair,37.0,33.0,-3.9
+98,Rosedale-Moore Park,55.0,52.0,-2.6
+99,Mount Pleasant East,45.0,44.0,-1.6
+100,Yonge-Eglinton,36.0,30.0,-5.4
+101,Forest Hill South,45.0,41.0,-4.4
+102,Forest Hill North,37.0,36.0,-1.1
+103,Lawrence Park South,56.0,44.0,-11.8
+104,Mount Pleasant West,24.0,22.0,-2.3
+105,Lawrence Park North,49.0,34.0,-14.9
+106,Humewood-Cedarvale,37.0,35.0,-1.8
+107,Oakwood Village,15.0,16.0,1.5
+108,Briar Hill-Belgravia,9.0,10.0,1.0
+109,Caledonia-Fairbank,21.0,22.0,1.2
+110,Keelesdale-Eglinton West,21.0,14.0,-6.3
+111,Rockcliffe-Smythe,30.0,26.0,-4.4
+112,Beechborough-Greenbrook,26.0,21.0,-4.5
+113,Weston,31.0,25.0,-6.9
+114,Lambton Baby Point,45.0,49.0,4.0
+115,Mount Dennis,33.0,30.0,-2.9
+116,Steeles,22.0,16.0,-6.5
+117,L'Amoreaux,32.0,22.0,-9.6
+118,Tam O'Shanter-Sullivan,32.0,24.0,-7.6
+119,Wexford/Maryvale,20.0,15.0,-4.4
+120,Clairlea-Birchmount,17.0,17.0,-0.8
+121,Oakridge,28.0,31.0,2.8
+122,Birchcliffe-Cliffside,34.0,36.0,2.0
+123,Cliffcrest,34.0,37.0,2.6
+124,Kennedy Park,23.0,23.0,-0.1
+125,Ionview,21.0,22.0,1.0
+126,Dorset Park,11.0,11.0,0.7
+127,Bendale,24.0,25.0,1.2
+128,Agincourt South-Malvern West,18.0,18.0,0.3
+129,Agincourt North,17.0,17.0,0.1
+130,Milliken,11.0,9.0,-1.6
+131,Rouge,34.0,35.0,1.1
+132,Malvern,14.0,20.0,5.8
+133,Centennial Scarborough,33.0,36.0,3.1
+134,Highland Creek,28.0,29.0,1.9
+135,Morningside,40.0,43.0,2.9
+136,West Hill,35.0,37.0,2.0
+137,Woburn,22.0,26.0,3.3
+138,Eglinton East,20.0,22.0,2.1
+139,Scarborough Village,36.0,38.0,2.5
+140,Guildwood,44.0,43.0,-0.9

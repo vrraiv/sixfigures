@@ -87,6 +87,7 @@ it's worth an enquiry, but the plan doesn't depend on it.
 | Short-term rental registrations | `short-term-rentals-registration` | current snapshot (no dates) | address, FSA, ward | Exploratory | today only | 8,586 registrations (2026-11-11); no history, so no backtest use; ingested by `pipeline/rentals.py` |
 | Municipal election results (Mayor) | `election-results-official` (2022), `elections-official-by-election-results` (2023 by-election), `elections-voter-statistics`, `elections-by-election-voter-statistics`, `elections-subdivisions` | 2022, 2023 (2026 results posted, no boundaries yet) | voting subdivision to DA and neighbourhood | Exploratory (turnout and vote shares against census income) | known | ward and city totals equal the workbooks and the Clerk's declarations (551,890; 724,638); electors vs 2021 population r 0.94 by neighbourhood |
 | Street trees | `street-tree-data` | as available (2026-06-04) | points (geocoded, many to the parcel address) | Exploratory: trees per ha, DBH, species by DA | today only | 688,335 rows = datastore total; 22 outside DAs; City street trees only, no parks or private |
+| Tree cover by neighbourhood, 2008 | `wellbeing-toronto-environment` ("Tree Cover", reference period 2008) | 2008 | 140-model neighbourhoods (m2 of tree foliage) | Canopy change 2008 to 2018 (`trees.py --canopy-change`) | 2008 | 179.4 km2; against the 2018 land cover it reproduces the 2018 study's Table 35 (r 0.995 on the change) |
 | Forest and land cover (2018 Tree Canopy Study) | `forest-and-land-cover` | 2018 | 8-class land-cover polygons (EPSG:2952) | Exploratory: canopy share by DA | 2018 | 166.4 km2 tree class, 26.2% of DA area; canopy share vs median household income r 0.43 |
 | Toronto Employment Survey | `toronto-employment-survey-summary-tables` | annual | summary tables (geography to be checked) | City anchor (jobs) | known | |
 | TTC routes and schedules (GTFS); transit-oriented communities | `ttc-routes-and-schedules`, `transit-oriented-communities` | current | stops, sites | Driver (new rapid transit near a DA) | known for opened lines | |
@@ -232,6 +233,15 @@ pieces snapped to the nearest DA within 2 m), and DAs in neighbourhoods by
   pass's city mean (`lst_anom`: r -0.69 with canopy share, -0.19 with median household
   income). Canopy share, not street trees per ha (r +0.16 with `lst_anom`), is the
   measure for heat. Needs `rasterio`.
+  - **The package's "2008 Tree Canopy Study" file is not 2008 data.** `cotlandcover.rar`
+    (617 MB, RAR5; `bsdtar` opens it) is the 2018 land cover again, undissolved: its class
+    areas equal the 2018 geodatabase's to 0.01 km2 and its tree area by DA correlates
+    0.9999 with it (read as NAD27 MTM 10). Checked 2026-11-11; it isn't fetched.
+  - **Canopy change 2008 to 2018** therefore uses the City's 2008 totals by
+    neighbourhood (above). The 2008 map has one tree class and the 2018 map splits tree
+    from shrub by LiDAR height, so the city's change is -2.0 points (2018 as trees) or
+    +2.7 (trees and shrubs); the study's sampled headline is +1.8. The two readings'
+    neighbourhood changes correlate 0.87, so the page shows change against the city's.
 
 ### Not pursued
 

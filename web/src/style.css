@@ -780,6 +780,13 @@ body.doc { display: block; height: auto; }
 .ex-src { display: block; font-size: 11px; color: var(--ink-3); }
 section[hidden] { display: none; }
 
+/* Trees and Heat: canopy change */
+.cc-list li { grid-template-columns: 22px minmax(0, 1.4fr) minmax(50px, 1fr) 78px 0; }
+#cc-city { margin-bottom: 4px; }
+#cc-city td.txt { white-space: normal; max-width: 360px; overflow: visible; }
+#cc-city td.cc-up { color: #184f95; font-weight: 600; }
+#cc-city td.cc-down { color: #8f1c1c; font-weight: 600; }
+
 /* ---- Forecasts ---- */
 .fc-doc p, .fc-doc li { max-width: 78ch; font-size: 14px; }
 .fc-doc ul { padding-left: 20px; }
