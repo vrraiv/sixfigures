@@ -20,8 +20,8 @@ prices.json, housing.json, trees.json, pipeline/elections and pipeline/rentals).
                    source's measures is first used
 
 Units: money (dollars), pct (percent), rate (per 100,000 or per 1,000, said in
-the label), score, degC (a difference in Celsius), temp (Celsius), index, cm,
-count.
+the label), score, degC (a difference in Celsius), temp (Celsius), index, pts (a
+difference in percentage points).
 
 How each source is shaped for comparison:
   census     the 27 measures in 2006, 2011, 2016 and 2021 (insights.json). Dollars
@@ -243,6 +243,9 @@ def trees(b: Book):
             ("large", "Large street trees (trunk 50 cm or more), share", "Large street trees", "pct", "2026", 2026, ""),
             ("shannon", "Street-tree species diversity (Shannon index)", "Species diversity", "index", "2026", 2026, ""),
             ("maple", "Norway maple, share of street trees", "Norway maple", "pct", "2026", 2026, ""),
+            ("chg", "Tree canopy change against the city's, 2008 to 2018 (points)", "Canopy change", "pts", "2008–18", 2018,
+             "From the City's 2008 and 2018 land-cover maps, tree class in both; the level of change is uncertain, so each "
+             "neighbourhood is shown against the city's. Parts of a neighbourhood split since 2008 share its figure."),
             ("heat", "Summer surface temperature against the city's", "Surface heat", "degC", "2022–25", 2024,
              "Landsat, 11 clear summer days, 2022 to 2025: the ground and roofs at midday, not the air.")):
         b.add("trees", key, label, short, unit, [when], [yr], "snapshot", [t[key]], note=note, digits=2)

@@ -11,6 +11,21 @@
       "name": "toronto_tree_canopy_2018.zip",
       "bytes": 436398730,
       "retrieved": "2026-11-11"
+    },
+    "tree_cover_2008": {
+      "name": "wellbeing_toronto_environment.xlsx",
+      "bytes": 31091,
+      "retrieved": "2026-11-11"
+    },
+    "neighbourhoods_140": {
+      "name": "toronto_neighbourhoods_140_4326.geojson",
+      "bytes": 2007772,
+      "retrieved": "2026-11-11"
+    },
+    "neighbourhoods_158": {
+      "name": "toronto_neighbourhoods_4326.geojson",
+      "bytes": 2141269,
+      "retrieved": "2026-11-11"
     }
   },
   "landsat": {
@@ -521,6 +536,44 @@
       "nbhds_meeting_10_20_30": 2,
       "species_by_nbhd_rows": 1896,
       "trees_in_nbhds": 688276
+    },
+    "canopy_change": {
+      "neighbourhoods_140": 140,
+      "unchanged_ids": 124,
+      "split_parents": 16,
+      "parts_of_split": 34,
+      "min_share_inside_parent": 0.9934,
+      "city_pct": {
+        "tree_2008": 27.91,
+        "tree_2018": 25.89,
+        "treeshrub_2018": 30.59
+      },
+      "tree_km2": {
+        "2008": 179.4,
+        "2018": 166.41,
+        "2018_with_shrub": 196.59
+      },
+      "tree_only": {
+        "rose": 48,
+        "fell": 92
+      },
+      "tree_and_shrub": {
+        "rose": 85,
+        "fell": 55
+      },
+      "rose_on_both": 48,
+      "fell_on_both": 55,
+      "changes_r": 0.872,
+      "vs_study_table35": {
+        "n": 140,
+        "r_2008": 0.9991,
+        "r_2018": 0.9996,
+        "r_change": 0.9953,
+        "mean_abs_diff_change": 0.17,
+        "max_abs_diff_change": 2.63,
+        "table_rose": 47,
+        "table_fell": 93
+      }
     },
     "canopy": {
       "polygons": 343873,

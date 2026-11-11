@@ -83,7 +83,11 @@ genus's share can be mapped (`pipeline/trees.py --species` writes the species ta
 canopy sets the City's target (40% canopy cover by 2050, city-wide; reaffirmed by Council in 2021)
 against the canopy measured here (26.2%; the City's own 2018 estimate is 28.4-31%) and lists the
 neighbourhoods furthest from 40% of their area, in hectares or points, and points to the City's
-Tree Equity Score Analyzer for planting priorities. Day by day maps each of the 11 Landsat days on
+Tree Equity Score Analyzer for planting priorities. Canopy change, 2008 to 2018, sets the City's
+2008 tree cover by neighbourhood against its 2018 land cover: the city-wide change depends on
+whether 2018's shrubs count (27.9% to 25.9% as trees only, to 30.6% with shrubs; the City's
+sampled headline is 26.6% to 28.4%), so the map shows each neighbourhood's change against the
+city's, on either reading (`pipeline/trees.py --canopy-change`). Day by day maps each of the 11 Landsat days on
 one colour scale and lists the neighbourhoods in the hottest sixth on nearly every day
 (`pipeline/trees.py` writes `lst_by_pass_nbhd.csv`); those outlines are `trees_da.json` (0.6 MB,
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`

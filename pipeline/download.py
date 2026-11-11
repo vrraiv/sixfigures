@@ -186,6 +186,11 @@ TORONTO = {
     # Street trees and 2018 land cover (trees.py); 145 MB and 436 MB
     "toronto_street_trees_4326.csv": ("street-tree-data", "Street Tree Data - 4326.csv", b"_id,"),
     "toronto_tree_canopy_2018.zip": ("forest-and-land-cover", "2018 Tree Canopy Study Geodatabase", b"PK"),
+    # Canopy change 2008 to 2018 (trees.py): the 2008 study's tree cover by 140-model neighbourhood,
+    # and those neighbourhoods' boundaries. (The package's "2008 Tree Canopy Study" RAR is the 2018
+    # land cover again, so it isn't fetched.)
+    "wellbeing_toronto_environment.xlsx": ("wellbeing-toronto-environment", "wellbeing-toronto-environment", b"PK"),
+    "toronto_neighbourhoods_140_4326.geojson": ("neighbourhoods", "Neighbourhoods - historical 140 - 4326.geojson", b"{"),
     # DineSafe inspections (health.py), a rolling ~3-year window refreshed daily
     "toronto_dinesafe.csv": ("dinesafe", "Dinesafe.csv", b"_id,"),
 }
@@ -200,6 +205,9 @@ INSIDEAIRBNB_DATES = ["2025-12-12", "2026-03-19", "2026-06-15", "2026-09-16"]
 # Deprivation indexes by 2021 DA (health.py), plain downloads (zip or xlsx).
 # ON-Marg: non-commercial use only, credit PHO and St. Michael's, no modification
 # (see health.py); CIMD: Statistics Canada Open Licence, from www150 (no bot challenge).
+# The City's 2018 Tree Canopy Study (trees.py reads its Table 35 as a check; optional)
+STUDY_2018 = ("toronto_tree_canopy_study_2018.pdf", "https://www.toronto.ca/legdocs/mmis/2020/ie/bgrd/backgroundfile-141368.pdf")
+
 HEALTH = {
     "index-on-marg-2021.xlsx": "https://www.publichealthontario.ca/-/media/Data-Files/index-on-marg.xlsx",
     "cimd_2021_on_csv.zip": ("https://www150.statcan.gc.ca/n1/pub/45-20-0001/2023001/csv/"
@@ -435,6 +443,13 @@ def main() -> int:
         print(f"fetch   insideairbnb/{dest.name}")
         if not fetch(INSIDEAIRBNB.format(date), dest, b"\x1f\x8b", attempts=3):
             missing.append((f"insideairbnb/{dest.name}", INSIDEAIRBNB.format(date)))
+    name, url = STUDY_2018
+    if (RAW / name).exists():
+        print(f"ok      {name} ({(RAW / name).stat().st_size:,} bytes)")
+    else:
+        print(f"fetch   {name}")
+        if not fetch(url, RAW / name, b"%PDF", attempts=3):
+            optional.append((name, url))
     for name, url in HEALTH.items():
         dest = RAW / name
         if dest.exists() and zipfile.is_zipfile(dest):

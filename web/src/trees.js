@@ -14,6 +14,8 @@ const nbhd = census.nbhd, N = nbhd.length, INK = "#1a1a19", NB = D.nbhd;
 const GREENS = ["#e3f1dc", "#bfdfae", "#8fc67c", "#5ea852", "#357f34", "#1b5221"];
 // cool to hot, for surface temperature (classes, not centred on zero)
 const HEAT = ["#184f95", "#3987e5", "#9ec5f4", "#f2a39b", "#d9403f", "#8f1c1c"];
+// lost to gained, for canopy change
+const GAIN = ["#8f1c1c", "#d9403f", "#f2a39b", "#bfdfae", "#5ea852", "#1b5221"];
 const ORANGES = ["#fdebd3", "#fbcf9e", "#f6a85c", "#e57f2a", "#c25e12", "#8a3f0a"];
 const censusMeasures = Object.keys(CENSUS).filter((m) => census.measures[m]?.values["2021"]);
 const OTHER = Object.fromEntries(D.other.map((o) => [o.key, o]));
@@ -54,6 +56,9 @@ const M = {
   gap_ha: { label: "Canopy short of 40% of the area (hectares)", short: "Hectares short of 40%", fmt: (v) => `${fmtN(v)} ha`, axis: (v) => fmtN(v), ramp: ORANGES,
     more: "Further from 40%", less: "Closer to 40%", bad: true, gap: "x", da: false,
     pool: (idx) => sum(idx.map((i) => NB.gap_ha[i])), poolNote: "the fifth's neighbourhoods' gaps added up" },
+  chg: { label: "Canopy change against the city's, 2008 to 2018 (points)", short: "Canopy change", fmt: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)} pts`,
+    axis: (v) => `${sign(+v.toFixed(0))}${Math.abs(v).toFixed(0)}`, ramp: GAIN, more: "Gained canopy against the city", less: "Lost canopy against the city", gap: "pts", da: false,
+    pool: W(NB.chg, NB.area_ha), poolNote: "weighted by area; tree class in both years" },
 };
 const vals = (m = state.m) => NB[m];
 const income = (m = state.inc) => census.measures[m].values["2021"];
@@ -75,7 +80,7 @@ const state = {
   nb: nbIndex(hash.get("nb")),
 };
 const writeHash = () => {
-  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc, hv: [...hvState].join(","), gs: goalSort, day: DAYS[day].date });
+  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc, hv: [...hvState].join(","), gs: goalSort, cb: ccBasis, day: DAYS[day].date });
   if (state.sx) h.set("sx", state.sx);
   if (state.nb != null) h.set("nb", nbhd[state.nb].id);
   history.replaceState(null, "", `#${h}`);
@@ -84,7 +89,7 @@ initTip();
 
 // ---- controls ----------------------------------------------------------------------------
 const select = $("measure");
-select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["Toward 40% canopy", ["gap_pts", "gap_ha"]], ["What's planted", ["shannon", "maple", "genus"]], ["Heat", ["heat", "lst"]]]
+select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["Toward 40% canopy", ["gap_pts", "gap_ha", "chg"]], ["What's planted", ["shannon", "maple", "genus"]], ["Heat", ["heat", "lst"]]]
   .map(([g, ms]) => `<optgroup label="${g}">${ms.map((m) => `<option value="${m}">${escapeHTML(M[m].label)}</option>`).join("")}</optgroup>`).join("");
 select.addEventListener("change", () => set({ m: select.value }));
 $("income").innerHTML = INCOME.map((m) => `<option value="${m}">${escapeHTML(CENSUS[m].long)}, 2021</option>`).join("");
@@ -500,6 +505,45 @@ function renderAlways() {
   $("always-note").textContent = `The days each neighbourhood was in that day's hottest sixth of neighbourhoods, out of the days it had a figure. ${every} were in it every time.`;
 }
 
+// ---- 9. canopy change, 2008 to 2018 --------------------------------------------------------------------
+// From the City's two land-cover maps. The 2008 map has one tree class; the 2018 map splits tree from
+// shrub by height, so 2018 can be read as its tree class or as tree plus shrub. The level of change
+// differs with the reading, so the map shows each neighbourhood's change less the city's.
+let ccBasis = hash.get("cb") === "ts" ? "ts" : "tree";
+const CC_EDGES = [-6, -3, -1, 1, 3, 6];
+function renderCanopyChange() {
+  const X = D.change, ts = ccBasis === "ts", key = ts ? "treeshrub" : "tree";
+  seg($("cc-basis"), [["tree", "2018: trees only"], ["ts", "2018: trees and shrubs"]], ccBasis, (k) => { ccBasis = k; renderCanopyChange(); writeHash(); });
+  const now = ts ? X.treeshrub_2018 : X.tree_2018, rel = ts ? NB.chg_ts : NB.chg, cityChg = X.city_change[key];
+  const pts = (v, d = 1) => `${sign(+v.toFixed(d))}${Math.abs(v).toFixed(d)}`;
+  const row = (name, a, b, note, sel) => `<tr${sel ? ' class="sel"' : ""}><th>${name}</th><td>${a.toFixed(1)}%</td><td>${b.toFixed(1)}%</td><td class="${b > a ? "cc-up" : "cc-down"}">${pts(b - a)} pts</td><td class="txt small">${note}</td></tr>`;
+  $("cc-city").innerHTML = `<thead><tr><th>City-wide canopy</th><th>2008</th><th>2018</th><th>Change</th><th class="txt">How it is measured</th></tr></thead><tbody>
+    ${row("The City's headline", X.sampled["2008"], X.sampled["2018"], "trees and shrubs at 10,000 sample points on aerial photos; the only one with a margin of error", false)}
+    ${row("The maps, 2018 as trees only", X.city.tree_2008, X.city.tree_2018, "the comparison in the study's own table by neighbourhood", !ts)}
+    ${row("The maps, 2018 as trees and shrubs", X.city.tree_2008, X.city.treeshrub_2018, "what the study quotes for 2018's map (31%)", ts)}</tbody>`;
+  $("cc-lede").innerHTML = `Did canopy grow? It depends on how it is counted. The City's <a href="${X.study}">2018 Tree Canopy Study</a> reports a rise, from point sampling. Its two land-cover maps, the only source that reaches neighbourhoods, disagree with each other: the 2008 map has a single tree class, while the 2018 map used laser height data to separate trees from shrubs, and the City counts both as canopy. Read 2018 as trees only and the city lost canopy; add the shrubs and it gained. A like-for-like figure probably lies between the two, so the size of the change can't be read from the maps.`;
+  $("cc-map-lede").innerHTML = `What the maps do show is <b>which neighbourhoods did better or worse than the city</b>: each neighbourhood's change in canopy share, less the city's change (${pts(cityChg)} points on this reading). The two readings rank the neighbourhoods much the same way (their changes correlate ${fmtR(X.r)}). Of the ${X.counts.n} neighbourhoods as they were in 2008, <b>${X.counts.rose_on_both}</b> gained canopy on both readings and <b>${X.counts.fell_on_both}</b> lost on both; the other ${X.counts.n - X.counts.rose_on_both - X.counts.fell_on_both} depend on whether shrubs are counted.`;
+  const pal = [...GAIN.slice(0, 3), "#f0efec", ...GAIN.slice(3)];
+  const mates = (i) => nbhd.map((n, j) => (j !== i && X.group[j] === X.group[i] ? n.name : null)).filter(Boolean);
+  $("cc-map").innerHTML = `<svg viewBox="0 0 ${census.map.width} ${census.map.height}" role="img" aria-label="Map of the neighbourhoods by canopy change against the city's, 2008 to 2018">${nbhd.map((n, i) => `<path d="${n.path}" fill="${pal[cls(CC_EDGES, rel[i])]}" data-i="${i}"
+    data-tip="${escapeHTML(`${n.name}<br>Against the city: <b>${pts(rel[i])} pts</b><br>2008: ${X.tree_2008[i].toFixed(1)}% · 2018: ${now[i].toFixed(1)}% (${pts(now[i] - X.tree_2008[i])} pts)${X.shared[i] ? `<br>One neighbourhood in 2008 with ${mates(i).join(", ")}: they share these figures` : ""}`)}"/>`).join("")}</svg>`;
+  const lab = ["6 or more points behind", "3 to 6 behind", "1 to 3 behind", "within 1 point of the city", "1 to 3 ahead", "3 to 6 ahead", "6 or more ahead"];
+  $("cc-key").innerHTML = pal.map((c, k) => `<li><span class="key-sq" style="background:${c}"></span>${lab[k]}</li>`).join("");
+  // one row per 2008 neighbourhood: the first of each group stands for it
+  const firsts = [...nbhd.keys()].filter((i) => X.group.indexOf(X.group[i]) === i);
+  const order = firsts.sort((a, b) => rel[b] - rel[a]), max = Math.max(...order.map((i) => Math.abs(rel[i])));
+  const name = (i) => (X.shared[i] ? `${nbhd[i].name} (+${mates(i).length})` : nbhd[i].name);
+  const item = (i, k) => `<li><span class="rk">${k}</span><button type="button" class="nm" data-nb="${i}" title="${escapeHTML(X.shared[i] ? `With ${mates(i).join(", ")}` : nbhd[i].name)}">${escapeHTML(name(i))}</button>
+      <span class="barcell" data-tip="${escapeHTML(`${nbhd[i].name}<br>2008: ${X.tree_2008[i].toFixed(1)}% · 2018: ${now[i].toFixed(1)}%<br>Change ${pts(now[i] - X.tree_2008[i])} pts; against the city <b>${pts(rel[i])} pts</b>`)}"><span class="bar-fill" style="width:${((Math.abs(rel[i]) / max) * 100).toFixed(1)}%;background:${rel[i] < 0 ? GAIN[1] : GAIN[4]}"></span></span>
+      <span class="vl">${pts(rel[i])} pts</span><span class="move"></span></li>`;
+  $("cc-up").innerHTML = order.slice(0, 8).map((i, k) => item(i, k + 1)).join("");
+  $("cc-down").innerHTML = order.slice(-8).reverse().map((i, k) => item(i, k + 1)).join("");
+  const t = X.table35;
+  $("cc-note").textContent = `Canopy is a share of each neighbourhood's mapped area. 2008 is the City's own total of tree cover by neighbourhood (Wellbeing Toronto), on the 140 neighbourhoods of the time: the ${X.shared.filter(Boolean).length} neighbourhoods since carved out of 16 of them share their old neighbourhood's figures, marked (+n). `
+    + (t ? `The trees-only reading reproduces the study's Appendix C table for all ${t.n} neighbourhoods (the changes correlate ${t.r_change.toFixed(3)}, differing by ${t.mean_abs_diff_change} points on average). ` : "")
+    + `The file the City publishes as the "2008 Tree Canopy Study" land cover turns out to be the 2018 map again, so 2008 can't be redrawn below the neighbourhood. "Canopy change" can also be mapped against income with the menu above.`;
+}
+
 function render() {
   controls();
   renderMap();
@@ -511,6 +555,7 @@ function render() {
   renderHV();
   renderPlanted();
   renderGoal();
+  renderCanopyChange();
   writeHash();
 }
 renderCards();

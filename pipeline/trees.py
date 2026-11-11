@@ -22,11 +22,51 @@ pipeline/trees/:
                         commonest species, genus and family with their shares,
                         family_mapped_share, norway_maple_share, meets_10_20_30
                         (no species over 10%, genus over 20%, family over 30%)
+  canopy_change_nbhd.csv  tree cover in 2008 and 2018 by neighbourhood (see "Canopy
+                        change" below): nbhd_id, hood_140 (its 140-model
+                        neighbourhood), area_ha, tree_2008, tree_2018,
+                        treeshrub_2018 (% of area), change_tree, change_treeshrub
+                        (points), shared (one of several parts of a 2008
+                        neighbourhood, which share its figures)
+  study2018_table35.csv the City's own table of the same comparison (2018 Tree
+                        Canopy Study, Appendix C), read from the PDF when it is
+                        in raw/; kept as the check on canopy_change_nbhd.csv
   manifest.json  retrieval dates, file sizes, the Landsat scenes, match rates
                  and checks
 
 `python pipeline/trees.py --species` rewrites only the three species files (and
-the manifest's diversity checks), without the canopy and Landsat steps.
+the manifest's diversity checks), without the canopy and Landsat steps;
+`--canopy-change` rewrites only canopy_change_nbhd.csv and its checks.
+
+Canopy change, 2008 to 2018. The package's "2008 Tree Canopy Study" resource
+(cotlandcover.rar, 617 MB, a RAR5 archive: bsdtar opens it, Debian's 7z doesn't)
+is NOT the 2008 land cover: it is the 2018 land cover again, undissolved (6.5
+million polygons, eight classes, dated January 2019). Its class areas equal the
+2018 geodatabase's to 0.01 km2 (tree 166.43), and its tree area by DA correlates
+0.9999 with the geodatabase's once its unnamed projection is read as NAD27 MTM
+zone 10 (EPSG:2019). So it is not used. The 2008 figures that are open are the
+City's own totals by neighbourhood: Wellbeing Toronto's "Tree Cover" (m2 of tree
+foliage from the 2008 study's satellite land cover, by 140-model neighbourhood;
+179.4 km2 in all). The 2018 geodatabase is dissolved by the 158-model
+neighbourhoods (HoodNo; not the 140 an earlier note here said), so it sums to
+the 140: 124 neighbourhoods are the same in both models and 34 are the parts of
+16 that were split, each at least 99% inside its parent.
+  - Shares are of the neighbourhood's mapped area in the 2018 geodatabase (all
+    classes), for both years.
+  - What counts as canopy matters more than anything else. The City's canopy is
+    trees and shrubs. The 2008 map had no height data and one "tree canopy" class;
+    the 2018 map used LiDAR to split tree (1.5 m and up) from shrub. So 2008's
+    27.9% can be set against 2018's tree class (25.9%: the comparison in the
+    City's Appendix C, Table 35, which this reproduces: r 0.995 on the change,
+    mean difference 0.17 points) or against tree plus shrub (30.6%, the "31%"
+    the study quotes for the automated classification). Tree-only says 48
+    neighbourhoods gained and 92 lost; with shrubs, 85 gained and 55 lost (the
+    study's summary says 83 and 57). The study's headline, 26.6% to 28.4%, is
+    from point sampling of imagery, not from these maps, and it notes there is
+    "no measure of statistical accuracy associated with the 2018 land cover".
+  - So the level of change can't be read off the maps, but the pattern can: the
+    two readings' changes correlate 0.87 across the 140. The page shows each
+    neighbourhood's change against the city's.
 
 Street trees (City of Toronto Open Data, `street-tree-data`, resource "Street
 Tree Data - 4326.csv"; 688,335 rows, the same as the CKAN datastore's total,
@@ -54,12 +94,12 @@ by places.place() at its point.
 Canopy (Open Data `forest-and-land-cover`, resource "2018 Tree Canopy Study
 Geodatabase", landcover2018_gdb.zip, 436,398,730 B; retrieved 2026-11-11). The
 City's 2018 land cover, eight classes, as polygons (layer LandCover2018,
-EPSG:2952, 1,812 multipolygons, dissolved by class, ward and 140-model
+EPSG:2952, 1,812 multipolygons, dissolved by class, ward and 158-model
 neighbourhood). "Top down": canopy over roads, roofs and grass counts as tree.
 Class 1 (tree) covers 166.4 km2 of the 643.4 km2 mapped. canopy_ha is the area
 of the tree polygons inside each DA (exact intersection, after splitting the
 multipolygons into 343,873 parts); canopy_share divides by the DA's area. The
-2008 study (a 617 MB RAR) is not used. The geodatabase (621 MB unzipped) is
+package's "2008" resource is not 2008 data (see Canopy change below). The geodatabase (621 MB unzipped) is
 unzipped into a temporary folder under raw/ for each run.
 
 Land surface temperature (Landsat 8 and 9 Collection 2 Level-2, from Microsoft
@@ -139,7 +179,7 @@ import pandas as pd
 import pyogrio
 import shapely
 
-from places import common, da_polygons, place
+from places import METRIC_CRS, common, da_polygons, place
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -319,6 +359,126 @@ def canopy(da: gpd.GeoDataFrame) -> tuple[np.ndarray, dict]:
             "tree_km2": round(float(shapely.area(geo).sum() / 1e6), 2), "tree_km2_in_das": round(float(m2.sum() / 1e6), 2),
             "city_share": round(float(m2.sum() / da.area.sum()), 4)}
     return m2, info
+
+
+# ---------------------------------------------------------------- canopy change, 2008 to 2018
+
+CHANGE_FILES = {"tree_cover_2008": RAW / "wellbeing_toronto_environment.xlsx",
+                "neighbourhoods_140": RAW / "toronto_neighbourhoods_140_4326.geojson",
+                "neighbourhoods_158": RAW / "toronto_neighbourhoods_4326.geojson", "canopy_2018": CANOPY_ZIP}
+STUDY_PDF = RAW / "toronto_tree_canopy_study_2018.pdf"  # optional: only to re-read Table 35
+TABLE35 = OUT / "study2018_table35.csv"
+TABLE35_PAGES = range(186, 198)  # Appendix C, 0-based
+
+
+def study_table() -> pd.DataFrame:
+    """Table 35 of the City's 2018 Tree Canopy Study (Appendix C): tree cover in 2008 and 2018
+    and its change, by 140-model neighbourhood, as printed (whole percents; change to 0.1)."""
+    import re
+
+    import pdfplumber
+    num = r"(-?\d+(?:\.\d+)?)"
+    full = re.compile(rf"^(.+?) \((\d{{1,3}})\) {num} {num} {num} ")
+    head = re.compile(rf"^(.+?) {num} {num} {num} [\d,]+\.\d")          # a row whose "(id)" wrapped to the next line
+    minus = re.compile(rf"^(.+?) \((\d{{1,3}})\) {num} {num} - ")        # a change whose figure wrapped ("- " then "14.9")
+    with pdfplumber.open(STUDY_PDF) as p:
+        lines = [ln.strip() for k in TABLE35_PAGES for ln in (p.pages[k].extract_text() or "").split("\n")]
+    rows = []
+    for k, ln in enumerate(lines):
+        nxt = lines[k + 1] if k + 1 < len(lines) else ""
+        if m := full.match(ln):
+            rows.append((int(m[2]), m[1], float(m[3]), float(m[4]), float(m[5])))
+        elif m := minus.match(ln):
+            rows.append((int(m[2]), m[1], float(m[3]), float(m[4]), -float(nxt)))
+        elif (m := head.match(ln)) and (t := re.match(r"^(.*?)\s?\((\d{1,3})\)$", nxt)):
+            rows.append((int(t[2]), f"{m[1]} {t[1]}".strip(), float(m[2]), float(m[3]), float(m[4])))
+    t = pd.DataFrame(rows, columns=["hood_140", "name", "tree_2008", "tree_2018", "change"]).drop_duplicates("hood_140")
+    if sorted(t.hood_140) != list(range(1, 141)):
+        sys.exit(f"Table 35: read {len(t)} neighbourhoods, missing {sorted(set(range(1, 141)) - set(t.hood_140))}")
+    return t.sort_values("hood_140")
+
+
+def canopy_change() -> dict:
+    """Tree cover in 2008 and 2018 by neighbourhood, from the City's two land-cover maps; writes
+    canopy_change_nbhd.csv and returns checks."""
+    missing = [p.name for p in CHANGE_FILES.values() if not p.exists()]
+    if missing:
+        sys.exit(f"missing {missing}; run pipeline/download.py")
+    # each 158-model neighbourhood's 140-model parent: 124 are unchanged, 34 are the parts of 16 that were split
+    n158 = gpd.read_file(CHANGE_FILES["neighbourhoods_158"]).to_crs(METRIC_CRS)
+    n140 = gpd.read_file(CHANGE_FILES["neighbourhoods_140"]).to_crs(METRIC_CRS)
+    n158["nbhd_id"], n140["hood_140"] = n158.AREA_SHORT_CODE.astype(int), n140.AREA_SHORT_CODE.astype(int)
+    pts = gpd.GeoDataFrame(n158[["nbhd_id"]], geometry=n158.representative_point(), crs=METRIC_CRS)
+    parent = gpd.sjoin(pts, n140[["hood_140", "geometry"]], predicate="within").set_index("nbhd_id").hood_140
+    if len(parent) != len(n158) or parent.nunique() != 140:
+        sys.exit(f"{len(parent)} of {len(n158)} neighbourhoods placed in {parent.nunique()} 140-model neighbourhoods")
+    inter = gpd.overlay(n158[["nbhd_id", "geometry"]], n140[["hood_140", "geometry"]], how="intersection", keep_geom_type=True)
+    inter["a"] = inter.area
+    inside = inter[inter.hood_140 == inter.nbhd_id.map(parent)].groupby("nbhd_id").a.sum() / inter.groupby("nbhd_id").a.sum()
+
+    w = pd.read_excel(CHANGE_FILES["tree_cover_2008"], sheet_name="RawData-Ref Period 2008")
+    t08 = w.rename(columns={"Neighbourhood Id": "hood_140", "Tree Cover": "m2"}).set_index("hood_140").m2
+    if sorted(t08.index) != list(range(1, 141)):
+        sys.exit("the 2008 tree cover sheet doesn't list neighbourhoods 1 to 140")
+    with tempfile.TemporaryDirectory(dir=RAW) as tmp:
+        with zipfile.ZipFile(CANOPY_ZIP) as z:
+            z.extractall(tmp)
+        lc = pyogrio.read_dataframe(Path(tmp) / CANOPY_GDB, read_geometry=False)
+    lc["nbhd_id"] = pd.to_numeric(lc.HoodNo)
+    lc = lc[lc.nbhd_id > 0]
+    if set(lc.nbhd_id) != set(parent.index):
+        sys.exit("the 2018 land cover's HoodNo aren't the 158 neighbourhoods")
+    lc["hood_140"] = lc.nbhd_id.map(parent)
+    by = lambda desc: lc[lc.Desc.isin(desc)].groupby("hood_140").Shape_Area.sum().reindex(t08.index, fill_value=0)
+    area = lc.groupby("hood_140").Shape_Area.sum()
+    p = pd.DataFrame({"area_ha": area / 1e4, "tree_2008": t08 / area * 100, "tree_2018": by(["tree"]) / area * 100,
+                      "treeshrub_2018": by(["tree", "shrub"]) / area * 100})
+    p["change_tree"] = p.tree_2018 - p.tree_2008
+    p["change_treeshrub"] = p.treeshrub_2018 - p.tree_2008
+    city = {k: float((p[k] * p.area_ha).sum() / p.area_ha.sum()) for k in ("tree_2008", "tree_2018", "treeshrub_2018")}
+    out = p.loc[parent.values].reset_index()
+    out.insert(0, "nbhd_id", parent.index)
+    out["shared"] = out.hood_140.map(parent.value_counts()) > 1  # one of several parts of a 2008 neighbourhood
+    out = out.sort_values("nbhd_id").round({"area_ha": 1, "tree_2008": 2, "tree_2018": 2, "treeshrub_2018": 2,
+                                           "change_tree": 2, "change_treeshrub": 2})
+    out.to_csv(OUT / "canopy_change_nbhd.csv", index=False, lineterminator="\n")
+
+    checks = {"neighbourhoods_140": int(len(p)), "unchanged_ids": int((parent.index == parent.values).sum()),
+              "split_parents": int((parent.value_counts() > 1).sum()), "parts_of_split": int(out.shared.sum()),
+              "min_share_inside_parent": round(float(inside.min()), 4),
+              "city_pct": {k: round(v, 2) for k, v in city.items()},
+              "tree_km2": {"2008": round(float(t08.sum() / 1e6), 2), "2018": round(float(by(["tree"]).sum() / 1e6), 2),
+                           "2018_with_shrub": round(float(by(["tree", "shrub"]).sum() / 1e6), 2)},
+              "tree_only": {"rose": int((p.change_tree > 0).sum()), "fell": int((p.change_tree < 0).sum())},
+              "tree_and_shrub": {"rose": int((p.change_treeshrub > 0).sum()), "fell": int((p.change_treeshrub < 0).sum())},
+              "rose_on_both": int(((p.change_tree > 0) & (p.change_treeshrub > 0)).sum()),
+              "fell_on_both": int(((p.change_tree < 0) & (p.change_treeshrub < 0)).sum()),
+              "changes_r": round(float(p.change_tree.corr(p.change_treeshrub)), 3)}
+    if STUDY_PDF.exists():
+        study_table().to_csv(TABLE35, index=False, lineterminator="\n")
+    if TABLE35.exists():  # the City's own table of the same comparison
+        t = pd.read_csv(TABLE35).set_index("hood_140")
+        d = p.change_tree - t.change
+        checks["vs_study_table35"] = {"n": int(len(t)), "r_2008": round(float(p.tree_2008.corr(t.tree_2008)), 4),
+                                      "r_2018": round(float(p.tree_2018.corr(t.tree_2018)), 4),
+                                      "r_change": round(float(p.change_tree.corr(t.change)), 4),
+                                      "mean_abs_diff_change": round(float(d.abs().mean()), 2),
+                                      "max_abs_diff_change": round(float(d.abs().max()), 2),
+                                      "table_rose": int((t.change > 0).sum()), "table_fell": int((t.change < 0).sum())}
+    return checks
+
+
+def change_only() -> int:
+    """`python pipeline/trees.py --canopy-change`: rewrite the canopy change file and its checks only."""
+    OUT.mkdir(exist_ok=True)
+    checks = canopy_change()
+    m = OUT / "manifest.json"
+    manifest = json.loads(m.read_text()) if m.exists() else {}
+    manifest.setdefault("checks", {})["canopy_change"] = checks
+    manifest.setdefault("files", {}).update({k: file_info(v) for k, v in CHANGE_FILES.items() if k != "canopy_2018"})
+    m.write_text(json.dumps(manifest, indent=2) + "\n")
+    print(json.dumps(checks, indent=2))
+    return 0
 
 
 # ---------------------------------------------------------------- land surface temperature
@@ -556,6 +716,8 @@ def main() -> int:
         sys.exit(f"tree sums don't match: {checks['street_trees']}")
     print(json.dumps({k: v for k, v in checks["street_trees"].items() if k != "top_species_city"}))
     checks["diversity"] = diversity(t)
+    checks["canopy_change"] = canopy_change()
+    manifest["files"].update({k: file_info(v) for k, v in CHANGE_FILES.items() if k != "canopy_2018"})
 
     print("canopy")
     m2, info = canopy(da)
@@ -618,4 +780,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(species_only() if "--species" in sys.argv[1:] else main())
+    sys.exit(species_only() if "--species" in sys.argv[1:] else change_only() if "--canopy-change" in sys.argv[1:] else main())

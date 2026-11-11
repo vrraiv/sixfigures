@@ -28,6 +28,15 @@ reads, and the other neighbourhood layers, and writes:
                     neighbourhoods' gaps, how many are at or above 40%, and the
                     City's own published 2018 estimate (28.4-31%, a different
                     method from the land-cover polygons used here, which give 26.2%)
+                    and chg, chg_ts: its change in canopy 2008 to 2018 less the
+                    city's, with 2018 as the tree class or as tree plus shrub
+  change            canopy change 2008 to 2018 (canopy_change_nbhd.csv): the
+                    city's shares and changes on both readings and the study's
+                    point-sampling estimates; by neighbourhood its tree cover in
+                    2008 and 2018 (tree, tree plus shrub), its 140-model group and
+                    whether it shares that group's figures; how many of the 140
+                    rose and fell on each reading and on both; the two readings'
+                    correlation; and the check against the study's Table 35
   days              each Landsat pass (as in passes): by neighbourhood, its mean
                     surface temperature (lst) and difference from that day's city
                     mean (anom); null where clouds or the scene's edge left it
@@ -177,6 +186,20 @@ def main() -> int:
     for p in manifest["landsat"]["scenes_used"]:
         d1 = lp[lp.date == p["date"]].set_index("nbhd_id").reindex(ids)
         days.append({"date": p["date"], "anom": col(d1.lst_anom, 2), "lst": col(d1.lst_c, 2)})
+    # canopy change 2008 to 2018 (trees.py's canopy_change): each neighbourhood's change on the two
+    # readings of 2018, less the city's change on that reading
+    cc = pd.read_csv(TREES / "canopy_change_nbhd.csv").set_index("nbhd_id").reindex(ids)
+    ck = manifest["checks"]["canopy_change"]
+    cp = ck["city_pct"]
+    city_chg = {"tree": round(cp["tree_2018"] - cp["tree_2008"], 2), "treeshrub": round(cp["treeshrub_2018"] - cp["tree_2008"], 2)}
+    nb.update({"chg": col(cc.change_tree - city_chg["tree"], 2), "chg_ts": col(cc.change_treeshrub - city_chg["treeshrub"], 2)})
+    change = {"city": cp, "city_change": city_chg, "sampled": {"2008": 26.6, "2018": 28.4},  # the study's point-sampling estimates
+              "tree_2008": col(cc.tree_2008), "tree_2018": col(cc.tree_2018), "treeshrub_2018": col(cc.treeshrub_2018),
+              "group": cc.hood_140.astype(int).tolist(), "shared": cc.shared.astype(bool).tolist(),
+              "counts": {"tree": ck["tree_only"], "treeshrub": ck["tree_and_shrub"], "rose_on_both": ck["rose_on_both"],
+                         "fell_on_both": ck["fell_on_both"], "n": ck["neighbourhoods_140"]},
+              "r": ck["changes_r"], "table35": ck.get("vs_study_table35"),
+              "study": "https://www.toronto.ca/legdocs/mmis/2020/ie/bgrd/backgroundfile-141368.pdf"}
     w = n.trees
     city = {"trees": int(n.trees.sum()), "area_ha": round(float(n.area_ha.sum()), 1),
             "canopy_ha": round(float(n.canopy_ha.sum()), 1),
@@ -204,7 +227,7 @@ def main() -> int:
            "retrieved": manifest["files"]["street_trees"]["retrieved"],
            "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit,
            "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread],
-           "species_city": species_city, "goal": goal, "days": days, "species": species_lists, "other": other}
+           "species_city": species_city, "goal": goal, "days": days, "change": change, "species": species_lists, "other": other}
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
     das = da_shapes(ids, d)
     if sum(len(x["dauid"]) for x in das) != len(d):
