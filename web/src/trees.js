@@ -48,6 +48,12 @@ const M = {
     more: "More Norway maple", less: "Less Norway maple", bad: true, gap: "pts", da: false, pool: W(NB.maple, NB.trees), poolNote: "weighted by street trees" },
   genus: { label: "Commonest genus, share of street trees", short: "Commonest genus", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: ORANGES,
     more: "More of one genus", less: "Less of one genus", bad: true, gap: "pts", da: false, pool: W(NB.genus, NB.trees), poolNote: "weighted by street trees" },
+  gap_pts: { label: "Canopy short of 40% of the area (points)", short: "Points short of 40%", fmt: (v) => `${v.toFixed(1)} pts`, axis: (v) => `${Math.round(v)}`, ramp: ORANGES,
+    more: "Further from 40%", less: "Closer to 40%", bad: true, gap: "pts", da: false,
+    pool: (idx) => Math.max(0, D.goal.target - M.canopy.pool(idx)), poolNote: "40% less the fifth's pooled canopy" },
+  gap_ha: { label: "Canopy short of 40% of the area (hectares)", short: "Hectares short of 40%", fmt: (v) => `${fmtN(v)} ha`, axis: (v) => fmtN(v), ramp: ORANGES,
+    more: "Further from 40%", less: "Closer to 40%", bad: true, gap: "x", da: false,
+    pool: (idx) => sum(idx.map((i) => NB.gap_ha[i])), poolNote: "the fifth's neighbourhoods' gaps added up" },
 };
 const vals = (m = state.m) => NB[m];
 const income = (m = state.inc) => census.measures[m].values["2021"];
@@ -69,7 +75,7 @@ const state = {
   nb: nbIndex(hash.get("nb")),
 };
 const writeHash = () => {
-  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc, hv: [...hvState].join(",") });
+  const h = new URLSearchParams({ m: state.m, ov: state.ov, inc: state.inc, hv: [...hvState].join(","), gs: goalSort });
   if (state.sx) h.set("sx", state.sx);
   if (state.nb != null) h.set("nb", nbhd[state.nb].id);
   history.replaceState(null, "", `#${h}`);
@@ -78,7 +84,7 @@ initTip();
 
 // ---- controls ----------------------------------------------------------------------------
 const select = $("measure");
-select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["What's planted", ["shannon", "maple", "genus"]], ["Heat", ["heat", "lst"]]]
+select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["Toward 40% canopy", ["gap_pts", "gap_ha"]], ["What's planted", ["shannon", "maple", "genus"]], ["Heat", ["heat", "lst"]]]
   .map(([g, ms]) => `<optgroup label="${g}">${ms.map((m) => `<option value="${m}">${escapeHTML(M[m].label)}</option>`).join("")}</optgroup>`).join("");
 select.addEventListener("change", () => set({ m: select.value }));
 $("income").innerHTML = INCOME.map((m) => `<option value="${m}">${escapeHTML(CENSUS[m].long)}, 2021</option>`).join("");
@@ -424,6 +430,31 @@ function renderPlanted() {
   $("pl-nb-note").textContent = `${fmtN(NB.trees[i])} street trees of ${NB.species_n[i]} species; diversity (Shannon) ${NB.shannon[i].toFixed(2)}, ${ordinal(rankOrder(NB.shannon).indexOf(i) + 1)} of ${N}. ${NB.meets[i] ? "Meets all three limits." : "Over at least one limit."}`;
 }
 
+// ---- 7. toward 40% canopy -------------------------------------------------------------------------------
+// The City's target is city-wide; each neighbourhood's gap to 40% of its own area shows where the
+// room (and the need) is. The cooling figure applies the slope across the city's DAs to the gap: an
+// association, not a forecast.
+let goalSort = hash.get("gs") === "pts" ? "pts" : "ha";
+function renderGoal() {
+  const G = D.goal, C = D.city, slope = -D.da_fit.slope_per_10 / 10;
+  seg($("goal-sort"), [["ha", "Hectares short"], ["pts", "Points short"]], goalSort, (k) => { goalSort = k; renderGoal(); writeHash(); });
+  const x = (v) => `${(v / 50) * 100}%`, [b0, b1] = G.published_2018.split("-").map(Number);
+  $("goal-track").innerHTML = `<span class="goal-fill" style="width:${x(C.canopy)};background:${GREENS[3]}"></span>
+    <span class="goal-band" style="left:${x(b0)};width:${x(b1 - b0)}" title="The City's published 2018 estimate"></span>
+    <span class="goal-mark" style="left:${x(G.target)}"></span>
+    <span class="goal-lab up" style="left:${x(C.canopy)}">${C.canopy}% here</span><span class="goal-lab up" style="left:${x(G.target)}">${G.target}% by ${G.year}</span>
+    <span class="goal-lab down" style="left:${x((b0 + b1) / 2)}">City's estimate ${G.published_2018.replace("-", "–")}%</span>
+    <span class="goal-lab down" style="left:0;transform:none">0%</span><span class="goal-lab down" style="left:100%;transform:translateX(-100%)">50%</span>`;
+  const hot = breaks(NB.heat, 3).edges[1], inHot = sum(NB.gap_ha.filter((_, i) => NB.heat[i] >= hot));
+  $("goal-lede").innerHTML = `Toronto's target is <b>${G.target}% tree canopy by ${G.year}</b>, city-wide: set in the 2013 Strategic Forest Management Plan and reaffirmed by Council in 2021 (<a href="${G.source}">report</a>). The City puts 2018 canopy at ${G.published_2018.replace("-", "–")}%; the land-cover polygons this page uses give ${C.canopy}%, so the gaps here are on that measure: about <b>${fmtN(G.city_gap_ha)} hectares</b> (${Math.round(G.city_gap_ha / 100)} km²) more canopy city-wide. ${G.above} neighbourhoods are already at 40% or more. Of the ${fmtN(G.nbhd_gap_ha)} hectares the other neighbourhoods are short, <b>${Math.round((inHot / G.nbhd_gap_ha) * 100)}%</b> are in the hottest third of neighbourhoods.`;
+  const key = goalSort === "pts" ? "gap_pts" : "gap_ha", order = rankOrder(NB[key]).slice(0, 15), max = NB[key][order[0]];
+  $("goal-list").innerHTML = order.map((i, k) => `<li><span class="rk">${k + 1}</span><button type="button" class="nm" data-nb="${i}">${escapeHTML(nbhd[i].name)}</button>
+    <span class="barcell" data-tip="${escapeHTML(`${nbhd[i].name}<br>Canopy ${M.canopy.fmt(NB.canopy[i])} of ${fmtN(NB.area_ha[i])} ha<br>Short of 40%: <b>${NB.gap_pts[i].toFixed(1)} pts</b>, <b>${fmtN(NB.gap_ha[i])} ha</b><br>Surface heat ${fmtC(NB.heat[i])}`)}"><span class="bar-fill" style="width:${((NB[key][i] / max) * 100).toFixed(1)}%;background:${ORANGES[3]}"></span></span>
+    <span class="vl">${key === "gap_ha" ? `${fmtN(NB.gap_ha[i])} ha` : `${NB.gap_pts[i].toFixed(1)} pts`}</span>
+    <span class="gl-extra">now ${M.canopy.fmt(NB.canopy[i])} · ~${(NB.gap_pts[i] * slope).toFixed(1)}°C cooler?</span></li>`).join("");
+  $("goal-note").textContent = `The 15 neighbourhoods furthest from 40% canopy, by ${goalSort === "pts" ? "points (the share of their area)" : "hectares (big neighbourhoods weigh more)"}. "Cooler?" applies the city-wide slope across DAs (${fmtC(D.da_fit.slope_per_10)} for every 10 points of canopy) to the gap: an association between places, not a forecast, and canopy can't go everywhere (highways, rail yards, the airport and the lake don't take trees). Map either gap with the menu above.`;
+}
+
 function render() {
   controls();
   renderMap();
@@ -434,6 +465,7 @@ function render() {
   renderInside();
   renderHV();
   renderPlanted();
+  renderGoal();
   writeHash();
 }
 renderCards();

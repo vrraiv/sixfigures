@@ -21,6 +21,13 @@ reads, and the other neighbourhood layers, and writes:
                     maple, % of street trees), species_top, genus, family (the
                     commonest species', genus' and family's %), genus_name,
                     family_name, meets (the 10-20-30 rule)
+                    and gap_ha, gap_pts: hectares and points of canopy short of 40%
+                    of the area (0 at or above)
+  goal              the City's target (40% canopy cover by 2050, city-wide), the
+                    City's gap in hectares on this measure, the sum of the
+                    neighbourhoods' gaps, how many are at or above 40%, and the
+                    City's own published 2018 estimate (28.4-31%, a different
+                    method from the land-cover polygons used here, which give 26.2%)
   species_city      the 20 commonest species city-wide (species, common name,
                     genus, % and trees), the counts of species, genera and
                     families, the commonest genus and family with their %, and ash's (Fraxinus) %
@@ -69,6 +76,8 @@ OUT_DA = WEB / "trees_da.json"
 DA_W = 400  # px, each neighbourhood's box
 DA_SIMPLIFY = 4  # metres
 SPREAD_MIN_DAS = 12
+GOAL = 40  # per cent canopy cover, city-wide, by 2050
+GOAL_SOURCE = "https://www.toronto.ca/legdocs/mmis/2021/ie/bgrd/backgroundfile-173560.pdf"
 
 
 def da_shapes(ids: list[int], d: pd.DataFrame) -> list[dict]:
@@ -152,6 +161,13 @@ def main() -> int:
     lists = {nid: [[ix[c if isinstance(c, str) else sp], int(t)] for sp, c, t in zip(g.species, g.common, g.trees)]
              for nid, g in sb.groupby("nbhd_id")}
     species_lists = {"names": names, "nbhd": [lists.get(i, []) for i in ids]}
+    # the City's target: 40 per cent canopy cover by 2050, city-wide (Strategic Forest Management
+    # Plan 2012-2022; reaffirmed by Council in December 2021)
+    gap = (GOAL / 100 * n.area_ha - n.canopy_ha).clip(lower=0)
+    nb.update({"gap_ha": col(gap, 0), "gap_pts": col((GOAL - n.canopy_share * 100).clip(lower=0))})
+    goal = {"target": GOAL, "year": 2050, "city_gap_ha": round(float(GOAL / 100 * n.area_ha.sum() - n.canopy_ha.sum())),
+            "nbhd_gap_ha": round(float(gap.sum())), "above": int((n.canopy_share * 100 >= GOAL).sum()),
+            "published_2018": "28.4-31", "source": GOAL_SOURCE}
     w = n.trees
     city = {"trees": int(n.trees.sum()), "area_ha": round(float(n.area_ha.sum()), 1),
             "canopy_ha": round(float(n.canopy_ha.sum()), 1),
@@ -179,7 +195,7 @@ def main() -> int:
            "retrieved": manifest["files"]["street_trees"]["retrieved"],
            "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit,
            "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread],
-           "species_city": species_city, "species": species_lists, "other": other}
+           "species_city": species_city, "goal": goal, "species": species_lists, "other": other}
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
     das = da_shapes(ids, d)
     if sum(len(x["dauid"]) for x in das) != len(d):

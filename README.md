@@ -79,7 +79,10 @@ income and 5+ storey apartments by default; renters, crowding, children) and map
 heat, listing the neighbourhoods in the top third on both. What's planted lists the commonest street
 trees city-wide and in a picked neighbourhood against the 10-20-30 rule (no species over 10%,
 genus over 20%, family over 30%), and species diversity, Norway maple's share and the commonest
-genus's share can be mapped (`pipeline/trees.py --species` writes the species tables); those outlines are `trees_da.json` (0.6 MB,
+genus's share can be mapped (`pipeline/trees.py --species` writes the species tables). Toward 40%
+canopy sets the City's target (40% canopy cover by 2050, city-wide; reaffirmed by Council in 2021)
+against the canopy measured here (26.2%; the City's own 2018 estimate is 28.4-31%) and lists the
+neighbourhoods furthest from 40% of their area, in hectares or points; those outlines are `trees_da.json` (0.6 MB,
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 
