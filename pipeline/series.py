@@ -22,6 +22,7 @@ import datetime
 import io
 import json
 import sys
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -129,8 +130,20 @@ def main() -> int:
     RAW.mkdir(exist_ok=True)
     OUT.mkdir(exist_ok=True)
     manifest = {"retrieved": datetime.date.today().isoformat(), "tables": {}}
+    before = json.loads((OUT / "manifest.json").read_text()) if (OUT / "manifest.json").exists() else {"tables": {}}
     for table, (geo, how, about) in TABLES.items():
-        meta = post("getCubeMetadata", [{"productId": pid(table)}])
+        try:
+            meta = post("getCubeMetadata", [{"productId": pid(table)}])
+        except urllib.error.HTTPError as e:
+            # 409 "The product is not released yet": StatCan locks a table while a new release
+            # of it goes out. Keep the copy already here (its manifest entry says from when).
+            old = before["tables"].get(table)
+            if e.code != 409 or not old or not (OUT / old["file"]).exists():
+                raise
+            manifest["tables"][table] = {**old, "carried_over": old.get("carried_over", before.get("retrieved"))}
+            print(f"{table}: StatCan is releasing it ({e.read().decode(errors='replace').strip()}); kept the copy from "
+                  f"{manifest['tables'][table]['carried_over']}\n")
+            continue
         print(f"{table} {meta['cubeTitleEn']} (released {meta['releaseTime'][:10]})")
         rows = (full_table if how == "full" else requested_series)(table, geo, meta)
         # Drop columns that are the same on every row (except the essentials) to keep files small.
