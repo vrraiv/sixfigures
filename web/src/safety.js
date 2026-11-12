@@ -130,7 +130,7 @@ function card(c) {
 }
 function renderCards() {
   $("cards").innerHTML = ["assault", "break_and_enter", "auto_theft", "robbery", "theft_over", "shootings", "homicides", "ksi_persons"].map(card).join("");
-  $("glance-lede").innerHTML = `The City of Toronto in ${LAST}, the last complete year. Crimes are counted by the year they were reported, one per offence or victim, as the police's own neighbourhood figures count them; shootings, homicides and collisions by the year they happened. Sexual assaults and other crimes aren't in the police's open files.`;
+  $("glance-lede").innerHTML = `The City of Toronto in ${LAST}, the last complete year. Crimes are counted by the year they were reported, one per offence or victim, as the police's own neighbourhood figures count them; shootings, homicides and collisions by the year they happened. The police's neighbourhood crime file holds five categories: assault, break and enter, auto theft, robbery and theft over $5,000. Sexual assault is not in it, nor is anything outside those five, such as theft under $5,000, fraud, mischief or drug offences.`;
 }
 
 // ---- 2. year by year -------------------------------------------------------------------------
