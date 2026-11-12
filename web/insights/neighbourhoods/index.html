@@ -7,7 +7,7 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="Pick one of Toronto's 158 neighbourhoods and see which others are most and least like it: an affinity score across income, housing, people, safety, schools, trees and voting, theme by theme and measure by measure, and the kinds of neighbourhood the city falls into." />
+    <meta name="description" content="Pick one of Toronto's 158 neighbourhoods and see which others are most and least like it: an affinity score across income, housing, people, safety, schools, trees and voting, theme by theme and measure by measure, its twins across town, how the likeness has changed since 2006, and the kinds of neighbourhood the city falls into." />
   </head>
   <body class="with-nav doc">
     <nav class="wordmark" aria-label="Site">
@@ -59,6 +59,9 @@
             <div class="rank-col"><h3>Most alike</h3><ol id="alike-top" class="rank-list nx-list"></ol></div>
             <div class="rank-col"><h3>Least alike</h3><ol id="alike-bottom" class="rank-list nx-list"></ol></div>
           </div>
+          <h3 class="sub-h in-list-h">Twins across town</h3>
+          <p class="tbl-note" id="twins-note"></p>
+          <ol id="twins" class="rank-list nx-list with-val nx-twins"></ol>
           <details class="nx-all" id="alike-all">
             <summary>Every neighbourhood in order, theme by theme</summary>
             <div class="tbl-wrap tall"><table class="tbl heat" id="all-table"></table></div>
@@ -85,6 +88,19 @@
           <div id="side-body" class="nx-side"></div>
           <p class="tbl-note">Each track runs from the lowest of the 158 neighbourhoods on that measure (left) to the highest (right); the tick is the median neighbourhood. The closer the two dots, the more alike the two are on it.</p>
         </section>
+
+        <section class="ins-section" id="time" data-toc="Since 2006" aria-labelledby="time-h">
+          <div class="ins-head"><h2 id="time-h">Since 2006</h2></div>
+          <p class="ins-lede" id="time-lede"></p>
+          <div id="time-body">
+            <figure class="panel nx-time" id="time-chart"></figure>
+            <div class="ranks">
+              <div class="rank-col"><h3>Grown most alike</h3><ol id="time-up" class="rank-list nx-time-list"></ol></div>
+              <div class="rank-col"><h3>Grown furthest apart</h3><ol id="time-down" class="rank-list nx-time-list"></ol></div>
+            </div>
+            <p class="tbl-note" id="time-note"></p>
+          </div>
+        </section>
       </div>
 
       <!-- ===== about the city ===== -->
@@ -96,6 +112,17 @@
         <p class="tbl-note" id="kinds-note"></p>
       </section>
 
+      <section class="ins-section" id="space" data-toc="Likeness map" aria-labelledby="space-h">
+        <div class="ins-head">
+          <h2 id="space-h">A map of likeness</h2>
+          <div class="seg" id="space-colour" role="group" aria-label="Colour by" hidden></div>
+        </div>
+        <p class="ins-lede" id="space-lede"></p>
+        <figure class="nx-space" id="space-fig"></figure>
+        <ul class="corr-key" id="space-key"></ul>
+        <p class="tbl-note" id="space-note"></p>
+      </section>
+
       <section class="ins-section" id="typical" data-toc="Typical and distinctive" aria-labelledby="typ-h">
         <div class="ins-head"><h2 id="typ-h">Typical and distinctive</h2></div>
         <p class="ins-lede" id="typ-lede"></p>
@@ -103,8 +130,10 @@
           <div class="rank-col"><h3>Most like the rest of the city</h3><ol id="typ-top" class="rank-list nx-list"></ol></div>
           <div class="rank-col"><h3>Least like anywhere else</h3><ol id="typ-bottom" class="rank-list nx-list"></ol></div>
         </div>
-        <h3 class="sub-h in-list-h">The closest pairs</h3>
-        <ol id="pairs" class="rank-list nx-pairs"></ol>
+        <div class="ranks nx-pair-cols">
+          <div class="rank-col"><h3>The closest pairs</h3><ol id="pairs" class="rank-list nx-pairs"></ol></div>
+          <div class="rank-col"><h3 id="pairs-far-h"></h3><ol id="pairs-far" class="rank-list nx-pairs far"></ol></div>
+        </div>
       </section>
       <div id="tip" class="tip" role="tooltip" hidden></div>
     </main>

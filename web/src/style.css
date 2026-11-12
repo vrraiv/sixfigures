@@ -944,6 +944,31 @@ section[hidden] { display: none; }
 .nx-card-h:hover span:first-of-type { color: var(--accent); }
 .nx-pairs { max-width: 760px; }
 .nx-pairs li { grid-template-columns: 22px minmax(0, 1fr) 30px; }
+.nx-pairs.far li { grid-template-columns: 22px minmax(0, 1fr) auto 30px; }
+.nx-pair-cols { margin-top: 22px; }
+.nx-twins { max-width: 548px; }
+.nx-time { max-width: 620px; margin-bottom: 18px; }
+.nx-time .ch-xticks span:last-child { left: var(--last) !important; right: auto; transform: translateX(-50%); }
+.ex-key-line.dash { background: repeating-linear-gradient(90deg, #75756f 0 4px, transparent 4px 7px); }
+.nx-time-list li { grid-template-columns: 22px minmax(0, 1.5fr) minmax(60px, 1fr) 30px; }
+.nx-time-list li.sel { background: #eef4fc; }
+.seg[hidden] { display: none; }
+.nx-space { margin: 0; max-width: 760px; }
+.nx-plot { position: relative; border: 1px solid var(--rule); border-radius: 6px; background: #fff; overflow: hidden; }
+.nx-plot svg { display: block; width: 100%; height: auto; }
+.nx-plot line { stroke: #e2e2dd; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.nx-plot circle { stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+.nx-plot circle:hover { stroke: var(--ink); stroke-width: 3; }
+.nx-plot circle.dim { opacity: 0.15; }
+.nx-plot circle.me, .nx-plot circle.vs { stroke: var(--ink); stroke-width: 4; r: 13px; }
+.nx-plot circle.vs { stroke-width: 3; r: 11px; }
+.nx-tag { position: absolute; transform: translate(12px, -50%); padding: 0 5px; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; color: var(--ink); background: rgba(255, 255, 255, 0.88); border-radius: 3px; pointer-events: none; }
+.nx-tag.left { transform: translate(calc(-100% - 12px), -50%); }
+.nx-tag.vs { font-weight: 500; }
+.nx-ax { margin: 4px 0; font-size: 12px; color: var(--ink-3); text-align: center; }
+.nx-ax-x { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; color: var(--ink-3); }
+.nx-ax-x span { flex: 1; }
+.nx-ax-x span:last-child { text-align: right; }
 .nx-pair { display: flex; flex-wrap: wrap; gap: 0 8px; min-width: 0; }
 .nx-pair .nx-nm { min-width: 0; max-width: 100%; }
 .nx-and { color: var(--ink-3); }
@@ -957,4 +982,8 @@ section[hidden] { display: none; }
   .nx-v { font-size: 11px; }
   .nx-list.with-val li { grid-template-columns: 22px minmax(0, 1.5fr) minmax(50px, auto) 30px; }
   .nx-list.with-val .barcell { display: none; }
+  .nx-plot circle { r: 13px; }
+  .nx-plot circle.me { r: 18px; }
+  .nx-plot circle.vs { r: 16px; }
+  .nx-tag { font-size: 11px; }
 }

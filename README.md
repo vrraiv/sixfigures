@@ -137,7 +137,20 @@ or one measure alone. The page has the map shaded by affinity with the ten most 
 (and every neighbourhood in a sortable table, theme by theme), the closest and furthest matches
 on each theme, a side-by-side of the picked neighbourhood and any other on every measure, the
 eight kinds of neighbourhood on a map, and the most typical and most distinctive neighbourhoods
-and closest pairs. The kinds come from Ward's hierarchical clustering on the same percentiles,
+and closest pairs. It also shows:
+- **Twins across town:** the closest matches at least 10 km away (likeness is partly local: a
+  neighbourhood's ten closest matches are typically about 5 km off, against 12 km for any two),
+  and the closest pairs that far apart;
+- **Since 2006:** the same affinity on the 18 census measures that go back to 2006 (Income,
+  Housing costs, Homes and People), at each census, for the picked pair and for the picked
+  neighbourhood against all the others, with the neighbourhoods it has grown most like and
+  furthest from;
+- **A map of likeness:** every neighbourhood placed on the two axes that separate them most
+  (the first two principal components of the percentiles, about 46% of the variance), coloured
+  by kind or by affinity with the picked neighbourhood. It is a picture, not the measure: the
+  lists come from the gaps.
+
+The kinds come from Ward's hierarchical clustering on the same percentiles,
 every theme but Voting weighted equally; they cut a continuum (silhouette about 0.1), so each
 neighbourhood also carries its next nearest kind. The link holds every choice. Its data is
 `web/public/neighbourhoods.json` (`pipeline/affinity.py`, `make neighbourhoods`, run after
