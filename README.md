@@ -1,9 +1,23 @@
-# Toronto income and housing map
+# Six Figures
 
-An interactive choropleth of income, low income and housing across the City of
-Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the change
-between them. Hover for values, click for detail, or search for a Toronto address or
-intersection to jump to its DA. Live site at http://sixfigures.vikramrai.com/. 
+*Toronto, mapped by its data.* Live site at http://sixfigures.vikramrai.com/.
+
+The landing page is an interactive choropleth of income, low income and housing across
+the City of Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the
+change between them. Hover for values, click for detail, or search for a Toronto address
+or intersection to jump to its DA. Around it are pages on schools, housing, sale prices,
+safety and trees by neighbourhood, two explorers that work across all of them, and
+forecasts.
+
+Every page carries the same header: the site's name, and two rows of links. **Data** has
+the pages about one topic (Census, Schools, Housing, Sale prices, Safety, Trees);
+**Insights** the pages that work across topics (Data Explorer, Neighbourhood Explorer,
+Forecasts). A section with pages of its own shows them in a third row: Census has the
+2021 · 2016 map, the 2011 map and Census Insights; Forecasts has Method, Schools and
+Dwelling value. On phones the two rows fold behind a Menu button. The header is defined
+once, in `scripts/site-nav.mjs`, and written into each page at build time
+(`vite.config.js`); a page holds only a `<!-- site-header -->` comment, and a new page is
+added to the header there (`npm test` checks every built page is in it).
 
 A second page, `/2011/`, shows 2011 on its own DA boundaries (3,685 DAs), coloured on
 the same classes as the main map, with the main map's measures: dwelling types and ages
@@ -98,8 +112,7 @@ found by name in a menu, and is then marked everywhere on the page; Safety and T
 contents list, and the Trees measure menu stays pinned only over the sections it drives. Tooltips
 work by touch on every Insights page: a tap shows the figures and the next tap elsewhere hides them.
 
-The Data Explorer, `/insights/explorer/` (a button above the Insights tabs on every Insights
-page), offers every neighbourhood measure on the site in one menu: 67 measures from the census,
+The Data Explorer, `/insights/explorer/`, offers every neighbourhood measure on the site in one menu: 67 measures from the census,
 safety, schools, sale prices, housing, trees and heat, elections and short-term rentals. Up to
 three can be chosen, each with its own period, and the page shows the view that suits the number:
 - **One:** the map with a period slider (one colour scale for all periods), the spread, the
@@ -121,7 +134,7 @@ gives the chosen measures at their chosen periods. Its data is `web/public/explo
 it is first used. The code is `web/src/explorer.js` (pickers, link, picks, CSV), `explorer-core.js`
 and one module per view.
 
-The Neighbourhood Explorer, `/insights/neighbourhoods/` (the button beside the Data Explorer's),
+The Neighbourhood Explorer, `/insights/neighbourhoods/`,
 starts from a neighbourhood instead of a measure: pick one and it shows which of the other 157
 are most and least like it. Likeness is an **affinity** out of 100, from 60 of the Explorer's
 measures at their latest period, grouped into nine named themes (Income, Housing costs, Homes,
@@ -157,7 +170,8 @@ neighbourhood also carries its next nearest kind. The link holds every choice. I
 `make explorer`), where the choice of method is recorded; the code is
 `web/src/neighbourhoods.js`, which works the affinity out in the browser.
 
-Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
+Forecasts are an exercise in how far public data can be pushed, not advice, and each
+forecast page opens by saying so. Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's
 forecast Grade 3 and Grade 6 score for 2026-27 with its 80% range, and tabulates every
