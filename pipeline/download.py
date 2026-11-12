@@ -17,7 +17,24 @@ with backoff and checked for the expected leading bytes before it is kept.
 
 CMHC (starts by census subdivision, Rental Market Survey zones, zone boundaries): plain
 downloads, no bot challenge; see the CMHC section below.
+
+With no options it fetches everything not yet on disk. The options fetch one part
+(pipeline/data_refresh.py and the data-refresh workflow use them):
+
+    --toronto FILE ...  these City of Toronto files (names as in TORONTO); with
+                        --fresh, again even if on disk
+    --trreb             TRREB's community reports for the quarters after the last
+                        one in pipeline/trreb/community.csv
+    --insideairbnb      any newer Inside Airbnb scrape the site lists (added to
+                        pipeline/rentals/snapshots.json), then every scrape listed there
+    --cmhc              the CMHC files (make cmhc)
+    --inputs            the Statistics Canada files kept in the repository's
+                        `pipeline-inputs` release (INPUTS), if not on disk
 """
+import argparse
+import csv
+import os
+import subprocess
 import hashlib
 import json
 import re
@@ -200,7 +217,27 @@ TORONTO = {
 # here and to rentals.SNAPSHOTS.
 INSIDEAIRBNB_DIR = RAW / "insideairbnb"
 INSIDEAIRBNB = "https://data.insideairbnb.com/canada/on/toronto/{}/data/listings.csv.gz"
-INSIDEAIRBNB_DATES = ["2025-12-12", "2026-03-19", "2026-06-15", "2026-09-16"]
+INSIDEAIRBNB_PAGE = "https://insideairbnb.com/get-the-data/"
+# the scrapes rentals.py reads (`--insideairbnb` adds newer ones the page lists)
+INSIDEAIRBNB_SNAPSHOTS = Path(__file__).parent / "rentals" / "snapshots.json"
+# TRREB's quarterly Community Housing Market Reports (trreb.py), one PDF per region and
+# quarter, into pipeline/raw/trreb_community/. trreb.ca serves them to scripts; a quarter
+# not yet posted answers 404 (TRREB posts them 8 to 12 weeks after the quarter ends).
+# Reports before 2023 sit under other paths: those were downloaded by hand.
+TRREB_DIR = RAW / "trreb_community"
+TRREB_URL = "https://trreb.ca/wp-content/files/market-stats/community-reports/{y}/Q{q}/Toronto{r}Q{q}{y}.pdf"
+TRREB_REGIONS = ["Central", "East", "West"]
+TRREB_DONE = Path(__file__).parent / "trreb" / "community.csv"
+# Statistics Canada files the data-refresh workflow needs but can't download (www12 refuses
+# scripts), kept as assets of this repository's `pipeline-inputs` release.
+# scripts/publish-inputs.sh uploads them from a machine that has them; the Statistics Canada
+# Open Licence allows redistributing them with attribution. asset -> (where it goes, leading bytes)
+INPUTS_RELEASE = "pipeline-inputs"
+INPUTS = {
+    "lda_000b21a_e.zip": (RAW / "lda_000b21a_e.zip", b"PK"),  # 2021 DA boundaries
+    "toronto_dwellings.csv": (RAW.parent / "out" / "toronto_dwellings.csv", b"year,DAUID"),  # permits.py's cache
+    "toronto_da_geom.geojson": (RAW.parent / "out" / "toronto_da_geom.geojson", b"{"),  # build.py's DAs
+}
 
 # Deprivation indexes by 2021 DA (health.py), plain downloads (zip or xlsx).
 # ON-Marg: non-commercial use only, credit PHO and St. Michael's, no modification
@@ -389,6 +426,140 @@ def ckan_url(package: str, resource: str) -> str:
     return next(x["url"] for x in res if x["name"] == resource)
 
 
+def toronto_file(name: str, fresh: bool = False) -> tuple[bool, str]:
+    """Fetch one of the TORONTO files unless it is on disk (or fresh); (ok, url)."""
+    package, resource, magic = TORONTO[name]
+    dest = RAW / name
+    if not fresh and dest.exists() and dest.open("rb").read(len(magic)) == magic:
+        print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
+        return True, ""
+    print(f"fetch   {name}")
+    try:
+        url = ckan_url(package, resource)
+    except Exception as e:
+        print(f"  could not resolve resource: {e}")
+        return False, f"https://open.toronto.ca/dataset/{package}/ ({resource})"
+    return fetch(url, dest, magic, attempts=6), url
+
+
+def toronto(names: list[str], fresh: bool) -> list:
+    """Fetch the named TORONTO files; returns [(name, url)] that failed."""
+    unknown = [n for n in names if n not in TORONTO]
+    if unknown:
+        sys.exit(f"not in download.py's TORONTO: {unknown}")
+    RAW.mkdir(exist_ok=True)
+    failed = []
+    for name in names:
+        ok, url = toronto_file(name, fresh)
+        if not ok:
+            failed.append((name, url))
+    return failed
+
+
+def last_complete_quarter(today: time.struct_time) -> tuple[int, int]:
+    q = (today.tm_mon - 1) // 3  # quarters finished this year
+    return (today.tm_year, q) if q else (today.tm_year - 1, 4)
+
+
+def trreb() -> list[str]:
+    """Fetch TRREB's three regional reports for each finished quarter after the last one in
+    community.csv, stopping at the first quarter not posted yet. Returns the quarters fetched."""
+    with open(TRREB_DONE, newline="") as f:
+        y, q = max((int(r["year"]), int(r["q"])) for r in csv.DictReader(f))
+    end = last_complete_quarter(time.localtime())
+    TRREB_DIR.mkdir(parents=True, exist_ok=True)
+    got = []
+    while True:
+        y, q = (y + 1, 1) if q == 4 else (y, q + 1)
+        if (y, q) > end:
+            break
+        files = {r: TRREB_DIR / f"Toronto{r}Q{q}{y}.pdf" for r in TRREB_REGIONS}
+        ok = all((f.exists() and f.open("rb").read(4) == b"%PDF")
+                 or fetch(TRREB_URL.format(y=y, q=q, r=r), f, b"%PDF", attempts=2) for r, f in files.items())
+        if not ok:  # a quarter needs all three regions
+            for f in files.values():
+                f.unlink(missing_ok=True)
+            print(f"wait    TRREB {y} Q{q}: not posted yet (if the error above is a 404)")
+            break
+        print(f"ok      TRREB {y} Q{q}")
+        got.append(f"{y} Q{q}")
+    if not got:
+        print("TRREB: no new quarter")
+    return got
+
+
+def insideairbnb_new() -> list[str]:
+    """Add the Toronto scrapes insideairbnb.com/get-the-data lists that are newer than the
+    last in snapshots.json; returns them."""
+    req = urllib.request.Request(INSIDEAIRBNB_PAGE, headers=UA)
+    with urllib.request.urlopen(req, timeout=60) as r:
+        page = r.read().decode("utf-8", "replace")
+    listed = sorted(set(re.findall(r"data\.insideairbnb\.com/canada/on/toronto/(\d{4}-\d{2}-\d{2})/data/listings\.csv\.gz", page)))
+    if not listed:
+        sys.exit(f"{INSIDEAIRBNB_PAGE} lists no Toronto listings file: has the page changed?")
+    s = json.loads(INSIDEAIRBNB_SNAPSHOTS.read_text())
+    new = [d for d in listed if d > s["snapshots"][-1]]
+    if new:
+        s["snapshots"] += new
+        INSIDEAIRBNB_SNAPSHOTS.write_text(json.dumps(s, indent=2) + "\n")
+    print(f"Inside Airbnb: the page lists {', '.join(listed)}; " + (f"new: {', '.join(new)}" if new else "no new scrape"))
+    return new
+
+
+def insideairbnb() -> list:
+    """Fetch every scrape in snapshots.json not yet on disk; returns [(name, url)] that failed."""
+    INSIDEAIRBNB_DIR.mkdir(parents=True, exist_ok=True)
+    failed = []
+    for date in json.loads(INSIDEAIRBNB_SNAPSHOTS.read_text())["snapshots"]:
+        dest = INSIDEAIRBNB_DIR / f"toronto_listings_{date}.csv.gz"
+        if dest.exists() and dest.open("rb").read(2) == b"\x1f\x8b":
+            print(f"ok      insideairbnb/{dest.name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   insideairbnb/{dest.name}")
+        if not fetch(INSIDEAIRBNB.format(date), dest, b"\x1f\x8b", attempts=3):
+            failed.append((f"insideairbnb/{dest.name}", INSIDEAIRBNB.format(date)))
+    return failed
+
+
+def github_repo() -> str:
+    """owner/name of this repository on GitHub."""
+    if os.environ.get("GITHUB_REPOSITORY"):
+        return os.environ["GITHUB_REPOSITORY"]
+    url = subprocess.run(["git", "remote", "get-url", "origin"], cwd=RAW.parent, capture_output=True, text=True).stdout
+    m = re.search(r"github\.com[/:]([^/\s]+/[^/\s]+?)(?:\.git)?\s*$", url)
+    return m.group(1) if m else "vrraiv/sixfigures"
+
+
+def inputs() -> list:
+    """Fetch the INPUTS not on disk from the release: with the GitHub CLI when it's installed (it
+    works for a private repository too; the workflow gives it a token), else by URL."""
+    failed = []
+    repo = github_repo()
+    for name, (dest, magic) in INPUTS.items():
+        if dest.exists() and dest.open("rb").read(len(magic)) == magic:
+            print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   {name} (release {INPUTS_RELEASE} of {repo})")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if shutil.which("gh"):
+            tmp = RAW / ".inputs"
+            tmp.mkdir(parents=True, exist_ok=True)
+            p = subprocess.run(["gh", "release", "download", INPUTS_RELEASE, "--repo", repo, "--pattern", name,
+                                "--dir", str(tmp), "--clobber"], capture_output=True, text=True)
+            got = tmp / name
+            ok = p.returncode == 0 and got.exists() and got.open("rb").read(len(magic)) == magic
+            if ok:
+                got.replace(dest)
+            else:
+                print(f"  failed: {(p.stderr or p.stdout).strip() or 'unexpected content'}")
+                got.unlink(missing_ok=True)
+        else:
+            ok = fetch(f"https://github.com/{repo}/releases/download/{INPUTS_RELEASE}/{name}", dest, magic, attempts=2)
+        if not ok:
+            failed.append((name, f"the {INPUTS_RELEASE} release of {repo} (scripts/publish-inputs.sh uploads it)"))
+    return failed
+
+
 def main() -> int:
     RAW.mkdir(exist_ok=True)
     missing, optional = [], []
@@ -410,21 +581,7 @@ def main() -> int:
         if not (fetch_zipped if zipped else fetch_checked)(url, dest, digest):
             missing.append((name, url))
     missing += cmhc()
-    for name, (package, resource, magic) in TORONTO.items():
-        dest = RAW / name
-        if dest.exists() and dest.open("rb").read(len(magic)) == magic:
-            print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
-            continue
-        print(f"fetch   {name}")
-        try:
-            url = ckan_url(package, resource)
-        except Exception as e:
-            print(f"  could not resolve resource: {e}")
-            url = f"https://open.toronto.ca/dataset/{package}/ ({resource})"
-        else:
-            if fetch(url, dest, magic, attempts=6):
-                continue
-        missing.append((name, url))
+    missing += toronto(list(TORONTO), fresh=False)
     SCHOOLS_DIR.mkdir(exist_ok=True)
     for name, path in SCHOOLS.items():
         dest = SCHOOLS_DIR / name
@@ -434,15 +591,7 @@ def main() -> int:
         print(f"fetch   schools/{name}")
         if not fetch(ONTARIO + path, dest, b"PK", attempts=3):
             missing.append((f"schools/{name}", ONTARIO + path))
-    INSIDEAIRBNB_DIR.mkdir(exist_ok=True)
-    for date in INSIDEAIRBNB_DATES:
-        dest = INSIDEAIRBNB_DIR / f"toronto_listings_{date}.csv.gz"
-        if dest.exists() and dest.open("rb").read(2) == b"\x1f\x8b":
-            print(f"ok      insideairbnb/{dest.name} ({dest.stat().st_size:,} bytes)")
-            continue
-        print(f"fetch   insideairbnb/{dest.name}")
-        if not fetch(INSIDEAIRBNB.format(date), dest, b"\x1f\x8b", attempts=3):
-            missing.append((f"insideairbnb/{dest.name}", INSIDEAIRBNB.format(date)))
+    missing += insideairbnb()
     name, url = STUDY_2018
     if (RAW / name).exists():
         print(f"ok      {name} ({(RAW / name).stat().st_size:,} bytes)")
@@ -474,9 +623,28 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    if "--cmhc" in sys.argv[1:]:  # only the CMHC files (make cmhc)
-        failed = cmhc()
-        for name, url in failed:
-            print(f"failed  {name}\n    {url}")
-        sys.exit(1 if failed else 0)
-    sys.exit(main())
+    ap = argparse.ArgumentParser(description="Fetch the raw inputs into pipeline/raw/ (all of them, or one part).")
+    ap.add_argument("--toronto", nargs="+", metavar="FILE", help="only these City of Toronto files (TORONTO's names)")
+    ap.add_argument("--fresh", action="store_true", help="with --toronto: fetch again even if on disk")
+    ap.add_argument("--trreb", action="store_true", help="TRREB's reports for quarters after community.csv's last")
+    ap.add_argument("--insideairbnb", action="store_true", help="newer Inside Airbnb scrapes, then every one listed")
+    ap.add_argument("--cmhc", action="store_true", help="only the CMHC files (make cmhc)")
+    ap.add_argument("--inputs", action="store_true", help="the StatCan files in the pipeline-inputs release")
+    a = ap.parse_args()
+    if not (a.toronto or a.trreb or a.insideairbnb or a.cmhc or a.inputs):
+        sys.exit(main())
+    failed = []
+    if a.inputs:
+        failed += inputs()
+    if a.toronto:
+        failed += toronto(a.toronto, a.fresh)
+    if a.trreb:
+        trreb()  # a quarter not posted yet isn't a failure
+    if a.insideairbnb:
+        insideairbnb_new()
+        failed += insideairbnb()
+    if a.cmhc:
+        failed += cmhc()
+    for name, url in failed:
+        print(f"failed  {name}\n    {url}")
+    sys.exit(1 if failed else 0)

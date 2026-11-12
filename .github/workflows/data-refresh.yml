@@ -1,0 +1,123 @@
+# Scheduled data refresh (docs/data-catalogue.md). Downloads what is new from the scripted
+# sources, rebuilds only the pages whose inputs changed (pipeline/data_refresh.py), checks the
+# site still tests and builds, and opens or updates a pull request on the `data-refresh` branch
+# for review. Nothing here deploys: merging the pull request does.
+#
+# When: the 12th and 26th of March, June, October and December. TRREB posts each quarter's
+# community reports 8 to 12 weeks after it ends, so a run before they are up finds nothing new
+# for prices and the next run picks them up. Runs in March also refresh the police files and
+# housing, once the past year is complete. To run it by hand and choose the parts: Actions tab,
+# Data refresh, Run workflow.
+#
+# Needs: Settings, Actions, General, "Allow GitHub Actions to create and approve pull requests".
+# Housing also needs the `pipeline-inputs` release (scripts/publish-inputs.sh); without it,
+# housing is skipped and the rest still runs.
+name: Data refresh
+
+on:
+  schedule:
+    - cron: "23 10 12,26 3,6,10,12 *"
+  workflow_dispatch:
+    inputs:
+      prices:
+        description: "Sale prices: TRREB's new quarters"
+        type: boolean
+        default: true
+      rentals:
+        description: "Short-term rentals: Inside Airbnb's new scrape"
+        type: boolean
+        default: true
+      safety:
+        description: "Safety: the police's crime files and KSI collisions"
+        type: boolean
+        default: false
+      housing:
+        description: "Housing: permits, the City's housing files, CMHC, StatCan series"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Install the pipeline's packages
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Choose the parts
+        id: parts
+        env:
+          EVENT: ${{ github.event_name }}
+          PRICES: ${{ inputs.prices }}
+          RENTALS: ${{ inputs.rentals }}
+          SAFETY: ${{ inputs.safety }}
+          HOUSING: ${{ inputs.housing }}
+        run: |
+          if [ "$EVENT" = schedule ]; then
+            parts="prices rentals"
+            if [ "$(date -u +%m)" = 03 ]; then parts="$parts safety housing"; fi
+          else
+            parts=""
+            if [ "$PRICES" = true ]; then parts="$parts prices"; fi
+            if [ "$RENTALS" = true ]; then parts="$parts rentals"; fi
+            if [ "$SAFETY" = true ]; then parts="$parts safety"; fi
+            if [ "$HOUSING" = true ]; then parts="$parts housing"; fi
+          fi
+          if [ -z "$parts" ]; then echo "::error::Choose at least one part"; exit 1; fi
+          echo "parts=$parts" >> "$GITHUB_OUTPUT"
+
+      - name: Refresh the data
+        id: refresh
+        env:
+          PARTS: ${{ steps.parts.outputs.parts }}
+          GH_TOKEN: ${{ github.token }}  # download.py --inputs reads the pipeline-inputs release
+        run: python pipeline/data_refresh.py $PARTS --report "$RUNNER_TEMP/report.md"
+
+      - name: Write the summary
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/report.md" ]; then cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - uses: actions/setup-node@v4
+        if: steps.refresh.outputs.changed == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Test and build the site
+        if: steps.refresh.outputs.changed == 'true'
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Open or update the pull request
+        if: steps.refresh.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: data-refresh
+          base: main
+          commit-message: ${{ steps.refresh.outputs.title }}
+          title: ${{ steps.refresh.outputs.title }}
+          body-path: ${{ runner.temp }}/report.md
+          # only the refreshed data, never anything else the run left behind
+          add-paths: |
+            pipeline/
+            web/public/
+          delete-branch: true

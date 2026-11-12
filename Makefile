@@ -306,5 +306,26 @@ explorer:
 neighbourhoods:
 	$(PYTHON) pipeline/affinity.py
 
+# Scheduled refreshes (docs/data-catalogue.md): download what's new from the scripted sources,
+# rebuild only the pages whose inputs changed. .github/workflows/data-refresh.yml runs the same
+# script on a schedule and opens a pull request.
+#   refresh-quarterly  TRREB's latest quarter and Inside Airbnb's latest scrape
+#   refresh-safety     the police's crime files and KSI collisions (March, once the year is complete)
+#   refresh-housing    permits, the City's housing files, CMHC and the StatCan series (March)
+#   publish-inputs     upload the StatCan files housing needs to the pipeline-inputs release, for
+#                      the workflow (once; scripts/publish-inputs.sh)
+.PHONY: refresh-quarterly refresh-safety refresh-housing publish-inputs
+refresh-quarterly:
+	$(PYTHON) pipeline/data_refresh.py prices rentals
+
+refresh-safety:
+	$(PYTHON) pipeline/data_refresh.py safety
+
+refresh-housing:
+	$(PYTHON) pipeline/data_refresh.py housing
+
+publish-inputs:
+	bash scripts/publish-inputs.sh
+
 clean:
 	rm -rf pipeline/out
