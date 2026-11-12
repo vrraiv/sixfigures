@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { ROWS, allPages, pagePath, sectionOf, siteHeader, siteTitle } from "./site-nav.mjs";
+import { DISCLAIMER, ROWS, SOCIAL, allPages, pagePath, sectionOf, siteFooter, siteHeader, siteTitle } from "./site-nav.mjs";
 
 const inputs = [...readFileSync("vite.config.js", "utf8").matchAll(/"(web\/[^"]*index\.html)"/g)].map((m) => pagePath(m[1].replace(/^web/, "")));
 
@@ -36,4 +36,16 @@ test("a section's first page is its top link", () => {
 test("the site's name is added to a title once", () => {
   assert.equal(siteTitle("<title>Toronto Safety Insights</title>"), "<title>Toronto Safety Insights · Six Figures</title>");
   assert.equal(siteTitle(siteTitle("<title>A</title>")), "<title>A · Six Figures</title>");
+});
+
+test("every page's footer opens with the disclaimer and closes with the three links", () => {
+  assert.deepEqual(SOCIAL.map((s) => s.name), ["LinkedIn", "GitHub", "X"]);
+  for (const p of inputs) {
+    const f = siteFooter(readFileSync(`web${p}index.html`, "utf8")), foot = f.slice(f.indexOf('<footer class="foot">'), f.indexOf("</footer>"));
+    assert.ok(foot.startsWith(`<footer class="foot">\n      <p class="disclaimer">${DISCLAIMER}</p>`), p);
+    assert.equal((f.match(/class="disclaimer"/g) ?? []).length, 1, p);
+    assert.equal((f.match(/class="social"/g) ?? []).length, 1, p);
+    assert.ok(foot.trimEnd().endsWith("</p>") && foot.lastIndexOf('class="social"') > foot.lastIndexOf('class="downloads"'), p);
+    for (const s of SOCIAL) assert.ok(f.includes(`href="${s.href}"`), `${p} ${s.name}`);
+  }
 });

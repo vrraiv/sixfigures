@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig } from "vite";
 import { extractTiles } from "./scripts/extract-tiles.mjs";
-import { pagePath, siteHeader, siteTitle } from "./scripts/site-nav.mjs";
+import { pagePath, siteFooter, siteHeader, siteTitle } from "./scripts/site-nav.mjs";
 
 // Content hashes of the data files, appended as ?v= so they can be cached as
 // immutable (see web/public/_headers) yet still bust when the data is rebuilt.
@@ -59,9 +59,9 @@ export default defineConfig({
   // index.html preloads the opening view's DA tiles and figures; it needs the tile
   // source and the figures version for that.
   plugins: [{
-    // The site header and name on every page (scripts/site-nav.mjs).
+    // The site header and name, and the footer's disclaimer and links, on every page (scripts/site-nav.mjs).
     name: "site-header",
-    transformIndexHtml: (html, ctx) => siteTitle(html).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path))),
+    transformIndexHtml: (html, ctx) => siteFooter(siteTitle(html)).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path))),
   }, {
     name: "da-tiles-in-html",
     transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION)),

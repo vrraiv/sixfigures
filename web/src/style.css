@@ -1010,3 +1010,15 @@ section[hidden] { display: none; }
 .fc-defs dl { margin: 0; }
 .fc-defs dt { margin-top: 8px; font-weight: 650; color: var(--ink); }
 .fc-defs dd { margin: 1px 0 0; padding-left: 12px; border-left: 2px solid var(--rule); }
+
+/* ---- the footer's disclaimer and links (scripts/site-nav.mjs) ---- */
+.foot .disclaimer { margin: 0 0 6px; font-style: italic; color: var(--ink-2); }
+.foot .social { display: flex; justify-content: center; gap: 4px; margin: 10px 0 0; }
+.foot .social a { display: inline-flex; padding: 8px; color: var(--ink-3); border-radius: 6px; }
+.foot .social a:hover { color: var(--navy); background: #eef4fc; }
+.foot .social svg { fill: currentColor; display: block; }
+/* the map pages share their height with the footer: keep the additions small */
+body:not(.doc) .foot .disclaimer { margin: 0 0 3px; }
+body:not(.doc) .foot .social { margin: 2px 0 0; gap: 0; }
+body:not(.doc) .foot .social a { padding: 5px 8px; }
+body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
