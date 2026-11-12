@@ -300,5 +300,11 @@ trees-page:
 explorer:
 	$(PYTHON) pipeline/explorer_data.py
 
+# The Neighbourhood Explorer's neighbourhoods.json: percentile ranks by theme and the kinds of
+# neighbourhood, from the Data Explorer's files. Run after `make explorer`.
+.PHONY: neighbourhoods
+neighbourhoods:
+	$(PYTHON) pipeline/affinity.py
+
 clean:
 	rm -rf pipeline/out

@@ -47,6 +47,8 @@ export function buildToc(nav) {
   const secs = [...document.querySelectorAll("main section[id]")].filter((s) => !s.hidden && !s.closest("[hidden]"));
   nav.innerHTML = `<span class="toc-label">On this page</span>${secs.map((s) => `<a href="#${s.id}">${escapeHTML(s.dataset.toc ?? s.querySelector("h2").textContent)}</a>`).join("")}`;
   // the address holds the page's choices after "#", so jump by script and leave it alone
+  if (nav.dataset.wired) return; // built again when the sections on show change
+  nav.dataset.wired = "1";
   nav.addEventListener("click", (e) => {
     const a = e.target.closest("a");
     if (!a) return;
@@ -58,6 +60,18 @@ export function buildToc(nav) {
       if (target && Math.abs(target.getBoundingClientRect().top) > 90) target.scrollIntoView({ block: "start" });
     }, ms);
   });
+}
+
+// A neighbourhood map: one <path> per neighbourhood (nbhd[i].path, in a box {width, height}),
+// filled by fill(i), hatched where that is null. Several maps can share a page: each has its
+// own pattern id.
+let hatches = 0;
+export function nbMap(nbhd, box, fill, tip, label, cls = () => "") {
+  const hatch = `nb-hatch-${++hatches}`;
+  const shapes = nbhd.map((n, i) => `<path d="${n.path}" fill="${fill(i) ?? `url(#${hatch})`}" data-i="${i}"${cls(i) ? ` class="${cls(i)}"` : ""} data-tip="${escapeHTML(tip(i))}"/>`).join("");
+  return `<svg viewBox="0 0 ${box.width} ${box.height}" role="img" aria-label="${escapeHTML(label)}">
+    <defs><pattern id="${hatch}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
+    <g>${shapes}</g></svg>`;
 }
 
 // The neighbourhood finder: a menu of every neighbourhood by name, for when a small one is hard
