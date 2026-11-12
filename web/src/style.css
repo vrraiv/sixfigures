@@ -1022,3 +1022,35 @@ body:not(.doc) .foot .disclaimer { margin: 0 0 3px; }
 body:not(.doc) .foot .social { margin: 2px 0 0; gap: 0; }
 body:not(.doc) .foot .social a { padding: 5px 8px; }
 body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
+
+/* ---- find a neighbourhood by address (addressfinder.js) ---- */
+.addr-find { font-size: 13px; min-width: 0; }
+.addr-find form { display: flex; width: 300px; max-width: 100%; }
+.addr-find input {
+  flex: 1; min-width: 0; font: inherit; padding: 4px 8px; color: var(--ink); background: #fff;
+  border: 1px solid #c9c9c3; border-right: 0; border-radius: 6px 0 0 6px;
+}
+.addr-find input::placeholder { color: var(--ink-3); }
+.addr-find form button {
+  font: inherit; padding: 4px 10px; color: var(--ink-2); background: #fff; cursor: pointer;
+  border: 1px solid #c9c9c3; border-radius: 0 6px 6px 0;
+}
+.addr-find form button:hover { color: var(--accent); border-color: var(--accent); }
+.addr-find input:focus-visible, .addr-find button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.addr-out { margin: 6px 0 0; max-width: 300px; color: var(--ink-2); line-height: 1.5; }
+.addr-out:not([hidden]) { min-width: 0; }
+.addr-nb {
+  font: inherit; font-weight: 650; padding: 0; color: var(--accent); background: none; border: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.addr-hint, .addr-wait { color: var(--ink-3); }
+.addr-nw { white-space: nowrap; }
+.nx-addr { margin: 10px 0 0; }
+.nx-addr .addr-out { max-width: 70ch; }
+.find-row { flex-wrap: wrap; align-items: flex-start; gap: 6px 12px; }
+.ex-actions .addr-find form { width: 260px; }
+@media (max-width: 640px) {
+  .addr-find, .addr-find form, .ex-actions .addr-find form { width: 100%; flex: 1 1 100%; }
+  .addr-out { max-width: none; }
+  .addr-find input { font-size: 16px; } /* below 16px, iOS zooms the page on focus */
+}

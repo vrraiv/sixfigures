@@ -12,6 +12,7 @@
 import "./style.css";
 import { $, COLORS, escapeHTML, ordinal, sign } from "./catalogue.js";
 import { chart, initTip, seg } from "./charts.js";
+import { addressFinder } from "./addressfinder.js";
 import { buildToc, inkOn, nbMap } from "./nbtools.js";
 import { fmt, lc } from "./units.js";
 
@@ -403,6 +404,7 @@ $("nb").onchange = (e) => setNb(e.target.value === "" ? null : +e.target.value);
 $("by").onchange = (e) => { S.by = e.target.value; render(); };
 $("vs").onchange = (e) => setVs(+e.target.value);
 $("swap").onclick = () => setNb(S.vs, S.nb);
+addressFinder($("addr-find"), { nbhd, onPick: (i) => setNb(i), go: "Explore it" });
 $("themes").onchange = (e) => {
   const key = e.target.value;
   if (e.target.checked) S.off.delete(key);

@@ -5,6 +5,7 @@
 import "./style.css";
 import { $, escapeHTML } from "./catalogue.js";
 import { initTip } from "./charts.js";
+import { addressFinder } from "./addressfinder.js";
 import { fillFinder } from "./nbtools.js";
 import { C, DEF, S, SRC, columns, fmt, nbhd, nearest, pctOrd, pctRank, vals, whenOf } from "./explorer-core.js";
 import { initOne, renderOne, suggestion } from "./explorer-one.js";
@@ -153,6 +154,10 @@ fillFinder($("find-nb"), nbhd.map((n) => n.name));
 $("find-nb").addEventListener("change", (e) => {
   S.nb = e.target.value === "" ? null : +e.target.value;
   draw();
+});
+addressFinder($("addr-find"), {
+  nbhd,
+  onPick: (i) => { const s = $("find-nb"); s.value = i; s.dispatchEvent(new Event("change")); },
 });
 
 // ---- the CSV download: the chosen measures at their chosen periods ------------------------------------------

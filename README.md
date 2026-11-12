@@ -185,6 +185,13 @@ People, New building, Safety, Schools, Trees and heat, Voting):
   than one with four;
 - affinity is 100 less the gap. Two neighbourhoods taken at random average about 66.
 
+On the Neighbourhood Explorer, Safety, Trees and the Data Explorer, a small box finds the
+neighbourhood an address or intersection is in (`web/src/addressfinder.js`), for readers
+who don't know the City's names. It reuses the landing map's address lookup and the 2021
+figures file's DA neighbourhoods, both loaded only when the box is first used; a DA that
+straddles a boundary (13 of them) is reported as mostly in one and partly in the other,
+and picking a name in the answer picks that neighbourhood on the page.
+
 Any theme can be unticked (Voting is the obvious one), and likeness can be measured on one theme
 or one measure alone. The page has the map shaded by affinity with the ten most and least alike
 (and every neighbourhood in a sortable table, theme by theme), the closest and furthest matches
