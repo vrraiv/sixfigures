@@ -6,9 +6,12 @@
 //   gap on a theme     the mean gap over the theme's measures both have a figure for
 //   overall gap        the mean of the theme gaps, over the themes counted
 //   affinity           100 less the gap
+// Stage two adds what the gaps alone can't show: the closest matches far away (km, from each
+// neighbourhood's representative point), the same affinity on the census measures that go back
+// to 2006, and a picture of the neighbourhoods on the two axes that separate them most.
 import "./style.css";
-import { $, COLORS, escapeHTML, ordinal } from "./catalogue.js";
-import { initTip } from "./charts.js";
+import { $, COLORS, escapeHTML, ordinal, sign } from "./catalogue.js";
+import { chart, initTip, seg } from "./charts.js";
 import { buildToc, inkOn, nbMap } from "./nbtools.js";
 import { fmt, lc } from "./units.js";
 
@@ -46,11 +49,51 @@ for (const t of D.themes) {
 // The page's choices: the neighbourhood it is about, the one beside it (auto: its closest match
 // until one is picked), what likeness is measured on (all the themes counted, one theme or one
 // measure), the themes not counted, the full table's sort column and the kind lit on the map.
-const S = { nb: null, vs: null, auto: true, by: "all", off: new Set(), sort: "all", kind: null };
+// colour: what the likeness map's dots show, the kind or the affinity with the picked neighbourhood.
+const S = { nb: null, vs: null, auto: true, by: "all", off: new Set(), sort: "all", kind: null, colour: "kind" };
 const active = () => D.themes.filter((t) => !S.off.has(t.key));
 let overall = new Float32Array(N * N), cityMean = 0, typical = [];
 
+// ---- distance ----------------------------------------------------------------------------------------
+const FAR = 10; // km: "across town"
+const km = (i, j) => Math.hypot(D.km[i][0] - D.km[j][0], D.km[i][1] - D.km[j][1]);
+const median = (vs) => {
+  const s = [...vs].sort((a, b) => a - b), h = s.length >> 1;
+  return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2;
+};
+const cityKm = median(nbhd.flatMap((_, i) => nbhd.slice(i + 1).map((__, d) => km(i, i + 1 + d))));
+
+// ---- since 2006 --------------------------------------------------------------------------------------
+// The same gaps on the census measures that go back to the first census in the file, at each
+// census: HG[theme][y], worked out when a neighbourhood is first picked.
+const YEARS = D.history.periods, LAST = YEARS.length - 1, HG = {};
+let histAll = null; // [y]: the overall gap over the history themes counted
+const histThemes = () => D.themes.filter((t) => D.history.themes[t.key] && !S.off.has(t.key));
+function historyGaps() { // not history(): that is the browser's
+  if (histAll) return histAll;
+  for (const [key, ids] of Object.entries(D.history.themes)) HG[key] ??= YEARS.map((_, y) => {
+    const g = new Float32Array(N * N), cols = ids.map((id) => D.history.pct[id][y]);
+    for (let i = 0; i < N; i++) for (let j = i; j < N; j++) {
+      let s = 0, n = 0;
+      for (const p of cols) if (p[i] != null && p[j] != null) { s += Math.abs(p[i] - p[j]); n++; }
+      g[i * N + j] = g[j * N + i] = n ? s / n : NaN;
+    }
+    return g;
+  });
+  const ts = histThemes();
+  return (histAll = YEARS.map((_, y) => {
+    const out = new Float32Array(N * N);
+    for (let k = 0; k < N * N; k++) {
+      let s = 0, n = 0;
+      for (const t of ts) { const g = HG[t.key][y][k]; if (!Number.isNaN(g)) { s += g; n++; } }
+      out[k] = n ? s / n : NaN;
+    }
+    return out;
+  }));
+}
+
 function recompute() {
+  histAll = null;
   const gs = active().map((t) => G[t.key]);
   for (let k = 0; k < N * N; k++) {
     let s = 0, n = 0;
@@ -98,6 +141,7 @@ function writeHash() {
   if (S.nb != null && S.vs != null && !S.auto) h.set("vs", nbhd[S.vs].id);
   if (S.by !== "all") h.set("by", S.by);
   if (S.off.size) h.set("off", [...S.off].join("."));
+  if (S.nb != null && S.colour !== "kind") h.set("c", S.colour);
   history.replaceState(null, "", `${location.pathname}${h.size ? `#${h}` : ""}`);
 }
 
@@ -111,10 +155,11 @@ $("by").innerHTML = `<option value="all">All the themes counted</option>
 $("themes").insertAdjacentHTML("beforeend", D.themes.map((t) => `<label data-tip="${escapeHTML(t.measures.map((id) => M[id].short).join(" · "))}"><input type="checkbox" value="${t.key}" /> ${escapeHTML(t.label)} <span class="nx-n">${t.measures.length}</span></label>`).join(""));
 
 // ---- most and least alike ------------------------------------------------------------------------------
-function listHTML(a, idx, start, single) {
-  return idx.map((j, k) => `<li${j === S.vs ? ' class="sel"' : ""}><span class="rk">${start + k}</span>
+// rank(j, k): the number shown; extra(j): a figure beside the name (a measure's value, a distance)
+function listHTML(a, idx, rank, extra) {
+  return idx.map((j, k) => `<li${j === S.vs ? ' class="sel"' : ""}><span class="rk">${rank(j, k)}</span>
     <button type="button" class="nm nx-nm" data-vs="${j}" data-tip="${escapeHTML(`${kindOf(j).name}`)}">${dot(j)}${nameOf(j)}</button>
-    ${single ? `<span class="move">${escapeHTML(fmt(single, single.values[j]))}</span>` : ""}
+    ${extra ? `<span class="move">${escapeHTML(extra(j))}</span>` : ""}
     <span class="barcell"><span class="bar-fill" style="width:${a[j].toFixed(1)}%;background:${shade(a[j])}"></span></span>
     <span class="vl">${show(a[j])}</span></li>`).join("");
 }
@@ -135,8 +180,15 @@ function renderAlike() {
   $("alike-key").innerHTML = `${RANGES.map((r, c) => `<li><span class="key-sq" style="background:${COLORS[c]}"></span>${r}</li>`).join("")}
     <li><span class="key-sq" style="background:${ORANGE}"></span>${me}</li>${a.some((v, j) => v == null && j !== i) ? '<li><span class="key-sq hatch"></span>No figure</li>' : ""}`;
   const top = order.slice(0, 10), bottom = order.slice(-10).reverse();
-  $("alike-top").innerHTML = listHTML(a, top, 1, single);
-  $("alike-bottom").innerHTML = listHTML(a, bottom, 1, single);
+  const value = single ? (j) => fmt(single, single.values[j]) : null, count = (j, k) => k + 1;
+  $("alike-top").innerHTML = listHTML(a, top, count, value);
+  $("alike-bottom").innerHTML = listHTML(a, bottom, count, value);
+
+  // twins across town: the closest matches a long way off
+  const far = order.filter((j) => km(i, j) >= FAR).slice(0, 5);
+  $("twins-note").innerHTML = order.length < 10 ? "" : `Likeness is partly a matter of place: ${poss(i)} ten closest matches are a median ${median(top.map((j) => km(i, j))).toFixed(1)} km away,
+    where two Toronto neighbourhoods taken at random are ${cityKm.toFixed(1)} km apart. These are its closest matches at least ${FAR} km away, with where each stands among all ${order.length}.`;
+  $("twins").innerHTML = listHTML(a, far, (j) => order.indexOf(j) + 1, (j) => `${Math.round(km(i, j))} km`);
   for (const id of ["alike-top", "alike-bottom"]) $(id).classList.toggle("with-val", !!single);
 
   // the neighbourhood set beside it
@@ -202,6 +254,43 @@ function renderSide() {
   }).join("");
 }
 
+// ---- since 2006 ----------------------------------------------------------------------------------------
+function renderTime() {
+  const i = S.nb, v = S.vs, me = nameOf(i), them = nameOf(v), ts = histThemes();
+  $("time-body").hidden = !ts.length;
+  if (!ts.length) {
+    $("time-lede").textContent = `None of the themes counted has census measures that go back to ${YEARS[0]}: tick ${Object.keys(D.history.themes).map((k) => THEME[k].label).join(", ").replace(/, ([^,]*)$/, " or $1")} to see how ${nbhd[i].name} has changed.`;
+    return;
+  }
+  const H = historyGaps(), at = (y, j) => (Number.isNaN(H[y][i * N + j]) ? null : 100 - H[y][i * N + j]);
+  const others = nbhd.map((_, j) => j).filter((j) => j !== i);
+  const avg = YEARS.map((_, y) => { const vs = others.map((j) => at(y, j)).filter((x) => x != null); return vs.reduce((a, x) => a + x, 0) / vs.length; });
+  const pair = YEARS.map((_, y) => at(y, v));
+  const d = pair[LAST] - pair[0], dAvg = avg[LAST] - avg[0], n = ts.reduce((a, t) => a + D.history.themes[t.key].length, 0);
+  $("time-lede").innerHTML = `On the ${n} census measures that go back to ${YEARS[0]} (${ts.map((t) => escapeHTML(lc(t.label))).join(", ").replace(/, ([^,]*)$/, " and $1")}),
+    <b>${me}</b> and <b>${them}</b> had an affinity of ${show(pair[0])} in ${YEARS[0]} and ${show(pair[LAST])} in ${YEARS[LAST]}: they have ${Math.abs(d) < 3 ? "kept about the same distance" : d > 0 ? "grown more alike" : "grown apart"}.
+    ${me} itself has become ${Math.abs(dAvg) < 1.5 ? "about as much like the rest of the city as it was" : dAvg > 0 ? "more like the rest of the city" : "less like the rest of the city"}:
+    its average affinity with the other ${N - 1} went from ${show(avg[0])} to ${show(avg[LAST])}. Pick a name below to see its line.`;
+  const tick = (x) => (Number.isInteger(x) ? String(x) : x.toFixed(1));
+  $("time-chart").innerHTML = `${chart({ labels: YEARS, lines: [{ name: `With ${them}`, color: ORANGE, values: pair }, { name: `Average with the other ${N - 1}`, color: "#75756f", values: avg, dash: true }],
+    fmt: tick, tipLabel: (l) => `${l} Census`, height: 190, zero: false })}
+    <ul class="year-key"><li><span class="ex-key-line" style="background:${ORANGE}"></span>${me} with ${them}</li><li><span class="ex-key-line dash"></span>${me} with the other ${N - 1}, on average</li></ul>`;
+  $("time-chart").style.setProperty("--last", `${((LAST + 0.5) / YEARS.length) * 100}%`); // the last label sits under its point
+  const change = others.map((j) => [at(0, j) == null || at(LAST, j) == null ? null : at(LAST, j) - at(0, j), j]).filter(([c]) => c != null).sort((a, b) => b[0] - a[0]);
+  const li = ([c, j], k, col) => {
+    const a = at(0, j), b = at(LAST, j);
+    const tip = `<b>${nameOf(j)}</b><br>${YEARS.map((yr, y) => `${yr}: ${y === LAST ? "<b>" : ""}${show(at(y, j))}${y === LAST ? "</b>" : ""}`).join("<br>")}`;
+    return `<li${j === v ? ' class="sel"' : ""}><span class="rk">${k + 1}</span><button type="button" class="nm nx-nm" data-vs="${j}">${dot(j)}${nameOf(j)}</button>
+      <span class="dumbbell" data-tip="${escapeHTML(tip)}"><span class="db-line" style="left:${Math.min(a, b).toFixed(1)}%;width:${Math.abs(b - a).toFixed(1)}%;background:${col}"></span>
+      <span class="db-dot db-from" style="left:${a.toFixed(1)}%"></span><span class="db-dot" style="left:${b.toFixed(1)}%;background:${col}"></span></span>
+      <span class="vl">${sign(Math.round(c))}${Math.abs(Math.round(c))}</span></li>`;
+  };
+  $("time-up").innerHTML = change.slice(0, 10).map((r, k) => li(r, k, BLUE)).join("");
+  $("time-down").innerHTML = change.slice(-10).reverse().map((r, k) => li(r, k, ORANGE)).join("");
+  $("time-note").textContent = `Each bar runs from the affinity in ${YEARS[0]} (open dot) to ${YEARS[LAST]} (filled), out of 100. Percentile ranks are relative, so growing alike means the two neighbourhoods' standings among the ${N} have converged, not that their figures have. `
+    + "The 2011 figures come from the voluntary National Household Survey, the least reliable of the four. New building is left out here (only one of its measures goes back that far), as are measures first published later and themes not counted.";
+}
+
 // ---- kinds of neighbourhood ------------------------------------------------------------------------------
 function renderKinds() {
   const i = S.nb;
@@ -220,6 +309,40 @@ function renderKinds() {
       <p class="small">Nearest its centre: <button type="button" class="nx-link" data-pick="${nbhd.findIndex((n) => n.name === t.medoid)}">${escapeHTML(t.medoid)}</button></p></div>`).join("");
 }
 
+// ---- a map of likeness -----------------------------------------------------------------------------------
+// The neighbourhoods on the two axes that separate them most (principal components of the
+// percentiles the kinds are made from), one unit the same length on both.
+const SP = (() => {
+  const xs = D.xy.map((p) => p[0]), ys = D.xy.map((p) => p[1]), pad = 12;
+  const x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad, k = 1000 / (x1 - x0);
+  return { w: 1000, h: (y1 - y0) * k, x: (p) => (p[0] - x0) * k, y: (p) => (y1 - p[1]) * k };
+})();
+function renderSpace() {
+  const i = S.nb, v = i == null ? null : S.vs, byAff = i != null && S.colour === "aff", a = byAff ? row(S.by, i) : null;
+  const ends = (ids) => ids.map((id) => escapeHTML(lc(M[id].short))).join(", ");
+  $("space-colour").hidden = i == null;
+  if (i != null) seg($("space-colour"), [["kind", "Kind"], ["aff", `Affinity with ${nameOf(i)}`]], byAff ? "aff" : "kind", (c) => { S.colour = c; renderSpace(); writeHash(); });
+  $("space-lede").innerHTML = `Every neighbourhood placed by what it is like, not where it is: the closer two dots, the more alike the neighbourhoods. The captions at the ends of each axis name the measures that rise most in that direction, and the faint lines cross at the average neighbourhood.
+    ${i == null ? "" : `<b>${nameOf(i)}</b> and <b>${nameOf(v)}</b> are labelled. `}Pick a dot to explore that neighbourhood.`;
+  const fill = (j) => (byAff ? (j === i ? ORANGE : a[j] == null ? "#e7e7e2" : shade(a[j])) : KIND[D.type[j]]);
+  const tip = (j) => `<b>${nameOf(j)}</b><br>${escapeHTML(kindOf(j).name)}${i == null || j === i ? "" : `<br>Affinity with ${nameOf(i)} ${basisShort()}: <b>${show(aff(S.by, i, j))}</b>`}`;
+  const order = nbhd.map((_, j) => j).filter((j) => j !== i && j !== v);
+  if (v != null) order.push(v);
+  if (i != null) order.push(i); // drawn last, on top
+  const dots = order.map((j) => `<circle cx="${SP.x(D.xy[j]).toFixed(1)}" cy="${SP.y(D.xy[j]).toFixed(1)}" r="9" fill="${fill(j)}" data-i="${j}" class="${j === i ? "me" : j === v ? "vs" : ""}${S.kind != null && D.type[j] !== S.kind ? " dim" : ""}" data-tip="${escapeHTML(tip(j))}"/>`).join("");
+  const tag = (j, cls) => `<span class="nx-tag ${cls}${SP.x(D.xy[j]) > 700 ? " left" : ""}" style="left:${(SP.x(D.xy[j]) / SP.w * 100).toFixed(2)}%;top:${(SP.y(D.xy[j]) / SP.h * 100).toFixed(2)}%">${nameOf(j)}</span>`;
+  const [ax, ay] = D.axes, zx = SP.x([0, 0]).toFixed(1), zy = SP.y([0, 0]).toFixed(1);
+  $("space-fig").innerHTML = `<p class="nx-ax">↑ Higher on ${ends(ay.high)}</p>
+    <div class="nx-plot"><svg viewBox="0 0 ${SP.w} ${SP.h.toFixed(0)}" role="img" aria-label="Toronto's neighbourhoods placed by what they are like">
+      <line x1="${zx}" y1="0" x2="${zx}" y2="${SP.h.toFixed(0)}"/><line x1="0" y1="${zy}" x2="${SP.w}" y2="${zy}"/>${dots}</svg>${i == null ? "" : `${tag(v, "vs")}${tag(i, "me")}`}</div>
+    <p class="nx-ax">↓ Higher on ${ends(ay.low)}</p>
+    <div class="nx-ax-x"><span>← Higher on ${ends(ax.low)}</span><span>Higher on ${ends(ax.high)} →</span></div>`;
+  $("space-key").innerHTML = byAff ? `${RANGES.map((r, c) => `<li><span class="key-sq" style="background:${COLORS[c]}"></span>${r}</li>`).join("")}<li><span class="key-sq" style="background:${ORANGE}"></span>${nameOf(i)}</li>`
+    : D.types.map((t, k) => `<li><span class="key-sq" style="background:${KIND[k]}"></span>${escapeHTML(t.name)}</li>`).join("");
+  $("space-note").textContent = `Two directions cannot hold everything. These carry ${Math.round((ax.share + ay.share) * 100)}% of the differences between neighbourhoods on every theme but voting (${Math.round(ax.share * 100)}% left to right, ${Math.round(ay.share * 100)}% bottom to top), `
+    + `and distance in the picture tracks the gap between two neighbourhoods with a correlation of ${D.fit.toFixed(2)}. For close calls, trust the lists over the picture.`;
+}
+
 // ---- typical and distinctive ---------------------------------------------------------------------------
 function renderTypical() {
   const order = ordered(typical), i = S.nb;
@@ -232,9 +355,12 @@ function renderTypical() {
   const pairs = [];
   for (let a = 0; a < N; a++) for (let b = a + 1; b < N; b++) if (!Number.isNaN(overall[a * N + b])) pairs.push([100 - overall[a * N + b], a, b]);
   pairs.sort((x, y) => y[0] - x[0]);
-  $("pairs").innerHTML = pairs.slice(0, 10).map(([v, a, b], k) => `<li><span class="rk">${k + 1}</span>
+  const pairLi = ([v, a, b], k, far) => `<li><span class="rk">${k + 1}</span>
     <span class="nx-pair"><button type="button" class="nm nx-nm" data-pick="${a}" data-with="${b}">${dot(a)}${nameOf(a)}</button><span class="nx-and">and</span><button type="button" class="nm nx-nm" data-pick="${b}" data-with="${a}">${dot(b)}${nameOf(b)}</button></span>
-    <span class="vl">${show(v)}</span></li>`).join("");
+    ${far ? `<span class="move">${Math.round(km(a, b))} km</span>` : ""}<span class="vl">${show(v)}</span></li>`;
+  $("pairs").innerHTML = pairs.slice(0, 10).map((p, k) => pairLi(p, k, false)).join("");
+  $("pairs-far-h").textContent = `The closest pairs at least ${FAR} km apart`;
+  $("pairs-far").innerHTML = pairs.filter(([, a, b]) => km(a, b) >= FAR).slice(0, 10).map((p, k) => pairLi(p, k, true)).join("");
 }
 
 // ---- drawing and choosing ------------------------------------------------------------------------------
@@ -250,8 +376,9 @@ function render() {
   $("about").innerHTML = `${has ? "" : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
     Each of ${D.measures.length} measures becomes a percentile rank among the ${N} neighbourhoods. Two neighbourhoods' gap on a theme is the average difference in their ranks on its measures,
     and their <b>affinity</b> is 100 less the average gap over the themes counted: 100 would be the same standing on everything, and two neighbourhoods taken at random average about ${show(cityMean)}.`;
-  if (has) { renderAlike(); renderThemes(); renderSide(); }
+  if (has) { renderAlike(); renderThemes(); renderSide(); renderTime(); }
   renderKinds();
+  renderSpace();
   renderTypical();
   if (shown !== has || !$("toc").childElementCount) buildToc($("toc"));
   writeHash();
@@ -284,16 +411,16 @@ $("themes").onchange = (e) => {
   render();
 };
 document.addEventListener("click", (e) => {
-  const t = e.target.closest("[data-vs], [data-pick], [data-by], [data-sort], [data-kind], .nx-jump, path[data-i]");
+  const t = e.target.closest("[data-vs], [data-pick], [data-by], [data-sort], [data-kind], .nx-jump, path[data-i], circle[data-i]");
   if (!t) return;
   if (t.matches(".nx-jump")) { e.preventDefault(); jump("side"); }
   else if (t.dataset.vs) setVs(+t.dataset.vs);
   else if (t.dataset.pick) { setNb(+t.dataset.pick, t.dataset.with == null ? null : +t.dataset.with); jump("measure-bar"); }
   else if (t.dataset.by) { S.by = t.dataset.by; render(); jump("alike"); }
   else if (t.dataset.sort) { S.sort = t.dataset.sort; renderAll(); }
-  else if (t.dataset.kind) { S.kind = S.kind === +t.dataset.kind ? null : +t.dataset.kind; renderKinds(); }
+  else if (t.dataset.kind) { S.kind = S.kind === +t.dataset.kind ? null : +t.dataset.kind; renderKinds(); renderSpace(); }
   else if ($("alike-map").contains(t)) setVs(+t.dataset.i);
-  else if ($("kinds-map").contains(t)) { setNb(+t.dataset.i); jump("measure-bar"); }
+  else if ($("kinds-map").contains(t) || $("space-fig").contains(t)) { setNb(+t.dataset.i); jump("measure-bar"); }
 });
 
 $("kinds-note").textContent = `The kinds are a convenient way to cut a continuum, not sharply separate groups, so each neighbourhood also carries the kind it is next nearest to. They come from Ward's hierarchical clustering of the percentile ranks, every theme but voting counting equally (a kind of place shouldn't be defined by how it votes); the silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`;
@@ -306,6 +433,7 @@ S.vs = S.nb == null ? null : nbIndex(hash.get("vs"));
 S.auto = S.vs == null;
 for (const key of (hash.get("off") ?? "").split(".")) if (THEME[key]) S.off.add(key);
 if (S.off.size >= D.themes.length) S.off.clear();
+if (hash.get("c") === "aff") S.colour = "aff";
 const by = hash.get("by");
 if (by && (THEME[by] || M[by])) S.by = by;
 recompute();
