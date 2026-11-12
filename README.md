@@ -346,8 +346,8 @@ Every dataset, its publisher's update cadence, what the site holds now and how t
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
 (a quarterly run for TRREB and Inside Airbnb, two annual runs, and the 2026 Census
 releases).
-The quarterly run and the yearly police refresh are automated: the Data refresh
-workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that
+The quarterly run and the yearly police and housing refreshes are automated: the Data
+refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that
 schedule and opens a pull request with what changed, for review before merging.
 
 The derived `web/public/*.pmtiles` (including `overlays.pmtiles`), `breaks.json`,

@@ -5,11 +5,13 @@
 #
 # When: the 12th and 26th of March, June, October and December. TRREB posts each quarter's
 # community reports 8 to 12 weeks after it ends, so a run before they are up finds nothing new
-# for prices and the next run picks them up. Runs in March also refresh the police files, once
-# the past year is complete. To run it by hand and choose the parts: Actions tab, Data refresh,
-# Run workflow.
+# for prices and the next run picks them up. Runs in March also refresh the police files and
+# housing, once the past year is complete. To run it by hand and choose the parts: Actions tab,
+# Data refresh, Run workflow.
 #
 # Needs: Settings, Actions, General, "Allow GitHub Actions to create and approve pull requests".
+# Housing also needs the `pipeline-inputs` release (scripts/publish-inputs.sh); without it,
+# housing is skipped and the rest still runs.
 name: Data refresh
 
 on:
@@ -29,6 +31,10 @@ on:
         description: "Safety: the police's crime files and KSI collisions"
         type: boolean
         default: false
+      housing:
+        description: "Housing: permits, the City's housing files, CMHC, StatCan series"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -41,7 +47,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
@@ -61,15 +67,17 @@ jobs:
           PRICES: ${{ inputs.prices }}
           RENTALS: ${{ inputs.rentals }}
           SAFETY: ${{ inputs.safety }}
+          HOUSING: ${{ inputs.housing }}
         run: |
           if [ "$EVENT" = schedule ]; then
             parts="prices rentals"
-            if [ "$(date -u +%m)" = 03 ]; then parts="$parts safety"; fi
+            if [ "$(date -u +%m)" = 03 ]; then parts="$parts safety housing"; fi
           else
             parts=""
             if [ "$PRICES" = true ]; then parts="$parts prices"; fi
             if [ "$RENTALS" = true ]; then parts="$parts rentals"; fi
             if [ "$SAFETY" = true ]; then parts="$parts safety"; fi
+            if [ "$HOUSING" = true ]; then parts="$parts housing"; fi
           fi
           if [ -z "$parts" ]; then echo "::error::Choose at least one part"; exit 1; fi
           echo "parts=$parts" >> "$GITHUB_OUTPUT"
@@ -78,6 +86,7 @@ jobs:
         id: refresh
         env:
           PARTS: ${{ steps.parts.outputs.parts }}
+          GH_TOKEN: ${{ github.token }}  # download.py --inputs reads the pipeline-inputs release
         run: python pipeline/data_refresh.py $PARTS --report "$RUNNER_TEMP/report.md"
 
       - name: Write the summary

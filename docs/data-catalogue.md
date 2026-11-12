@@ -10,21 +10,23 @@ and, for the forecast model's sources, [`data-sources.md`](data-sources.md).
 
 ## How a refresh works
 
-- **Prices, short-term rentals and safety refresh themselves.** A GitHub Actions
-  workflow ([`data-refresh.yml`](../.github/workflows/data-refresh.yml)) runs on the
-  schedule below, downloads what is new, rebuilds only the pages whose inputs changed,
-  runs the tests and the build, and opens a pull request (branch `data-refresh`) with a
-  summary. Review it and merge; merging deploys. The same run by hand:
-  `make refresh-quarterly`, `make refresh-safety`, or
-  `python pipeline/data_refresh.py prices rentals safety`.
+- **Prices, short-term rentals, safety and housing refresh themselves.** A GitHub
+  Actions workflow ([`data-refresh.yml`](../.github/workflows/data-refresh.yml)) runs on
+  the schedule below, downloads what is new, rebuilds only the pages whose inputs
+  changed, runs the tests and the build, and opens a pull request (branch
+  `data-refresh`) with a summary. Review it and merge; merging deploys. The same run by
+  hand: `make refresh-quarterly`, `make refresh-safety`, `make refresh-housing`, or
+  `python pipeline/data_refresh.py prices rentals safety housing`. Housing needs the
+  one-time setup below.
 - **`pipeline/download.py` keeps what is already on disk.** To get a newer copy of a
   file, delete it from `pipeline/raw/` first, or for the City's files use
   `python pipeline/download.py --toronto FILE ... --fresh`. Files that change upstream
   are listed under "Refresh with" below.
 - **Two sources are downloaded by hand**, because their sites block scripts: EQAO's
   results, and Statistics Canada's census files on `www12.statcan.gc.ca` (bot challenge;
-  `download.py` prints the URLs when it is refused). These keep housing (which needs
-  StatCan's DA boundary and profile files), schools, search and the census manual.
+  `download.py` prints the URLs when it is refused). The three StatCan files housing
+  needs are kept in a GitHub release for the workflow (below); schools, search and the
+  census stay manual.
 - **A few sources need a line of code or a decision per new edition:** Ontario's school
   files, the Landsat summers and the crime rate periods (each noted below).
 - **After any page's data is rebuilt, rebuild the two explorers**, which read every page:
@@ -32,6 +34,29 @@ and, for the forecast model's sources, [`data-sources.md`](data-sources.md).
   centred on …` if a rebuild moved a neighbourhood type's centre; name it in its `NAMES`.
 - **Then check and ship:** `npm test`, `npm run build`, look over the changed pages,
   commit. Merging to `main` deploys (see the README's Deploy section).
+
+## One-time setup
+
+1. **Let the workflow open pull requests:** the repository's Settings, Actions, General,
+   Workflow permissions: tick "Allow GitHub Actions to create and approve pull requests".
+2. **Upload the StatCan files housing needs** to a release named `pipeline-inputs`, from
+   the machine that builds the site: `make publish-inputs` (needs the
+   [GitHub CLI](https://cli.github.com), logged in). It uploads
+   `pipeline/raw/lda_000b21a_e.zip` (2021 DA boundaries), `pipeline/out/toronto_dwellings.csv`
+   (DA dwelling counts that `permits.py` caches from the 2011 to 2021 profiles) and
+   `pipeline/out/toronto_da_geom.geojson` (`build.py`'s DAs). Without the CLI, make the
+   release on GitHub by hand: Releases, Draft a new release, tag `pipeline-inputs`,
+   attach the three files, paste the release notes from `scripts/publish-inputs.sh`
+   (they carry Statistics Canada's attribution), untick "Set as the latest release",
+   publish. The Statistics Canada Open Licence allows redistributing the files with
+   that attribution; on a public repository anyone can download them. Upload again only if they change (the 2026 Census rebuild). Until the
+   release exists, the workflow skips housing and runs the rest.
+3. **Run the workflow once by hand** (Actions, Data refresh, Run workflow, every part
+   ticked) to see each source answer from GitHub's network. With nothing new it opens no
+   pull request; the run's summary says what it found.
+
+GitHub turns off a scheduled workflow after 60 days without activity in the repository,
+and emails to say so; one click turns it back on.
 
 ## Catalogue
 
@@ -71,13 +96,14 @@ Open Government Licence – Ontario.
 
 | Data | Upstream | On the site | Used by | Refresh with |
 |---|---|---|---|---|
-| Building permits, cleared (2000-2016, since 2017) and active | daily | retrieved 2026-10-30 (2026 partial) | Housing, the explorers, New building theme | delete `toronto_permits_*.csv`; `make permits` |
-| Development applications; apartment building registration; rental demolition and replacement; affordable rental pipeline | daily to quarterly | retrieved 2026-10-30 | Housing, the explorers | delete those four raw files; `make city` |
+| Building permits, cleared (2000-2016, since 2017) and active | daily | retrieved 2026-10-30 (2026 partial) | Housing, the explorers, New building theme | **automated** (March). By hand: `download.py --toronto … --fresh`; `make permits` |
+| Development applications; apartment building registration; rental demolition and replacement; affordable rental pipeline | daily to quarterly | retrieved 2026-10-30 | Housing, the explorers | **automated** (March). By hand: `download.py --toronto … --fresh`; `make city` |
 | CMHC starts, completions and under construction by census subdivision | monthly | to September 2026 | Housing | `make cmhc` (fetches new months itself) |
 | CMHC Rental Market Survey (October) by zone and City | annual; each October survey is published that winter | to the October 2025 survey | Housing, the explorers | `make cmhc` |
 | CMHC survey zone boundaries (2017) | rarely | 2017 | Housing (zone to neighbourhood) | static |
 
-Then `make housing-insights`. City data: Open Government Licence – Toronto.
+Then `make housing-insights` (or all of it: `make refresh-housing`). City data: Open
+Government Licence – Toronto.
 
 ### Safety (Toronto Police Service, City of Toronto)
 
@@ -174,15 +200,15 @@ it) or a check in one of the scripts (a change in a publisher's format, to fix b
 | When | What | Why then |
 |---|---|---|
 | **March**, with the quarterly run (automated) | Safety: all five police files, `crime.py`, the Safety and Trees pages (`make refresh-safety`) | the Neighbourhood Crime Rates file for the past year is posted in February |
-| **March**, with the quarterly run | Housing: permits, City housing files, `make cmhc`, `series.py`, `make housing-insights` | closes the past year's permits and starts; the Rental Market Survey and population estimates are out by then |
+| **March**, with the quarterly run (automated) | Housing: permits, the City's housing files, CMHC, the StatCan series, the Housing page (`make refresh-housing`) | closes the past year's permits and starts; the Rental Market Survey and population estimates are out by then |
 | **October** | Schools: EQAO's results by hand, Ontario's school file if a new one is posted, `make schools`, `make school-insights`, `make eqao` | EQAO publishes in late September or October |
 | **October** | Trees: street trees, the new summer's Landsat passes, `make trees`, `make trees-page` | the summer's scenes are in by then |
 | **October** | Search: address points and intersections, `make search` | yearly is enough for new addresses |
 | **October** | Check the neighbourhood and ward packages are unchanged | |
 
-Housing, schools, trees and search are by hand: March and October are then the two big
-manual runs of the year, each with the explorers rebuilt once at the end. Do them after
-merging that month's automated pull request, so the two don't collide.
+Schools, trees and search are by hand, in October: one manual run a year, with the
+explorers rebuilt once at the end. Do it after merging October's automated pull request,
+so the two don't collide.
 
 ### Census cycle and one-offs
 

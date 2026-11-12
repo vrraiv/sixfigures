@@ -28,9 +28,13 @@ With no options it fetches everything not yet on disk. The options fetch one par
     --insideairbnb      any newer Inside Airbnb scrape the site lists (added to
                         pipeline/rentals/snapshots.json), then every scrape listed there
     --cmhc              the CMHC files (make cmhc)
+    --inputs            the Statistics Canada files kept in the repository's
+                        `pipeline-inputs` release (INPUTS), if not on disk
 """
 import argparse
 import csv
+import os
+import subprocess
 import hashlib
 import json
 import re
@@ -224,6 +228,16 @@ TRREB_DIR = RAW / "trreb_community"
 TRREB_URL = "https://trreb.ca/wp-content/files/market-stats/community-reports/{y}/Q{q}/Toronto{r}Q{q}{y}.pdf"
 TRREB_REGIONS = ["Central", "East", "West"]
 TRREB_DONE = Path(__file__).parent / "trreb" / "community.csv"
+# Statistics Canada files the data-refresh workflow needs but can't download (www12 refuses
+# scripts), kept as assets of this repository's `pipeline-inputs` release.
+# scripts/publish-inputs.sh uploads them from a machine that has them; the Statistics Canada
+# Open Licence allows redistributing them with attribution. asset -> (where it goes, leading bytes)
+INPUTS_RELEASE = "pipeline-inputs"
+INPUTS = {
+    "lda_000b21a_e.zip": (RAW / "lda_000b21a_e.zip", b"PK"),  # 2021 DA boundaries
+    "toronto_dwellings.csv": (RAW.parent / "out" / "toronto_dwellings.csv", b"year,DAUID"),  # permits.py's cache
+    "toronto_da_geom.geojson": (RAW.parent / "out" / "toronto_da_geom.geojson", b"{"),  # build.py's DAs
+}
 
 # Deprivation indexes by 2021 DA (health.py), plain downloads (zip or xlsx).
 # ON-Marg: non-commercial use only, credit PHO and St. Michael's, no modification
@@ -507,6 +521,45 @@ def insideairbnb() -> list:
     return failed
 
 
+def github_repo() -> str:
+    """owner/name of this repository on GitHub."""
+    if os.environ.get("GITHUB_REPOSITORY"):
+        return os.environ["GITHUB_REPOSITORY"]
+    url = subprocess.run(["git", "remote", "get-url", "origin"], cwd=RAW.parent, capture_output=True, text=True).stdout
+    m = re.search(r"github\.com[/:]([^/\s]+/[^/\s]+?)(?:\.git)?\s*$", url)
+    return m.group(1) if m else "vrraiv/sixfigures"
+
+
+def inputs() -> list:
+    """Fetch the INPUTS not on disk from the release: with the GitHub CLI when it's installed (it
+    works for a private repository too; the workflow gives it a token), else by URL."""
+    failed = []
+    repo = github_repo()
+    for name, (dest, magic) in INPUTS.items():
+        if dest.exists() and dest.open("rb").read(len(magic)) == magic:
+            print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
+            continue
+        print(f"fetch   {name} (release {INPUTS_RELEASE} of {repo})")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if shutil.which("gh"):
+            tmp = RAW / ".inputs"
+            tmp.mkdir(parents=True, exist_ok=True)
+            p = subprocess.run(["gh", "release", "download", INPUTS_RELEASE, "--repo", repo, "--pattern", name,
+                                "--dir", str(tmp), "--clobber"], capture_output=True, text=True)
+            got = tmp / name
+            ok = p.returncode == 0 and got.exists() and got.open("rb").read(len(magic)) == magic
+            if ok:
+                got.replace(dest)
+            else:
+                print(f"  failed: {(p.stderr or p.stdout).strip() or 'unexpected content'}")
+                got.unlink(missing_ok=True)
+        else:
+            ok = fetch(f"https://github.com/{repo}/releases/download/{INPUTS_RELEASE}/{name}", dest, magic, attempts=2)
+        if not ok:
+            failed.append((name, f"the {INPUTS_RELEASE} release of {repo} (scripts/publish-inputs.sh uploads it)"))
+    return failed
+
+
 def main() -> int:
     RAW.mkdir(exist_ok=True)
     missing, optional = [], []
@@ -576,10 +629,13 @@ if __name__ == "__main__":
     ap.add_argument("--trreb", action="store_true", help="TRREB's reports for quarters after community.csv's last")
     ap.add_argument("--insideairbnb", action="store_true", help="newer Inside Airbnb scrapes, then every one listed")
     ap.add_argument("--cmhc", action="store_true", help="only the CMHC files (make cmhc)")
+    ap.add_argument("--inputs", action="store_true", help="the StatCan files in the pipeline-inputs release")
     a = ap.parse_args()
-    if not (a.toronto or a.trreb or a.insideairbnb or a.cmhc):
+    if not (a.toronto or a.trreb or a.insideairbnb or a.cmhc or a.inputs):
         sys.exit(main())
     failed = []
+    if a.inputs:
+        failed += inputs()
     if a.toronto:
         failed += toronto(a.toronto, a.fresh)
     if a.trreb:
