@@ -2,6 +2,46 @@
 
 *Toronto, mapped by its data.* Live site at http://sixfigures.vikramrai.com/.
 
+## About
+
+Six Figures brings together open data about the City of Toronto and its 158
+neighbourhoods, and sets it side by side so it can be compared.
+
+A great deal is published about Toronto: the census every five years, school test
+results, home sale prices, new construction and rents, crime and road safety, the tree
+canopy and summer heat, elections. But it comes from many different organizations, in
+different formats, on different maps and at different times. That makes simple questions
+hard to answer: how do a neighbourhood's incomes compare with its school results? Which
+parts of the city have the least tree cover and the hottest summer ground? How has a
+place changed over fifteen years, and which other neighbourhoods is it most like?
+
+This site does the gathering. Every source is placed on the same neighbourhood
+boundaries (and, for the census, on small areas of a few hundred people each), so any
+measure can be mapped, ranked and set against any other. On the site you can:
+
+- **Explore the map** of income and housing from the latest census, a few blocks at a
+  time, and look up your own address.
+- **Read about one topic** (the census, schools, housing, sale prices, safety, trees and
+  heat) through maps, rankings, trends, and how it relates to everything else.
+- **Compare any measures** in the Data Explorer: choose up to three and see how they line
+  up across the city and over time.
+- **Find a neighbourhood's closest matches** in the Neighbourhood Explorer: which
+  neighbourhoods are most and least alike, theme by theme, and how that has changed since
+  2006.
+- **See where the numbers might go** in the Forecasts, an experiment in predicting school
+  results and home values that publishes its own errors.
+
+Everything comes from public sources, credited on each page and listed in the
+[data catalogue](docs/data-catalogue.md). The figures can be downloaded, and the code that
+produces them is in this repository, so anyone can check the work or build on it. The
+site is refreshed as new data is released.
+
+It is an independent project, not affiliated with the City of Toronto or any of the
+organizations whose data it uses, and nothing on it is advice. Any views expressed, or
+errors within, are those of the author and the author alone.
+
+## Details
+
 The landing page is an interactive choropleth of income, low income and housing across
 the City of Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the
 change between them. Hover for values, click for detail, or search for a Toronto address
@@ -184,7 +224,7 @@ to 2021, and the TRREB figures behind the City's nowcast. Their data is
 `web/public/forecasts.json` (`pipeline/forecast_pages.py`, from `make forecast`); the
 method and every run's results are in `docs/forecast-spec.md`.
 
-## Measures
+### Measures
 
 The measure menu has six sections:
 
@@ -202,7 +242,7 @@ are published with one decimal; shares such as renters, condominiums or movers a
 StatCan's counts (`pipeline/measures.py`, which lists every characteristic by ID and
 name). A rate's change is in percentage points (pp), not restated for inflation.
 
-## Census years and change
+### Census years and change
 
 - **2016 / 2021** show each census on its own DA boundaries (3,702 and 3,743 DAs). Both
   use one colour scale (6 quantile classes over 2016 and 2021 DAs pooled), so a colour
@@ -273,7 +313,7 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   keys pan and + / − zoom, and the DA under the crosshair is announced after each move.
   Enter or Space opens it; Escape closes it.
 
-## Search and place names
+### Search and place names
 
 - **Search** accepts a street address (`100 Queen St W`, `1203-100 Queen St W`,
   `978 1/2 Kingston Rd`), an intersection (`Yonge & Bloor`, `King St W and Spadina Ave`)
@@ -329,7 +369,7 @@ scripts/             tile extraction; build-time size check (2021 tiles, Cloudfl
 wrangler.jsonc       Worker config: serves ./web/dist as static assets
 ```
 
-## Run locally
+### Run locally
 
 Requires Node 22.12+.
 
@@ -340,7 +380,7 @@ npm run build      # -> web/dist (about 15 MB in ~970 files; first load about 2 
 npm test           # search lookups, wheel zoom bounds, figures loader
 ```
 
-## Rebuild the data
+### Rebuild the data
 
 Every dataset, its publisher's update cadence, what the site holds now and how to refresh
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
@@ -370,7 +410,7 @@ Toronto portal sometimes times out; rerun `make download` later.
 Source URLs, row counts and processing details are in
 [pipeline/README.md](pipeline/README.md).
 
-## Deploy
+### Deploy
 
 The GitHub repo is connected to the Cloudflare Worker `sixfigures` (Workers Builds),
 so every push to `main` deploys. The dashboard deploy command is `npx wrangler deploy`;
@@ -388,7 +428,7 @@ immutable cache and `index.html` no-cache. The tile directories are named after 
 archive's content hash and the page requests `search.json` with `?v=<content hash>`,
 so a data rebuild still reaches visitors.
 
-## Data downloads
+### Data downloads
 
 The footer links to two CSVs (one row per DA, built by `pipeline/exports.py`; values
 match the popups, dollars rounded to whole dollars, rates to one decimal):
@@ -439,7 +479,7 @@ match the popups, dollars rounded to whole dollars, rates to one decimal):
   the rest). Empty cells: suppressed, a global non-response rate of 50% or more, or a DA
   absent from the NHS table.
 
-## Data caveats
+### Data caveats
 
 - **Income years are 2015 and 2020.** Each census asks about the previous calendar
   year. 2020 includes pandemic benefits (CERB and others), which raised low-end
@@ -481,7 +521,7 @@ match the popups, dollars rounded to whole dollars, rates to one decimal):
 - **Neighbourhoods** are the City's 158 social-planning neighbourhoods, used only as a
   locator; they are not a census geography.
 
-## Sources and licence
+### Sources and licence
 
 Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001) and
 2016 Census of Population (98-316-X2016001); 2021 and 2016 dissemination area
