@@ -1,5 +1,8 @@
 # Data sources for the forecast model
 
+For every dataset the site uses, its update cadence and the update schedule, see
+[data-catalogue.md](data-catalogue.md).
+
 A catalogue of the data beyond the census profiles already in the pipeline, what
 each would do for the forecasts, and the order to ingest it in. Checked
 2026-10-30: every table number, dataset and file below was looked up then

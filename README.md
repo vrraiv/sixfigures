@@ -342,6 +342,11 @@ npm test           # search lookups, wheel zoom bounds, figures loader
 
 ## Rebuild the data
 
+Every dataset, its publisher's update cadence, what the site holds now and how to refresh
+it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
+(a quarterly run for TRREB and Inside Airbnb, two annual runs, and the 2026 Census
+releases).
+
 The derived `web/public/*.pmtiles` (including `overlays.pmtiles`), `breaks.json`,
 `search.json`, `data/figures/` and `data/*.csv` are
 committed, so this is only needed to change the pipeline. From WSL, Linux or macOS,
