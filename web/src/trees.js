@@ -4,6 +4,7 @@
 import "./style.css";
 import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
+import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, fitLine, incomeFifths, inkOn, rangeLabels, rankOrder, scatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
@@ -169,6 +170,10 @@ fillFinder($("find-nb"), nbhd.map((n) => n.name));
 $("find-nb").addEventListener("change", (e) => {
   state.nb = e.target.value === "" ? null : +e.target.value;
   render();
+});
+addressFinder($("addr-find"), {
+  nbhd,
+  onPick: (i) => { const s = $("find-nb"); s.value = i; s.dispatchEvent(new Event("change")); },
 });
 function renderMap() {
   const def = M[state.m], vs = vals(), inc = income(), order = rankOrder(vs);
