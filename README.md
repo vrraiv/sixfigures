@@ -121,6 +121,29 @@ gives the chosen measures at their chosen periods. Its data is `web/public/explo
 it is first used. The code is `web/src/explorer.js` (pickers, link, picks, CSV), `explorer-core.js`
 and one module per view.
 
+The Neighbourhood Explorer, `/insights/neighbourhoods/` (the button beside the Data Explorer's),
+starts from a neighbourhood instead of a measure: pick one and it shows which of the other 157
+are most and least like it. Likeness is an **affinity** out of 100, from 60 of the Explorer's
+measures at their latest period, grouped into nine named themes (Income, Housing costs, Homes,
+People, New building, Safety, Schools, Trees and heat, Voting):
+- every measure becomes a percentile rank among the 158 neighbourhoods;
+- two neighbourhoods' gap on a theme is the mean difference in their ranks on its measures, and
+  their overall gap the mean of the theme gaps, so a theme with ten measures counts no more
+  than one with four;
+- affinity is 100 less the gap. Two neighbourhoods taken at random average about 66.
+
+Any theme can be unticked (Voting is the obvious one), and likeness can be measured on one theme
+or one measure alone. The page has the map shaded by affinity with the ten most and least alike
+(and every neighbourhood in a sortable table, theme by theme), the closest and furthest matches
+on each theme, a side-by-side of the picked neighbourhood and any other on every measure, the
+eight kinds of neighbourhood on a map, and the most typical and most distinctive neighbourhoods
+and closest pairs. The kinds come from Ward's hierarchical clustering on the same percentiles,
+every theme but Voting weighted equally; they cut a continuum (silhouette about 0.1), so each
+neighbourhood also carries its next nearest kind. The link holds every choice. Its data is
+`web/public/neighbourhoods.json` (`pipeline/affinity.py`, `make neighbourhoods`, run after
+`make explorer`), where the choice of method is recorded; the code is
+`web/src/neighbourhoods.js`, which works the affinity out in the browser.
+
 Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
 target. School Forecasts, `/forecasts/schools/`, maps and lists each neighbourhood's

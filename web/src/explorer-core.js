@@ -1,8 +1,9 @@
 // Shared by the Data Explorer's views (explorer.js and explorer-one/-two/-three.js): the
 // catalogue, loading a source's data, formatting by unit, the current selection, and the
 // small statistics and chart pieces more than one view uses.
-import { COLORS, escapeHTML, ordinal, sign } from "./catalogue.js";
+import { COLORS, escapeHTML, ordinal } from "./catalogue.js";
 import { quantile, spearman } from "./charts.js";
+import { nbMap } from "./nbtools.js";
 
 export const V = __EXPLORER_VERSION__;
 export const C = await fetch(`/explorer/catalogue.json?v=${V}`).then((r) => r.json());
@@ -21,30 +22,9 @@ export const vals = (k) => S.cur[k].cols[S.cur[k].p];
 export const whenOf = (m, p = m.p) => `${m.d.periods[p]}${m.d.kind === "census" ? " Census" : ""}`;
 export const named = (m, p = m.p) => `${m.d.label}, ${whenOf(m, p)}`;
 
-// ---- formatting by unit --------------------------------------------------------------------
-const num = (v, d) => v.toLocaleString("en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
-const F = {
-  money: (v) => `$${num(Math.round(v), 0)}`,
-  pct: (v) => `${v.toFixed(1)}%`,
-  rate: (v) => (v === 0 ? "0" : Math.abs(v) >= 100 ? num(Math.round(v), 0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2)),
-  score: (v) => v.toFixed(1),
-  degC: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)}°C`,
-  temp: (v) => `${v.toFixed(1)}°C`,
-  index: (v) => v.toFixed(2),
-  pts: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)} pts`,
-};
-export const fmt = (d, v) => (v == null ? "—" : F[d.unit](v));
-export const fmtAxis = (d, v) => (d.unit === "money" && Math.abs(v) >= 10000 ? `$${Math.round(v / 1000)}k` : d.unit === "pct" ? `${+v.toFixed(1)}%` : fmt(d, v));
-// a change in the measure's own terms: dollars, percentage points, degrees, or plain
-export const fmtDiff = (d, v) => {
-  if (v == null) return "—";
-  const a = Math.abs(v), s = sign(+v.toFixed(2));
-  return d.unit === "money" ? `${s}$${num(Math.round(a), 0)}` : d.unit === "pct" ? `${s}${a.toFixed(1)} pp`
-    : d.unit === "degC" || d.unit === "temp" ? `${s}${a.toFixed(1)}°C` : d.unit === "pts" ? `${s}${a.toFixed(1)} pts` : `${s}${F[d.unit === "index" ? "index" : "rate"](a)}`;
-};
-export const fmtDiffAxis = (d, v) => (d.unit === "money" && Math.abs(v) >= 1000 ? `${sign(Math.round(v))}$${+(Math.abs(v) / 1000).toFixed(Math.abs(v) < 10000 ? 1 : 0)}k` : fmtDiff(d, v));
-// a label inside a sentence: lower-case its first letter unless it is a name
-export const lc = (s) => (/^[A-Z][a-z]/.test(s) && !/^(Grade|Norway|John|Olivia|Ana|Airbnb|CMHC)/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
+// ---- formatting by unit: units.js
+export { fmt, fmtAxis, fmtDiff, fmtDiffAxis, lc } from "./units.js";
+import { fmt, fmtAxis } from "./units.js";
 export const known = (vs) => vs.filter((v) => v != null);
 export const sorted = (vs) => known(vs).sort((a, b) => a - b);
 export const sum = (vs) => vs.reduce((a, v) => a + (v ?? 0), 0);
@@ -85,11 +65,4 @@ export function histHTML(d, vs, { bins = 24, height = null } = {}) {
 }
 
 // ---- a neighbourhood map: one <path> per neighbourhood, filled by fill(i) -------------------------
-let hatches = 0;
-export function mapSVG(fill, tip, label, cls = () => "") {
-  const hatch = `nb-hatch-${++hatches}`; // several maps can share a page: each has its own pattern id
-  const shapes = nbhd.map((n, i) => `<path d="${n.path}" fill="${fill(i) ?? `url(#${hatch})`}" data-i="${i}"${cls(i) ? ` class="${cls(i)}"` : ""} data-tip="${escapeHTML(tip(i))}"/>`).join("");
-  return `<svg viewBox="0 0 ${C.map.width} ${C.map.height}" role="img" aria-label="${escapeHTML(label)}">
-    <defs><pattern id="${hatch}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
-    <g>${shapes}</g></svg>`;
-}
+export const mapSVG = (fill, tip, label, cls) => nbMap(nbhd, C.map, fill, tip, label, cls);
