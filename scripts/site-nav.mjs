@@ -63,7 +63,7 @@ export function siteHeader(path) {
 export const siteTitle = (html) => html.replace(/<title>([^<]*)<\/title>/, (_, t) => `<title>${t.includes(SITE.title) ? t : `${t} · ${SITE.title}`}</title>`);
 
 // ---- the footer: a disclaimer above each page's own sources, the author's links below ----
-export const DISCLAIMER = "Any views expressed, or errors within, are of those of the author and the author alone.";
+export const DISCLAIMER = "Any views expressed, or errors within, are those of the author and the author alone.";
 // Simple Icons' marks (CC0), 24 x 24
 export const SOCIAL = [
   { name: "LinkedIn", href: "https://www.linkedin.com/in/vikram-rai-00132083",
