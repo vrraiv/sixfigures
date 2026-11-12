@@ -10,15 +10,23 @@ and, for the forecast model's sources, [`data-sources.md`](data-sources.md).
 
 ## How a refresh works
 
+- **Prices, short-term rentals and safety refresh themselves.** A GitHub Actions
+  workflow ([`data-refresh.yml`](../.github/workflows/data-refresh.yml)) runs on the
+  schedule below, downloads what is new, rebuilds only the pages whose inputs changed,
+  runs the tests and the build, and opens a pull request (branch `data-refresh`) with a
+  summary. Review it and merge; merging deploys. The same run by hand:
+  `make refresh-quarterly`, `make refresh-safety`, or
+  `python pipeline/data_refresh.py prices rentals safety`.
 - **`pipeline/download.py` keeps what is already on disk.** To get a newer copy of a
-  file, delete it from `pipeline/raw/` first. Files that change upstream are listed
-  under "Refresh with" below.
-- **Three sources are downloaded by hand**, because their sites block scripts or
-  publish PDFs: TRREB's reports, EQAO's results, and Statistics Canada's census files on
-  `www12.statcan.gc.ca` (bot challenge; `download.py` prints the URLs when it is refused).
-- **A few sources need a line of code per new edition:** Inside Airbnb scrape dates,
-  Ontario's school files, the Landsat summers and the crime rate periods (each noted
-  below).
+  file, delete it from `pipeline/raw/` first, or for the City's files use
+  `python pipeline/download.py --toronto FILE ... --fresh`. Files that change upstream
+  are listed under "Refresh with" below.
+- **Two sources are downloaded by hand**, because their sites block scripts: EQAO's
+  results, and Statistics Canada's census files on `www12.statcan.gc.ca` (bot challenge;
+  `download.py` prints the URLs when it is refused). These keep housing (which needs
+  StatCan's DA boundary and profile files), schools, search and the census manual.
+- **A few sources need a line of code or a decision per new edition:** Ontario's school
+  files, the Landsat summers and the crime rate periods (each noted below).
 - **After any page's data is rebuilt, rebuild the two explorers**, which read every page:
   `make explorer` then `make neighbourhoods`. `affinity.py` prints `no name for the type
   centred on …` if a rebuild moved a neighbourhood type's centre; name it in its `NAMES`.
@@ -46,7 +54,7 @@ Open Government Licence – Canada (Statistics Canada Open Licence for the Web D
 
 | Data | Upstream | On the site | Used by | Refresh with |
 |---|---|---|---|---|
-| Community Housing Market Reports, Toronto Central, East and West: sales and median price by community, all home types | **quarterly**, posted 8 to 12 weeks after the quarter ends (Q4 2025 on 26 Feb 2026, Q1 2026 on 4 June, Q2 2026 on 23 Sept) | 2011 Q4 to 2026 Q2 | Sale Prices; a yearly figure (the mean of four quarters, complete years only) in the Data and Neighbourhood Explorers; correlations on Safety and Trees | by hand: the three PDFs (`Toronto{Central,East,West}Q{q}{yyyy}.pdf` from trreb.ca) into `pipeline/raw/trreb_community/`; `make trreb`, `make price-insights` |
+| Community Housing Market Reports, Toronto Central, East and West: sales and median price by community, all home types | **quarterly**, posted 8 to 12 weeks after the quarter ends (Q4 2025 on 26 Feb 2026, Q1 2026 on 4 June, Q2 2026 on 23 Sept) | 2011 Q4 to 2026 Q2 | Sale Prices; a yearly figure (the mean of four quarters, complete years only) in the Data and Neighbourhood Explorers; correlations on Safety and Trees | **automated** (quarterly). By hand: `python pipeline/download.py --trreb` fetches the three PDFs for each new quarter into `pipeline/raw/trreb_community/`; `python pipeline/trreb.py --new`; `make price-insights` |
 | Market Watch, City of Toronto, May (median and average price, all home types) | monthly | May 2011, 2016, 2021, 2026 | the City's 2026 dwelling-value nowcast (Forecasts) | by hand, read into `docs/forecast-spec.md`; not needed again until the next value forecast |
 
 
@@ -75,11 +83,11 @@ Then `make housing-insights`. City data: Open Government Licence – Toronto.
 
 | Data | Upstream | On the site | Used by | Refresh with |
 |---|---|---|---|---|
-| Neighbourhood Crime Rates (counts, rates and population by neighbourhood and year) | annual; 2025 posted 20 February 2026 | to 2025 | Safety (checks every count against it) | delete `toronto_neighbourhood_crime_rates_4326.csv` |
+| Neighbourhood Crime Rates (counts, rates and population by neighbourhood and year) | annual; 2025 posted 20 February 2026 | to 2025 | Safety (checks every count against it) | **automated** (March); the five files below refetch with `download.py --toronto … --fresh` |
 | Community Safety Indicators (assault, break and enter, auto theft, robbery, theft over); shootings and firearm discharges; homicides | quarterly | complete years to 2025 | Safety, the explorers, correlations on Trees | delete those three raw files |
 | Collisions with people killed or seriously injured (KSI) | daily, with records arriving months to over a year late | to 2025 (the latest year runs low) | Safety, the explorers | delete `toronto_ksi_4326.csv` |
 
-Then `make crime`, `make safety`, `make trees-page`. The site only shows complete years,
+Then `make crime`, `make safety`, `make trees-page` (or all of it: `make refresh-safety`). The site only shows complete years,
 so a quarterly upstream change needs no quarterly refresh. `crime.py`'s five-year
 `PERIODS` end at 2021-2025: when 2026 is complete, decide how the rates' periods move on.
 
@@ -109,10 +117,12 @@ election is October 2030.
 
 | Data | Upstream | On the site | Used by | Refresh with |
 |---|---|---|---|---|
-| Inside Airbnb listings for Toronto (CC BY 4.0) | **quarterly** scrapes (mid-December, March, June, September); the site lists only the last 12 months, older ones are by request | 12 Dec 2025 to 16 Sept 2026 | the explorers (Housing costs theme), correlations on Safety and Trees | add the date to `INSIDEAIRBNB_DATES` in `download.py` and `SNAPSHOTS` in `rentals.py`; `python pipeline/download.py`; `make rentals` |
+| Inside Airbnb listings for Toronto (CC BY 4.0) | **quarterly** scrapes (mid-December, March, June, September); the site lists only the last 12 months, older ones are by request | 12 Dec 2025 to 16 Sept 2026 | the explorers (Housing costs theme), correlations on Safety and Trees | **automated** (quarterly). By hand: `python pipeline/download.py --insideairbnb` adds a newer scrape the site lists to `pipeline/rentals/snapshots.json` and fetches every scrape there; `make rentals` |
 | Short-term rental registrations (City) | daily snapshot, no history | 11 Nov 2026 | compared with the latest scrape | delete `toronto_str_registrations.csv`; `make rentals` |
 
-Fetch every new scrape within a year of its date, or it can only be had by request.
+The page lists only the last 12 months, so a new scrape should be added within a year
+(the quarterly run does). Older files still answer at the same address, but that isn't
+promised.
 
 ### Geography and search (City of Toronto)
 
@@ -134,35 +144,45 @@ The quarterly run is driven by TRREB and Inside Airbnb; everything else is annua
 follows the census. Each run ends with the explorers and the checks in "How a refresh
 works".
 
-### Quarterly
+### Quarterly (automated)
 
-Run in the **first half of March, June, October and December**, when TRREB's report for
-the previous quarter is usually up (Q4 by early March, Q1 by mid-June, Q2 by early
-October, Q3 by mid-December) and Inside Airbnb has posted its latest scrape. If TRREB's
-PDFs aren't up yet, wait a week rather than shipping half the run.
+The workflow runs on the **12th and 26th of March, June, October and December**. TRREB's
+report for the previous quarter is usually up by then (Q4 by early March, Q1 by
+mid-June, Q2 by early October, Q3 by mid-December), and Inside Airbnb has posted its
+latest scrape. A run before TRREB posts finds nothing new for prices, and the next one
+picks the quarter up; a run with nothing new at all opens no pull request. What it does
+(`make refresh-quarterly` by hand):
 
-1. TRREB: download the quarter's three PDFs; `make trreb`, `make price-insights`.
-2. Inside Airbnb: add the new scrape date; `python pipeline/download.py`; delete and
-   refetch the registrations; `make rentals`.
-3. Pages that correlate with prices and rentals: `make safety`, `make trees-page`.
-4. `make explorer`, `make neighbourhoods`; tests, build, commit.
+1. TRREB: fetch the new quarter's three reports and add them to `community.csv`
+   (`download.py --trreb`, `trreb.py --new`).
+2. Inside Airbnb: add any newer scrape and rebuild the rental layer; the City's
+   registrations, address points and wards are fetched fresh for it (`download.py
+   --insideairbnb`, `rentals.py`).
+3. The pages whose inputs changed: Sale Prices, then Safety and Trees (which correlate
+   with prices and rentals), then the two explorers.
+4. `npm test`, `npm run build`, and a pull request.
 
 The explorers' yearly sale price only changes in March (when Q4 completes a year), so
-the June, October and December runs mostly move the Sale Prices page.
+the June, October and December runs mostly move the Sale Prices page. Registrations
+alone don't make a pull request: they aren't on the site, and wait for the next scrape.
+
+If a run fails, the Actions tab shows which step: usually a source that was down (rerun
+it) or a check in one of the scripts (a change in a publisher's format, to fix by hand).
 
 ### Annual
 
 | When | What | Why then |
 |---|---|---|
-| **March**, with the quarterly run | Safety: all five police files, `make crime`, `make safety` | the Neighbourhood Crime Rates file for the past year is posted in February |
+| **March**, with the quarterly run (automated) | Safety: all five police files, `crime.py`, the Safety and Trees pages (`make refresh-safety`) | the Neighbourhood Crime Rates file for the past year is posted in February |
 | **March**, with the quarterly run | Housing: permits, City housing files, `make cmhc`, `series.py`, `make housing-insights` | closes the past year's permits and starts; the Rental Market Survey and population estimates are out by then |
 | **October** | Schools: EQAO's results by hand, Ontario's school file if a new one is posted, `make schools`, `make school-insights`, `make eqao` | EQAO publishes in late September or October |
 | **October** | Trees: street trees, the new summer's Landsat passes, `make trees`, `make trees-page` | the summer's scenes are in by then |
 | **October** | Search: address points and intersections, `make search` | yearly is enough for new addresses |
 | **October** | Check the neighbourhood and ward packages are unchanged | |
 
-March and October are then the two big runs of the year, each with the explorers rebuilt
-once at the end.
+Housing, schools, trees and search are by hand: March and October are then the two big
+manual runs of the year, each with the explorers rebuilt once at the end. Do them after
+merging that month's automated pull request, so the two don't collide.
 
 ### Census cycle and one-offs
 

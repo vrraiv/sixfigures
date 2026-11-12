@@ -306,5 +306,17 @@ explorer:
 neighbourhoods:
 	$(PYTHON) pipeline/affinity.py
 
+# Scheduled refreshes (docs/data-catalogue.md): download what's new from the scripted sources,
+# rebuild only the pages whose inputs changed. .github/workflows/data-refresh.yml runs the same
+# script on a schedule and opens a pull request.
+#   refresh-quarterly  TRREB's latest quarter and Inside Airbnb's latest scrape
+#   refresh-safety     the police's crime files and KSI collisions (March, once the year is complete)
+.PHONY: refresh-quarterly refresh-safety
+refresh-quarterly:
+	$(PYTHON) pipeline/data_refresh.py prices rentals
+
+refresh-safety:
+	$(PYTHON) pipeline/data_refresh.py safety
+
 clean:
 	rm -rf pipeline/out

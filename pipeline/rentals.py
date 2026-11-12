@@ -23,9 +23,11 @@ pipeline/rentals/:
 
 Inside Airbnb (https://insideairbnb.com/get-the-data/): one listings.csv.gz
 per scrape at data.insideairbnb.com/canada/on/toronto/<date>/data/. The page
-lists the last four quarterly Toronto scrapes (SNAPSHOTS: 2025-12-12 to
-2026-09-16 on 2026-11-11, "generally quarterly data for the last 12 months";
-older data is by request). Monthly files from 2022-08-03 on, including ones
+lists the last four quarterly Toronto scrapes ("generally quarterly data for
+the last 12 months"; older data is by request, though older files still answer
+at the same URL). SNAPSHOTS, from rentals/snapshots.json, holds every scrape
+read: the four listed on 2026-11-11 (2025-12-12 to 2026-09-16) and each newer
+one `download.py --insideairbnb` has added since. Monthly files from 2022-08-03 on, including ones
 not yet listed (2026-10-07, 2026-11-01), also answer at that URL pattern, but
 they are not published on the page, so they are left out. Licence: CC BY 4.0;
 the credit is ATTRIBUTION.
@@ -103,9 +105,9 @@ RAW = HERE / "raw"
 OUT = HERE / "rentals"
 IA_DIR = RAW / "insideairbnb"
 IA_URL = "https://data.insideairbnb.com/canada/on/toronto/{date}/data/listings.csv.gz"
-# the Toronto scrapes listed on insideairbnb.com/get-the-data (2026-11-11);
-# add the new date when the page lists one
-SNAPSHOTS = ["2025-12-12", "2026-03-19", "2026-06-15", "2026-09-16"]
+# the Toronto scrapes read, oldest first: snapshots.json, which `download.py --insideairbnb`
+# extends when insideairbnb.com/get-the-data lists a newer one
+SNAPSHOTS = json.loads((OUT / "snapshots.json").read_text())["snapshots"]
 ATTRIBUTION = ("Source: Inside Airbnb (insideairbnb.com), Toronto, {dates}. "
                "Creative Commons Attribution 4.0 International (CC BY 4.0).")
 FILES = {
@@ -273,7 +275,7 @@ def main() -> int:
             "page": "https://insideairbnb.com/get-the-data/", "url": IA_URL,
             "licence": "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
             "attribution": ATTRIBUTION.format(dates=", ".join(SNAPSHOTS)),
-            "snapshots_listed_2026_11_11": SNAPSHOTS,
+            "snapshots": SNAPSHOTS,
             "unlisted_but_downloadable_2026_11_11": "monthly from 2022-08-03; 2026-10-07 and 2026-11-01 "
                                                    "past the latest listed; none found 2015-2022-07",
             "files": {d: info(ia_path(d)) for d in SNAPSHOTS}},

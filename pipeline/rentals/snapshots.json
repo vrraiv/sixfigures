@@ -1,0 +1,9 @@
+{
+  "about": "The Inside Airbnb Toronto scrapes rentals.py reads, oldest first. `python pipeline/download.py --insideairbnb` adds any newer one insideairbnb.com/get-the-data lists. Older scrapes stay downloadable at the same URL pattern after the page stops listing them.",
+  "snapshots": [
+    "2025-12-12",
+    "2026-03-19",
+    "2026-06-15",
+    "2026-09-16"
+  ]
+}
