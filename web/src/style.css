@@ -1004,3 +1004,9 @@ section[hidden] { display: none; }
 
 /* ---- the forecasts' standing note ---- */
 .fc-exercise { margin: 14px 0 0; padding: 8px 12px; max-width: 86ch; font-size: 13px; color: var(--ink-2); background: #f3f5f9; border-left: 3px solid var(--navy); border-radius: 0 4px 4px 0; }
+/* the forecasts in plain words, where they are first named */
+.fc-defs { max-width: 82ch; margin: 16px 0 6px; font-size: 13px; color: var(--ink-2); }
+.fc-defs p { margin: 0 0 6px; }
+.fc-defs dl { margin: 0; }
+.fc-defs dt { margin-top: 8px; font-weight: 650; color: var(--ink); }
+.fc-defs dd { margin: 1px 0 0; padding-left: 12px; border-left: 2px solid var(--rule); }

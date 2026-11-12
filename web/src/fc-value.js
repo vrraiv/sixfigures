@@ -31,12 +31,19 @@ function renderGlance() {
     card("City median, 2021 Census", fmtMoney(C.census["2021"]), "as published"),
     card("City median, 2026 nowcast", fmtMoney(C.nowcast), `${signed(pctChange(C.census["2021"], C.nowcast))}% from 2021`),
     card("Median neighbourhood, 2021", fmtMoney(med21), "of the 158"),
-    card("Median neighbourhood, forecast", fmtMoney(medF), "own mean, 2026"),
+    card("Median neighbourhood, forecast", fmtMoney(medF), "the chosen forecast, 2026"),
     card("Median range width", `${Math.round(width)}%`, "high over low"),
   ].join("");
   $("glance-lede").innerHTML = `The City's 2026 median is its 2021 Census median (${fmtMoney(C.census["2021"])}) moved by TRREB's May median sale price, `
     + `${fmtMoney(C.trreb_may["2021"].median)} in May 2021 to ${fmtMoney(C.trreb_may["2026"].median)} in May 2026. `
     + `Each neighbourhood's forecast is that times its forecast ratio to the City's median, rounded to the nearest $1,000.`;
+  // the three forecasts, in plain words, before the control that switches between them
+  const shift = median(live.filter((r) => r.market).map((r) => Math.abs(r.own_mean_market / r.own_mean - 1))) * 100;
+  $("rung-defs").innerHTML = `<p>Every forecast starts from a neighbourhood's <b>standing</b>: its median dwelling value as a ratio to the City's median. Three forecasts of that standing in 2026 are shown below, and each neighbourhood's range covers all three.</p>
+    <dl><dt>Persistence</dt><dd>The standing it had in the 2021 Census, unchanged.</dd>
+    <dt>Own mean (chosen)</dt><dd>Its average standing over the 2011, 2016 and 2021 censuses. A neighbourhood that stood unusually high or low in 2021 is expected to move back toward its usual place. Tested on past censuses, this had the smallest error of the forecasts that use nothing from after the last census, so it is the one chosen.</dd>
+    <dt>Own mean plus market</dt><dd>Own mean, adjusted for what homes have sold for since 2021. Where a neighbourhood's sale prices (TRREB's medians) have risen faster than the City's, its forecast is raised; where they have lagged, it is lowered. How far is set by how closely census values followed sale prices between 2011 and 2021.
+      It uses sales from after the 2021 Census, so it is a nowcast, not a forecast, and is shown for comparison. For the typical neighbourhood it moves the own-mean figure by about ${shift.toFixed(1)}%.</dd></dl>`;
 }
 
 // ---- map and list -------------------------------------------------------------------------------------------
@@ -48,11 +55,11 @@ function renderForecast() {
   };
   drawMap($("nb-map"), $("map-key"), D, vals, fmtK, tip, `Map of the neighbourhoods by forecast median dwelling value, 2026`);
   const lede = {
-    own_mean: "Own mean, the rung the decision rule chose: the mean of the neighbourhood's ratios to the City's median in 2011, 2016 and 2021.",
-    own_mean_market: "Own mean plus market, a nowcast: own mean plus a slope times the change in the neighbourhood's standing in TRREB's median sale prices, Q1–Q3 2021 to Q1–Q2 2026 (the 2026 window has Q1 and Q2 only). The slope is fitted on 2011 to 2016 and 2016 to 2021 pooled.",
+    own_mean: "Own mean, the forecast the decision rule chose: the mean of the neighbourhood's ratios to the City's median in 2011, 2016 and 2021.",
+    own_mean_market: "Own mean plus market: own mean, raised where a neighbourhood's sale prices have risen faster than the City's since 2021 and lowered where they have lagged. In full: own mean plus a slope times the change in the neighbourhood's standing in TRREB's median sale prices, Q1–Q3 2021 to Q1–Q2 2026 (the 2026 window has Q1 and Q2 only), the slope fitted on 2011 to 2016 and 2016 to 2021 pooled. It is a nowcast: it uses sales from after the 2021 Census.",
     persistence: "Persistence: the neighbourhood's 2021 ratio to the City's median.",
   }[k];
-  $("map-lede").innerHTML = `${lede} Each rung's changes from 2021 are centred to average zero over households. Classes hold about equal numbers of neighbourhoods.`;
+  $("map-lede").innerHTML = `${lede} Each forecast's changes from 2021 are centred to average zero over households. Classes hold about equal numbers of neighbourhoods.`;
   markPick();
   renderList();
   $("list-lede").innerHTML = `The bar is the range: from the lowest of the three forecasts (persistence, own mean, own mean plus market) less ${V.city.spread} on the log scale, to the highest plus ${V.city.spread}. `

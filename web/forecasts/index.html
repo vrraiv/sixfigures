@@ -93,7 +93,7 @@
         <h2 id="range-h">The ranges</h2>
         <ul>
           <li><b>Schools.</b> An 80% range: the forecast plus or minus the 80th percentile of ridge's absolute neighbourhood errors in the two selection folds, set separately for neighbourhoods with one school and with more. Fixed before the holdout; the holdout and 2025 to 2026 report how many neighbourhoods fell inside.</li>
-          <li><b>Dwelling value.</b> From the lowest of three forecasts (persistence, own mean, and own mean plus market) less 0.05 on the log scale, to the highest plus 0.05. The 0.05 allows for the neighbourhoods' average shift against the City's median and the error in the City's nowcast. Set after the backtest's point scores were seen; its coverage on 2016 to 2021 was scored once afterwards and the rule left unchanged.</li>
+          <li><b>Dwelling value.</b> From the lowest of three forecasts less 0.05 on the log scale, to the highest plus 0.05. The three are persistence (the neighbourhood's standing against the City's median at the last census), own mean (its average standing over the last three censuses) and own mean plus market (own mean, raised or lowered by how the neighbourhood's sale prices have moved against the City's since that census). The 0.05 allows for the neighbourhoods' average shift against the City's median and the error in the City's nowcast. Set after the backtest's point scores were seen; its coverage on 2016 to 2021 was scored once afterwards and the rule left unchanged.</li>
         </ul>
       </section>
 
