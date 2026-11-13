@@ -1,9 +1,9 @@
 {
- "retrieved": "2026-10-30",
+ "retrieved": "2026-11-13",
  "files": {
-  "toronto_permits_active.csv": 67879899,
+  "toronto_permits_active.csv": 66838152,
   "toronto_permits_cleared_2000_2016.csv": 155623064,
-  "toronto_permits_cleared_2017.csv": 151408210
+  "toronto_permits_cleared_2017.csv": 152975549
  },
  "excluded": {
   "26 256637 BLD": "100,000 units on a change of use from a cafe to an arcade",
@@ -33,7 +33,7 @@
    "units": 596
   }
  },
- "permits_with_units": 84476,
+ "permits_with_units": 84552,
  "placed_share_of_units_created_by_issue_year": {
   "2000": 0.891,
   "2001": 0.888,
@@ -60,7 +60,7 @@
   "2022": 0.993,
   "2023": 0.98,
   "2024": 1.0,
-  "2025": 0.991,
+  "2025": 0.99,
   "2026": 1.0
  },
  "census_check": {
@@ -95,19 +95,19 @@
    "spearman": 0.59
   },
   "households 2016-2021 lag 1": {
-   "permits": 93593,
+   "permits": 93592,
    "census": 48090,
    "pearson": 0.913,
    "spearman": 0.57
   },
   "households 2016-2021 lag 2": {
-   "permits": 93221,
+   "permits": 93220,
    "census": 48090,
    "pearson": 0.92,
    "spearman": 0.502
   },
   "households 2016-2021 lag 3": {
-   "permits": 87018,
+   "permits": 87017,
    "census": 48090,
    "pearson": 0.892,
    "spearman": 0.443
@@ -143,19 +143,19 @@
    "spearman": 0.754
   },
   "dwellings 2016-2021 lag 1": {
-   "permits": 93593,
+   "permits": 93592,
    "census": 74181,
    "pearson": 0.925,
    "spearman": 0.739
   },
   "dwellings 2016-2021 lag 2": {
-   "permits": 93221,
+   "permits": 93220,
    "census": 74181,
    "pearson": 0.921,
    "spearman": 0.66
   },
   "dwellings 2016-2021 lag 3": {
-   "permits": 87018,
+   "permits": 87017,
    "census": 74181,
    "pearson": 0.888,
    "spearman": 0.604
@@ -175,7 +175,7 @@
    "cma": 47546
   },
   "2021": {
-   "city": 23637,
+   "city": 23636,
    "cma": 58472
   },
   "2022": {
@@ -187,11 +187,11 @@
    "cma": 46205
   },
   "2024": {
-   "city": 21451,
+   "city": 21450,
    "cma": 44564
   },
   "2025": {
-   "city": 17399,
+   "city": 17380,
    "cma": 37468
   }
  }
