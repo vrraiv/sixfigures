@@ -23,6 +23,7 @@ BREAKS11  := web/public/breaks_2011.json
 INSIGHTS  := web/public/insights.json
 SEARCH    := web/public/search.json
 OVERLAYS  := web/public/overlays.pmtiles
+BASEMAP   := web/public/basemap.pmtiles
 CORR      := $(RAW)/2021_92-156-X_DALand_ADsup.zip
 STATCAN   := $(RAW)/98-401-X2021006_Ontario_eng_CSV.zip $(RAW)/lda_000b21a_e.zip \
              $(RAW)/98-401-X2016044_ONTARIO_eng_CSV.zip $(RAW)/lda_000b16a_e.zip $(CORR)
@@ -45,7 +46,7 @@ PERMITRAW := $(RAW)/toronto_permits_cleared_2000_2016.csv $(RAW)/toronto_permits
              $(RAW)/toronto_permits_active.csv
 PERMITS   := pipeline/permits/by_nbhd.csv
 
-.PHONY: data download tiles search overlays deps clean cpi breaks permits
+.PHONY: data download tiles search overlays basemap deps clean cpi breaks permits
 
 data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS) $(INSIGHTS)
 
@@ -128,6 +129,15 @@ $(OVERLAYS): $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_wards_432
 	$(PYTHON) pipeline/overlays.py
 	@command -v tippecanoe >/dev/null || { echo "tippecanoe not found; see pipeline/README.md"; exit 1; }
 	tippecanoe -q -o $@ -Z9 -z14 -r1 --no-tile-size-limit --detect-shared-borders --force 	  $$(for f in pipeline/out/overlays/*.geojson; do printf -- '-L %s:%s ' "$$(basename $$f .geojson)" "$$f"; done)
+	@ls -l $@
+
+# The street map under the census maps: a Toronto cut of the Protomaps basemap, fetched over
+# the network and committed. Not part of `data`: it is redone when the streets should be
+# refreshed (delete the file, or change the script), not with each census.
+basemap: $(BASEMAP)
+
+$(BASEMAP): pipeline/basemap.py
+	$(PYTHON) pipeline/basemap.py
 	@ls -l $@
 
 search: $(SEARCH)

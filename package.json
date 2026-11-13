@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "vite build && node scripts/check-size.mjs",
     "preview": "vite preview",
-    "test": "node --test web/src/search.test.mjs web/src/wheel.test.mjs web/src/figures.test.mjs scripts/site-nav.test.mjs",
+    "test": "node --test web/src/search.test.mjs web/src/wheel.test.mjs web/src/figures.test.mjs scripts/site-nav.test.mjs scripts/basemap.test.mjs",
     "deploy": "vite build && wrangler deploy"
   },
   "devDependencies": {
+    "@protomaps/basemaps": "^5.7.2",
     "pmtiles": "^4.5.0",
     "vite": "^8.3.5",
     "wrangler": "^4.153.0"

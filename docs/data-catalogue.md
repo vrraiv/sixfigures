@@ -157,6 +157,7 @@ promised.
 | 158 neighbourhoods (and the historical 140) | when the City redraws them (last 2022) | 158 | every page | check yearly that the package is unchanged |
 | City wards (25) | after a ward boundary review | 25 wards | map overlays, rental registrations | `make overlays` if changed |
 | Address points; centreline intersections | daily | 2026-10-26 copies | the map's address search | delete both raw files; `make search` |
+| Street map: Protomaps daily build of OpenStreetMap (zoom 0-14, Toronto and a margin); Noto Sans label glyphs | daily; Protomaps keeps a week of builds | build of 2026-11-13 | the census maps' background (`/census/`, `/2011/`) | delete `web/public/basemap.pmtiles`; `make basemap` (rarely needed; the streets change slowly). Data © OpenStreetMap contributors (ODbL); tiles and style by Protomaps (BSD-3-Clause) |
 
 ### Ingested, not on the site
 

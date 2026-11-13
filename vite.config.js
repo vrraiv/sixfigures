@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig } from "vite";
 import { extractTiles } from "./scripts/extract-tiles.mjs";
+import { basemapLayers } from "./scripts/basemap-style.mjs";
 import { brandSvg, heroKey, heroSvg } from "./scripts/city-map.mjs";
 import { pagePath, siteFooter, siteGuide, siteHeader, siteTitle } from "./scripts/site-nav.mjs";
 
@@ -24,6 +25,8 @@ const TILES = {
   da: await extractTiles("web/public/toronto_da.pmtiles", "da"),
   da16: await extractTiles("web/public/toronto_da_2016.pmtiles", "da16"),
   da11: await extractTiles("web/public/toronto_da_2011.pmtiles", "da11"),
+  // The street map (`make basemap`, pipeline/basemap.py): committed, like the others.
+  base: await extractTiles("web/public/basemap.pmtiles", "base"),
   // Optional (`make overlays`): without the file the boundary control stays hidden.
   ov: await extractTiles("web/public/overlays.pmtiles", "ov"),
 };
@@ -37,6 +40,7 @@ export default defineConfig({
   root: "web",
   define: {
     __TILES__: JSON.stringify(TILES),
+    __BASEMAP_LAYERS__: JSON.stringify(basemapLayers()),
     __BREAKS_VERSION__: JSON.stringify(version("web/public/breaks.json")),
     __BREAKS_2011_VERSION__: JSON.stringify(version("web/public/breaks_2011.json")),
     __INSIGHTS_VERSION__: JSON.stringify(version("web/public/insights.json")),

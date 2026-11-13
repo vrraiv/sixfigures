@@ -1,0 +1,4 @@
+Map label glyphs for the street map under the census maps: the Noto Sans family
+(Copyright 2012 Google Inc., SIL Open Font License 1.1, https://openfontlicense.org),
+as rendered into Protomaps' glyph files (https://github.com/protomaps/basemaps-assets).
+Only the Latin ranges and general punctuation are kept.
