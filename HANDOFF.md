@@ -266,44 +266,48 @@ None of Part 2 depends on Part 1 except the forecasts group.
 - **On a phone, a searched address is zoomed to 15**, so the strip above the sheet shows only
   part of its area. Fitting with bottom padding for the sheet would show all of it.
 
-### D. Accessibility (reproduced with axe-core and by keyboard)
+### D. Accessibility: what is left
 
-- Three selects have no accessible name on phones: `#measure` on Safety and Trees, `#nb` on the
-  Neighbourhood Explorer (their label is hidden at narrow widths).
-- No skip link: 15 tab stops before the search box on every page.
-- Contrast below 4.5:1: white text on table-cell fills (`#2a78d6` 4.41, `#d75e52` 3.74,
-  `#5ea852` 2.91 on Trees) and `--ink-3` (`#75756f`) on tinted backgrounds (4.18 to 4.24).
-- `aria-sort` on `<button>` instead of `<th>` in the schools table (`schools.js:559`); card
-  buttons whose `aria-label` omits their visible text (Census and School Insights).
-- Scrollable tables are not keyboard focusable (`.tbl-wrap`).
-- **[C]** Chart values exist only in hover tooltips (`charts.js:9-42`): nothing on focus, SVGs
-  are `aria-hidden`. Four pages have no neighbourhood finder, so a neighbourhood outside the
-  top-ten lists cannot be picked by keyboard.
-- **[C]** Segmented buttons rebuild their own markup when pressed (`charts.js:45-51`,
-  `explorer.js:71-88`) and drop focus to `<body>`; arrowing through the explorer's measure list
-  is impossible on Windows and Linux.
-- **[C]** The map canvas label always says "median income"; suggestion options never get
-  `aria-selected`; focus is lost after closing the snapshot dialog (`main.js` about 899, 1125,
-  1265).
-- Small targets on phones: section sub-navigation links 22px tall, table sort buttons 17px,
-  20px checkboxes; 10 to 11px text in footers and chart labels.
+Done on 13 November (commit "Accessibility: skip link, landmarks, labels, contrast, focus"): the
+skip link, one banner per page, select labels, text contrast (tertiary text and coloured table
+cells), sort and card semantics, focusable scrolling tables, focus kept by segmented buttons and
+the explorer's menus, tooltips on keyboard focus, the map's accessible name, suggestion state and
+snapshot focus. An axe-core pass over all fifteen pages at two sizes went from 92 rule failures
+to 2. Still open:
+
+- **The landing page's map** is an image whose 158 neighbourhoods are mouse-only links (axe:
+  `nested-interactive`, `scripts/city-map.mjs` `heroSvg`). Either make it a group of real links
+  or drop the links and keep the image; a design call.
+- **[C] Chart marks that aren't controls show their figures on hover only** (`charts.js`
+  `initTip`): bars, dots drawn as spans, histogram columns. Making hundreds of marks focusable
+  would flood the tab order; a data table beside each chart is the usual answer.
+- **[C] Four pages have no neighbourhood finder** (Census, Schools, Housing, Prices), so a
+  neighbourhood outside the top-ten lists can't be picked by keyboard. `nbtools.js` `fillFinder`
+  exists on the others.
+- Small targets on phones: table sort buttons 17px tall, 20px checkboxes and radios; 11px text
+  in chart labels.
 
 ### E. Pipeline robustness and process
 
-1. **[R] No tests run on pull requests.** `.github/workflows/data-refresh.yml` is the only
-   workflow. A small workflow running `npm test`, `npm run build` and
-   `python -m unittest discover -s pipeline/tests` on pull requests would have caught most of
-   round one.
+1. **Done, unverified: tests on pull requests.** `.github/workflows/ci.yml` runs `npm test`,
+   `npm run build` and the pipeline's tests on pull requests and on `main`. It was written in a
+   session that couldn't run it: check its first run, in particular that `pip install -r
+   pipeline/requirements.txt` completes on a clean runner.
 2. **[C] Unpinned dependencies.** `pipeline/requirements.txt` is `>=` only with no lock file,
-   actions are pinned by tag, and the refresh job holds write permissions throughout.
-3. **[C] Truncated downloads accepted.** `pipeline/download.py`, `fetch()` (about line 367): a
-   body shorter than its Content-Length is saved as complete, and the on-disk check then accepts
-   it. Fix: compare bytes written with Content-Length.
-4. **[C] Any TRREB failure reads as "not posted yet".** `download.py` about 464-488 and 641. A
-   changed URL would stall prices silently. Fix: treat only a 404 that way.
-5. **[C] Makefile staleness.** No `.DELETE_ON_ERROR`; the figures sentinel is written first, so
-   an interrupted run looks current; `exports.py` and `cpi.json` are not prerequisites;
-   `explorer` and `neighbourhoods` are manual, so `make data` can leave them stale.
+   actions are pinned by tag, and the refresh job holds write permissions throughout. The lock
+   should come from the machine whose versions built the committed data: on the PC,
+   `pip freeze > pipeline/requirements.lock`, then point `make deps` and the workflows at it.
+3. **Done: truncated downloads.** `download.fetch()` compares the bytes written with the
+   Content-Length (tested against a local server in `pipeline/tests/test_download.py`). Still
+   open: files already on disk are trusted by their first bytes; a manifest of sizes would close
+   that.
+4. **Done: TRREB failures.** Only an HTTP 404 reads as "not posted yet"; anything else fails
+   `download.py --trreb`, and so the scheduled refresh. TRREB did answer 404 for unposted
+   quarters and 200 for posted ones on 13 November 2026.
+5. **[C] Makefile staleness, partly done.** The figures' `common.json` is now written last, so an
+   interrupted run is redone. Still open: `exports.py` and `cpi.json` are not prerequisites;
+   `explorer` and `neighbourhoods` are manual, so `make data` can leave them stale. Not done on
+   purpose: `.DELETE_ON_ERROR` would delete committed outputs when a script fails.
 6. **[C] `build.py` prints instead of checking.** About lines 208-217: the README says DA
    populations are checked against the city total "before continuing"; the code prints both.
 7. **[C] Outputs differ between machines.** `pipeline/places.py:50-63` places points against the
@@ -314,8 +318,9 @@ None of Part 2 depends on Part 1 except the forecasts group.
    decoded by the attribute and assigned to `innerHTML`. No committed name contains markup today.
    Fix: build tips as text, and add a Content-Security-Policy in `web/public/_headers`, which
    sets no security headers at present.
-10. **[R] `scripts/check-size.mjs` reports a stale first-load figure.** Its exclusion list names
-    ten page bundles; six pages added since are counted, and the figure is printed, not enforced.
+10. **Done: `scripts/check-size.mjs`** takes the first-load figure from the assets the built
+    census page names (2.24 MB, not 2.38). It is still printed, not enforced, and leaves out the
+    street map's tiles and fonts.
 11. **[C]** `series.py:117` treats any StatCan error as "series doesn't exist"; `trreb.py`
     183-194 skips its row check when a report has no district totals; `trees.py` 494-504 needs
     the network even with every scene cached; address matching exists three ways (`permits.py`,

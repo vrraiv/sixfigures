@@ -50,7 +50,6 @@ def write_year(year: str, df: pd.DataFrame, measures=tuple(MEASURES), out: Path 
     d.mkdir(parents=True, exist_ok=True)
     for stale in d.glob("*.json"):
         stale.unlink()
-    _write(d / "common.json", {"dauid": df.dauid.tolist(), **{c: _col(df[c]) for c in COMMON[year]}})
     for m in measures:
         data = {"v": _col(df[m]), "pct": _col(df[f"pct_{m}"])}
         if year == "2021":
@@ -58,11 +57,15 @@ def write_year(year: str, df: pd.DataFrame, measures=tuple(MEASURES), out: Path 
             data["v16"] = _col(df[f"v16_{m}"])
             data["p16"] = _col(df[f"p16_{m}"])
         _write(d / f"{m}.json", data)
+    # Last: the Makefile takes common.json's date as the whole set's, so a run interrupted
+    # partway leaves no common.json and is redone, rather than passing for complete.
+    _write(d / "common.json", {"dauid": df.dauid.tolist(), **{c: _col(df[c]) for c in COMMON[year]}})
     size = sum(f.stat().st_size for f in d.glob("*.json"))
     print(f"wrote {d} ({len(measures) + 1} files, {size / 1e3:.0f} kB, {len(df):,} DAs)")
 
 
 def write_figures(gdf: pd.DataFrame, g16: pd.DataFrame, out: Path = FIGURES):
-    """The 2021 and 2016 files (the 2011 page's come from census2011.py)."""
-    write_year("2021", gdf, out=out)
+    """The 2021 and 2016 files (the 2011 page's come from census2011.py). 2021 last: its
+    common.json is the Makefile's target for both years."""
     write_year("2016", g16, out=out)
+    write_year("2021", gdf, out=out)
