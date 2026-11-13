@@ -102,7 +102,7 @@ NOT_TYPED = {"voting"}  # left out of the types: a kind of place shouldn't be de
 NAMES = {
     "Eglinton East": ("Family apartment suburbs", "Lower incomes, crowded housing and many children, much of it in apartment buildings."),
     "Lawrence Park South": ("Affluent house neighbourhoods", "The highest incomes, home values and school results, and the least crime."),
-    "Thistletown-Beaumond Heights": ("Settled suburban houses", "Detached houses, long-time owners and more seniors; few renters or movers."),
+    "Thistletown-Beaumond Heights": ("Settled house suburbs", "Detached houses, long-time owners and more seniors; few renters or movers."),
     "Harbourfront-CityPlace": ("New condo districts", "Recent towers, young adults and constant turnover; few children or seniors."),
     "East End-Danforth": ("Older family streets", "Pre-1960 houses, large street trees and children; few condos or recent immigrants."),
     "Clairlea-Birchmount": ("Older working suburbs", "Older houses beside industry: little tree cover, hot ground, fewer degrees, more violent crime."),
