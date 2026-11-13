@@ -1,5 +1,5 @@
 {
-  "retrieved": "2026-10-30",
+  "retrieved": "2026-11-13",
   "tables": {
     "17-10-0155": {
       "title": "Population estimates, July 1, by census subdivision, 2021 boundaries",
@@ -48,8 +48,8 @@
           "Estimate"
         ]
       },
-      "released": "2026-10-09T08:30",
-      "rows": 2646,
+      "released": "2026-11-06T08:30",
+      "rows": 2660,
       "file": "14-10-0459.csv",
       "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410045901"
     },
@@ -73,8 +73,8 @@
       "geography": "Toronto, Ontario",
       "units": [],
       "kept": {},
-      "released": "2026-10-14T08:30",
-      "rows": 2184,
+      "released": "2026-11-12T08:30",
+      "rows": 2205,
       "file": "34-10-0292.csv",
       "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3410029201"
     }

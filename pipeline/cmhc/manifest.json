@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-30",
+  "built": "2026-11-13",
   "raw": {
     "scu": {
       "files": 68,
@@ -55,7 +55,7 @@
           },
           "2021": {
             "starts": 17959,
-            "permit_units": 23637
+            "permit_units": 23636
           },
           "2022": {
             "starts": 20864,
@@ -67,17 +67,17 @@
           },
           "2024": {
             "starts": 18715,
-            "permit_units": 21451
+            "permit_units": 21450
           },
           "2025": {
             "starts": 10561,
-            "permit_units": 17399
+            "permit_units": 17380
           }
         },
         "total": {
           "years": "2020-2025",
           "starts": 119597,
-          "permit_units": 116521
+          "permit_units": 116500
         }
       }
     },

@@ -102,7 +102,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Total residential,"Types of work, total",Value of permits,1233349.0,0,0,v1675057596
 2026-06,"Toronto, Ontario",Total residential,"Types of work, total",Value of permits,1358713.0,0,0,v1675057596
 2026-07,"Toronto, Ontario",Total residential,"Types of work, total",Value of permits,1358354.0,0,0,v1675057596
-2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Value of permits,1235318.0,7,0,v1675057596
+2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Value of permits,996068.0,0,0,v1675057596
+2026-09,"Toronto, Ontario",Total residential,"Types of work, total",Value of permits,1276826.0,0,0,v1675057596
 2018-01,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,3481.0,0,0,v1675206466
 2018-02,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,2473.0,0,0,v1675206466
 2018-03,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,1768.0,0,0,v1675206466
@@ -206,7 +207,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,2655.0,0,0,v1675206466
 2026-06,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,3448.0,0,0,v1675206466
 2026-07,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,2868.0,0,0,v1675206466
-2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,2756.0,7,0,v1675206466
+2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,2133.0,0,0,v1675206466
+2026-09,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units created,2470.0,0,0,v1675206466
 2018-01,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,5.0,0,0,v1675239583
 2018-02,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,1.0,0,0,v1675239583
 2018-03,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,0.0,0,0,v1675239583
@@ -310,7 +312,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,4.0,0,0,v1675239583
 2026-06,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,3.0,0,0,v1675239583
 2026-07,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,1.0,0,0,v1675239583
-2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,3.0,0,0,v1675239583
+2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,5.0,0,0,v1675239583
+2026-09,"Toronto, Ontario",Total residential,"Types of work, total",Number of dwelling-units lost,3.0,7,0,v1675239583
 2018-01,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,2125.0,0,0,v1675315824
 2018-02,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,1887.0,0,0,v1675315824
 2018-03,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,2156.0,0,0,v1675315824
@@ -414,7 +417,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,1877.0,0,0,v1675315824
 2026-06,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,2264.0,0,0,v1675315824
 2026-07,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,2195.0,0,0,v1675315824
-2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,2010.0,0,0,v1675315824
+2026-08,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,1895.0,0,0,v1675315824
+2026-09,"Toronto, Ontario",Total residential,"Types of work, total",Number of permits,2118.0,0,0,v1675315824
 2018-01,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,1003461.0,0,0,v1675057597
 2018-02,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,577520.0,0,0,v1675057597
 2018-03,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,551782.0,0,0,v1675057597
@@ -518,7 +522,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,1113293.0,0,0,v1675057597
 2026-06,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,1219579.0,0,0,v1675057597
 2026-07,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,1232435.0,0,0,v1675057597
-2026-08,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,1092667.0,7,0,v1675057597
+2026-08,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,841730.0,0,0,v1675057597
+2026-09,"Toronto, Ontario",Total residential,New dwelling units total,Value of permits,1129648.0,0,0,v1675057597
 2018-01,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,3481.0,0,0,v1675206467
 2018-02,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,2473.0,0,0,v1675206467
 2018-03,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,1768.0,0,0,v1675206467
@@ -622,7 +627,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,2655.0,0,0,v1675206467
 2026-06,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,3448.0,0,0,v1675206467
 2026-07,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,2868.0,0,0,v1675206467
-2026-08,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,2756.0,7,0,v1675206467
+2026-08,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,2133.0,0,0,v1675206467
+2026-09,"Toronto, Ontario",Total residential,New dwelling units total,Number of dwelling-units created,2470.0,0,0,v1675206467
 2018-01,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,1117.0,0,0,v1675315825
 2018-02,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,989.0,0,0,v1675315825
 2018-03,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,1042.0,0,0,v1675315825
@@ -726,7 +732,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,862.0,0,0,v1675315825
 2026-06,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,1086.0,0,0,v1675315825
 2026-07,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,992.0,0,0,v1675315825
-2026-08,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,944.0,0,0,v1675315825
+2026-08,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,921.0,0,0,v1675315825
+2026-09,"Toronto, Ontario",Total residential,New dwelling units total,Number of permits,1070.0,0,0,v1675315825
 2018-01,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,455395.0,0,0,v1675051223
 2018-02,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,243736.0,0,0,v1675051223
 2018-03,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,303181.0,0,0,v1675051223
@@ -830,7 +837,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,348200.0,0,0,v1675051223
 2026-06,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,329970.0,0,0,v1675051223
 2026-07,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,273180.0,0,0,v1675051223
-2026-08,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,220240.0,0,0,v1675051223
+2026-08,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,251355.0,0,0,v1675051223
+2026-09,"Toronto, Ontario",Single total,"Types of work, total",Value of permits,342682.0,0,0,v1675051223
 2018-01,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,758.0,0,0,v1675206502
 2018-02,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,390.0,0,0,v1675206502
 2018-03,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,398.0,0,0,v1675206502
@@ -934,7 +942,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,223.0,0,0,v1675206502
 2026-06,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,261.0,0,0,v1675206502
 2026-07,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,229.0,0,0,v1675206502
-2026-08,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,233.0,0,0,v1675206502
+2026-08,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,226.0,0,0,v1675206502
+2026-09,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units created,220.0,0,0,v1675206502
 2018-01,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,3.0,0,0,v1675239595
 2018-02,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,1.0,0,0,v1675239595
 2018-03,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,0.0,0,0,v1675239595
@@ -1038,7 +1047,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,3.0,0,0,v1675239595
 2026-06,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,2.0,0,0,v1675239595
 2026-07,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,1.0,0,0,v1675239595
-2026-08,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,3.0,0,0,v1675239595
+2026-08,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,4.0,0,0,v1675239595
+2026-09,"Toronto, Ontario",Single total,"Types of work, total",Number of dwelling-units lost,2.0,7,0,v1675239595
 2018-01,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,1013.0,0,0,v1675315906
 2018-02,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,606.0,0,0,v1675315906
 2018-03,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,697.0,0,0,v1675315906
@@ -1142,7 +1152,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,500.0,0,0,v1675315906
 2026-06,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,583.0,0,0,v1675315906
 2026-07,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,539.0,0,0,v1675315906
-2026-08,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,507.0,0,0,v1675315906
+2026-08,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,494.0,0,0,v1675315906
+2026-09,"Toronto, Ontario",Single total,"Types of work, total",Number of permits,515.0,0,0,v1675315906
 2018-01,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,406356.0,0,0,v1675051224
 2018-02,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,207174.0,0,0,v1675051224
 2018-03,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,246547.0,0,0,v1675051224
@@ -1246,7 +1257,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,281308.0,0,0,v1675051224
 2026-06,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,250075.0,0,0,v1675051224
 2026-07,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,209693.0,0,0,v1675051224
-2026-08,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,170070.0,0,0,v1675051224
+2026-08,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,199407.0,0,0,v1675051224
+2026-09,"Toronto, Ontario",Single total,New dwelling units total,Value of permits,276540.0,0,0,v1675051224
 2018-01,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,758.0,0,0,v1675206503
 2018-02,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,390.0,0,0,v1675206503
 2018-03,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,398.0,0,0,v1675206503
@@ -1350,7 +1362,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,223.0,0,0,v1675206503
 2026-06,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,261.0,0,0,v1675206503
 2026-07,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,229.0,0,0,v1675206503
-2026-08,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,233.0,0,0,v1675206503
+2026-08,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,226.0,0,0,v1675206503
+2026-09,"Toronto, Ontario",Single total,New dwelling units total,Number of dwelling-units created,220.0,0,0,v1675206503
 2018-01,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,758.0,0,0,v1675315907
 2018-02,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,390.0,0,0,v1675315907
 2018-03,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,398.0,0,0,v1675315907
@@ -1454,7 +1467,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,223.0,0,0,v1675315907
 2026-06,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,261.0,0,0,v1675315907
 2026-07,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,229.0,0,0,v1675315907
-2026-08,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,233.0,0,0,v1675315907
+2026-08,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,226.0,0,0,v1675315907
+2026-09,"Toronto, Ontario",Single total,New dwelling units total,Number of permits,220.0,0,0,v1675315907
 2018-01,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,629120.0,0,0,v1675051296
 2018-02,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,413121.0,0,0,v1675051296
 2018-03,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,351373.0,0,0,v1675051296
@@ -1558,7 +1572,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,876375.0,0,0,v1675051296
 2026-06,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,1019081.0,0,0,v1675051296
 2026-07,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,1075226.0,0,0,v1675051296
-2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,1005831.0,7,0,v1675051296
+2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,736091.0,0,0,v1675051296
+2026-09,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Value of permits,924738.0,7,0,v1675051296
 2018-01,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,2723.0,0,0,v1675206536
 2018-02,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,2083.0,0,0,v1675206536
 2018-03,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,1370.0,0,0,v1675206536
@@ -1662,7 +1677,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,2432.0,0,0,v1675206536
 2026-06,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,3187.0,0,0,v1675206536
 2026-07,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,2639.0,0,0,v1675206536
-2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,2522.0,7,0,v1675206536
+2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,1906.0,0,0,v1675206536
+2026-09,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units created,2250.0,0,0,v1675206536
 2018-01,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,2.0,0,0,v1675239604
 2018-02,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,0.0,0,0,v1675239604
 2018-03,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,0.0,0,0,v1675239604
@@ -1766,7 +1782,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,1.0,0,0,v1675239604
 2026-06,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,1.0,0,0,v1675239604
 2026-07,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,0.0,0,0,v1675239604
-2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,0.0,0,0,v1675239604
+2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,1.0,0,0,v1675239604
+2026-09,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of dwelling-units lost,1.0,7,0,v1675239604
 2018-01,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,481.0,0,0,v1675315979
 2018-02,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,729.0,0,0,v1675315979
 2018-03,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,914.0,0,0,v1675315979
@@ -1870,7 +1887,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,884.0,0,0,v1675315979
 2026-06,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,1082.0,0,0,v1675315979
 2026-07,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,1030.0,0,0,v1675315979
-2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,962.0,0,0,v1675315979
+2026-08,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,909.0,0,0,v1675315979
+2026-09,"Toronto, Ontario",Multiple dwelling building total,"Types of work, total",Number of permits,1071.0,0,0,v1675315979
 2018-01,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,597105.0,0,0,v1675051297
 2018-02,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,370346.0,0,0,v1675051297
 2018-03,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,305235.0,0,0,v1675051297
@@ -1974,7 +1992,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,831985.0,0,0,v1675051297
 2026-06,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,969504.0,0,0,v1675051297
 2026-07,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,1022742.0,0,0,v1675051297
-2026-08,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,921697.0,7,0,v1675051297
+2026-08,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,641423.0,0,0,v1675051297
+2026-09,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Value of permits,853108.0,7,0,v1675051297
 2018-01,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,2723.0,0,0,v1675206537
 2018-02,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,2083.0,0,0,v1675206537
 2018-03,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,1370.0,0,0,v1675206537
@@ -2078,7 +2097,8 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,2432.0,0,0,v1675206537
 2026-06,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,3187.0,0,0,v1675206537
 2026-07,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,2639.0,0,0,v1675206537
-2026-08,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,2522.0,7,0,v1675206537
+2026-08,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,1906.0,0,0,v1675206537
+2026-09,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of dwelling-units created,2250.0,0,0,v1675206537
 2018-01,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,359.0,0,0,v1675315980
 2018-02,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,599.0,0,0,v1675315980
 2018-03,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,644.0,0,0,v1675315980
@@ -2182,4 +2202,5 @@ REF_DATE,GEO,Type of building,Type of work,Variables,VALUE,STATUS,SYMBOL,VECTOR
 2026-05,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,639.0,0,0,v1675315980
 2026-06,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,825.0,0,0,v1675315980
 2026-07,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,763.0,0,0,v1675315980
-2026-08,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,710.0,0,0,v1675315980
+2026-08,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,694.0,0,0,v1675315980
+2026-09,"Toronto, Ontario",Multiple dwelling building total,New dwelling units total,Number of permits,850.0,0,0,v1675315980
