@@ -10,7 +10,7 @@ import "./style.css";
 import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
 import { cfg, initDetail, detailControls } from "./quality.js";
-import { $, BOUNDS, COLORS, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource } from "./common.js";
+import { $, BOUNDS, COLORS, openingCamera, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource } from "./common.js";
 
 const YEAR = "2011", SRC = "da11";
 // The NHS (the 2011 long form) asked about 2010 income; its other figures are dated 2011.
@@ -40,9 +40,8 @@ initDetail(hashParams);
 if (measures.includes(hashParams.get("m"))) select.value = hashParams.get("m");
 const linkedDA = /^\d{8}$/.test(hashParams.get("da") ?? "") ? hashParams.get("da") : null;
 const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
-const camera = linkedAt.length === 3 && linkedAt.every(Number.isFinite)
-  ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] }
-  : { bounds: BOUNDS, fitBoundsOptions: { padding: 24 } };
+const linkedView = linkedAt.length === 3 && linkedAt.every(Number.isFinite);
+const camera = linkedView ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] } : openingCamera($("map"));
 if (narrow.matches) $("legend").open = false;
 const groupOf = (m) => measures.filter((k) => MEASURES[k].group === MEASURES[m].group);
 const propsOf = (dauid) => figures.props(dauid, groupOf(select.value));
@@ -182,13 +181,13 @@ const detailUI = detailControls(map, {
   },
 });
 
-let mapMoved = false; // keep the default whole-city framing out of links until the map moves
+let mapMoved = false; // keep the opening view out of links until the map moves
 function writeHash() {
   syncMark();
   const h = new URLSearchParams({ m: select.value });
   if (current) h.set("da", current.dauid);
   if (hashParams.has("diag")) h.set("diag", "");
-  if (mapMoved || camera.center) {
+  if (mapMoved || linkedView) {
     const { lng, lat } = map.getCenter();
     h.set("at", `${map.getZoom().toFixed(2)}/${lat.toFixed(5)}/${lng.toFixed(5)}`);
   }

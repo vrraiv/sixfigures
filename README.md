@@ -381,9 +381,16 @@ which would otherwise 404; not committed), and MapLibre fetches only the tiles i
 each DA's number; `web/src/figures.js` fetches the figures of the measure on show (about
 55 KB with the place names and population) and attaches each DA's colour class to its
 tile feature through feature state, so a change of measure never refetches tiles.
-`index.html` starts the opening view's tile and figure downloads before the app script
-arrives, and the DA layers go in at `style.load`, so they load alongside the basemap
-rather than after it.
+`census/index.html` (and `2011/index.html`) starts the opening view's tile and figure
+downloads before the app script arrives, and the DA layers go in at `style.load`, so they
+load alongside the basemap rather than after it.
+
+On the map pages the site header, the controls and the map fill the screen between them,
+and the footer sits below, a scroll away. The opening view (`openingCamera` in
+`web/src/common.js`, mirrored by the preloaders) fits the whole city on a wide screen; on a
+narrow one, where fitting Toronto's width would leave empty bands above and below, it fills
+the map's height instead (up to one zoom level closer), and the east and west ends are a
+pan away. A link with a view (`#at=`) opens on that view.
 `web/src/main.js` inflates the tiles itself, so it works whether or not a server marks
 them `Content-Encoding: gzip`. The archives are left out of the deploy
 (`web/public/.assetsignore`).

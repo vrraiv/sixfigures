@@ -9,7 +9,9 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="description" content="Income, low income, housing costs, dwellings and population by census dissemination area, City of Toronto: 2016 and 2021 censuses and the change between them." />
   </head>
-  <body class="with-nav">
+  <body class="with-nav map-page">
+    <!-- The header, the controls and the map fill the screen; the footer is below it. -->
+    <div class="map-screen">
     <!-- site-header -->
     <header class="bar">
       <h1>Toronto income and housing <span class="sub">by dissemination area, 2016 and 2021 censuses</span></h1>
@@ -90,8 +92,8 @@
       <script>
         // Starts the opening view's figures and DA tiles downloading now, ahead of
         // the app script and the basemap style (vite.config.js fills in the tile
-        // source and the figures version). The tiles: works out the zoom fitBounds
-        // will pick and the tiles that cover the data.
+        // source and the figures version). The tiles: works out the opening view
+        // and the tiles in it.
         (function (t, fv) {
           var link = function (href) {
             var l = document.createElement("link");
@@ -103,15 +105,21 @@
           link("/data/figures/" + y + "/" + (m ? m[1] : "med_hh_tot") + ".json?v=" + fv);
           var el = document.getElementById("map");
           if (!t || !el || !el.clientWidth || !el.clientHeight || /[#&]at=/.test(h)) return;
-          var b = t.bounds, p = 24, n;
+          // the view openingCamera (common.js) picks: the whole city on a wide box, the box's
+          // height filled (up to one zoom closer) on a narrow one; then the tiles in that view
+          var b = t.bounds, p = 24, W = el.clientWidth, H = el.clientHeight, n;
           var my = function (lat) { return (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / 360; };
-          var z = Math.floor(Math.log2(Math.min((el.clientWidth - 2 * p) / (((b[2] - b[0]) / 360) * 512), (el.clientHeight - 2 * p) / ((my(b[1]) - my(b[3])) * 512))));
-          z = Math.max(t.minzoom, Math.min(t.maxzoom, z));
+          var zw = Math.log2((W - 2 * p) / (((b[2] - b[0]) / 360) * 512)), zh = Math.log2((H - 2 * p) / ((my(b[1]) - my(b[3])) * 512));
+          var zf = zw < zh ? Math.min(zh, zw + 1) : zh;
+          var z = Math.max(t.minzoom, Math.min(t.maxzoom, Math.floor(zf)));
           n = Math.pow(2, z);
+          var cx = ((b[0] + b[2]) / 2 + 180) / 360, cy = (my(b[1]) + my(b[3])) / 2, s = 512 * Math.pow(2, zf);
           var tx = function (lon) { return Math.floor(((lon + 180) / 360) * n); };
           var ty = function (lat) { return Math.floor(my(lat) * n); };
-          for (var x = tx(b[0]); x <= tx(b[2]); x++) {
-            for (var y = ty(b[3]); y <= ty(b[1]); y++) {
+          var x0 = Math.max(tx(b[0]), Math.floor((cx - W / 2 / s) * n)), x1 = Math.min(tx(b[2]), Math.floor((cx + W / 2 / s) * n));
+          var y0 = Math.max(ty(b[3]), Math.floor((cy - H / 2 / s) * n)), y1 = Math.min(ty(b[1]), Math.floor((cy + H / 2 / s) * n));
+          for (var x = x0; x <= x1; x++) {
+            for (var y = y0; y <= y1; y++) {
               link("/" + t.tiles.replace("{z}", z).replace("{x}", x).replace("{y}", y));
             }
           }
@@ -136,6 +144,7 @@
         </div>
       </details>
     </main>
+    </div>
 
     <section id="sheet" class="sheet" hidden aria-live="polite">
       <button id="sheet-close" class="sheet-close" aria-label="Close details">×</button>
