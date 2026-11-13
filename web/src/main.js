@@ -1200,7 +1200,7 @@ form.addEventListener("submit", (e) => {
 
 const CREDITS = [
   "Statistics Canada, Census Profile, 2021 Census (98-316-X2021001) and 2016 Census (98-316-X2016001); income years 2020 and 2015; 2021 DA correspondence file (92-156-X). Contains information licensed under the Open Government Licence – Canada.",
-  "Neighbourhoods, wards, address points and intersections: City of Toronto Open Data, Open Government Licence – Toronto. Basemap © OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors.",
+  "Neighbourhoods, wards, address points and intersections: City of Toronto Open Data, Open Government Licence – Toronto. Basemap: Protomaps, data © OpenStreetMap contributors.",
 ];
 
 function snapshotDetails() {

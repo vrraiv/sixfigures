@@ -360,7 +360,16 @@ Fully static: a Python pipeline turns Statistics Canada bulk downloads into one
 PMTiles file of DA outlines per census (~1.2 MB for 2021, ~0.9 MB for 2016), the
 figures as one small JSON file per measure and census (`data/figures/`), and
 `breaks.json`. It is hosted as a Cloudflare Worker with static assets only (no Worker
-script, no API keys). Basemap: OpenFreeMap Positron.
+script, no API keys). Basemap: Protomaps' map of OpenStreetMap, kept on the site (below).
+
+The street map under the census maps is the site's own too. `pipeline/basemap.py` (`make
+basemap`) reads the tiles that cover Toronto and a margin, zoom 0 to 14 (about 23 MB, 937
+tiles), out of Protomaps' daily OpenStreetMap build by HTTP range requests, and writes
+`web/public/basemap.pmtiles`. It is unpacked into static tiles like the others, and its
+layers (`scripts/basemap-style.mjs`, from `@protomaps/basemaps`) and label fonts
+(`web/public/fonts`, Noto Sans) are the site's, so opening a map asks no third party for
+anything. The streets change slowly under a census map, so the file is committed and redone
+rarely: delete it and run `make basemap` for a newer build (Protomaps keeps a week of them).
 
 Cloudflare's cache answers HTTP Range requests with the whole file, so serving the
 .pmtiles directly would make every visitor download all of them. Instead
@@ -407,7 +416,7 @@ The quarterly run and the yearly police and housing refreshes are automated: the
 refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that
 schedule and opens a pull request with what changed, for review before merging.
 
-The derived `web/public/*.pmtiles` (including `overlays.pmtiles`), `breaks.json`,
+The derived `web/public/*.pmtiles` (including `overlays.pmtiles` and `basemap.pmtiles`), `breaks.json`,
 `search.json`, `data/figures/` and `data/*.csv` are
 committed, so this is only needed to change the pipeline. From WSL, Linux or macOS,
 with Python 3.11+ and tippecanoe installed:
@@ -551,4 +560,4 @@ Index, table 18-10-0005-01.
 City of Toronto Open Data: Neighbourhoods, City Wards, Address Points (Municipal) and
 Centreline Intersection file. Contains information licensed under the
 [Open Government Licence - Toronto](https://open.toronto.ca/open-data-licence/).
-Basemap © OpenFreeMap, © OpenMapTiles, data © OpenStreetMap contributors.
+Basemap: Protomaps (BSD-3-Clause style code, ODbL data), data © OpenStreetMap contributors; label fonts Noto Sans (SIL OFL).

@@ -7,3 +7,4 @@ lightgbm>=4.6
 pdfplumber>=0.11
 scipy>=1.11
 rasterio>=1.4
+pmtiles>=3.5

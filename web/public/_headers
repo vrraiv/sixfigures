@@ -1,6 +1,9 @@
 /tiles/*
   Cache-Control: public, max-age=31536000, immutable
 
+/fonts/*
+  Cache-Control: public, max-age=604800
+
 /search.json
   Cache-Control: public, max-age=31536000, immutable
 

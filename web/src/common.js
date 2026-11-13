@@ -20,7 +20,18 @@ maplibregl.addProtocol("gztile", async ({ url }, abort) => {
 export const tileSource = (t) => ({ type: "vector", tiles: [`gztile://${t.tiles}`], minzoom: t.minzoom, maxzoom: t.maxzoom, bounds: t.bounds });
 export const TILES = __TILES__;
 
-export const STYLE = "https://tiles.openfreemap.org/styles/positron";
+// The street map under the census colours: the Protomaps basemap cut for Toronto
+// (pipeline/basemap.py), served from this site like every other tile, with its layers
+// (scripts/basemap-style.mjs) and label fonts (web/public/fonts). Built when the page loads
+// because MapLibre wants the glyph address in full.
+export const STYLE = {
+  version: 8,
+  glyphs: `${location.origin}/fonts/{fontstack}/{range}.pbf`,
+  sources: {
+    protomaps: { ...tileSource(TILES.base), attribution: '<a href="https://github.com/protomaps/basemaps">Protomaps</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' },
+  },
+  layers: __BASEMAP_LAYERS__,
+};
 export const BOUNDS = [[-79.6393, 43.5792], [-79.1153, 43.8555]];
 
 export * from "./catalogue.js";
