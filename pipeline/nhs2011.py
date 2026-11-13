@@ -1,4 +1,4 @@
-"""Toronto's rows of the 2011 NHS DA table: pipeline/out/toronto_nhs_2011.csv.
+"""Toronto's rows of the 2011 NHS DA table: pipeline/extracts/toronto_nhs_2011.csv.
 
     python pipeline/nhs2011.py
 
@@ -31,7 +31,7 @@ from measures import INCOME_GROUPS, NHS_2011
 
 HERE = Path(__file__).parent
 IVT = HERE / "raw" / "NHSprofile_Can_PR_CD_CSD_DA.IVT"
-OUT = HERE / "out" / "toronto_nhs_2011.csv"
+OUT = HERE / "extracts" / "toronto_nhs_2011.csv"  # kept in the repository (extracts.py)
 TORONTO_CD = "3520"
 SEX = "Total"
 EXPECTED = (59408, 2620)

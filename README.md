@@ -437,6 +437,10 @@ make breaks        # redo breaks.json histograms/CPI and the CSVs from pipeline/
 make overlays      # boundary overlays -> web/public/overlays.pmtiles
 ```
 
+Without the raw files, `make from-extracts` rebuilds the neighbourhood figures and the two
+Explorers' data from Toronto's rows of the census profiles, which are kept in
+`pipeline/extracts/`: it runs on any checkout, with Python alone.
+
 StatCan's site blocks scripted downloads with a bot challenge. If `make download`
 reports that, fetch the files it prints in a browser into `pipeline/raw/`. The City of
 Toronto portal sometimes times out; rerun `make download` later.

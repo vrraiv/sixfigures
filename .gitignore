@@ -24,6 +24,9 @@ pipeline/out/
 *.CSV
 # ...except the CSV downloads served by the site (pipeline/exports.py)
 !web/public/data/*.csv
+# ...and Toronto's rows of the Statistics Canada tables (pipeline/extracts.py): a few MB each,
+# final, and what the census figures are computed from, so a checkout can rebuild them
+!pipeline/extracts/*.csv
 # ...and the small StatCan series pipeline/series.py writes (with their retrieval dates)
 !pipeline/series/*.csv
 *.tab

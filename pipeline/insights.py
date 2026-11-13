@@ -38,9 +38,12 @@ manifest's city values (census2006.py, which aggregates the same way). That file
 isn't a make prerequisite: census2006.py reads insights.json, so it would be a
 cycle; rerun this after `make census2006`.
 
-Reads the cached profile extracts in pipeline/out (build.py, census2016.py,
-census2011.py and nhs2011.py write them) and the figures files for the DA to
-neighbourhood assignment.
+Reads Toronto's rows of the profiles in pipeline/extracts (extracts.py: build.py,
+census2016.py, census2011.py and nhs2011.py write them, and they are kept in the
+repository) and the figures files for the DA to neighbourhood assignment. So it needs
+no raw Statistics Canada file and no boundary file: `make from-extracts` runs it on a
+fresh checkout. The one download is the City's neighbourhood outlines, which a script
+can fetch.
 """
 import json
 import sys
@@ -57,11 +60,11 @@ import zipfile
 import build
 import census2011
 import census2016
+import extracts
 from school_insights import paths
 from measures import INCOME_DATED, INCOME_GROUPS, INCOME_GROUPS_2006, MEASURES, NHS_2011, SHARES, SHARES_2011
 
 HERE = Path(__file__).parent
-OUT_DIR = HERE / "out"
 WEB = HERE.parent / "web" / "public"
 FIGURES = WEB / "data" / "figures"
 OUT = WEB / "insights.json"
@@ -111,11 +114,11 @@ def load(year: str) -> pd.DataFrame:
         wide, _ = build.pivot(build.extract(), keep_counts=True)
         wide = wide.rename(columns={"pop21": "pop"})
     elif year == "2016":
-        g, _ = census2016.load_2016(keep_counts=True)
-        wide = pd.DataFrame(g.drop(columns="geometry")).set_index("DAUID").rename(columns={"pop16": "pop"})
+        wide, _ = census2016.load_table(keep_counts=True)
+        wide = wide.rename(columns={"pop16": "pop"})
     else:
-        g, _ = census2011.load_2011(keep_counts=True)
-        wide = pd.DataFrame(g.drop(columns="geometry")).set_index("DAUID").rename(columns={"pop11": "pop"})
+        wide, _ = census2011.load_table(keep_counts=True)
+        wide = wide.rename(columns={"pop11": "pop"})
     common = json.loads((FIGURES / year / "common.json").read_text())
     nb = pd.Series(common["nbhd_id"], index=common["dauid"])
     wide = wide.join(nb.rename("nbhd_id"), how="left")
@@ -159,7 +162,7 @@ def published(wide: pd.DataFrame, m: str) -> pd.Series:
 
 
 def income_groups(year: str) -> pd.DataFrame:
-    """The DAs' income-group counts (columns b<ID>), cached in pipeline/out."""
+    """The DAs' income-group counts (columns b<ID>), kept in pipeline/extracts."""
     ids = sorted({i for ids_, _ in INCOME_GROUPS[year].values() for i in ids_})
     cols = [f"b{i}" for i in ids]
     if year == "2011":
@@ -169,14 +172,14 @@ def income_groups(year: str) -> pd.DataFrame:
         out = das[cols].astype(float)
         out[low] = np.nan  # as census2011.py does for the NHS figures
         return out
-    cache = OUT_DIR / f"toronto_income_groups_{year}.csv"
+    cache = extracts.path(f"toronto_income_groups_{year}.csv")
     if cache.exists():
         df = pd.read_csv(cache, dtype={"DAUID": str}).set_index("DAUID")
         if list(df.columns) == cols:
-            print(f"using cached {cache.name}")
+            print(f"using {cache.name}")
             return df
+        print(f"{cache.name} doesn't hold the income groups measures.py names")
     want = {str(i) for i in ids}
-    print(f"streaming the {year} profile for income groups (several minutes) ...")
     rows = []
     if year == "2021":
         zpath, member, prefix, enc = build.PROFILE_ZIP, build.PROFILE_CSV, build.DA_PREFIX, "latin-1"
@@ -184,6 +187,8 @@ def income_groups(year: str) -> pd.DataFrame:
     else:
         zpath, member, prefix, enc = census2016.PROFILE_ZIP, census2016.PROFILE_CSV, census2016.PREFIX, "utf-8"
         da_col, id_col, val_col = 1, 9, 11
+    extracts.need_raw(zpath, cache)
+    print(f"streaming the {year} profile for income groups (several minutes) ...")
     with zipfile.ZipFile(zpath) as z, z.open(member) as f:
         f.readline()
         for line in f:
@@ -195,6 +200,7 @@ def income_groups(year: str) -> pd.DataFrame:
             if r[id_col] in want:
                 rows.append((r[da_col], f"b{r[id_col]}", pd.to_numeric(r[val_col].strip(), errors="coerce")))
     df = pd.DataFrame(rows, columns=["DAUID", "key", "value"]).pivot(index="DAUID", columns="key", values="value")[cols]
+    cache.parent.mkdir(exist_ok=True)
     df.to_csv(cache)
     print(f"  {len(df):,} DAs -> {cache.name}")
     return df

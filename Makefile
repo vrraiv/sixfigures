@@ -3,7 +3,9 @@
 PYTHON ?= python3
 # pipeline/nhs2011.py needs pyivt (a Rust extension, with the legacy member-field
 # fix; see pipeline/README.md). Point this at a Python that has it, e.g. a WSL venv:
-#   make PYIVT_PYTHON="wsl -e /home/me/pyivt/.venv/bin/python" pipeline/out/toronto_nhs_2011.csv
+#   make PYIVT_PYTHON="wsl -e /home/me/pyivt/.venv/bin/python" pipeline/extracts/toronto_nhs_2011.csv
+# Its output is kept in the repository (pipeline/extracts), so that is needed only to add a
+# characteristic to it.
 PYIVT_PYTHON ?= $(PYTHON)
 
 RAW       := pipeline/raw
@@ -32,11 +34,11 @@ PROFILE11 := $(RAW)/98-316-XWE2011001-1501-ONT.csv
 STATCAN11 := $(PROFILE11) $(RAW)/gda_000b11a_e.zip $(RAW)/2016_92-156_DALand_ADsup_csv.zip
 # the NHS (2011 long form) DA table, a Beyond 20/20 file, and Toronto's rows of it
 NHSIVT11  := $(RAW)/NHSprofile_Can_PR_CD_CSD_DA.IVT
-NHS11     := pipeline/out/toronto_nhs_2011.csv
+NHS11     := pipeline/extracts/toronto_nhs_2011.csv
 # 2006 Census DA profile (Beyond 20/20) and Toronto's rows of it (census2006.py
 # places them in neighbourhoods)
 PROFILEIVT06 := $(RAW)/94-581-XCB2006002.IVT
-PROFILE06    := pipeline/out/toronto_profile_2006.csv
+PROFILE06    := pipeline/extracts/toronto_profile_2006.csv
 TORONTO   := $(RAW)/toronto_neighbourhoods_4326.geojson $(RAW)/toronto_address_points_4326.csv \
              $(RAW)/toronto_intersections_4326.csv $(RAW)/toronto_wards_4326.geojson
 
@@ -46,13 +48,30 @@ PERMITRAW := $(RAW)/toronto_permits_cleared_2000_2016.csv $(RAW)/toronto_permits
              $(RAW)/toronto_permits_active.csv
 PERMITS   := pipeline/permits/by_nbhd.csv
 
-.PHONY: data download tiles search overlays basemap deps clean cpi breaks permits test
+.PHONY: data download tiles search overlays basemap deps clean cpi breaks permits test extracts from-extracts
 
 # The pipeline's own tests (clean-up rules, neighbourhood aggregation) and the site's, which
 # include the checks on the committed figures (scripts/data-invariants.test.mjs).
 test:
 	$(PYTHON) -m unittest discover -s pipeline/tests
 	npm test
+
+# Toronto's rows of the Statistics Canada tables, kept in the repository (pipeline/extracts.py).
+# On the machine that has them in pipeline/out/, this copies them to pipeline/extracts/ and loads
+# each as the rebuild will; then commit that directory.
+extracts:
+	$(PYTHON) pipeline/extracts.py
+
+# What a fresh checkout can rebuild with no raw Statistics Canada file, no boundary file, no
+# pyivt and no tippecanoe: the neighbourhood figures (insights.json) from the extracts, then the
+# Data Explorer's and Neighbourhood Explorer's files from those. The one download is the City's
+# neighbourhood outlines, which a script can fetch. (The DA figures, breaks and tiles still take
+# `make data`, which needs the boundary files.)
+from-extracts:
+	$(PYTHON) pipeline/download.py --toronto toronto_neighbourhoods_4326.geojson
+	$(PYTHON) pipeline/insights.py
+	$(PYTHON) pipeline/explorer_data.py
+	$(PYTHON) pipeline/affinity.py
 
 data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS) $(INSIGHTS)
 
@@ -66,14 +85,20 @@ $(STATCAN) $(TORONTO) $(RAW)/98-316-XWE2011001-1501.zip $(RAW)/gda_000b11a_e.zip
 $(RAW)/2016_92-156_DALand_ADsup_csv.zip $(NHSIVT11) $(PERMITRAW):
 	$(PYTHON) pipeline/download.py
 
-$(NHS11): $(NHSIVT11) pipeline/nhs2011.py pipeline/measures.py
-	$(PYIVT_PYTHON) pipeline/nhs2011.py
+# The two pyivt extracts are kept in the repository and rebuilt only when missing: a change to
+# measures.py doesn't date them (census2011.py and census2006.py say so if one lacks a
+# characteristic), and a checkout without the Beyond 20/20 tables or pyivt still builds.
+# One still in pipeline/out/ from before they were kept here is copied across.
+$(NHS11): $(if $(wildcard $(NHS11) pipeline/out/$(notdir $(NHS11))),,$(NHSIVT11))
+	@if [ -f pipeline/out/$(@F) ]; then mkdir -p $(@D) && cp -p pipeline/out/$(@F) $@ && echo "copied pipeline/out/$(@F) to $@"; \
+	else $(PYIVT_PYTHON) pipeline/nhs2011.py; fi
 
 $(PROFILEIVT06):
 	$(PYTHON) pipeline/download.py
 
-$(PROFILE06): $(PROFILEIVT06) pipeline/profile2006.py pipeline/measures.py
-	$(PYIVT_PYTHON) pipeline/profile2006.py
+$(PROFILE06): $(if $(wildcard $(PROFILE06) pipeline/out/$(notdir $(PROFILE06))),,$(PROFILEIVT06))
+	@if [ -f pipeline/out/$(@F) ]; then mkdir -p $(@D) && cp -p pipeline/out/$(@F) $@ && echo "copied pipeline/out/$(@F) to $@"; \
+	else $(PYIVT_PYTHON) pipeline/profile2006.py; fi
 
 $(PROFILE11): $(RAW)/98-316-XWE2011001-1501.zip
 	unzip -o -q $< '*-ONT.csv' -d $(RAW)

@@ -56,6 +56,27 @@ python3 -m venv ~/.venvs/toronto-dash && . ~/.venvs/toronto-dash/bin/activate &&
 
 Then install tippecanoe (below).
 
+## Rebuilding without the raw files
+
+Each script that reads a Statistics Canada profile keeps Toronto's rows of it, a few megabytes,
+in `pipeline/extracts/` (`extracts.py`, and the README there lists them). They are committed, and
+a script uses an extract that holds every characteristic `measures.py` names instead of the raw
+file, whatever the two files' dates. So a fresh checkout, a laptop without WSL or a cloud session
+can run
+
+```sh
+make deps
+make from-extracts    # insights.py -> explorer_data.py -> affinity.py
+```
+
+and rebuild the neighbourhood figures and what is made from them, with no www12 download, no
+pyivt and no tippecanoe. The one download is the City's neighbourhood outlines, which a script
+can fetch. The DA figures, breaks and tiles still take `make data`: they need the boundary files.
+
+`make extracts` collects the extracts on a machine that still has them in `pipeline/out/`, loads
+each as the rebuild will, and says what is missing. An extract is rewritten only when it lacks a
+characteristic: the script that reads it stops and names the raw file to put in `pipeline/raw/`.
+
 ## Sources (downloaded 2026-10-26)
 
 | File | Size | URL |
@@ -77,7 +98,7 @@ table in the Data Liberation Initiative's 2006 Profile Series deposit on Boreali
 (doi:10.5683/SP3/RFXZIF, file 27195, 237,696,851 B, MD5 cba104748aa71c675022b64f2b309e51,
 checked by `download.py`). `pipeline/profile2006.py` reads it with pyivt (as for the
 NHS, under WSL) and writes Toronto's CSD row and 3,556 DAs to
-`pipeline/out/toronto_profile_2006.csv`: the characteristics in `measures.CHARS_2006`
+`pipeline/extracts/toronto_profile_2006.csv`: the characteristics in `measures.CHARS_2006`
 and the income groups in `measures.INCOME_GROUPS_2006`. Its Toronto population is the
 published 2,503,281, and DA sums of the 100% counts are within 0.04-0.7% of the city.
 `measures.COMPARABLE_2006` records how each map measure stands in 2006: 16 the same
@@ -115,7 +136,7 @@ that copy is corrupt as deposited (the first 386 MB of 395 MB are zeros; only th
 dictionaries and footnotes at the end survive) and no reader opens it.
 
 `pipeline/nhs2011.py` streams the table with `pyivt` and writes Toronto's rows
-(`pipeline/out/toronto_nhs_2011.csv`: the CD, the CSD and 3,665 DAs, the characteristics
+(`pipeline/extracts/toronto_nhs_2011.csv`: the CD, the CSD and 3,665 DAs, the characteristics
 in `measures.NHS_2011`); `census2011.py` joins them to the profile's DAs. pyivt 0.0.5
 on PyPI cannot read this older table (its `_Sort` and `_Decimals` member fields;
 `to_arrow()` stops with "referenced member text is not a byte vector" and

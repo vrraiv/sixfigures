@@ -1,4 +1,4 @@
-"""Toronto's rows of the 2006 Census DA profile: pipeline/out/toronto_profile_2006.csv.
+"""Toronto's rows of the 2006 Census DA profile: pipeline/extracts/toronto_profile_2006.csv.
 
     python pipeline/profile2006.py
 
@@ -32,7 +32,7 @@ from measures import CHARS_2006, INCOME_GROUPS_2006
 
 HERE = Path(__file__).parent
 IVT = HERE / "raw" / "94-581-XCB2006002.IVT"
-OUT = HERE / "out" / "toronto_profile_2006.csv"
+OUT = HERE / "extracts" / "toronto_profile_2006.csv"  # kept in the repository (extracts.py)
 TORONTO_CSD = "3520005"
 EXPECTED = (1, 2172, 57894)
 # A DA's label is "<DAUID> (<CSD code><4-digit DA number>)  <flags>"; the CSD's

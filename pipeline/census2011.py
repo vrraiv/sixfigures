@@ -11,7 +11,7 @@ matched by (Topic, Characteristic) with the indent stripped, Flag_total carries
 the suppression markers (x, F, ...), and Total is the count. It holds only the
 100% (short-form) data; the long form was the voluntary National Household
 Survey (NHS) that year, income year 2010, whose DA table (a Beyond 20/20 file)
-pipeline/nhs2011.py reads into pipeline/out/toronto_nhs_2011.csv: the rest of
+pipeline/nhs2011.py reads into pipeline/extracts/toronto_nhs_2011.csv: the rest of
 the main map's measures come from there. StatCan suppresses NHS figures where
 the global non-response rate (GNR) was 50% or more; those DAs are nulled here
 too. The city's NHS values are the Toronto CSD row, as published.
@@ -30,6 +30,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
+import extracts
 from build import assign_neighbourhoods
 from distributions import histogram
 from exports import PLACE, _ints
@@ -45,8 +46,8 @@ PROFILE_CSV = RAW / "98-316-XWE2011001-1501-ONT.csv"  # unzipped from 98-316-XWE
 BOUNDARY = f"zip://{(RAW / 'gda_000b11a_e.zip').as_posix()}!gda_000b11a_e.shp"
 CORR_ZIP = RAW / "2016_92-156_DALand_ADsup_csv.zip"
 CORR_CSV = "2016_92-156_DAland_ADsup.csv"
-EXTRACT = OUT / "toronto_profile_2011_long.csv"
-NHS_CSV = OUT / "toronto_nhs_2011.csv"  # nhs2011.py
+EXTRACT = extracts.path("toronto_profile_2011_long.csv")
+NHS_CSV = extracts.path("toronto_nhs_2011.csv")  # nhs2011.py
 
 TORONTO_CSD = "3520005"
 EXPECTED_DAS = 3685
@@ -63,12 +64,15 @@ GNR_FLAG = 3  # digit of the NHS data-quality flag that is 1 where GNR >= 50%
 
 
 def extract() -> pd.DataFrame:
-    if EXTRACT.exists() and EXTRACT.stat().st_mtime > PROFILE_CSV.stat().st_mtime:
+    """Toronto's rows of the profile: the extract kept in the repository (extracts.py) if it
+    holds every characteristic measures.py names, else streamed from the profile and kept."""
+    if EXTRACT.exists():
         long = pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
         if set(TARGETS) <= set(zip(long.TOPIC, long.NAME)):
-            print(f"using cached {EXTRACT.name}")
+            print(f"using {EXTRACT.name}")
             return long
         print(f"{EXTRACT.name} lacks some characteristics in measures.py")
+    extracts.need_raw(PROFILE_CSV, EXTRACT)
     print(f"streaming {PROFILE_CSV.name} (a minute or two) ...")
     kept, total = [], 0
     with open(PROFILE_CSV, "rb") as f:
@@ -82,7 +86,7 @@ def extract() -> pd.DataFrame:
     assert cols[:8] == ["Geo_Code", "Prov_name", "Geo_nom", "Topic", "Characteristic", "Note", "Total", "Flag_total"], cols
     rows = csv.reader(io.StringIO(b"".join(kept).decode("latin-1")))
     out = [(r[0], r[3], r[4].strip(), r[6], r[7]) for r in rows if (r[3], r[4].strip()) in TARGETS]
-    OUT.mkdir(exist_ok=True)
+    EXTRACT.parent.mkdir(exist_ok=True)
     pd.DataFrame(out, columns=["DAUID", "TOPIC", "NAME", "TOTAL", "FLAG"]).to_csv(EXTRACT, index=False)
     return pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
 
@@ -90,8 +94,11 @@ def extract() -> pd.DataFrame:
 def load_nhs(keep_counts: bool = False) -> tuple[pd.DataFrame, pd.Series]:
     """The NHS measures by DA (GNR >= 50% nulled) and the city's values (the CSD row)."""
     if not NHS_CSV.exists():
-        sys.exit(f"{NHS_CSV} is missing: run pipeline/nhs2011.py (see its docstring)")
+        sys.exit(f"{NHS_CSV} is missing: restore it (git checkout -- pipeline/extracts) or run pipeline/nhs2011.py (see its docstring)")
     nhs = pd.read_csv(NHS_CSV, dtype={"geo_code": str, "level": str, "dq": str})
+    lacks = [k for k in NHS_KEYS if k not in nhs]
+    if lacks:
+        sys.exit(f"{NHS_CSV.name} lacks {lacks}, which measures.py asks for: rerun pipeline/nhs2011.py (needs pyivt and the NHS table)")
     csd = nhs[nhs.geo_code == TORONTO_CSD]
     if len(csd) != 1:
         sys.exit(f"{NHS_CSV.name}: expected one row for CSD {TORONTO_CSD}")
@@ -111,8 +118,9 @@ def load_nhs(keep_counts: bool = False) -> tuple[pd.DataFrame, pd.Series]:
     return cleaned, city
 
 
-def load_2011(keep_counts: bool = False):
-    """Returns (gdf of 2011 Toronto DAs with values, city-wide values)."""
+def load_table(keep_counts: bool = False) -> tuple[pd.DataFrame, pd.Series]:
+    """The 2011 Census and NHS values by DAUID and the city-wide values, from the extracts
+    alone: what insights.py aggregates, with no boundary file."""
     long = extract()
     print("\n2011 matched characteristics (Topic: name):")
     found = set(zip(long.TOPIC, long.NAME))
@@ -137,8 +145,13 @@ def load_2011(keep_counts: bool = False):
     missing = wide.index.difference(nhs.index)
     print(f"NHS: {len(missing)} of the {len(wide):,} DAs are not in the NHS table (nulled)")
     wide = wide.join(nhs, how="left")
-    city = pd.concat([city, city_nhs])
+    wide.index.name = "DAUID"
+    return wide, pd.concat([city, city_nhs])
 
+
+def load_2011(keep_counts: bool = False):
+    """Returns (gdf of 2011 Toronto DAs with values, city-wide values)."""
+    wide, city = load_table(keep_counts)
     gdf = gpd.read_file(BOUNDARY, engine="pyogrio", where=f"CSDUID = '{TORONTO_CSD}'", columns=["DAUID", "CSDUID"])[["DAUID", "geometry"]]
     if set(gdf.DAUID) != set(wide.index):
         sys.exit("2011 boundary DAs and profile DAs differ")

@@ -30,23 +30,45 @@ weights (owner and renter household counts) are not in the repository.
 
 ### Steps
 
-1. Confirm the checkout has the fixes: `git log --oneline -3` shows `9fd38f2` or `100ee74`.
+The rebuild no longer needs the raw files, WSL or pyivt once one thing is done on the PC: commit
+Toronto's rows of the census profiles, which the scripts cache and which are now kept in
+`pipeline/extracts/` (see `pipeline/extracts.py` and "Rebuilding without the raw files" in
+`pipeline/README.md`).
+
+**On the PC that has `pipeline/out/` (once):**
+
+1. Pull the branch `claude/relaxed-feynman-4oddgk` (or `main`, once it is merged).
 2. If an earlier run left files changed, start clean: `git status`, then
    `git restore web/public pipeline` (this discards rebuilt outputs, which is the point).
-3. `make data`
-4. `make explorer neighbourhoods`
-5. Check the result (next section), name the neighbourhood kinds (section after), `make test`,
+3. `make extracts`. It copies the seven extracts from `pipeline/out/` to `pipeline/extracts/`,
+   loads each the way the rebuild will, and prints their sizes. If one is `MISSING`, the line
+   says which script writes it. If one is over 50 MB, stop and say so before committing
+   (the estimate is 35 MB for all seven together).
+4. `git add pipeline/extracts && git commit` and push.
+5. Save the pyivt fix beside them, so the two Beyond 20/20 extracts can be reproduced: in the
+   patched pyivt checkout, `git diff > <repo>/pipeline/patches/pyivt-members.patch`, and note at
+   the top of `pipeline/README.md`'s NHS section which pyivt version or commit it applies to.
+   The rebuild doesn't need it; it is there so the patch isn't only on one machine.
+
+**Then on any machine, including a cloud session:**
+
+6. `make deps`, then `make from-extracts` (it runs `insights.py`, `explorer_data.py` and
+   `affinity.py`, and downloads only the City's neighbourhood outlines).
+7. Check the result (next section), name the neighbourhood kinds (section after), `make test`,
    then commit and open a pull request. The live site changes only on merge.
+
+`make data` still works on the PC and is what rebuilds the DA figures, breaks and tiles; it is
+not needed for this step.
 
 ### What a correct rebuild looks like
 
 These are checks, not hopes. If one fails, stop and find out why before committing.
 
-- **Map data should not change at all.** `web/public/data/figures/**`, `breaks.json`,
-  `breaks_2011.json` and the three CSVs under `web/public/data/` were regenerated in the cloud
-  with the pipeline's own functions, after that path reproduced the committed files byte for
-  byte without the fix. `git status` after `make data` should show none of them modified. If
-  they are, suspect library versions (see "Known trouble").
+- **Map data should not change at all.** `make from-extracts` doesn't write
+  `web/public/data/figures/**`, `breaks.json`, `breaks_2011.json` or the CSVs. If you run
+  `make data` on the PC instead, they should still come out unmodified: they were regenerated in
+  the cloud with the pipeline's own functions, after that path reproduced the committed files
+  byte for byte without the fix. If they change, suspect library versions (see "Known trouble").
 - **In `insights.json`, only three measures should change:** `owner30`, `tenant30`,
   `subsidized`, in 2011, 2016 and 2021. `avg_hh_tot` and `transfers` were already corrected and
   should come out identical. This prints what moved:
@@ -114,9 +136,15 @@ disagrees with the Data Explorer on that one measure.
 
 ### Known trouble
 
-The owner's first attempt reported "a couple of warnings" and "a pyarrow issue"; the text was
-not captured. Start by getting both verbatim.
+The owner's first attempt, `make data` on a laptop, reported "a couple of warnings" and "a
+pyarrow issue"; the text was not captured.
 
+- **The likely cause of the pyarrow error, now removed.** The Makefile listed `measures.py` as a
+  prerequisite of the 2011 NHS extract, and PR #77 changed `measures.py`. So `make data` tried to
+  re-run `pipeline/nhs2011.py`, which imports only `pyivt` and `pyarrow` and needs the Beyond
+  20/20 table: none of which a laptop without the WSL setup has. The extract is now rebuilt only
+  when it is missing, and the scripts that read it check its contents instead. This is an
+  inference from the code, not from the error text; if the error persists, capture it.
 - The warnings may be `check_city()`'s (above), which are informational.
 - `pipeline/requirements.txt` has lower bounds only and no lock file. The cloud run used
   Python 3.13.18, pandas 3.1.1, numpy 2.5.4, geopandas 1.2.0, pyogrio 0.13.0, scipy 1.18.1,
