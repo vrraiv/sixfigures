@@ -12,9 +12,24 @@
 
 /
   Cache-Control: no-cache
-  Document-Policy: js-profiling
 
 /index.html
+  Cache-Control: no-cache
+
+/about/
+  Cache-Control: no-cache
+
+/about/index.html
+  Cache-Control: no-cache
+
+/brand-map.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/census/
+  Cache-Control: no-cache
+  Document-Policy: js-profiling
+
+/census/index.html
   Cache-Control: no-cache
   Document-Policy: js-profiling
 

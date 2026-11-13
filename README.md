@@ -42,22 +42,32 @@ errors within, are those of the author and the author alone.
 
 ## Details
 
-The landing page is an interactive choropleth of income, low income and housing across
-the City of Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and the
-change between them. Hover for values, click for detail, or search for a Toronto address
-or intersection to jump to its DA. Around it are pages on schools, housing, sale prices,
-safety and trees by neighbourhood, two explorers that work across all of them, and
-forecasts.
+The landing page, `/`, says what the site is and how to get around it: an address box
+that opens the census map at that address, a small map of the neighbourhoods by 2021
+household income (each one a link to the census map there), three ways in, and a card
+for every link in the header with a line on what it is for. `/about/` goes further: how
+to read the maps, where each topic's data comes from, and what to keep in mind.
 
-Every page carries the same header: the site's name, and two rows of links. **Data** has
-the pages about one topic (Census, Schools, Housing, Sale prices, Safety, Trees);
-**Insights** the pages that work across topics (Data Explorer, Neighbourhood Explorer,
-Forecasts). A section with pages of its own shows them in a third row: Census has the
-2021 · 2016 map, the 2011 map and Census Insights; Forecasts has Method, Schools and
-Dwelling value. On phones the two rows fold behind a Menu button. The header is defined
-once, in `scripts/site-nav.mjs`, and written into each page at build time
-(`vite.config.js`); a page holds only a `<!-- site-header -->` comment, and a new page is
-added to the header there (`npm test` checks every built page is in it).
+The census map, `/census/`, is an interactive choropleth of income, low income and housing
+across the City of Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and
+the change between them. Hover for values, click for detail, or search for a Toronto
+address or intersection to jump to its DA. Around it are pages on schools, housing, sale
+prices, safety and trees by neighbourhood, two explorers that work across all of them,
+and forecasts. (The map was at `/` until the landing page took that address; the landing
+page sends old map links, such as `/#m=rent&y=2021`, on to `/census/`.)
+
+Every page carries the same header: a small map of the city and the site's name, two rows
+of links, and Home and About. **Topics** has the pages about one subject (Census, Schools,
+Housing, Sale prices, Safety, Trees); **Tools** the pages that work across subjects (Data
+Explorer, Neighbourhood Explorer, Forecasts). A section with pages of its own shows them
+in a third row: Census has the 2021 · 2016 map, the 2011 map and Census Insights;
+Forecasts has Method, Schools and Dwelling value. On phones the links fold behind a Menu
+button. The header is defined once, in `scripts/site-nav.mjs`, and written into each page
+at build time (`vite.config.js`); a page holds only a `<!-- site-header -->` comment, and
+a new page is added to the header there (`npm test` checks every built page is in it).
+The landing page's cards are written from the same list, so a link added to a row needs a
+`blurb` there. The header's map and the landing page's are drawn at build time from
+`insights.json` (`scripts/city-map.mjs`).
 
 A second page, `/2011/`, shows 2011 on its own DA boundaries (3,685 DAs), coloured on
 the same classes as the main map, with the main map's measures: dwelling types and ages
@@ -187,7 +197,7 @@ People, New building, Safety, Schools, Trees and heat, Voting):
 
 On the Neighbourhood Explorer, Safety, Trees and the Data Explorer, a small box finds the
 neighbourhood an address or intersection is in (`web/src/addressfinder.js`), for readers
-who don't know the City's names. It reuses the landing map's address lookup and the 2021
+who don't know the City's names. It reuses the census map's address lookup and the 2021
 figures file's DA neighbourhoods, both loaded only when the box is first used; a DA that
 straddles a boundary (13 of them) is reported as mostly in one and partly in the other,
 and picking a name in the answer picks that neighbourhood on the page.
@@ -297,7 +307,7 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
   load, at rest and then repainting, and takes medium when a repainted frame runs over
   30 ms past the display's interval, low over 90 ms. A chosen level is kept, a measured one
   for a week; the line beside the buttons says which is on and why.
-- **Diagnostics.** Adding `diag` to the hash (`/#diag`) overlays the graphics driver, load
+- **Diagnostics.** Adding `diag` to the hash (`/census/#diag`) overlays the graphics driver, load
   timings, frame and input times, long tasks and the raw mouse-wheel events, for reporting
   problems from a machine without developer tools. Pressing `p` samples the main thread
   for 20 s and lists where the time went (the `Document-Policy: js-profiling` header in
@@ -437,7 +447,7 @@ so a data rebuild still reaches visitors.
 
 ### Data downloads
 
-The footer links to two CSVs (one row per DA, built by `pipeline/exports.py`; values
+The census map's footer links to two CSVs (one row per DA, built by `pipeline/exports.py`; values
 match the popups, dollars rounded to whole dollars, rates to one decimal):
 
 - `/data/toronto_da_income_2021.csv`: 3,743 DAs on 2021 boundaries.

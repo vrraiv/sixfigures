@@ -67,5 +67,7 @@ Thumbs.db
 desktop.ini
 # Unpacked from the .pmtiles at build time (scripts/extract-tiles.mjs)
 web/public/tiles/
+# Drawn from insights.json at build time (scripts/city-map.mjs)
+web/public/brand-map.svg
 # the live forecasts pipeline/forecast/ freezes before their outcomes are known
 !pipeline/model/*.csv

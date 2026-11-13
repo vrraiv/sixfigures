@@ -3,168 +3,96 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Toronto Income and Housing</title>
-    <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
+    <title>Six Figures: Toronto, mapped by its data</title>
+    <script>
+      // The census map lived at this address until it moved to /census/: send its links on.
+      // A map link's hash holds settings (#m=rent&at=...), or is #diag; this page's own are plain names.
+      if (/=|^#diag$/.test(location.hash)) location.replace("/census/" + location.hash);
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="Income, low income, housing costs, dwellings and population by census dissemination area, City of Toronto: 2016 and 2021 censuses and the change between them." />
+    <meta name="description" content="Open data about the City of Toronto and its 158 neighbourhoods, gathered onto one map: the census, schools, housing, sale prices, safety, trees and heat. Start here for what the site holds and how to get around it." />
   </head>
-  <body class="with-nav">
+  <body class="with-nav doc">
     <!-- site-header -->
-    <header class="bar">
-      <h1>Toronto income and housing <span class="sub">by dissemination area, 2016 and 2021 censuses</span></h1>
-      <form id="search" class="search" role="search" autocomplete="off">
-        <label for="q" class="visually-hidden">Find a Toronto address, intersection or DA</label>
-        <input id="q" type="search" placeholder="Address or intersection, e.g. 100 Queen St W"
-               role="combobox" aria-autocomplete="list" aria-controls="suggest" aria-expanded="false"
-               aria-describedby="search-status" enterkeyhint="search" spellcheck="false" />
-        <button type="submit">Find</button>
-        <ul id="suggest" class="suggest" role="listbox" aria-label="Matching official addresses" hidden></ul>
-        <div id="search-status" class="search-status" aria-live="polite" hidden></div>
-      </form>
-      <label class="measure">
-        <span class="visually-hidden">Measure</span>
-        <select id="measure">
-          <optgroup label="Income">
-            <option value="med_hh_tot">Median household income</option>
-            <option value="med_hh_at">Median household income, after tax</option>
-            <option value="med_ind_tot">Median individual income</option>
-            <option value="med_ind_at">Median individual income, after tax</option>
-            <option value="avg_hh_tot">Average household income</option>
-          </optgroup>
-          <optgroup label="Low income and transfers">
-            <option value="lim_at">People in low income (LIM-AT)</option>
-            <option value="transfers">Share of income from government transfers</option>
-          </optgroup>
-          <optgroup label="Housing">
-            <option value="renter">Renter households</option>
-            <option value="shelter30">Households spending 30%+ of income on shelter</option>
-            <option value="owner30">Owners spending 30%+ of income on shelter</option>
-            <option value="tenant30">Tenants spending 30%+ of income on shelter</option>
-            <option value="subsidized">Tenants in subsidized housing</option>
-          </optgroup>
-          <optgroup label="Housing costs and values">
-            <option value="value">Median value of owned dwellings</option>
-            <option value="own_cost">Median monthly shelter costs of owners</option>
-            <option value="rent">Median monthly shelter costs of renters</option>
-          </optgroup>
-          <optgroup label="Dwellings">
-            <option value="detached">Single-detached houses</option>
-            <option value="apt5">Apartments in buildings of 5+ storeys</option>
-            <option value="condo">Condominium dwellings</option>
-            <option value="built_new">Dwellings built in the past 5 years</option>
-            <option value="built_old">Dwellings built in 1960 or before</option>
-            <option value="crowded">Households in housing not suitable for their size</option>
-          </optgroup>
-          <optgroup label="People">
-            <option value="degree">Bachelor's degree or higher (aged 25–64)</option>
-            <option value="moved1">Moved in the past year</option>
-            <option value="moved5">Moved in the past 5 years</option>
-            <option value="imm_recent">Recent immigrants (past 5 years)</option>
-            <option value="age0_14">Children aged 0–14</option>
-            <option value="age65">People aged 65 and over</option>
-          </optgroup>
-        </select>
-      </label>
-      <div class="viewctl">
-      <fieldset class="years">
-        <legend class="visually-hidden">Census</legend>
-        <label><input type="radio" name="year" value="2016" /> 2016</label>
-        <label><input type="radio" name="year" value="2021" checked /> 2021</label>
-        <label><input type="radio" name="year" value="change" /> Change</label>
-      </fieldset>
-      <label class="measure changeby">
-        <span class="visually-hidden">Show change as</span>
-        <!-- options set by main.js: dollars for money measures, percentage points for rates -->
-        <select id="changeby" hidden>
-          <option value="real">Change in 2020 dollars (inflation-adjusted)</option>
-          <option value="dollars">Change in nominal dollars</option>
-          <option value="points">Change in percentile rank</option>
-        </select>
-      </label>
-      </div>
-    </header>
 
-    <main class="map-wrap">
-      <div id="map" aria-label="Map of median income by dissemination area"></div>
-      <script>
-        // Starts the opening view's figures and DA tiles downloading now, ahead of
-        // the app script and the basemap style (vite.config.js fills in the tile
-        // source and the figures version). The tiles: works out the zoom fitBounds
-        // will pick and the tiles that cover the data.
-        (function (t, fv) {
-          var link = function (href) {
-            var l = document.createElement("link");
-            l.rel = "preload"; l.as = "fetch"; l.crossOrigin = "anonymous"; l.href = href;
-            document.head.appendChild(l);
-          };
-          var h = location.hash, m = /[#&]m=([a-z0-9_]+)/.exec(h), y = /[#&]y=2016(&|$)/.test(h) ? "2016" : "2021";
-          link("/data/figures/" + y + "/common.json?v=" + fv);
-          link("/data/figures/" + y + "/" + (m ? m[1] : "med_hh_tot") + ".json?v=" + fv);
-          var el = document.getElementById("map");
-          if (!t || !el || !el.clientWidth || !el.clientHeight || /[#&]at=/.test(h)) return;
-          var b = t.bounds, p = 24, n;
-          var my = function (lat) { return (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / 360; };
-          var z = Math.floor(Math.log2(Math.min((el.clientWidth - 2 * p) / (((b[2] - b[0]) / 360) * 512), (el.clientHeight - 2 * p) / ((my(b[1]) - my(b[3])) * 512))));
-          z = Math.max(t.minzoom, Math.min(t.maxzoom, z));
-          n = Math.pow(2, z);
-          var tx = function (lon) { return Math.floor(((lon + 180) / 360) * n); };
-          var ty = function (lat) { return Math.floor(my(lat) * n); };
-          for (var x = tx(b[0]); x <= tx(b[2]); x++) {
-            for (var y = ty(b[3]); y <= ty(b[1]); y++) {
-              link("/" + t.tiles.replace("{z}", z).replace("{x}", x).replace("{y}", y));
-            }
-          }
-        })(__DA_TILES__, __FIGURES_VERSION__);
-      </script>
-      <div class="crosshair" aria-hidden="true"></div>
-      <div id="pinchip" class="pinchip" hidden></div>
-      <p id="map-live" class="visually-hidden" aria-live="polite"></p>
-
-      <details id="legend" class="legend" open>
-        <summary>Legend</summary>
-        <div class="legend-body">
-          <p id="legend-title" class="legend-title"></p>
-          <ol id="legend-items" class="legend-items" aria-label="Classes: hover to preview, click to show only that class"></ol>
-          <p id="legend-filter" class="legend-filter" hidden>Showing one class only. <button type="button" id="legend-all">Show all</button></p>
-          <p id="legend-city" class="legend-city"></p>
-          <p id="legend-note" class="legend-note"></p>
-          <fieldset id="overlays" class="overlays" hidden>
-            <legend>Boundaries</legend>
-            <div id="overlay-opts" class="overlay-opts"></div>
-          </fieldset>
+    <main class="home">
+      <section class="home-hero" aria-labelledby="home-h">
+        <div class="home-intro">
+          <h1 id="home-h">Toronto, mapped by its data</h1>
+          <p class="home-lede">Six Figures gathers the open data published about the City of Toronto: the census, school
+            results, home sales, construction and rents, crime and road safety, trees and summer heat. It puts all of
+            it on the same map of the city's 158 neighbourhoods, so that anything can be looked up, ranked and
+            compared with anything else.</p>
+          <form id="home-find" class="home-find" role="search" action="/census/" method="get" autocomplete="off">
+            <label for="home-q">Start with an address</label>
+            <div class="home-find-row">
+              <input id="home-q" name="find" type="search" placeholder="e.g. 100 Queen St W, or Yonge &amp; Bloor" enterkeyhint="search" spellcheck="false" required />
+              <button type="submit">Show it on the map</button>
+            </div>
+            <p class="home-find-note">Opens the census map at that address, with the income and housing figures for its few blocks.</p>
+          </form>
+          <p class="home-go"><a class="home-btn" href="/census/">Open the census map</a> <a href="#guide">See everything on the site</a> <a href="/about/">About the site</a></p>
         </div>
-      </details>
+        <figure class="home-figure">
+          <!-- city-map -->
+          <figcaption>
+            <span class="home-cap">Median household income by neighbourhood, 2021 Census. Select a neighbourhood to open it on the census map.</span>
+            <!-- city-map-key -->
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="home-ways" aria-labelledby="ways-h">
+        <h2 id="ways-h">Three ways in</h2>
+        <ol class="home-steps">
+          <li><h3>Start with a place</h3>
+            <p>Type an address above to see its own few blocks on the <a href="/census/">census map</a>. To see a whole
+              neighbourhood against the rest of the city, open the
+              <a href="/insights/neighbourhoods/">Neighbourhood Explorer</a>; if you don't know the City's name for
+              yours, its address box will find it.</p></li>
+          <li><h3>Start with a subject</h3>
+            <p>Each of the <a href="#guide-topics">Topics</a> is one page about one subject, such as
+              <a href="/insights/schools/">schools</a> or <a href="/insights/safety/">safety</a>: the city's figures
+              first, then maps, rankings and trends for the neighbourhoods.</p></li>
+          <li><h3>Start with a question</h3>
+            <p>Do higher incomes go with better school results? Which areas have the least shade? The
+              <a href="/insights/explorer/">Data Explorer</a> sets any two or three measures side by side, from
+              anywhere on the site.</p></li>
+        </ol>
+      </section>
+
+      <div id="guide" class="home-guide">
+        <p class="home-guide-note">The menu at the top of every page has the same links as the cards below, under the same names.</p>
+      <!-- site-guide -->
+      </div>
+
+      <section class="home-tips" aria-labelledby="tips-h">
+        <h2 id="tips-h">Good to know</h2>
+        <ul>
+          <li><b>Two sizes of area.</b> Most pages show the City's 158 neighbourhoods. The census maps go finer, to
+            dissemination areas: the census's smallest areas, a few blocks and a few hundred people each.</li>
+          <li><b>Everything responds.</b> Point at (or tap) a map or chart to read its figures, and select an area for
+            more about it. Menus above a map or chart change what it shows.</li>
+          <li><b>Darker means more.</b> Maps shade from light to dark as the number rises. Grey means there is no
+            figure for that area.</li>
+          <li><b>Sources are at the foot of each page</b>, and the <a href="/about/">About page</a> lists them all, with
+            what to keep in mind when reading them.</li>
+        </ul>
+      </section>
     </main>
 
-    <section id="sheet" class="sheet" hidden aria-live="polite">
-      <button id="sheet-close" class="sheet-close" aria-label="Close details">×</button>
-      <div id="sheet-body"></div>
-    </section>
-
     <footer class="foot">
-      <p class="downloads">Download the data:
-        <a href="/data/toronto_da_income_2021.csv" download>2021 DAs, with 2016 figures and change (CSV)</a> ·
-        <a href="/data/toronto_da_income_2016.csv" download>2016 DAs (CSV)</a> ·
-        <a href="https://github.com/vrraiv/sixfigures#data-downloads">column guide</a></p>
-      Statistics Canada, Census Profile, 2021 Census of Population (98-316-X2021001) and 2016 Census of Population
-      (98-316-X2016001); income reference years 2020 and 2015; 2021 dissemination area correspondence file (92-156-X).
+      <p>Six Figures is an independent project, not affiliated with the City of Toronto or any of the organizations
+        whose data it uses, and nothing on it is advice. <a href="/about/">About the site and its sources</a></p>
       Contains information licensed under the
-      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
-      Neighbourhoods, wards, address points and intersections: City of Toronto Open Data; contains information licensed under the
-      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
-      Basemap © <a href="https://openfreemap.org">OpenFreeMap</a>, © <a href="https://www.openmaptiles.org/">OpenMapTiles</a>,
-      data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a> (Statistics Canada,
+      2021 Census of Population) and the
+      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a> (City of Toronto Open Data, neighbourhood boundaries).
       <a href="https://github.com/vrraiv/sixfigures">Source</a>
-      <p class="detail" id="detail">Map detail:
-        <button type="button" value="auto" aria-pressed="true">auto</button> ·
-        <button type="button" value="full" aria-pressed="false">full</button> ·
-        <button type="button" value="medium" aria-pressed="false">medium</button> ·
-        <button type="button" value="low" aria-pressed="false">low</button>
-        <span class="detail-note" id="detail-note" role="status"></span></p>
     </footer>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/home.js"></script>
   </body>
 </html>

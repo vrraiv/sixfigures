@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About Six Figures</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="What Six Figures is, how to find your way around it, how to read its maps, where its data about Toronto comes from, and what to keep in mind when using it." />
+  </head>
+  <body class="with-nav doc">
+    <!-- site-header -->
+    <header class="bar">
+      <h1>About <span class="sub">What the site is, how to use it, and where its data comes from</span></h1>
+    </header>
+
+    <main class="about">
+      <nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span>
+        <a href="#what">What it is</a><a href="#around">Getting around</a><a href="#reading">Reading the maps</a><a href="#sources">Where the data comes from</a><a href="#mind">Keep in mind</a><a href="#open">Downloads and code</a>
+      </nav>
+
+      <section id="what" aria-labelledby="what-h">
+        <h2 id="what-h">What it is</h2>
+        <p>Six Figures brings together open data about the City of Toronto and its 158 neighbourhoods, and sets it
+          side by side so it can be compared.</p>
+        <p>A great deal is published about Toronto: the census every five years, school test results, home sale
+          prices, new construction and rents, crime and road safety, the tree canopy and summer heat, elections. But
+          it comes from many different organizations, in different formats, on different maps and at different times.
+          That makes simple questions hard to answer. How do a neighbourhood's incomes compare with its school
+          results? Which parts of the city have the least tree cover and the hottest summer ground? How has a place
+          changed over fifteen years, and which other neighbourhoods is it most like?</p>
+        <p>This site does the gathering. Every source is placed on the same neighbourhood boundaries (and, for the
+          census, on small areas of a few hundred people each), so any measure can be mapped, ranked and set against
+          any other.</p>
+      </section>
+
+      <section id="around" aria-labelledby="around-h">
+        <h2 id="around-h">Getting around</h2>
+        <p>Every page has the same menu at the top. It has two rows, and the <a href="/#guide">home page</a> describes
+          each link in them.</p>
+        <dl class="about-list">
+          <dt>Topics</dt>
+          <dd>One page per subject: <a href="/census/">Census</a>, <a href="/insights/schools/">Schools</a>,
+            <a href="/insights/housing/">Housing</a>, <a href="/insights/prices/">Sale prices</a>,
+            <a href="/insights/safety/">Safety</a> and <a href="/insights/trees/">Trees</a>. Each starts with the
+            city's figures and goes on to maps, rankings and trends for the neighbourhoods.</dd>
+          <dt>Tools</dt>
+          <dd>Pages that work across subjects. The <a href="/insights/explorer/">Data Explorer</a> compares up to
+            three measures of your choosing. The <a href="/insights/neighbourhoods/">Neighbourhood Explorer</a>
+            starts from one neighbourhood and finds the ones most and least like it. The
+            <a href="/forecasts/">Forecasts</a> are an experiment in predicting school results and home values.</dd>
+          <dt>A third row</dt>
+          <dd>Census and Forecasts have more than one page, so a third row appears under the menu while you are in
+            them. Census has the map of 2021 and 2016, the map of 2011, and Insights, which ranks and compares the
+            neighbourhoods across four censuses.</dd>
+          <dt>Finding a place</dt>
+          <dd>The census maps have an address search: type a street address or an intersection to go to it. Several
+            other pages have a box that tells you which neighbourhood an address is in, for when you don't know the
+            City's name for yours.</dd>
+          <dt>Sharing what you see</dt>
+          <dd>On the census maps the page's address changes as you move around and choose measures, so copying it
+            from the browser shares the view you are looking at.</dd>
+        </dl>
+      </section>
+
+      <section id="reading" aria-labelledby="reading-h">
+        <h2 id="reading-h">Reading the maps</h2>
+        <dl class="about-list">
+          <dt>Neighbourhoods</dt>
+          <dd>Most pages use the City of Toronto's 158 neighbourhoods, the areas the City itself uses for planning
+            and reporting. They are often larger than what people call their own neighbourhood: about 18,000 people each,
+            on average.</dd>
+          <dt>Dissemination areas</dt>
+          <dd>The census maps go finer, to dissemination areas (DAs): the smallest areas the census publishes most
+            figures for, each a few blocks with a few hundred people. Toronto has about 3,700 of them.</dd>
+          <dt>Colour</dt>
+          <dd>Areas are sorted into classes and shaded light to dark as the number rises; the legend gives each
+            class's range. Maps of change use two colours: red where a figure fell and blue where it rose. Grey, or
+            grey hatching, means there is no figure: Statistics Canada withholds figures for areas with very few
+            people.</dd>
+          <dt>Medians</dt>
+          <dd>Most dollar figures are medians: the middle value, with half of households above and half below. A
+            median is not moved by a few very high or very low values the way an average is.</dd>
+          <dt>Dollars over time</dt>
+          <dd>When incomes, rents or home values are compared between censuses, the default is to adjust for
+            inflation, so a rise means a rise beyond prices in general.</dd>
+        </dl>
+      </section>
+
+      <section id="sources" aria-labelledby="sources-h">
+        <h2 id="sources-h">Where the data comes from</h2>
+        <p>Everything comes from public sources. Each page credits its own at the foot, and the
+          <a href="https://github.com/vrraiv/sixfigures/blob/main/docs/data-catalogue.md">data catalogue</a> lists
+          every dataset, how current the site's copy is, and how often its publisher updates it.</p>
+        <dl class="about-list">
+          <dt>Census</dt>
+          <dd>Statistics Canada: the 2006, 2011, 2016 and 2021 censuses, and the 2011 National Household Survey.</dd>
+          <dt>Schools</dt>
+          <dd>Ontario Ministry of Education: Grade 3 and 6 EQAO results and enrolment for each school.</dd>
+          <dt>Housing</dt>
+          <dd>City of Toronto Open Data (building permits, development applications, apartment buildings, rental
+            demolitions, the affordable rental pipeline) and Canada Mortgage and Housing Corporation (housing starts
+            and the Rental Market Survey).</dd>
+          <dt>Sale prices</dt>
+          <dd>Toronto Regional Real Estate Board's quarterly community reports.</dd>
+          <dt>Safety</dt>
+          <dd>Toronto Police Service: crime, shootings, homicides, and collisions in which someone was killed or
+            seriously injured.</dd>
+          <dt>Trees and heat</dt>
+          <dd>City of Toronto street tree data and its 2018 Tree Canopy Study; summer surface temperature from the
+            U.S. Geological Survey's Landsat satellites.</dd>
+          <dt>Also in the explorers</dt>
+          <dd>City of Toronto election results, and short-term rental listings from Inside Airbnb.</dd>
+          <dt>Places</dt>
+          <dd>City of Toronto Open Data: neighbourhood and ward boundaries, addresses and intersections. The street
+            map under the census maps is from OpenFreeMap and OpenStreetMap contributors.</dd>
+        </dl>
+        <p>The site is refreshed as new data is released.</p>
+      </section>
+
+      <section id="mind" aria-labelledby="mind-h">
+        <h2 id="mind-h">Keep in mind</h2>
+        <ul>
+          <li><b>A figure describes a place, not the people in it.</b> Residents move in and out between censuses,
+            new towers especially, so a change over time is a change in the place.</li>
+          <li><b>Things that go together need not cause each other.</b> Many pages show how one measure lines up with
+            another across neighbourhoods. That is a pattern to look into, not an explanation.</li>
+          <li><b>Small areas are noisy.</b> Census figures for a few hundred people are estimates from a sample, with
+            counts randomly rounded, so small differences between neighbouring areas may mean nothing.</li>
+          <li><b>The 2021 Census was taken in the pandemic.</b> Its incomes are for 2020, when emergency benefits
+            raised low incomes and lowered the low-income rate.</li>
+          <li><b>Large areas look more important than they are.</b> Industrial land, parks and the airport take up
+            more of a map than the number of people living there warrants.</li>
+          <li><b>The forecasts are an experiment.</b> They publish their ranges and how they have done so far, and
+            should be read with both.</li>
+        </ul>
+        <p>Six Figures is an independent project. It is not affiliated with the City of Toronto or any of the
+          organizations whose data it uses, and nothing on it is advice.</p>
+      </section>
+
+      <section id="open" aria-labelledby="open-h">
+        <h2 id="open-h">Downloads and code</h2>
+        <p>The census figures for every dissemination area can be downloaded as spreadsheets (CSV):
+          <a href="/data/toronto_da_income_2021.csv" download>2021, with 2016 figures and the change</a>,
+          <a href="/data/toronto_da_income_2016.csv" download>2016</a> and
+          <a href="/data/toronto_da_income_2011.csv" download>2011</a>, with a
+          <a href="https://github.com/vrraiv/sixfigures#data-downloads">guide to their columns</a>.</p>
+        <p>The code that produces every figure on the site, and the site itself, is
+          <a href="https://github.com/vrraiv/sixfigures">on GitHub</a>, so anyone can check the work or build on it.
+          Corrections and suggestions are welcome there, or through the links at the foot of this page.</p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      Contains information licensed under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>, the
+      <a href="https://www.ontario.ca/page/open-government-licence-ontario">Open Government Licence - Ontario</a> and the
+      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>.
+      Landsat data courtesy of the U.S. Geological Survey. Inside Airbnb (insideairbnb.com), CC BY 4.0.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/home.js"></script>
+  </body>
+</html>
