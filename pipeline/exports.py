@@ -30,7 +30,8 @@ def write_csvs(gdf: pd.DataFrame, g16: pd.DataFrame, out: Path = WEB_DATA):
     """
     out.mkdir(parents=True, exist_ok=True)
     d21 = gdf[PLACE + ["pop21", "hh"]].copy()
-    d21["same_boundary_2016"] = gdf["rel"].astype(int)
+    # rel is the correspondence flag (1 same DA, 3 and 4 redrawn); the column is 1 or 0
+    d21["same_boundary_2016"] = (gdf["rel"] == 1).astype(int)
     # Columns are suffixed with the year the figure refers to (measures.years);
     # rates keep one decimal and their change is in percentage points.
     for m, spec in MEASURES.items():

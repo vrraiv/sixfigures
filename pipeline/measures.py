@@ -373,19 +373,23 @@ def derive_shares(wide: pd.DataFrame, shares: dict = SHARES, keep_counts: bool =
     return out if keep_counts else out.drop(columns=[c for c in out.columns if c.startswith("n_")])
 
 
-# Where too few owner or tenant households answered, the 2016 profile publishes a
-# median of 0 where 2021 has a suppression marker: a dwelling value, owner cost or
-# rent of $0 is not a value. Percentages for the same households are kept as
-# published; 2021 also publishes 0% for many of them.
-UNPUBLISHED_ZERO_2016 = ["value", "own_cost", "rent"]
+# Where too few households answered, the 2016 profile and the 2011 NHS publish 0 where
+# 2021 has a suppression marker: a median dwelling value, owner cost or rent of $0, or
+# an average household income of $0 beside a median in the tens of thousands, is not a
+# value. No dollar figure here can be $0, so every one is treated alike. Percentages for
+# the same households are kept as published at DA level (2021 also publishes 0% for many
+# of them); insights.py leaves those placeholders out of the neighbourhood figures.
+UNPUBLISHED_ZERO = MONEY
 
 
-def null_unpublished_2016(wide: pd.DataFrame) -> pd.DataFrame:
-    """Null the 2016 medians published as $0 (see above), and the published
-    percentages above 100."""
+def null_unpublished(wide: pd.DataFrame, shares: dict = SHARES) -> pd.DataFrame:
+    """Null the dollar figures published as $0 (see above), and the published
+    percentages above 100. `shares` are the percentages computed here from counts
+    (derive_shares caps those at 100), which are left alone."""
     out = wide.copy()
-    out[UNPUBLISHED_ZERO_2016] = out[UNPUBLISHED_ZERO_2016].where(out[UNPUBLISHED_ZERO_2016] != 0)
-    pct = [m for m in out if m in MEASURES and MEASURES[m]["unit"] == "rate" and m not in SHARES]
+    money = [m for m in UNPUBLISHED_ZERO if m in out]
+    out[money] = out[money].where(out[money] != 0)
+    pct = [m for m in out if m in MEASURES and MEASURES[m]["unit"] == "rate" and m not in shares]
     out[pct] = out[pct].where(~(out[pct] > 100))
     return out
 
