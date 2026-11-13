@@ -48,6 +48,8 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      TZ: America/Toronto  # date the files as Toronto does, not by the runner's UTC clock
     steps:
       - uses: actions/checkout@v4
 
