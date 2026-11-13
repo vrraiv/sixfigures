@@ -3,9 +3,9 @@
 // with the outlines and 2021 Census figures from insights.json. No map tiles.
 import "./style.css";
 import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
-import { chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
+import { cellStyle, chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
-import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, fitLine, incomeFifths, inkOn, rangeLabels, rankOrder, scatter } from "./nbtools.js";
+import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   fetch(`/trees.json?v=${__TREES_VERSION__}`).then((r) => r.json()),
@@ -239,7 +239,7 @@ function renderIncome() {
     const lo = Math.min(...rs), hi = Math.max(...rs), ramp = def.ramp;
     const cells = rs.map((r, q) => {
       const c5 = Math.min(5, Math.floor((hi > lo ? (r - lo) / (hi - lo) : 0) * 6));
-      return `<td style="background:${ramp[c5]};color:${inkOn(ramp[c5])}" data-tip="${escapeHTML(`${def.short}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${def.fmt(r)}</b><br>${def.poolNote}`)}">${def.fmt(r)}</td>`;
+      return `<td style="${cellStyle(ramp[c5])}" data-tip="${escapeHTML(`${def.short}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${def.fmt(r)}</b><br>${def.poolNote}`)}">${def.fmt(r)}</td>`;
     }).join("");
     const gap = rs[4] - rs[0];
     return `<tr${k === state.m ? ' class="sel"' : ""}><th>${escapeHTML(def.short)}</th>${cells}<td>${def.fmt(city)}</td><td><b>${def.gap === "x" ? `${(rs[4] / rs[0]).toFixed(2)}×` : def.gap === "d" ? `${sign(+gap.toFixed(2))}${Math.abs(gap).toFixed(2)}` : `${sign(+gap.toFixed(1))}${Math.abs(gap).toFixed(1)}${def.gap === "C" ? "°C" : " pts"}`}</b></td></tr>`;

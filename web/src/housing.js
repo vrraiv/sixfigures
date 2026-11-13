@@ -5,7 +5,7 @@
 // Charts are inline SVG and HTML, as on the other Insights pages.
 import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign } from "./catalogue.js";
-import { chart, fmtR, initPick, initTip, key, pearson, quantile, rColor, seg, spark, spearman } from "./charts.js";
+import { cellStyle, chart, fmtR, initPick, initTip, key, pearson, quantile, rColor, seg, spark, spearman } from "./charts.js";
 
 const [D, census] = await Promise.all([
   fetch(`/housing.json?v=${__HOUSING_VERSION__}`).then((r) => r.json()),
@@ -373,7 +373,7 @@ function renderZones() {
   const cell = (v, tip) => {
     if (v == null) return `<td class="none" data-tip="${escapeHTML(`${tip}: suppressed`)}">—</td>`;
     const c = cuts.filter((e) => v >= e).length;
-    return `<td style="background:${COLORS[c]};color:${c >= 3 ? "#fff" : INK}" data-tip="${escapeHTML(`${tip}: <b>${k === "avg_rent" ? fmtMoney(v) : fmtPct1(v)}</b>`)}">${f(v)}</td>`;
+    return `<td style="${cellStyle(COLORS[c])}" data-tip="${escapeHTML(`${tip}: <b>${k === "avg_rent" ? fmtMoney(v) : fmtPct1(v)}</b>`)}">${f(v)}</td>`;
   };
   const rows = Z.map((z) => `<tr><th>${escapeHTML(z.name)}</th>${years.map((y) => cell(z[k][z.year.indexOf(y)] ?? null, `${z.name}, ${y}`)).join("")}</tr>`).join("");
   const cityRow = `<tr class="sel"><th>City of Toronto</th>${years.map((y) => {

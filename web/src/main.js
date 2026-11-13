@@ -224,6 +224,8 @@ function legendModel() {
 function renderLegend() {
   const lg = legendModel();
   $("legend-title").textContent = lg.title;
+  // the map's name says what it shows now, not what it opened on
+  map.getCanvas().setAttribute("aria-label", `Map of ${lg.title}, by dissemination area. ${MAP_KEYS}`);
   const swatch = (it) => `<span class="swatch${it.pattern ? ` ${it.pattern}` : ""}"${it.color ? ` style="background:${it.color}"` : ""}></span>`;
   // Colour classes are buttons: hover or focus previews a class, click keeps it.
   let cls = 0;
@@ -522,6 +524,7 @@ tooltip.className = "tooltip";
 tooltip.hidden = true;
 document.body.append(tooltip);
 
+const MAP_KEYS = "Arrow keys pan, plus and minus zoom, Enter opens the area at the centre, Escape closes it.";
 let hover = null; // { source, id }
 let current = null; // { source, dauid, lngLat, note } of the shown DA
 let detailsToken = 0; // bumped by each showDetails and by closeDetails: a stale load drops its result
@@ -896,8 +899,7 @@ $("sheet-close").addEventListener("click", closeDetails);
 // announced after each move, Enter or Space opens it and Escape closes it.
 
 const canvas = map.getCanvas();
-canvas.setAttribute("aria-label",
-  "Map of median income by dissemination area. Arrow keys pan, plus and minus zoom, Enter opens the area at the centre, Escape closes it.");
+if (!canvas.hasAttribute("aria-label")) canvas.setAttribute("aria-label", `Map of income and housing by dissemination area. ${MAP_KEYS}`);
 const live = $("map-live");
 
 function centreDA() {
@@ -1123,7 +1125,7 @@ function showSuggest() {
   const list = index.suggest(input.value);
   if (!list.length) return hideSuggest();
   suggestBox.innerHTML = list.map((s, i) =>
-    `<li role="option" id="sg-${i}" data-text="${escapeHTML(s.text)}">${escapeHTML(s.label)} <span>${escapeHTML(s.detail ?? "")}</span></li>`).join("");
+    `<li role="option" id="sg-${i}" aria-selected="false" data-text="${escapeHTML(s.text)}">${escapeHTML(s.label)} <span>${escapeHTML(s.detail ?? "")}</span></li>`).join("");
   suggestBox.hidden = false;
   input.setAttribute("aria-expanded", "true");
   active = -1;
@@ -1169,7 +1171,10 @@ input.addEventListener("keydown", (e) => {
   }
   e.preventDefault();
   active = (active + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
-  items.forEach((li, i) => li.classList.toggle("active", i === active));
+  items.forEach((li, i) => {
+    li.classList.toggle("active", i === active);
+    li.setAttribute("aria-selected", String(i === active));
+  });
   input.setAttribute("aria-activedescendant", items[active].id);
 });
 suggestBox.addEventListener("mousedown", (e) => {
@@ -1265,6 +1270,8 @@ function startSnip() {
 function endSnip() {
   snipLayer.hidden = true;
   mapWrap.classList.remove("snipping");
+  // the overlay's buttons are gone: hand the focus back to the button that opened it
+  document.querySelector(".snapshot-btn")?.focus({ preventScroll: true });
 }
 
 let drag = null;

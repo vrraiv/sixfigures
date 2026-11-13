@@ -70,6 +70,8 @@ const options = (chosen, own) => C.sources.map((s) => `<optgroup label="${escape
   .map((m) => `<option value="${m.id}"${chosen.includes(m.id) && m.id !== own ? " disabled" : ""}>${escapeHTML(m.label)}</option>`).join("")}</optgroup>`).join("");
 function buildSlots() {
   const ids = S.cur.map((m) => m.d.id), n = ids.length;
+  const focused = document.activeElement?.closest?.("#slots") ? document.activeElement : null;
+  const again = focused && { slot: focused.closest(".ex-slot")?.dataset.s, cls: [...focused.classList].find((c) => c.startsWith("ex-")) };
   $("slots").innerHTML = S.cur.map((m, k) => `<div class="ex-slot" data-s="${k}">
       <label for="m${k}">${SLOT[k]}</label><select id="m${k}" class="ex-m">${options(ids, m.d.id)}</select>
       <div class="ex-period"${m.d.periods.length > 1 ? "" : " hidden"}>
@@ -81,6 +83,7 @@ function buildSlots() {
       ${m.d.periods.length > 1 ? "" : `<span class="ex-single">${escapeHTML(m.d.periods[0])} only</span>`}
       ${n > 1 ? `<button type="button" class="day-step ex-remove" aria-label="Remove ${escapeHTML(m.d.short)}" title="Remove">×</button>` : ""}
     </div>`).join("");
+  if (again?.cls) $("slots").querySelector(`.ex-slot[data-s="${again.slot}"] .${again.cls}`)?.focus();
   $("add").hidden = n >= MAX;
   $("add").textContent = ADD[n] ?? "";
   $("swap").hidden = n < 2;

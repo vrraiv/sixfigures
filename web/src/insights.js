@@ -11,7 +11,7 @@ const YEARS = data.years; // ["2006", "2011", "2016", "2021"]
 const PAIRS = [["2006", "2011"], ["2011", "2016"], ["2016", "2021"], ["2011", "2021"], ["2006", "2021"]];
 const DEFAULT_PAIR = PAIRS[2];
 const GROUP_NAMES = { income: "Income", low: "Low income and transfers", housing: "Housing", costs: "Housing costs and values", dwellings: "Dwellings", people: "People" };
-const RISE = DIVERGING[5], FALL = DIVERGING[1], INK3 = "#75756f";
+const RISE = DIVERGING[5], FALL = DIVERGING[1], INK3 = "#6b6b66";
 const nbhd = data.nbhd;
 const measures = Object.keys(MEASURES).filter((m) => m in data.measures);
 
@@ -141,9 +141,10 @@ function renderCards() {
       const change = `<span class="card-delta">${fmtChange(m, d)} since ${refYear(m, "2016")}${real ? ", after inflation" : ""}</span>`;
       const years = yearsOf(m).map((y) => refYear(m, y));
       const aria = `${MEASURES[m].long}: ${yearsOf(m).map((y) => `${refYear(m, y)} ${fmt(m, city(m, y))}`).join(", ")}`;
-      return `<button type="button" class="card" data-m="${m}" aria-pressed="${m === state.m}" aria-label="${escapeHTML(aria)}">
+      return `<button type="button" class="card" data-m="${m}" aria-pressed="${m === state.m}">
         <span class="card-name">${escapeHTML(MEASURES[m].short)}</span>
         <span class="card-value">${fmt(m, now)}</span>
+        <span class="visually-hidden">; ${escapeHTML(aria)};</span>
         ${sparkline(m)}
         <span class="card-years"><span>${years[0]}</span><span>${years.at(-1)}</span></span>
         ${change}

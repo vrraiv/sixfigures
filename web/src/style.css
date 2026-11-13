@@ -3,7 +3,7 @@
   --panel: rgba(252, 252, 251, 0.96);
   --ink: #1a1a19;
   --ink-2: #4b4b47;
-  --ink-3: #75756f;
+  --ink-3: #6b6b66;
   --rule: #e2e2dd;
   --accent: #256abf;
   --navy: #0d366b; /* the site's name and the current page: the darkest step of the map's blues */
@@ -27,6 +27,7 @@ a { color: var(--accent); }
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
 }
+#page:focus { outline: none; }
 
 /* ---- header ---- */
 .bar {
@@ -196,7 +197,6 @@ a { color: var(--accent); }
   .search { flex-basis: 100%; max-width: none; }
   .measure, .measure select { width: 100%; min-width: 0; }
   .legend { left: 16px; top: 12px; bottom: auto; max-width: calc(100vw - 80px); max-height: calc(100% - 24px); overflow: auto; }
-  .foot { font-size: 10px; }
 }
 
 /* ---- snapshot ---- */
@@ -339,6 +339,12 @@ a { color: var(--accent); }
 .site a:not(.site-brand):hover { background: #eef4fc; color: var(--navy); }
 .site a[aria-current="page"] { color: var(--navy); font-weight: 650; box-shadow: inset 0 -2px 0 var(--navy); border-radius: 4px 4px 0 0; }
 .site a:focus-visible, .site-menu:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* The first thing the Tab key reaches on every page: past the header's links to the page. */
+.site a.skip {
+  position: absolute; left: 8px; top: -100px; z-index: 30; padding: 8px 14px; border-radius: 6px;
+  background: var(--navy); color: #fff; font-weight: 600;
+}
+.site a.skip:focus { top: 8px; outline: 2px solid #fff; outline-offset: -4px; }
 .site-menu { display: none; margin-left: auto; font: inherit; font-size: 13px; padding: 5px 12px; color: var(--navy); background: #fff; border: 1px solid #c9c9c3; border-radius: 6px; cursor: pointer; }
 .site-menu[aria-expanded="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
 /* the pages of the section this page is in */
@@ -359,7 +365,7 @@ a { color: var(--accent); }
   .site-row .site-label { width: 100%; margin-bottom: 2px; }
   .site-nav a { padding: 6px 10px 6px 0; margin-right: 6px; }
   .site-local { padding: 2px 16px; }
-  .site-local a { padding: 4px 7px; }
+  .site .site-local a { padding: 3px 7px; } /* 24px tall: a finger's minimum */
   /* the map pages keep every line they can for the map */
   body:not(.doc) .site-sub, body:not(.doc) .bar .sub { display: none; }
 }
@@ -875,7 +881,8 @@ section[hidden] { display: none; }
   /* the Explorer's pickers are too tall to pin on a phone */
   .ex-bar { position: static; }
   /* a pinned menu on a phone: no label, the period and the units on one line */
-  .measure-bar.compact > label[for="measure"] { display: none; }
+  /* out of sight, still the menu's name */
+  .measure-bar.compact > label[for="measure"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .measure-bar.compact { gap: 8px; }
   .measure-bar.compact .seg button { padding: 5px 6px; }
   .measure-bar.compact .toggle { font-size: 12px; gap: 4px; }
@@ -1018,7 +1025,7 @@ section[hidden] { display: none; }
 .nx-pair .nx-nm { min-width: 0; max-width: 100%; }
 .nx-and { color: var(--ink-3); }
 @media (max-width: 640px) {
-  .nx-bar label { display: none; }
+  .nx-bar label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .nx-bar select { flex-basis: 100%; max-width: none; }
   .nx-themes { gap: 6px 14px; }
   .nx-themes legend { float: none; width: 100%; margin-bottom: 2px; }

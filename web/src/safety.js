@@ -4,9 +4,9 @@
 // tiles: the map is the neighbourhoods' SVG outlines, as on the other Insights pages.
 import "./style.css";
 import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
-import { chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
+import { cellStyle, chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
-import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, incomeFifths, inkOn, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
+import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, incomeFifths, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   fetch(`/safety.json?v=${__SAFETY_VERSION__}`).then((r) => r.json()),
@@ -240,7 +240,7 @@ function renderIncome() {
     const lo = Math.min(...rs), hi = Math.max(...rs), ratio = rs[4] ? rs[0] / rs[4] : null;
     const cells = rs.map((r, q) => {
       const t = hi > lo ? (r - lo) / (hi - lo) : 0, c5 = Math.min(5, Math.floor(t * 6));
-      return `<td style="background:${REDS[c5]};color:${inkOn(REDS[c5])}" data-tip="${escapeHTML(`${c.short}, ${periodLabel(p)}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${fmtRate(r)}</b> per 100,000 a year`)}">${fmtRate(r)}</td>`;
+      return `<td style="${cellStyle(REDS[c5])}" data-tip="${escapeHTML(`${c.short}, ${periodLabel(p)}<br>${["Lowest", "Second", "Middle", "Fourth", "Highest"][q]} income fifth: <b>${fmtRate(r)}</b> per 100,000 a year`)}">${fmtRate(r)}</td>`;
     }).join("");
     return `<tr${c.key === state.m ? ' class="sel"' : ""}><th>${escapeHTML(c.short)}</th><td class="txt small hide-sm">${periodLabel(p)}</td>${cells}<td>${fmtRate(city)}</td><td><b>${ratio == null ? "—" : `${ratio.toFixed(1)}×`}</b></td></tr>`;
   }).join("");
@@ -332,9 +332,9 @@ function renderMatrix() {
   const rows = cats.map((a) => `<tr${a === state.m ? ' class="sel"' : ""}><th>${escapeHTML(CAT[a].short)}</th>${cats.map((b) => {
     if (a === b) return `<td class="none">·</td>`;
     const r = spearman(v[a], v[b])?.r;
-    return `<td style="background:${rColor(r)};color:${inkOn(rColor(r))}" data-tip="${escapeHTML(`${CAT[a].short} and ${CAT[b].short}: Spearman <b>${fmtR(r)}</b>`)}">${fmtR(r)}</td>`;
+    return `<td style="${cellStyle(rColor(r))}" data-tip="${escapeHTML(`${CAT[a].short} and ${CAT[b].short}: Spearman <b>${fmtR(r)}</b>`)}">${fmtR(r)}</td>`;
   }).join("")}</tr>`).join("");
-  $("matrix").innerHTML = `<thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody>`;
+  $("matrix").innerHTML = `<thead><tr><th><span class="visually-hidden">Category</span></th>${head}</tr></thead><tbody>${rows}</tbody>`;
   // the closest pair of different kinds, and the category that goes least with the rest
   const kinds = (c) => (c.startsWith("ksi") ? "road" : c.startsWith("shoot") || c === "homicides" ? "gun" : "crime");
   const pairs = cats.flatMap((a, j) => cats.slice(j + 1).map((b) => [a, b, spearman(v[a], v[b])?.r ?? 0]));
