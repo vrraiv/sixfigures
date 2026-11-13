@@ -6,7 +6,7 @@ import { Figures, classIndex } from "./figures.js";
 import { cfg, initDetail, detailControls } from "./quality.js";
 import "./style.css";
 import {
-  tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML,
+  tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML, showInView,
 } from "./common.js";
 
 // Boundary overlays (`make overlays`); null when the file wasn't built.
@@ -54,7 +54,8 @@ const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
 const linkedView = linkedAt.length === 3 && linkedAt.every(Number.isFinite);
 const camera = linkedView ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] } : openingCamera($("map"));
 document.querySelector(`input[name=year][value="${view}"]`).checked = true;
-if (narrow.matches) $("legend").open = false;
+// closed to start with where it would cover much of the map: a phone, a short window
+if (narrow.matches || $("map").clientHeight < 420) $("legend").open = false;
 
 const breaks = await fetch(`/breaks.json?v=${__BREAKS_VERSION__}`).then((r) => r.json());
 // 2015 dollars -> 2020 dollars for incomes, 2016 -> 2021 for census-dated figures
@@ -523,6 +524,7 @@ document.body.append(tooltip);
 
 let hover = null; // { source, id }
 let current = null; // { source, dauid, lngLat, note } of the shown DA
+let detailsToken = 0; // bumped by each showDetails and by closeDetails: a stale load drops its result
 // Not closeOnClick: its map click handler runs after the layer's and would
 // close the popup that a click on another DA has just filled.
 const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false, closeOnClick: false });
@@ -801,7 +803,6 @@ function detailsHTML(d) {
 
 // Opens a DA's details once its group's figures are here; a later call for
 // another DA (or the same one in a new view) supersedes a pending one.
-let detailsToken = 0;
 async function showDetails(source, dauid, lngLat, note) {
   const token = ++detailsToken;
   try {
@@ -827,9 +828,11 @@ async function showDetails(source, dauid, lngLat, note) {
   }
   current = { source, dauid, lngLat, note };
   writeHash();
+  showInView(map, { popup, sheet: $("sheet"), lngLat });
 }
 
 function closeDetails() {
+  detailsToken++; // a showDetails still waiting for its figures must not reopen them
   popup.remove();
   $("sheet").hidden = true;
   current = null;

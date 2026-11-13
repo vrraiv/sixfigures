@@ -50,6 +50,30 @@ export function openingCamera(el, bounds = BOUNDS, pad = 24) {
   return { center: [(w + e) / 2, latOf((mercY(s) + mercY(n)) / 2)], zoom: zw < zh ? Math.min(zh, zw + 1) : zh };
 }
 
+// Keep a DA's open details and the DA itself on screen together.
+//  - Wide screens: the popup hangs from the DA and is often taller than the room above or below
+//    it (style.css caps it at the map's height). Pan the map just far enough to show all of it.
+//  - Phones: the bottom sheet covers the lower part of the map (style.css leaves a strip above
+//    it). Pan the DA into the middle of that strip if the sheet would hide it.
+// Waits for a move in progress (a search's flight, a linked view) to end first.
+export function showInView(map, { popup, sheet, lngLat }, pad = 12) {
+  const go = () => {
+    const box = map.getContainer().getBoundingClientRect();
+    let dx = 0, dy = 0;
+    if (sheet && !sheet.hidden) {
+      const room = sheet.getBoundingClientRect().top - box.top, at = map.project(lngLat);
+      if (room > 0 && (at.y > room - 32 || at.y < 32)) dy = at.y - room / 2;
+    } else if (popup?.isOpen()) {
+      const r = popup.getElement().getBoundingClientRect();
+      dy = r.bottom > box.bottom - pad ? r.bottom - box.bottom + pad : r.top < box.top + pad ? r.top - box.top - pad : 0;
+      dx = r.right > box.right - pad ? r.right - box.right + pad : r.left < box.left + pad ? r.left - box.left - pad : 0;
+    }
+    if (Math.abs(dx) >= 1 || Math.abs(dy) >= 1) map.panBy([dx, dy], { duration: 250 });
+  };
+  if (map.isMoving()) map.once("moveend", go);
+  else go();
+}
+
 export * from "./catalogue.js";
 import { escapeHTML, fmtCount } from "./catalogue.js";
 

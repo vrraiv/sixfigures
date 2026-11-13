@@ -10,7 +10,7 @@ import "./style.css";
 import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
 import { cfg, initDetail, detailControls } from "./quality.js";
-import { $, BOUNDS, COLORS, openingCamera, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource } from "./common.js";
+import { $, BOUNDS, COLORS, openingCamera, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource, showInView } from "./common.js";
 
 const YEAR = "2011", SRC = "da11";
 // The NHS (the 2011 long form) asked about 2010 income; its other figures are dated 2011.
@@ -42,7 +42,7 @@ const linkedDA = /^\d{8}$/.test(hashParams.get("da") ?? "") ? hashParams.get("da
 const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
 const linkedView = linkedAt.length === 3 && linkedAt.every(Number.isFinite);
 const camera = linkedView ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] } : openingCamera($("map"));
-if (narrow.matches) $("legend").open = false;
+if (narrow.matches || $("map").clientHeight < 420) $("legend").open = false;
 const groupOf = (m) => measures.filter((k) => MEASURES[k].group === MEASURES[m].group);
 const propsOf = (dauid) => figures.props(dauid, groupOf(select.value));
 
@@ -203,6 +203,7 @@ document.body.append(tooltip);
 
 let hover = null; // feature id
 let current = null; // { dauid, lngLat } of the shown DA
+let detailsToken = 0; // bumped by each showDetails and by closeDetails: a stale load drops its result
 let selected = null; // feature id outlined in orange
 const popup = new maplibregl.Popup({ maxWidth: "380px", focusAfterOpen: false, closeOnClick: false });
 popup.on("close", () => {
@@ -281,7 +282,6 @@ function detailsHTML(p) {
 
 // The details need the measure's group's figures; a click on another DA (or
 // the same one in a new measure) supersedes a pending one.
-let detailsToken = 0;
 async function showDetails(dauid, lngLat) {
   const token = ++detailsToken;
   try {
@@ -305,9 +305,11 @@ async function showDetails(dauid, lngLat) {
   }
   current = { dauid, lngLat };
   writeHash();
+  showInView(map, { popup, sheet: $("sheet"), lngLat });
 }
 
 function closeDetails() {
+  detailsToken++; // a showDetails still waiting for its figures must not reopen them
   popup.remove();
   $("sheet").hidden = true;
   setSelected(null);
