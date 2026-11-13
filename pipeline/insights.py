@@ -19,7 +19,14 @@ covering most of its area), and
     profiles don't publish, it is the weighted median of the DA medians on the
     measure's own base (households, owner or renter households, people);
   - a published rate or average is the weighted mean of the DA values on the same
-    kind of base.
+    kind of base: people, households, owner or renter households, or, for the share
+    of income from government transfers, the DA's total income (households x average
+    household income). A 0% the profile prints where it withholds the matching median
+    (PLACEHOLDER_ZERO) is not a value and is left out.
+
+check_city() then aggregates every DA as one neighbourhood and compares the result
+with the city value StatCan publishes: a wrong base or a placeholder counted as a
+value shows up there.
 
 A neighbourhood's figure is withheld when DAs holding less than half of the
 measure's base in it (households, owner or renter households, people) have one (suppression, and in 2011 the NHS's non-response rule).
@@ -71,15 +78,24 @@ GROUPS_TOLERANCE = 0.03
 GROUPS = {**INCOME_GROUPS, "2006": INCOME_GROUPS_2006}
 
 # Base of each measure that isn't a share of counts: (method, weight column).
-# owners / renters are households by tenure (the profile's tenure counts).
+# owners / renters are households by tenure (the profile's tenure counts); income is
+# the DA's total household income (income_base), the base of the transfers share.
 AGG = {
     "med_hh_tot": ("median", "hh"), "med_hh_at": ("median", "hh"), "avg_hh_tot": ("mean", "hh"),
     "med_ind_tot": ("median", "pop"), "med_ind_at": ("median", "pop"),
-    "lim_at": ("mean", "pop"), "transfers": ("mean", "pop"),
+    "lim_at": ("mean", "pop"), "transfers": ("mean", "income"),
     "owner30": ("mean", "owners"), "tenant30": ("mean", "renters"), "subsidized": ("mean", "renters"),
     "value": ("median", "owners"), "own_cost": ("median", "owners"), "rent": ("median", "renters"),
     "age0_14": ("mean", "pop"), "age65": ("mean", "pop"),  # published percentages in 2016 and 2021
 }
+# Where too few owner or tenant households answered, the profiles withhold the median
+# owner cost or rent and print these percentages as 0 (measures.UNPUBLISHED_ZERO): a 0%
+# beside a withheld median is a placeholder. Averaged in as a value it pulls a
+# neighbourhood's figure down (and the city's below the one StatCan publishes).
+PLACEHOLDER_ZERO = {"owner30": "own_cost", "tenant30": "rent", "subsidized": "rent"}
+# check_city(): how far the all-DA aggregate may sit from the published city value
+# before it is reported. Rates in percentage points, dollars as a fraction.
+CITY_TOLERANCE = {"rate": 1.0, "money": 0.03}
 
 
 def wmedian(v: np.ndarray, w: np.ndarray) -> float:
@@ -105,7 +121,7 @@ def load(year: str) -> pd.DataFrame:
     wide = wide.join(nb.rename("nbhd_id"), how="left")
     if wide.nbhd_id.isna().any():
         sys.exit(f"{year}: {int(wide.nbhd_id.isna().sum())} DAs without a neighbourhood")
-    wide = tenure_bases(wide)
+    wide = income_base(tenure_bases(wide))
     groups = income_groups(year)
     return wide.join(groups, how="left")
 
@@ -124,6 +140,22 @@ def tenure_bases(wide: pd.DataFrame) -> pd.DataFrame:
     wide["owners"] = owners.fillna(est)
     wide["renters"] = renters.fillna(wide.hh - est)
     return wide
+
+
+def income_base(wide: pd.DataFrame) -> pd.DataFrame:
+    """Adds income: the DA's total household income (households x average household
+    income), the base of a share of income. Null where either is."""
+    wide["income"] = wide.hh * wide.avg_hh_tot
+    return wide
+
+
+def published(wide: pd.DataFrame, m: str) -> pd.Series:
+    """The DAs with a figure for m: not null, and not a placeholder 0% (PLACEHOLDER_ZERO)."""
+    has = wide[m].notna()
+    paired = PLACEHOLDER_ZERO.get(m)
+    if paired in wide:
+        has &= ~((wide[m] == 0) & wide[paired].isna())
+    return has
 
 
 def income_groups(year: str) -> pd.DataFrame:
@@ -201,7 +233,8 @@ def aggregate(wide: pd.DataFrame, year: str, m: str, use_groups: bool = True) ->
     base = "hh" if share or m not in AGG else AGG[m][1]
     b = wide[base].where(wide[base].notna(), np.nan)
     total = b.groupby(wide.nbhd_id).sum(min_count=1)
-    has = wide[m].notna() & b.notna()
+    # the 2006 owner and tenant shares are computed from counts (census2006.py): no placeholders
+    has = (published(wide, m) if year in YEARS else wide[m].notna()) & b.notna()
     coverage = b[has].groupby(wide.nbhd_id[has]).sum().reindex(total.index, fill_value=0) / total
     hh_total = total
     groups = GROUPS[year].get(m) if use_groups else None
@@ -245,6 +278,22 @@ def aggregate(wide: pd.DataFrame, year: str, m: str, use_groups: bool = True) ->
     return v, coverage
 
 
+def check_city(wide: pd.DataFrame, year: str, m: str, city: float, use_groups: bool = True) -> str | None:
+    """Every DA as one neighbourhood, against the published city value: a line to
+    print where they differ by more than CITY_TOLERANCE, else None."""
+    one = wide.assign(nbhd_id=0)
+    v, _ = aggregate(one, year, m, use_groups)
+    got = v.iloc[0] if len(v) else np.nan
+    if pd.isna(got) or pd.isna(city):
+        return None
+    unit = MEASURES[m]["unit"]
+    off = abs(got - city) / abs(city) if unit == "money" else abs(got - city)
+    if off <= CITY_TOLERANCE[unit]:
+        return None
+    return (f"{year} {m}: all DAs together give {got:,.1f}, the published city value is {city:,.1f}"
+            f" (check the measure's base in AGG and the DA values)")
+
+
 def main():
     names = json.loads((FIGURES / "2021" / "common.json").read_text())
     nbhds = sorted({(i, n) for i, n in zip(names["nbhd_id"], names["nbhd"])})
@@ -276,6 +325,7 @@ def main():
         "map": {"width": proj["width"], "height": proj["height"]},
         "measures": {},
     }
+    warnings = []
     print(f"\n{'measure':12s} " + "  ".join(f"{y}: shown/158, min cov" for y in YEARS))
     for m in MEASURES:
         city = {"2011": breaks11[m]["y2011"]["city"], "2016": breaks[m]["y2016"]["city"], "2021": breaks[m]["y2021"]["city"]}
@@ -290,6 +340,9 @@ def main():
                       f" -> {'interpolated' if use else 'DA-median method'}")
                 entry.setdefault("method", {})[y] = "groups" if use else "da_median"
             v, cov = aggregate(data[y], y, m, use)
+            off = check_city(data[y], y, m, city[y], use)
+            if off:
+                warnings.append(off)
             v = v.reindex(ids)
             entry["values"][y] = [None if pd.isna(x) else (int(x) if MEASURES[m]["unit"] == "money" else float(x)) for x in v]
             line.append(f"{int(v.notna().sum()):3d}, {cov.reindex(ids).min():.2f}")
@@ -304,6 +357,10 @@ def main():
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
 
     print(f"\nwrote {OUT} ({OUT.stat().st_size / 1e3:.0f} kB)")
+    if warnings:
+        print(f"\nWARNING: {len(warnings)} measures don't reproduce the city value from the DAs:")
+        for w in warnings:
+            print(f"  {w}")
 
     # 2011 coverage: which neighbourhoods lose their NHS figures
     nhs_m = "med_hh_tot"

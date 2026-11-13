@@ -34,7 +34,7 @@ from build import assign_neighbourhoods
 from distributions import histogram
 from exports import PLACE, _ints
 from figures import GEOMETRY, write_year
-from measures import AGE_SUMS_2011, CHARS_2011, INCOME_DATED, MEASURES, NHS_2011, SHARES, SHARES_2011, UNPUBLISHED_ZERO_2016, derive_shares, label
+from measures import AGE_SUMS_2011, CHARS_2011, INCOME_DATED, MEASURES, NHS_2011, SHARES, SHARES_2011, derive_shares, label, null_unpublished
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -101,13 +101,14 @@ def load_nhs(keep_counts: bool = False) -> tuple[pd.DataFrame, pd.Series]:
           f"{int(das[NHS_KEYS].isna().any(axis=1).sum())} with a suppressed (x) figure")
     das = das[NHS_KEYS].astype(float)
     das[low] = float("nan")
-    # As in 2016: a median dwelling value, owner cost or rent of $0 marks a DA
-    # with too few owner or renter households for a figure, not a value.
-    zero = (das[UNPUBLISHED_ZERO_2016] == 0).sum().to_dict()
-    das[UNPUBLISHED_ZERO_2016] = das[UNPUBLISHED_ZERO_2016].where(das[UNPUBLISHED_ZERO_2016] != 0)
-    print(f"NHS: medians of $0 nulled: {zero}")
     city = derive_shares(csd[NHS_KEYS].astype(float), NHS_SHARES).iloc[0]
-    return derive_shares(das, NHS_SHARES, keep_counts=keep_counts), city
+    das = derive_shares(das, NHS_SHARES, keep_counts=keep_counts)
+    # As in 2016: a dollar figure of $0 marks a DA with too few households for a
+    # figure, not a value, and a published percentage above 100 is not one either.
+    cleaned = null_unpublished(das, NHS_SHARES)
+    nulled = (das.notna() & cleaned.isna()).sum()
+    print(f"NHS: $0 dollar figures and percentages above 100 nulled: {nulled[nulled > 0].to_dict()}")
+    return cleaned, city
 
 
 def load_2011(keep_counts: bool = False):

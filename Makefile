@@ -46,7 +46,13 @@ PERMITRAW := $(RAW)/toronto_permits_cleared_2000_2016.csv $(RAW)/toronto_permits
              $(RAW)/toronto_permits_active.csv
 PERMITS   := pipeline/permits/by_nbhd.csv
 
-.PHONY: data download tiles search overlays basemap deps clean cpi breaks permits
+.PHONY: data download tiles search overlays basemap deps clean cpi breaks permits test
+
+# The pipeline's own tests (clean-up rules, neighbourhood aggregation) and the site's, which
+# include the checks on the committed figures (scripts/data-invariants.test.mjs).
+test:
+	$(PYTHON) -m unittest discover -s pipeline/tests
+	npm test
 
 data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS) $(INSIGHTS)
 

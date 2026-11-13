@@ -76,6 +76,8 @@ a { color: var(--accent); }
 }
 
 .map-wrap { position: relative; min-height: 0; }
+/* The map box is a size container: the details popup is capped at its height (100cqh below). */
+.map-screen > .map-wrap { container-type: size; }
 #map { position: absolute; inset: 0; }
 
 /* ---- legend ---- */
@@ -83,6 +85,8 @@ a { color: var(--accent); }
   position: absolute; left: 16px; bottom: 16px; z-index: 2;
   background: var(--panel); border-radius: 8px; box-shadow: var(--shadow);
   padding: 8px 12px; max-width: 260px;
+  /* never taller than the map: on a short one (a phone held sideways, a small window) it scrolls */
+  max-height: calc(100% - 32px); overflow: auto;
 }
 .legend summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
 .legend[open] summary { margin-bottom: 6px; }
@@ -121,7 +125,13 @@ a { color: var(--accent); }
 }
 
 /* ---- details (popup + bottom sheet) ---- */
-.maplibregl-popup-content { padding: 12px 14px; border-radius: 8px; font: 13px/1.4 var(--font); }
+/* The popup sits above the legend, which it can reach on a narrow map, and is never taller than
+   the map: main.js pans it into view (common.js showInView), and past that it scrolls. */
+.maplibregl-popup { z-index: 3; }
+.maplibregl-popup-content {
+  padding: 12px 14px; border-radius: 8px; font: 13px/1.4 var(--font);
+  max-height: 70vh; max-height: calc(100cqh - 34px); overflow-y: auto; overscroll-behavior: contain;
+}
 .maplibregl-popup-close-button { font-size: 18px; padding: 0 6px; }
 .maplibregl-popup-content h2, .sheet h2 { font-size: 15px; margin: 0 0 6px; }
 .dt { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
@@ -150,11 +160,16 @@ a { color: var(--accent); }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pinbtn { color: var(--pin); }
 
+/* The phone's details sheet covers the lower part of the map box and leaves a strip of map
+   above it, where showInView puts the DA it describes. Its body scrolls, not the sheet: the
+   close button stays put, and Chromium can blank a WebGL canvas above a scrolling box that has
+   an opaque background of its own, so the background is the sheet's and the scroller is clear. */
 .sheet {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 4;
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; flex-direction: column;
   background: var(--surface); box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
-  border-radius: 12px 12px 0 0; padding: 14px 16px 18px; max-height: 60vh; overflow: auto;
+  border-radius: 12px 12px 0 0; overflow: hidden; max-height: max(200px, calc(100% - 150px));
 }
+#sheet-body { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 14px 16px 18px; }
 .sheet[hidden] { display: none; }
 .sheet-close {
   position: absolute; top: 6px; right: 8px; border: 0; background: none;

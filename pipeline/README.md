@@ -309,13 +309,23 @@ and average sale price, and the 158 neighbourhoods' outlines with their communit
   DAs from one 2016 DA (each 2021 DA wholly inside it, checked), 4 = many-to-many. Only
   flag-1 DAs get 2016 values (`v16_*`, `p16_*`) in the 2021 tiles; the browser computes
   the change from them. 2021 DAs: 3,606 flag 1, 70 flag 3, 67 flag 4.
-- **2016 zeros:** where too few owner or tenant households answered, the 2016 profile
-  publishes a median of 0 rather than a suppression marker (2021 uses `x` or `..`): a
-  dwelling value, owner cost or rent of $0. `measures.null_unpublished_2016` nulls
-  those (278, 278 and 1,288 DAs). Percentages for the same households (`owner30`,
-  `tenant30`, `subsidized`) are kept as published, 0% included, as in 2021, which also
-  publishes 0% for many DAs whose median rent it suppresses. It also nulls published
-  percentages above 100 (one 2016 `owner30` of 150).
+- **Zeros that aren't values:** where too few households answered, the 2016 profile and
+  the 2011 NHS publish 0 rather than a suppression marker (2021 uses `x` or `..`): a
+  median dwelling value, owner cost or rent of $0, or an average household income of $0
+  beside a median in the tens of thousands (six 2016 DAs). No dollar figure here can be
+  $0, so `measures.null_unpublished` nulls every one (278, 278 and 1,288 DAs for value,
+  owner cost and rent in 2016). It also nulls published percentages above 100 (one 2016
+  `owner30` of 150; three 2011 `tenant30` of 111 to 120). Percentages for the same
+  households (`owner30`, `tenant30`, `subsidized`) are kept on the DA maps as published,
+  0% included, as in 2021, which also publishes 0% for many DAs whose median rent it
+  suppresses. The neighbourhood figures leave those placeholders out
+  (`insights.PLACEHOLDER_ZERO`): a 0% beside a withheld median is not a value, and
+  averaged in it pulls a neighbourhood's share down.
+- **City check:** `insights.check_city` aggregates every DA as one neighbourhood and
+  prints a warning where the result is more than a point (rates) or 3% (dollars) from the
+  city value StatCan publishes. A measure on the wrong base shows up there: the share of
+  income from government transfers is weighted by the DAs' total income (households x
+  average household income), not by people.
 - **Zero class:** when a sixth or more of the pooled DA values are exactly 0, quantile
   breaks would repeat 0, so `build.class_breaks` makes 0 its own class and splits the
   positive values into fifths; `breaks.json` marks those measures `zero_class`.

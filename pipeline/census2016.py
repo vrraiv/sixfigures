@@ -15,7 +15,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from measures import CHARS_2016, MEASURES, derive_city_shares, derive_shares, null_unpublished_2016, targets
+from measures import CHARS_2016, MEASURES, derive_city_shares, derive_shares, null_unpublished, targets
 
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
@@ -86,7 +86,7 @@ def load_2016(keep_counts: bool = False):
     if da.duplicated(["GEO_CODE", "key"]).any():
         sys.exit("duplicate 2016 DA x characteristic rows")
     wide = derive_shares(da.pivot(index="GEO_CODE", columns="key", values="value")[list(TARGETS.values())], keep_counts=keep_counts)
-    wide = null_unpublished_2016(wide)
+    wide = null_unpublished(wide)
     wide.index.name = "DAUID"
     if len(wide) != EXPECTED_DAS:
         sys.exit(f"2016 DA count {len(wide)} != {EXPECTED_DAS}")

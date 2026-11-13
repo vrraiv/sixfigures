@@ -62,6 +62,16 @@ const M = {
     pool: W(NB.chg, NB.area_ha), poolNote: "weighted by area; tree class in both years" },
 };
 const vals = (m = state.m) => NB[m];
+// The neighbourhoods whose heat figure rests on fewer Landsat passes than most (the satellite's
+// path clips the north-west corner), from the pass counts in the data rather than from memory.
+function fewPasses() {
+  const most = Math.max(...NB.scenes);
+  const few = nbhd.map((n, i) => ({ name: n.name, n: NB.scenes[i] })).filter((x) => x.n < most);
+  if (!few.length) return "";
+  const names = few.map((x) => `${escapeHTML(x.name)} (${x.n})`);
+  const listed = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
+  return ` Fewer passes cover ${listed} than the ${most} behind every other neighbourhood's figure.`;
+}
 const income = (m = state.inc) => census.measures[m].values["2021"];
 const incomeUp = (m = state.inc) => m !== "lim_at";
 const fmtInc = (v, m = state.inc) => (v == null ? "—" : isMoney(m) ? fmtMoney(v) : `${v.toFixed(1)}%`);
@@ -212,7 +222,7 @@ function renderMap() {
     $("map-key").innerHTML = rangeLabels(b.edges, b.zero, f).map((l, k) => `<li><span class="key-sq" style="background:${colours[k]}"></span>${escapeHTML(l)}</li>`).join("")
       + (state.ov === "income" && inc.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No figure</li>` : "");
     $("map-lede").innerHTML = state.ov === "income" ? `${escapeHTML(incName)}, 2021 Census, in sixths of the neighbourhoods. Hover or tap for the tree and heat figures too.`
-      : `${escapeHTML(def.label)}, in sixths of the neighbourhoods.${def.hot ? " Neighbourhoods 1 and 2 (the north-west corner) rest on 4 or 5 passes rather than up to 11." : ""}`;
+      : `${escapeHTML(def.label)}, in sixths of the neighbourhoods.${def.hot ? fewPasses() : ""}`;
   }
   markPick();
 }
