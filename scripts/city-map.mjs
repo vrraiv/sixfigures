@@ -1,8 +1,9 @@
 // The city as a small map: the 158 neighbourhoods coloured by 2021 median household income,
-// on the map's own blues, drawn from web/public/insights.json (pipeline/insights.py). Two uses:
+// on the map's own blues, drawn from web/public/insights.json (pipeline/insights.py). Three uses:
 //
 //   brandSvg()  the mark beside the site's name in every page's header, a file of its own
 //               (vite.config.js writes web/public/brand-map.svg) so pages share one cached copy
+//   iconSvg()   the browser-tab icon (scripts/make-icons.mjs writes the committed files)
 //   heroSvg()   the landing page's map, inline, each neighbourhood a link to the census map there
 //
 // Six classes with the same number of neighbourhoods in each, lightest for the lowest incomes.
@@ -36,6 +37,19 @@ const byClass = (m) => [NONE, ...COLORS].map((c) => [c, m.nbhd.filter((n) => fil
 export function brandSvg(m = cityMap()) {
   // a hairline of its own colour closes the gaps antialiasing leaves between neighbours
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${m.width} ${m.height}"><g stroke-width="3" stroke-linejoin="round">${byClass(m).map(([c, p]) => `<path fill="${c}" stroke="${c}" d="${p}"/>`).join("")}</g></svg>\n`;
+}
+
+// The browser-tab and home-screen icon: the same map on a white rounded square, so it reads on
+// light and dark tab bars alike. scripts/make-icons.mjs writes the files.
+export function iconSvg(m = cityMap(), { bg = "#ffffff", colors = COLORS, pad = 1.5, rx = 7 } = {}) {
+  const k = (32 - 2 * pad) / m.width, y = (32 - m.height * k) / 2;
+  const groups = [NONE, ...COLORS].map((c, i) => [i ? colors[i - 1] : NONE, m.nbhd.filter((n) => fill(n) === c).map((n) => n.path).join("")]).filter(([, p]) => p);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Toronto's neighbourhoods by 2021 median household income (scripts/city-map.mjs). -->
+  <rect width="32" height="32" rx="${rx}" fill="${bg}"/>
+  <g transform="translate(${pad} ${+y.toFixed(2)}) scale(${+k.toFixed(5)})" stroke-width="3" stroke-linejoin="round">${groups.map(([c, p]) => `<path fill="${c}" stroke="${c}" d="${p}"/>`).join("")}</g>
+</svg>
+`;
 }
 
 // Where a neighbourhood's link lands: the census map, on this measure, with neighbourhood outlines.
