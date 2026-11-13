@@ -6,7 +6,7 @@ import { Figures, classIndex } from "./figures.js";
 import { cfg, initDetail, detailControls } from "./quality.js";
 import "./style.css";
 import {
-  tileSource, TILES, STYLE, BOUNDS, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML,
+  tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML,
 } from "./common.js";
 
 // Boundary overlays (`make overlays`); null when the file wasn't built.
@@ -51,9 +51,8 @@ const dauidParam = (k) => (/^\d{8}$/.test(hashParams.get(k) ?? "") ? hashParams.
 const linkedDA = dauidParam("da");
 const linkedPin = dauidParam("vs");
 const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
-const camera = linkedAt.length === 3 && linkedAt.every(Number.isFinite)
-  ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] }
-  : { bounds: BOUNDS, fitBoundsOptions: { padding: 24 } };
+const linkedView = linkedAt.length === 3 && linkedAt.every(Number.isFinite);
+const camera = linkedView ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] } : openingCamera($("map"));
 document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 if (narrow.matches) $("legend").open = false;
 
@@ -469,7 +468,7 @@ function ensureHighlight(id) {
 }
 
 
-let mapMoved = false; // keep the default whole-city framing out of links until the map moves
+let mapMoved = false; // keep the opening view out of links until the map moves
 function writeHash() {
   syncMark();
   const h = new URLSearchParams({ m: select.value, y: view });
@@ -478,7 +477,7 @@ function writeHash() {
   if (pinned) h.set("vs", pinned.dauid);
   if (overlay !== "none") h.set("o", overlay);
   if (hashParams.has("diag")) h.set("diag", "");
-  if (mapMoved || camera.center) {
+  if (mapMoved || linkedView) {
     const { lng, lat } = map.getCenter();
     h.set("at", `${map.getZoom().toFixed(2)}/${lat.toFixed(5)}/${lng.toFixed(5)}`);
   }

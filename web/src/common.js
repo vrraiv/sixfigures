@@ -34,6 +34,22 @@ export const STYLE = {
 };
 export const BOUNDS = [[-79.6393, 43.5792], [-79.1153, 43.8555]];
 
+// The map's opening view, for a map element of the size it has now. Toronto is wider than
+// it is tall, so on a wide screen the whole city fits the box with room to spare at the
+// sides. On a narrow one (a phone, a tablet held upright) fitting the whole width would
+// leave the city a thin strip with empty bands above and below, so the view fills the box's
+// height instead, up to one zoom level closer, and the east and west ends are a pan away.
+// The pages' inline preloaders (census/index.html, 2011/index.html) work out the same view.
+const mercY = (lat) => (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / 360;
+const latOf = (y) => ((Math.atan(Math.exp(((180 - y * 360) * Math.PI) / 180)) - Math.PI / 4) * 360) / Math.PI;
+export function openingCamera(el, bounds = BOUNDS, pad = 24) {
+  const [[w, s], [e, n]] = bounds;
+  if (!el.clientWidth || !el.clientHeight) return { bounds, fitBoundsOptions: { padding: pad } };
+  const zw = Math.log2((el.clientWidth - 2 * pad) / (((e - w) / 360) * 512));
+  const zh = Math.log2((el.clientHeight - 2 * pad) / ((mercY(s) - mercY(n)) * 512));
+  return { center: [(w + e) / 2, latOf((mercY(s) + mercY(n)) / 2)], zoom: zw < zh ? Math.min(zh, zw + 1) : zh };
+}
+
 export * from "./catalogue.js";
 import { escapeHTML, fmtCount } from "./catalogue.js";
 

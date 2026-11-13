@@ -350,6 +350,14 @@ a { color: var(--accent); }
 }
 @media (max-width: 380px) { .site-more { display: none; } }
 body.with-nav { grid-template-rows: auto auto 1fr auto; }
+/* The map pages (census/, 2011/): the site header, the controls and the map fill the screen
+   between them, so the map gets every line the controls leave; the footer is below, a scroll
+   away. Not shorter than 480px, so a phone held sideways still has a map to use. */
+body.map-page { display: block; height: auto; }
+.map-screen {
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr);
+  height: 100vh; height: 100svh; min-height: 480px;
+}
 
 /* ---- the Insights page: a scrolling document rather than a full-screen map ---- */
 body.doc { display: block; height: auto; }
