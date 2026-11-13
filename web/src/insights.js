@@ -76,7 +76,7 @@ const fmtChangeShort = (m, d) => (isMoney(m) ? `${sign(Math.round(d))}${fmtShort
 const mapLink = (m, y, i) => {
   const [lat, lng] = nbhd[i].at;
   const at = `at=13/${lat}/${lng}`;
-  return y === "2006" ? null : y === "2011" ? `/2011/#m=${m}&${at}` : `/#m=${m}&y=${y}&${at}&o=nbhd`;
+  return y === "2006" ? null : y === "2011" ? `/2011/#m=${m}&${at}` : `/census/#m=${m}&y=${y}&${at}&o=nbhd`;
 };
 // A neighbourhood's name, which finds it on the neighbourhood map.
 const nameLink = (i) => {

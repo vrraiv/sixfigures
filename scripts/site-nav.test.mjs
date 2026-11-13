@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { DISCLAIMER, ROWS, SOCIAL, allPages, pagePath, sectionOf, siteFooter, siteHeader, siteTitle } from "./site-nav.mjs";
+import { DISCLAIMER, META, ROWS, SOCIAL, allPages, pagePath, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle } from "./site-nav.mjs";
 
 const inputs = [...readFileSync("vite.config.js", "utf8").matchAll(/"(web\/[^"]*index\.html)"/g)].map((m) => pagePath(m[1].replace(/^web/, "")));
 
@@ -27,6 +27,26 @@ test("every page carries the placeholder and no header of its own", () => {
     assert.equal((html.match(/<!-- site-header -->/g) ?? []).length, 1, p);
     assert.ok(!/class="(wordmark|ins-nav|themes)"/.test(html), p);
   }
+});
+
+test("the landing page's guide has a card for every link in the two rows, and a line for every page of a section", () => {
+  const guide = siteGuide();
+  const links = ROWS.flatMap((r) => r.links);
+  assert.equal((guide.match(/class="guide-card"/g) ?? []).length, links.length);
+  for (const l of links) {
+    assert.ok(l.blurb && guide.includes(`<h3><a href="${l.href}">${l.label}</a></h3>`), l.label);
+    for (const p of l.pages ?? []) assert.ok(p.blurb && guide.includes(`<li><a href="${p.href}">${p.label}`), `${l.label}: ${p.label}`);
+  }
+  assert.equal((readFileSync("web/index.html", "utf8").match(/<!-- site-guide -->/g) ?? []).length, 1);
+  assert.deepEqual(META.map((l) => l.href), ["/", "/about/"]);
+});
+
+test("the old address of the census map sends its links on", () => {
+  const home = readFileSync("web/index.html", "utf8");
+  const [, re] = home.match(/if \((\/.*?\/)\.test\(location\.hash\)\) location\.replace\("\/census\/" \+ location\.hash\)/);
+  const moves = (hash) => new RegExp(re.slice(1, -1)).test(hash);
+  for (const h of ["#m=rent&y=2021", "#m=med_hh_tot&y=2021&at=13/43.7/-79.4&o=nbhd", "#diag", "#find=100%20Queen"]) assert.ok(moves(h), h);
+  for (const h of ["", "#guide", "#guide-topics"]) assert.ok(!moves(h), h);
 });
 
 test("a section's first page is its top link", () => {

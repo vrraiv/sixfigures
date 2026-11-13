@@ -1,62 +1,86 @@
 // The site header, written into every page at build time (vite.config.js replaces the
-// <!-- site-header --> comment), so the thirteen pages share one definition:
+// <!-- site-header --> comment), so the fifteen pages share one definition:
 //
-//   Six Figures                 DATA      Census · Schools · Housing · Sale prices · Safety · Trees
-//   Toronto, mapped by its data INSIGHTS  Data Explorer · Neighbourhood Explorer · Forecasts
+//   [map] Six Figures                 TOPICS  Census · Schools · Housing · Sale prices · Safety · Trees     Home · About
+//         Toronto, mapped by its data TOOLS   Data Explorer · Neighbourhood Explorer · Forecasts
 //   [Census:  2021 · 2016 map · 2011 map · Insights]     <- only inside a section with pages of its own
 //
-// Data holds the pages about one topic; Insights the pages that work across topics. A link is
-// the current one on its own page and on its section's pages (`pages`), which get the third
-// row. On phones the two rows fold behind a Menu button; without script they stay open.
+// Topics holds the pages about one subject; Tools the pages that work across subjects; Home (the
+// landing page, a guide to all of these) and About sit apart at the right. A link is the current
+// one on its own page and on its section's pages (`pages`), which get the third row. On phones
+// the links fold behind a Menu button; without script they stay open.
+//
+// The landing page's guide (siteGuide, for its <!-- site-guide --> comment) is written from the
+// same list: a card for each link, under the link's own name, with its `blurb` and its pages.
 export const SITE = { title: "Six Figures", sub: "Toronto, mapped by its data" };
 
 export const ROWS = [
-  { label: "Data", links: [
-    { href: "/", label: "Census", pages: [
-      { href: "/", label: "2021 · 2016", more: " map" },
-      { href: "/2011/", label: "2011", more: " map" },
-      { href: "/insights/", label: "Insights" },
+  { label: "Topics", lede: "One subject each: where the city stands, how it has changed, and how its neighbourhoods compare.", links: [
+    { href: "/census/", label: "Census", blurb: "Income, housing costs, dwellings and people from the census, mapped a few blocks at a time. Look up an address to see the figures for its own small area.", pages: [
+      { href: "/census/", label: "2021 · 2016", more: " map", blurb: "the map, and the change between the two censuses" },
+      { href: "/2011/", label: "2011", more: " map", blurb: "the same measures ten years earlier" },
+      { href: "/insights/", label: "Insights", blurb: "the 158 neighbourhoods ranked and compared, 2006 to 2021" },
     ] },
-    { href: "/insights/schools/", label: "Schools" },
-    { href: "/insights/housing/", label: "Housing" },
-    { href: "/insights/prices/", label: "Sale prices" },
-    { href: "/insights/safety/", label: "Safety" },
-    { href: "/insights/trees/", label: "Trees" },
+    { href: "/insights/schools/", label: "Schools", blurb: "Grade 3 and 6 test results for public and Catholic elementary schools, by school and by neighbourhood, 2018 to 2025." },
+    { href: "/insights/housing/", label: "Housing", blurb: "What is being built and what it costs to rent: building permits, development applications, housing starts and rents, by year and by neighbourhood." },
+    { href: "/insights/prices/", label: "Sale prices", blurb: "Home sales and median sale prices by quarter, for the city and each neighbourhood, set against the census." },
+    { href: "/insights/safety/", label: "Safety", blurb: "Crime, shootings, homicides and road injuries in each neighbourhood, year by year." },
+    { href: "/insights/trees/", label: "Trees", blurb: "Tree canopy, street trees and summer ground temperature: where the shade is, and where it isn't." },
   ] },
-  { label: "Insights", links: [
-    { href: "/insights/explorer/", label: "Data Explorer" },
-    { href: "/insights/neighbourhoods/", label: "Neighbourhood Explorer" },
-    { href: "/forecasts/", label: "Forecasts", pages: [
-      { href: "/forecasts/", label: "Method" },
-      { href: "/forecasts/schools/", label: "Schools" },
-      { href: "/forecasts/value/", label: "Dwelling value" },
+  { label: "Tools", lede: "Across subjects: put any of the site's measures side by side, or start from one neighbourhood.", links: [
+    { href: "/insights/explorer/", label: "Data Explorer", blurb: "Choose up to three measures from anywhere on the site and see how they line up across the city and over time." },
+    { href: "/insights/neighbourhoods/", label: "Neighbourhood Explorer", blurb: "Pick a neighbourhood and find the ones most and least like it, theme by theme, and how that has changed since 2006." },
+    { href: "/forecasts/", label: "Forecasts", blurb: "An experiment in predicting school results and home values, published with its ranges and its own errors.", pages: [
+      { href: "/forecasts/", label: "Method", blurb: "how the forecasts are made and tested" },
+      { href: "/forecasts/schools/", label: "Schools", blurb: "Grade 3 and 6 results for 2026–27" },
+      { href: "/forecasts/value/", label: "Dwelling value", blurb: "home values in the 2026 Census" },
     ] },
   ] },
 ];
+// The links about the site itself, apart from the two rows.
+export const META = [
+  { href: "/", label: "Home" },
+  { href: "/about/", label: "About" },
+];
+const tops = () => [...ROWS.flatMap((r) => r.links), ...META];
 
 // "/insights/index.html" -> "/insights/"
 export const pagePath = (p) => p.replace(/index\.html$/, "").replace(/([^/])$/, "$1/");
 // every address the header links to
-export const allPages = () => ROWS.flatMap((r) => r.links.flatMap((l) => (l.pages ? l.pages.map((p) => p.href) : [l.href])));
+export const allPages = () => tops().flatMap((l) => (l.pages ? l.pages.map((p) => p.href) : [l.href]));
 // the top link a page belongs to
-export const sectionOf = (path) => ROWS.flatMap((r) => r.links).find((l) => (l.pages ? l.pages.some((p) => p.href === path) : l.href === path)) ?? null;
+export const sectionOf = (path) => tops().find((l) => (l.pages ? l.pages.some((p) => p.href === path) : l.href === path)) ?? null;
 
 // `more` is the part of a label dropped on the narrowest phones
 const link = ({ href, label, more }, current) => `<a href="${href}"${current ? ' aria-current="page"' : ""}>${label}${more ? `<span class="site-more">${more}</span>` : ""}</a>`;
 
-export function siteHeader(path) {
+// `mark`: the address of the map beside the name (scripts/city-map.mjs), as vite.config.js versions it
+export function siteHeader(path, mark = "/brand-map.svg") {
   const here = sectionOf(path);
   const rows = ROWS.map((r) => `
         <div class="site-row"><span class="site-label">${r.label}</span>${r.links.map((l) => link(l, l === here)).join("")}</div>`).join("");
   const local = here?.pages ? `
       <nav class="site-local" aria-label="${here.label}"><span class="site-label">${here.label}</span>${here.pages.map((p) => link(p, p.href === path)).join("")}</nav>` : "";
   return `<header class="site">
-      <a class="site-brand" href="/"><span class="site-title">${SITE.title}</span><span class="site-sub">${SITE.sub}</span></a>
+      <a class="site-brand" href="/"><img class="site-mark" src="${mark}" width="58" height="42" alt="" /><span class="site-name"><span class="site-title">${SITE.title}</span><span class="site-sub">${SITE.sub}</span></span></a>
       <button type="button" class="site-menu" aria-expanded="false" aria-controls="site-nav">Menu</button>
       <nav class="site-nav" id="site-nav" aria-label="Site">${rows}
+        <div class="site-meta">${META.map((l) => link(l, l === here)).join("")}</div>
       </nav>${local}
       <script>(function (h) { var b = h.querySelector(".site-menu"); h.classList.add("js"); b.onclick = function () { b.setAttribute("aria-expanded", h.classList.toggle("open")); }; })(document.currentScript.parentNode);</script>
     </header>`;
+}
+
+// The landing page's guide: the header's rows again, each link a card with a line on what it is for.
+export function siteGuide() {
+  const card = (l) => `
+          <li class="guide-card"><h3><a href="${l.href}">${l.label}</a></h3><p>${l.blurb}</p>${l.pages ? `<ul>${l.pages.map((p) => `<li><a href="${p.href}">${p.label}${p.more ?? ""}</a>: ${p.blurb}</li>`).join("")}</ul>` : ""}</li>`;
+  return ROWS.map((r) => `<section class="guide" aria-labelledby="guide-${r.label.toLowerCase()}">
+        <h2 id="guide-${r.label.toLowerCase()}">${r.label}</h2>
+        <p class="guide-lede">${r.lede}</p>
+        <ul class="guide-cards">${r.links.map(card).join("")}
+        </ul>
+      </section>`).join("\n      ");
 }
 
 // The page's own title, then the site's.

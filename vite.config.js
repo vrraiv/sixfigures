@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig } from "vite";
 import { extractTiles } from "./scripts/extract-tiles.mjs";
-import { pagePath, siteFooter, siteHeader, siteTitle } from "./scripts/site-nav.mjs";
+import { brandSvg, heroKey, heroSvg } from "./scripts/city-map.mjs";
+import { pagePath, siteFooter, siteGuide, siteHeader, siteTitle } from "./scripts/site-nav.mjs";
 
 // Content hashes of the data files, appended as ?v= so they can be cached as
 // immutable (see web/public/_headers) yet still bust when the data is rebuilt.
@@ -27,6 +28,11 @@ const TILES = {
   ov: await extractTiles("web/public/overlays.pmtiles", "ov"),
 };
 
+// The map beside the site's name: the neighbourhoods by 2021 household income (scripts/city-map.mjs),
+// written beside the other public files and versioned like them.
+writeFileSync("web/public/brand-map.svg", brandSvg());
+const BRAND = `/brand-map.svg?v=${version("web/public/brand-map.svg")}`;
+
 export default defineConfig({
   root: "web",
   define: {
@@ -49,19 +55,21 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Thirteen pages (each also listed in scripts/site-nav.mjs): / (2016 and 2021), /2011/, the Insights pages /insights/ (census),
-    // /insights/schools/, /insights/housing/, /insights/prices/, /insights/safety/, /insights/trees/, /insights/explorer/ and /insights/neighbourhoods/, and the Forecasts
-    // pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
-    rollupOptions: { input: { main: "web/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
+    // Fifteen pages (each also listed in scripts/site-nav.mjs): / (the landing page) and /about/, /census/ (2016 and 2021), /2011/,
+    // the Insights pages /insights/ (census), /insights/schools/, /insights/housing/, /insights/prices/, /insights/safety/, /insights/trees/,
+    // /insights/explorer/ and /insights/neighbourhoods/, and the Forecasts pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
+    rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling" } },
-  // index.html preloads the opening view's DA tiles and figures; it needs the tile
+  // census/index.html preloads the opening view's DA tiles and figures; it needs the tile
   // source and the figures version for that.
   plugins: [{
-    // The site header and name, and the footer's disclaimer and links, on every page (scripts/site-nav.mjs).
+    // The site header and name, and the footer's disclaimer and links, on every page (scripts/site-nav.mjs);
+    // on the landing page, the guide to the header's links and the city map too (scripts/city-map.mjs).
     name: "site-header",
-    transformIndexHtml: (html, ctx) => siteFooter(siteTitle(html)).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path))),
+    transformIndexHtml: (html, ctx) => siteFooter(siteTitle(html)).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path), BRAND))
+      .replace("<!-- site-guide -->", () => siteGuide()).replace("<!-- city-map -->", () => heroSvg()).replace("<!-- city-map-key -->", () => heroKey()),
   }, {
     name: "da-tiles-in-html",
     transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION)),

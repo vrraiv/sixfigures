@@ -19,7 +19,8 @@ const select = $("measure");
 const changeBy = $("changeby");
 // The URL hash keeps the view shareable: #m=<measure>&y=<view>&c=<change basis>
 // &da=<DAUID of the open DA>&vs=<DAUID pinned for comparison>&o=<boundary overlay>
-// &at=<zoom>/<lat>/<lng>. q=auto|full|medium|low picks the map detail (quality.js).
+// &at=<zoom>/<lat>/<lng>. q=auto|full|medium|low picks the map detail (quality.js);
+// find=<address> runs a search on arrival.
 const hashParams = new URLSearchParams(location.hash.slice(1));
 initDetail(hashParams);
 if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
@@ -100,7 +101,7 @@ map.keyboard.disableRotation();
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 // Bounded, linear wheel zoom in place of MapLibre's (see wheel.js).
 wheelZoom(map);
-// /#diag overlays the graphics driver, frame and input times, wheel events, load
+// /census/#diag overlays the graphics driver, frame and input times, wheel events, load
 // timings and a main-thread profile, and exposes the map for console measurements.
 if (hashParams.has("diag")) {
   globalThis.__map = map;
@@ -1129,6 +1130,15 @@ function showSuggest() {
 function pick(li) {
   input.value = li.dataset.text;
   runSearch(input.value);
+}
+
+// The landing page's address box hands its text over as #find=<text>.
+// Without script there, its form sends ?find=<text> instead, which is taken off the address once read.
+const find = (hashParams.get("find") ?? new URLSearchParams(location.search).get("find") ?? "").trim();
+if (location.search) history.replaceState(null, "", location.pathname + location.hash);
+if (find) {
+  input.value = find;
+  runSearch(find);
 }
 
 input.addEventListener("focus", () => {

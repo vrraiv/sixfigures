@@ -223,7 +223,7 @@ so the two don't collide.
 | Late September to October 2027 | EQAO 2026-27: **score the 2026 to 2027 School Forecast**. |
 | 27 October 2027 | Immigration. |
 | 1 December 2027 | Education (degrees). Every census measure on the site is then out. |
-| Early 2028 | **The 2026 Census rebuild**: 2026 DA boundaries and the 2021 to 2026 correspondence, the landing map on 2026 with 2021 to 2026 change, Census Insights and the Neighbourhood Explorer's history extended, the CPI for income year 2025, new tiles and search. A project, not a routine run. |
+| Early 2028 | **The 2026 Census rebuild**: 2026 DA boundaries and the 2021 to 2026 correspondence, the census map on 2026 with 2021 to 2026 change, Census Insights and the Neighbourhood Explorer's history extended, the CPI for income year 2025, new tiles and search. A project, not a routine run. |
 | October 2030 | Next municipal general election. |
 
 Census dates are from Statistics Canada's
@@ -232,4 +232,4 @@ In 2021 the DA-level profile grew with each release; the 2026 boundary and
 correspondence files' dates aren't confirmed.
 
 The census rebuild could be split: a first pass after 8 September 2027 would put income
-and housing, most of the landing map, on 2026, with the rest following in December.
+and housing, most of the census map, on 2026, with the rest following in December.

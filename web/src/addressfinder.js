@@ -1,7 +1,7 @@
 // "Which neighbourhood is this address in?" A small search box for the neighbourhood pages,
 // for readers who know their address but not the City's name for their neighbourhood.
 //
-// It reuses the landing map's address lookup (search.js over search.json: official City
+// It reuses the census map's address lookup (search.js over search.json: official City
 // addresses and intersections to 2021 census dissemination areas) and the 2021 figures file
 // (each DA's neighbourhood, and for the 13 DAs that straddle a boundary, the other one).
 // Both load on first use, so the page itself stays light (about 1.2 MB compressed, once).
