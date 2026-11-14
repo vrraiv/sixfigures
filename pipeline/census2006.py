@@ -5,7 +5,7 @@ pipeline/census/da_2006.csv (each 2006 DA's neighbourhood), pipeline/census/nbhd
 
     python pipeline/census2006.py
 
-Inputs: pipeline/out/toronto_profile_2006.csv (profile2006.py, which needs pyivt) and two
+Inputs: pipeline/extracts/toronto_profile_2006.csv (profile2006.py, which needs pyivt) and two
 files from www12.statcan.gc.ca in pipeline/raw (download.py lists them; its bot challenge
 usually means a browser download):
   gda_000a06a_e.zip                 2006 DA boundary file, digital (the cartographic one,
@@ -45,6 +45,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+import extracts
 import insights
 from build import assign_neighbourhoods
 from measures import COMPARABLE_2006, INCOME_GROUPS_2006, MEASURES
@@ -52,7 +53,7 @@ from measures import COMPARABLE_2006, INCOME_GROUPS_2006, MEASURES
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
 OUT = HERE / "census"
-PROFILE = HERE / "out" / "toronto_profile_2006.csv"
+PROFILE = extracts.path("toronto_profile_2006.csv")
 BOUNDARY_ZIP = RAW / "gda_000a06a_e.zip"
 CORR_ZIP = RAW / "2011_92-156_DALand_ADsup_txt.zip"
 CORR_TXT = "2011_92-156_DAland_ADsup.txt"
@@ -145,7 +146,7 @@ def corr(a: pd.Series, b: pd.Series) -> dict:
 
 def main():
     if not PROFILE.exists():
-        sys.exit(f"{PROFILE} missing: run pipeline/profile2006.py (needs pyivt)")
+        sys.exit(f"{PROFILE} missing: restore it (git checkout -- pipeline/extracts) or run pipeline/profile2006.py (needs pyivt)")
     for f in (BOUNDARY_ZIP, CORR_ZIP):
         if not f.exists():
             sys.exit(f"{f.name} missing: run pipeline/download.py, which prints its URL if StatCan blocks the script")

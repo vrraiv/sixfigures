@@ -5,10 +5,13 @@ import { $, COLORS, DIVERGING, escapeHTML } from "./catalogue.js";
 
 // ---- tooltip shared by every chart: any element with data-tip -----------------
 // With a mouse the tip follows the pointer and goes when it leaves. A touch has no hover: a tap
-// shows the tip at the finger and it stays until the next tap elsewhere or a scroll.
+// shows the tip at the finger and it stays until the next tap elsewhere or a scroll. From the
+// keyboard, a control that carries a tip shows it above itself while it has the focus, and
+// Escape puts it away.
 export function initTip() {
   const tip = $("tip");
   let held = false; // shown by a touch
+  watchScrollers();
   const place = (e) => {
     const pad = 12, w = tip.offsetWidth, h = tip.offsetHeight;
     const x = Math.max(8, Math.min(e.clientX + pad, innerWidth - w - 8)), y = e.clientY - h - pad < 8 ? e.clientY + pad : e.clientY - h - pad;
@@ -39,15 +42,86 @@ export function initTip() {
   addEventListener("scroll", () => {
     if (held) { held = false; tip.hidden = true; }
   }, { passive: true });
+  document.addEventListener("focusin", (e) => {
+    const t = e.target.closest?.("[data-tip]");
+    if (!t || !t.matches(":focus-visible")) return;
+    const r = t.getBoundingClientRect();
+    show(t, { clientX: r.left + r.width / 2, clientY: r.top });
+  });
+  document.addEventListener("focusout", (e) => {
+    if (e.target.closest?.("[data-tip]") && !held) tip.hidden = true;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !tip.hidden) { held = false; tip.hidden = true; }
+  });
+}
+
+// ---- tables wider than the page ---------------------------------------------------
+// A table that scrolls sideways (or, in a tall list, down) inside its wrapper can be scrolled
+// with the arrow keys only if the wrapper takes the focus. It does while it overflows, named
+// after its section's heading, and not otherwise: no extra tab stop on a wide screen.
+function watchScrollers() {
+  if (!("ResizeObserver" in window)) return;
+  const check = (el) => {
+    const scrolls = el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
+    if (scrolls === el.hasAttribute("tabindex")) return;
+    if (!scrolls) return ["tabindex", "role", "aria-label"].forEach((a) => el.removeAttribute(a));
+    const heading = el.closest("section, .sub, div:has(> h3)")?.querySelector("h2, h3")?.textContent.trim();
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "group");
+    el.setAttribute("aria-label", `${heading ? `${heading}: ` : ""}table, scrolls`);
+  };
+  const ro = new ResizeObserver((entries) => entries.forEach((e) => check(e.target.closest(".tbl-wrap"))));
+  for (const el of document.querySelectorAll(".tbl-wrap")) {
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild); // the table grows when it is filled in
+  }
 }
 
 // ---- segmented controls ---------------------------------------------------------
+// Called again on every render: the buttons are rebuilt only when the choices change, so the one
+// just pressed keeps the focus.
+const segItems = new WeakMap();
 export function seg(el, items, current, onPick) {
-  el.innerHTML = items.map(([key, label]) => `<button type="button" data-k="${key}" aria-pressed="${key === current}">${label}</button>`).join("");
+  const sig = JSON.stringify(items);
+  if (segItems.get(el) !== sig || !el.firstElementChild) {
+    el.innerHTML = items.map(([key, label]) => `<button type="button" data-k="${key}" aria-pressed="${key === current}">${label}</button>`).join("");
+    segItems.set(el, sig);
+  } else {
+    for (const b of el.children) b.setAttribute("aria-pressed", String(b.dataset.k === String(current)));
+  }
   el.onclick = (e) => {
     const b = e.target.closest("button");
     if (b) onPick(b.dataset.k);
   };
+}
+
+// ---- text on a coloured cell --------------------------------------------------------
+const INK = "#1a1a19";
+const channels = (hex) => [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16));
+const luminance = (hex) => {
+  const [r, g, b] = channels(hex).map((c) => c / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+export const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+const mix = (hex, to, t) => `#${channels(hex).map((c, k) => Math.round(c + (channels(to)[k] - c) * t).toString(16).padStart(2, "0")).join("")}`;
+// Dark or white text on a fill ("#rrggbb"), whichever reads better.
+export const inkOn = (fill) => (contrast(INK, fill) >= contrast("#ffffff", fill) ? INK : "#fff");
+// The style of a table cell filled with a class colour: the fill and its text. A few mid-tones
+// (the fourth blue, the second red) sit just under 4.5:1 against both inks; the cell's fill is
+// then nudged toward the ink's opposite, a step too small to see beside the key, until it reads.
+const cellStyles = new Map();
+export function cellStyle(fill) {
+  if (!cellStyles.has(fill)) {
+    const ink = inkOn(fill), toward = ink === INK ? "#ffffff" : "#000000";
+    let bg = fill;
+    for (let t = 0.02; contrast(ink === INK ? INK : "#ffffff", bg) < 4.5 && t < 0.5; t += 0.02) bg = mix(fill, toward, t);
+    cellStyles.set(fill, `background:${bg};color:${ink}`);
+  }
+  return cellStyles.get(fill);
 }
 
 export const quantile = (sorted, q) => {

@@ -36,11 +36,6 @@ export function biKey({ xName, xRanges, xArrow, yName, yRanges, yArrow }) {
       <dt>${escapeHTML(yName)} (rows, bottom to top)</dt><dd>${yRanges.map(escapeHTML).join(" · ")}</dd></dl>`;
 }
 
-// Black or white text, whichever reads better on a fill colour ("#rrggbb").
-export function inkOn(hex) {
-  const [r, g, b] = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.36 ? "#1a1a19" : "#fff";
-}
 
 // The contents list at the top of a long page: a link to each visible section that has an id.
 export function buildToc(nav) {

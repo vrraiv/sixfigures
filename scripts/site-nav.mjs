@@ -62,6 +62,7 @@ export function siteHeader(path, mark = "/brand-map.svg") {
   const local = here?.pages ? `
       <nav class="site-local" aria-label="${here.label}"><span class="site-label">${here.label}</span>${here.pages.map((p) => link(p, p.href === path)).join("")}</nav>` : "";
   return `<header class="site">
+      <a class="skip" href="#page">Skip to the page</a>
       <a class="site-brand" href="/"><img class="site-mark" src="${mark}" width="58" height="42" alt="" /><span class="site-name"><span class="site-title">${SITE.title}</span><span class="site-sub">${SITE.sub}</span></span></a>
       <button type="button" class="site-menu" aria-expanded="false" aria-controls="site-nav">Menu</button>
       <nav class="site-nav" id="site-nav" aria-label="Site">${rows}
@@ -82,6 +83,12 @@ export function siteGuide() {
         </ul>
       </section>`).join("\n      ");
 }
+
+// Where the header's skip link lands: the page's own title and controls (its "bar"), or on a
+// page without one, its <main>. Either can take the focus, so the next Tab goes on from there.
+export const pageTarget = (html) => (html.includes('<section class="bar"')
+  ? html.replace('<section class="bar"', '<section id="page" tabindex="-1" class="bar"')
+  : html.replace(/<main(?![^>]*\bid=)/, '<main id="page" tabindex="-1"'));
 
 // The page's own title, then the site's.
 export const siteTitle = (html) => html.replace(/<title>([^<]*)<\/title>/, (_, t) => `<title>${t.includes(SITE.title) ? t : `${t} · ${SITE.title}`}</title>`);

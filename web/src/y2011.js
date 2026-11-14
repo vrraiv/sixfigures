@@ -101,6 +101,7 @@ function renderLegend() {
   }));
   items.push({ pattern: "hatch", label: `Suppressed (${stats.suppressed} DAs)` });
   $("legend-title").textContent = fromNHS(m) ? `${d.long}, ${refYear(m)} (2011 NHS)` : `${d.long}, ${YEAR} Census`;
+  map.getCanvas().setAttribute("aria-label", `Map of ${$("legend-title").textContent}, by dissemination area. ${MAP_KEYS}`);
   $("legend-items").innerHTML = items
     .map((it) => `<li><span class="swatch${it.pattern ? ` ${it.pattern}` : ""}"${it.color ? ` style="background:${it.color}"` : ""}></span>${it.label}</li>`)
     .join("");
@@ -202,6 +203,7 @@ tooltip.hidden = true;
 document.body.append(tooltip);
 
 let hover = null; // feature id
+const MAP_KEYS = "Arrow keys pan, plus and minus zoom, Enter opens the area at the centre, Escape closes it.";
 let current = null; // { dauid, lngLat } of the shown DA
 let detailsToken = 0; // bumped by each showDetails and by closeDetails: a stale load drops its result
 let selected = null; // feature id outlined in orange
@@ -359,7 +361,7 @@ async function openLinkedDA(dauid) {
 // ---- keyboard and screen readers -----------------------------------------------
 
 const canvas = map.getCanvas();
-canvas.setAttribute("aria-label", "Map of the 2011 Census by dissemination area. Arrow keys pan, plus and minus zoom, Enter opens the area at the centre, Escape closes it.");
+if (!canvas.hasAttribute("aria-label")) canvas.setAttribute("aria-label", `Map of the 2011 Census by dissemination area. ${MAP_KEYS}`);
 const live = $("map-live");
 const centreDA = () => map.queryRenderedFeatures([canvas.clientWidth / 2, canvas.clientHeight / 2], { layers: HIT.filter((l) => map.getLayer(l)) })[0] ?? null;
 const centreText = () => {

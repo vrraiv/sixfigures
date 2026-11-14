@@ -11,9 +11,9 @@
 // to 2006, and a picture of the neighbourhoods on the two axes that separate them most.
 import "./style.css";
 import { $, COLORS, escapeHTML, ordinal, sign } from "./catalogue.js";
-import { chart, initTip, seg } from "./charts.js";
+import { cellStyle, chart, initTip, seg } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
-import { buildToc, inkOn, nbMap } from "./nbtools.js";
+import { buildToc, nbMap } from "./nbtools.js";
 import { fmt, lc } from "./units.js";
 
 const D = await fetch(`/neighbourhoods.json?v=${__NEIGHBOURHOODS_VERSION__}`).then((r) => r.json());
@@ -207,7 +207,7 @@ function renderAll() {
   const s = cols.indexOf(S.sort), order = ordered(rows[s < 0 ? 0 : s]);
   const rest = nbhd.map((_, j) => j).filter((j) => j !== i && !order.includes(j)); // no figure in the sort column
   const head = cols.map((c, k) => `<th${c !== "all" && S.off.has(c) ? ' class="nx-off"' : ""}><button type="button" data-sort="${c}" aria-pressed="${k === (s < 0 ? 0 : s)}">${c === "all" ? "Overall" : escapeHTML(THEME[c].label)}</button></th>`).join("");
-  const cell = (v) => (v == null ? '<td class="none">—</td>' : `<td style="background:${shade(v)};color:${inkOn(shade(v))}">${show(v)}</td>`);
+  const cell = (v) => (v == null ? '<td class="none">—</td>' : `<td style="${cellStyle(shade(v))}">${show(v)}</td>`);
   $("all-table").innerHTML = `<thead><tr><th>#</th><th class="txt">Neighbourhood</th>${head}</tr></thead>
     <tbody>${[...order, ...rest].map((j, k) => `<tr${j === S.vs ? ' class="sel"' : ""}><td>${k + 1}</td><th><button type="button" class="nm nx-nm" data-vs="${j}">${dot(j)}${nameOf(j)}</button></th>${rows.map((r) => cell(r[j])).join("")}</tr>`).join("")}</tbody>`;
 }
@@ -221,7 +221,7 @@ function renderThemes() {
   $("theme-table").innerHTML = `<thead><tr><th>Theme</th><th class="txt">Closest on it</th><th class="txt">Furthest</th>${v == null ? "" : `<th>${nameOf(v)}</th>`}</tr></thead>
     <tbody>${D.themes.map((t) => {
       const a = row(t.key, i), order = ordered(a), off = S.off.has(t.key);
-      const pair = v == null ? "" : a[v] == null ? '<td class="none">—</td>' : `<td class="nx-heat" style="background:${shade(a[v])};color:${inkOn(shade(a[v]))}">${show(a[v])}</td>`;
+      const pair = v == null ? "" : a[v] == null ? '<td class="none">—</td>' : `<td class="nx-heat" style="${cellStyle(shade(a[v]))}">${show(a[v])}</td>`;
       return `<tr${t.key === S.by ? ' class="sel"' : ""}><th><button type="button" class="nx-link" data-by="${t.key}">${escapeHTML(t.label)}</button><span class="small">${t.measures.length} measures${off ? " · not counted" : ""}</span></th>
         ${order.length ? `<td class="txt nx-names">${order.slice(0, 3).map((j) => who(a, j)).join("<br>")}</td><td class="txt nx-names">${who(a, order.at(-1))}</td>` : '<td class="txt none" colspan="2">No figures for this neighbourhood</td>'}${pair}</tr>`;
     }).join("")}</tbody>`;
@@ -251,7 +251,7 @@ function renderSide() {
         <span class="nx-track"><i class="nx-mid"></i>${pa == null || pb == null ? "" : `<i class="nx-span" style="left:${Math.min(pa, pb)}%;width:${Math.abs(pa - pb)}%"></i>`}${pb == null ? "" : `<i class="nx-dot b" style="left:${pb}%"></i>`}${pa == null ? "" : `<i class="nx-dot a" style="left:${pa}%"></i>`}</span>
         <span class="nx-v b">${escapeHTML(fmt(m, m.values[v]))}</span></div>`;
     }).join("");
-    return `<div class="nx-theme${off ? " off" : ""}"><h3 class="nx-theme-h"><span>${escapeHTML(t.label)}</span>${x == null ? "" : `<span class="nx-aff" style="background:${shade(x)};color:${inkOn(shade(x))}" data-tip="Affinity on ${escapeHTML(lc(t.label))}: ${show(x)} out of 100">${show(x)}</span>`}${off ? '<span class="small">not counted</span>' : ""}</h3>${rows}</div>`;
+    return `<div class="nx-theme${off ? " off" : ""}"><h3 class="nx-theme-h"><span>${escapeHTML(t.label)}</span>${x == null ? "" : `<span class="nx-aff" style="${cellStyle(shade(x))}" data-tip="Affinity on ${escapeHTML(lc(t.label))}: ${show(x)} out of 100">${show(x)}</span>`}${off ? '<span class="small">not counted</span>' : ""}</h3>${rows}</div>`;
   }).join("");
 }
 

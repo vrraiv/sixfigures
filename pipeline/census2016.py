@@ -15,6 +15,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
+import extracts
 from measures import CHARS_2016, MEASURES, derive_city_shares, derive_shares, null_unpublished, targets
 
 HERE = Path(__file__).parent
@@ -26,7 +27,7 @@ PROFILE_CSV = "98-401-X2016044_ONTARIO_English_CSV_data.csv"
 BOUNDARY = f"zip://{(RAW / 'lda_000b16a_e.zip').as_posix()}!lda_000b16a_e.shp"
 CORR_ZIP = RAW / "2021_92-156-X_DALand_ADsup.zip"
 CORR_CSV = "2021_92-156-X_DAland_ADsup/2021_92-156-X_DAland_ADsup.csv"
-EXTRACT = OUT / "toronto_profile_2016_long.csv"
+EXTRACT = extracts.path("toronto_profile_2016_long.csv")
 
 TORONTO_CSD = "3520005"
 EXPECTED_DAS = 3702  # Toronto 2016 DAs referenced by the correspondence file
@@ -42,13 +43,16 @@ REL_SAME, REL_SPLIT, REL_MANY = 1, 3, 4
 
 
 def extract() -> pd.DataFrame:
-    if EXTRACT.exists() and EXTRACT.stat().st_mtime > PROFILE_ZIP.stat().st_mtime:
+    """Toronto's rows of the profile: the extract kept in the repository (extracts.py) if it
+    holds every characteristic measures.py names, else streamed from the profile and kept."""
+    if EXTRACT.exists():
         long = pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
-        # a cache from before a characteristic was added to measures.py is stale
+        # an extract from before a characteristic was added to measures.py is stale
         if set(TARGETS) <= set(zip(long.MEMBER_ID, long.NAME)):
-            print(f"using cached {EXTRACT.name}")
+            print(f"using {EXTRACT.name}")
             return long
         print(f"{EXTRACT.name} lacks some characteristics in measures.py")
+    extracts.need_raw(PROFILE_ZIP, EXTRACT)
     print(f"streaming {PROFILE_CSV} (several minutes) ...")
     kept, total = [], 0
     with zipfile.ZipFile(PROFILE_ZIP) as z, z.open(PROFILE_CSV) as f:
@@ -62,13 +66,14 @@ def extract() -> pd.DataFrame:
     assert cols[1] == "GEO_CODE (POR)" and cols[11].startswith("Dim: Sex (3): Member ID: [1]: Total"), cols
     rows = csv.reader(io.StringIO(b"".join(kept).decode("utf-8")))
     out = [(r[1], r[2], r[7], r[9], r[8].strip(), r[11]) for r in rows if (r[9], r[8].strip()) in TARGETS]
-    OUT.mkdir(exist_ok=True)
+    EXTRACT.parent.mkdir(exist_ok=True)
     pd.DataFrame(out, columns=["GEO_CODE", "GEO_LEVEL", "ALT_GEO_CODE", "MEMBER_ID", "NAME", "VALUE"]).to_csv(EXTRACT, index=False)
     return pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
 
 
-def load_2016(keep_counts: bool = False):
-    """Returns (gdf of 2016 Toronto DAs with values, city-wide CSD values)."""
+def load_table(keep_counts: bool = False) -> tuple[pd.DataFrame, pd.Series]:
+    """The 2016 values by DAUID and the city-wide CSD values, from the extract alone: what
+    insights.py aggregates, with no boundary file."""
     long = extract()
     print("\n2016 matched characteristics (Member ID: name):")
     found = set(zip(long.MEMBER_ID, long.NAME))
@@ -90,7 +95,12 @@ def load_2016(keep_counts: bool = False):
     wide.index.name = "DAUID"
     if len(wide) != EXPECTED_DAS:
         sys.exit(f"2016 DA count {len(wide)} != {EXPECTED_DAS}")
+    return wide, csd
 
+
+def load_2016(keep_counts: bool = False):
+    """Returns (gdf of 2016 Toronto DAs with values, city-wide CSD values)."""
+    wide, csd = load_table(keep_counts)
     # the where-clause field must be among the columns read, or pyogrio returns nothing
     gdf = gpd.read_file(BOUNDARY, engine="pyogrio", where=f"CSDUID = '{TORONTO_CSD}'", columns=["DAUID", "CSDUID"])[["DAUID", "geometry"]]
     if set(gdf.DAUID) != set(wide.index):

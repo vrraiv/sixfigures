@@ -4,7 +4,7 @@
 // insights.json. Charts are inline SVG and HTML, as on the Census Insights page.
 import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign } from "./catalogue.js";
-import { fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
+import { cellStyle, fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
 
 const [D, census] = await Promise.all([
   fetch(`/schools.json?v=${__SCHOOLS_VERSION__}`).then((r) => r.json()),
@@ -144,10 +144,11 @@ function renderCards() {
   const last = YEARS.at(-1), first = YEARS[0];
   $("cards").innerHTML = MEASURES.map((m) => {
     const now = city(m, last);
-    const aria = `${NAMES[m]}: ${YEARS.map((y) => `${y} ${fmt(city(m, y))}`).join(", ")}`;
-    return `<button type="button" class="card" data-m="${m}" aria-pressed="${m === state.m}" aria-label="${escapeHTML(aria)}">
+    const aria = YEARS.map((y) => `${y} ${fmt(city(m, y))}`).join(", ");
+    return `<button type="button" class="card" data-m="${m}" aria-pressed="${m === state.m}">
       <span class="card-name">${NAMES[m]}</span>
       <span class="card-value">${fmt(now)}</span>
+      <span class="visually-hidden">; by year: ${escapeHTML(aria)};</span>
       ${sparkline(m)}
       <span class="card-years"><span>${first}</span><span>${last}</span></span>
       <span class="card-delta">${fmtD(now - city(m, first))} since ${first}</span>
@@ -359,10 +360,10 @@ const R_STEPS = [0.5, 0.6, 0.7, 0.8, 0.9];
 const rCell = (v, tip) => {
   if (!v) return `<td class="none">—</td>`;
   const k = R_STEPS.filter((e) => v.r >= e).length;
-  return `<td style="background:${COLORS[k]};color:${k >= 3 ? "#fff" : INK}" data-tip="${escapeHTML(`${tip}: <b>${fmtR(v.r)}</b> across ${v.n}`)}">${fmtR(v.r)}</td>`;
+  return `<td style="${cellStyle(COLORS[k])}" data-tip="${escapeHTML(`${tip}: <b>${fmtR(v.r)}</b> across ${v.n}`)}">${fmtR(v.r)}</td>`;
 };
 function rMatrix(get, what) {
-  const head = `<tr><th></th>${YEARS.slice(0, -1).map((y) => `<th>${yLabel(y)}</th>`).join("")}</tr>`;
+  const head = `<tr><th><span class="visually-hidden">Later year</span></th>${YEARS.slice(0, -1).map((y) => `<th>${yLabel(y)}</th>`).join("")}</tr>`;
   const rows = YEARS.slice(1).map((b, j) => `<tr><th>${yLabel(b)}</th>${YEARS.slice(0, -1).map((a, i) => (i <= j ? rCell(pearson(get(a), get(b)), `${what}, ${a} and ${b}`) : `<td class="blank"></td>`)).join("")}</tr>`).join("");
   return `<thead>${head}</thead><tbody>${rows}</tbody>`;
 }
@@ -465,8 +466,7 @@ function renderCorr() {
     + keys.map((k) => `<tr><th>${label(k)}</th>${YEARS.map((y) => {
       const v = pearson(sv(m, y), demo(k, y));
       if (!v) return `<td class="none">—</td>`;
-      const dark = Math.abs(v.r) >= 0.6;
-      return `<td class="pickable${`s:${k}` === state.sx && y === state.y ? " pick" : ""}" data-x="s:${k}" data-y="${y}" style="background:${rColor(v.r)};color:${dark ? "#fff" : INK}" data-tip="${escapeHTML(`${NAMES[m]} and ${label(k).toLowerCase()}, ${y}: <b>${fmtR(v.r)}</b> across ${v.n} schools`)}">${fmtR(v.r)}</td>`;
+      return `<td class="pickable${`s:${k}` === state.sx && y === state.y ? " pick" : ""}" data-x="s:${k}" data-y="${y}" style="${cellStyle(rColor(v.r))}" data-tip="${escapeHTML(`${NAMES[m]} and ${label(k).toLowerCase()}, ${y}: <b>${fmtR(v.r)}</b> across ${v.n} schools`)}">${fmtR(v.r)}</td>`;
     }).join("")}</tr>`).join("") + "</tbody>";
   $("corr-lede").innerHTML = `The correlation (Pearson r) across schools between each school's ${NAMES[m].toLowerCase()} and the Ministry's figures on its students, in each test year's file. Choose a cell to see its schools below.`;
   $("corr-note").innerHTML = `The low-income and parents-without-a-degree shares are Statistics Canada census figures for the areas where students live, not counts of students; their distribution changes from the 2022-23 file (test year 2023) on. The other shares are reported by the schools.`;
@@ -556,7 +556,7 @@ function renderList() {
   if (f) rows = rows.filter((r) => r.name.toLowerCase().includes(f) || r.nbhd.toLowerCase().includes(f));
   const { k, dir } = state.sort;
   rows.sort((a, b) => (a[k] == null) - (b[k] == null) || (typeof a[k] === "string" ? a[k].localeCompare(b[k]) : a[k] - b[k]) * dir);
-  const head = `<tr>${COLS.map(([c, t]) => `<th class="${[c === state.y ? "sel" : "", ["name", "type", "nbhd"].includes(c) ? "txt" : ""].join(" ").trim()}"><button type="button" data-k="${c}" aria-sort="${c === k ? (dir > 0 ? "ascending" : "descending") : "none"}">${t}${c === k ? (dir > 0 ? " ▲" : " ▼") : ""}</button></th>`).join("")}</tr>`;
+  const head = `<tr>${COLS.map(([c, t]) => `<th class="${[c === state.y ? "sel" : "", ["name", "type", "nbhd"].includes(c) ? "txt" : ""].join(" ").trim()}" aria-sort="${c === k ? (dir > 0 ? "ascending" : "descending") : "none"}"><button type="button" data-k="${c}">${t}${c === k ? (dir > 0 ? " ▲" : " ▼") : ""}</button></th>`).join("")}</tr>`;
   const body = rows.map((r) => `<tr><th>${escapeHTML(r.name)}</th><td>${r.type}</td><td class="txt">${escapeHTML(r.nbhd)}</td><td>${fmtCount(r.enrol)}</td>`
     + YEARS.map((y) => `<td class="${y === state.y ? "sel" : ""}">${r[y] == null ? "—" : r[y].toFixed(1)}</td>`).join("")
     + `<td>${r.change == null ? "—" : fmtD(r.change)}</td></tr>`).join("");

@@ -3,7 +3,7 @@
 // pattern, the correlation over time, change against change, leads and lags, and the two
 // spreads side by side. Sections that need a history say so when a measure has none.
 import { $, COLORS, escapeHTML } from "./catalogue.js";
-import { fmtR, pearson, quantile, rColor } from "./charts.js";
+import { cellStyle, fmtR, pearson, quantile, rColor } from "./charts.js";
 import { BI, biKey, breaks, cls, fitLine, incomeFifths, rangeLabels, scatter } from "./nbtools.js";
 import { INK, S, fmt, fmtAxis, fmtDiff, fmtDiffAxis, histHTML, lc, mapSVG, named, nbhd, nearest, pctOrd, pctRank, rho, sorted, strength, vals, whenOf } from "./explorer-core.js";
 
@@ -65,7 +65,7 @@ function renderFifths() {
   const head = fifths.map((g, q) => `<th>${names[q]}<br><span class="small">${fmtAxis(a.d, Math.min(...g.map((i) => xs[i])))}–${fmtAxis(a.d, Math.max(...g.map((i) => xs[i])))}</span></th>`).join("");
   const row = (label, f) => `<tr><th>${label}</th>${fifths.map((g, q) => f(g, q)).join("")}</tr>`;
   $("t-fifths").innerHTML = `<thead><tr><th>By ${escapeHTML(lc(a.d.short))}</th>${head}</tr></thead><tbody>
-    ${row(`Median ${escapeHTML(lc(b.d.short))}`, (g, q) => `<td style="background:${shade(med[q])};color:${order.indexOf(med[q]) >= 2 ? "#fff" : INK}"><b>${fmt(b.d, med[q])}</b></td>`)}
+    ${row(`Median ${escapeHTML(lc(b.d.short))}`, (g, q) => `<td style="${cellStyle(shade(med[q]))}"><b>${fmt(b.d, med[q])}</b></td>`)}
     ${row("Middle half", (g) => { const s = sorted(g.map((i) => ys[i])); return `<td>${fmtAxis(b.d, quantile(s, 0.25))} to ${fmtAxis(b.d, quantile(s, 0.75))}</td>`; })}
     ${row("Neighbourhoods", (g) => `<td>${g.length}</td>`)}</tbody>`;
   const rising = med.every((v, k) => k === 0 || v >= med[k - 1]), falling = med.every((v, k) => k === 0 || v <= med[k - 1]);

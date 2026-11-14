@@ -32,11 +32,17 @@ for (const f of files) {
 }
 const [heavy, heavyBytes] = Object.entries(zooms).sort((a, b) => b[1] - a[1])[0] ?? [null, 0];
 const z10 = zooms[10] ?? 0;
-// Loaded before the map draws: the page, its CSS and JS (but not the lazy search
-// chunk), the MapLibre worker, breaks.json, the opening view's figures and the zoom-10 tiles.
-const first = size(/^(census\/index\.html|breaks\.json|data\/figures\/2021\/(common|med_hh_tot)\.json|assets\/(?!(home|about|2011|insights|schools|housing|prices|charts|search|diag)-).*)$/) + z10;
+// Loaded before the census map draws: the page, the scripts and styles it names (its entry and
+// the chunks it preloads, so not the lazy search and diagnostics chunks or another page's),
+// the MapLibre worker, breaks.json, the opening view's figures and the zoom-10 DA tiles. The
+// street map's own tiles and label fonts come on top of this.
+const page = readFileSync("web/dist/census/index.html", "utf8");
+const named = new Set([...page.matchAll(/(?:src|href)="\/(assets\/[^"]+)"/g)].map((m) => m[1]));
+if (!named.size) throw new Error("web/dist/census/index.html names no assets: has the build's layout changed?");
+const first = files.filter((f) => named.has(f.path) || /^assets\/maplibre-gl-worker-/.test(f.path)).reduce((a, f) => a + f.size, 0)
+  + size(/^(census\/index\.html|breaks\.json|data\/figures\/2021\/(common|med_hh_tot)\.json)$/) + z10;
 const total = files.reduce((a, f) => a + f.size, 0);
-console.log(`2021 tiles: heaviest zoom (z${heavy}) ${mb(heavyBytes)} MB of ${mb(ZOOM_LIMIT)} MB budget; first load ~${mb(first)} MB; deploying ${mb(total)} MB in ${files.length} files`);
+console.log(`2021 tiles: heaviest zoom (z${heavy}) ${mb(heavyBytes)} MB of ${mb(ZOOM_LIMIT)} MB budget; census map's first load ~${mb(first)} MB before the street map; deploying ${mb(total)} MB in ${files.length} files`);
 
 const errors = [];
 if (!heavyBytes) errors.push("web/dist/tiles/da-* is missing.");

@@ -364,12 +364,15 @@ def cmhc() -> list:
     return missing
 
 
-def fetch(url: str, dest: Path, magic: bytes, attempts: int = 1) -> bool:
-    """Stream url to dest only if the body starts with `magic`."""
+def fetch(url: str, dest: Path, magic: bytes, attempts: int = 1, errors: list | None = None, wait: int = 15) -> bool:
+    """Stream url to dest only if the body starts with `magic` and all of it arrives: a
+    connection dropped partway ends the read early without an error, so the bytes written are
+    checked against the Content-Length. Each attempt's exception is added to `errors`, for a
+    caller that needs to tell "not there" (HTTP 404) from "couldn't reach it"."""
     tmp = dest.with_name(dest.name + ".part")
     for i in range(attempts):
         if i:
-            time.sleep(15 * i)
+            time.sleep(wait * i)
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
@@ -379,10 +382,15 @@ def fetch(url: str, dest: Path, magic: bytes, attempts: int = 1) -> bool:
                     continue
                 f.write(head)
                 shutil.copyfileobj(r, f, 1 << 20)
+                declared, got = r.headers.get("Content-Length"), f.tell()
+            if declared and declared.isdigit() and int(declared) != got:
+                raise OSError(f"incomplete: {got:,} of {int(declared):,} bytes")
             tmp.replace(dest)
             return True
         except Exception as e:  # 403 bot challenge, 504 gateway timeout, resets
             print(f"  attempt {i + 1} failed: {e}")
+            if errors is not None:
+                errors.append(e)
         finally:
             tmp.unlink(missing_ok=True)
     return False
@@ -461,31 +469,39 @@ def last_complete_quarter(today: time.struct_time) -> tuple[int, int]:
     return (today.tm_year, q) if q else (today.tm_year - 1, 4)
 
 
-def trreb() -> list[str]:
+def trreb() -> tuple[list[str], list]:
     """Fetch TRREB's three regional reports for each finished quarter after the last one in
-    community.csv, stopping at the first quarter not posted yet. Returns the quarters fetched."""
+    community.csv, stopping at the first quarter not posted yet. Returns the quarters fetched,
+    and (name, address) of any report that couldn't be fetched for another reason. TRREB answers
+    404 for a report it hasn't posted; anything else (a moved address, a block, an outage) is a
+    failure, so a refresh that can no longer reach the reports doesn't pass as "nothing new"."""
     with open(TRREB_DONE, newline="") as f:
         y, q = max((int(r["year"]), int(r["q"])) for r in csv.DictReader(f))
     end = last_complete_quarter(time.localtime())
     TRREB_DIR.mkdir(parents=True, exist_ok=True)
-    got = []
+    got, failed = [], []
     while True:
         y, q = (y + 1, 1) if q == 4 else (y, q + 1)
         if (y, q) > end:
             break
         files = {r: TRREB_DIR / f"Toronto{r}Q{q}{y}.pdf" for r in TRREB_REGIONS}
+        errors = []
         ok = all((f.exists() and f.open("rb").read(4) == b"%PDF")
-                 or fetch(TRREB_URL.format(y=y, q=q, r=r), f, b"%PDF", attempts=2) for r, f in files.items())
+                 or fetch(TRREB_URL.format(y=y, q=q, r=r), f, b"%PDF", attempts=2, errors=errors) for r, f in files.items())
         if not ok:  # a quarter needs all three regions
             for f in files.values():
                 f.unlink(missing_ok=True)
-            print(f"wait    TRREB {y} Q{q}: not posted yet (if the error above is a 404)")
+            if errors and all(isinstance(e, urllib.error.HTTPError) and e.code == 404 for e in errors):
+                print(f"wait    TRREB {y} Q{q}: not posted yet")
+            else:
+                print(f"FAILED  TRREB {y} Q{q}: not a 404, so not simply \"not posted yet\"")
+                failed.append((f"TRREB {y} Q{q}", TRREB_URL.format(y=y, q=q, r=TRREB_REGIONS[0])))
             break
         print(f"ok      TRREB {y} Q{q}")
         got.append(f"{y} Q{q}")
-    if not got:
+    if not got and not failed:
         print("TRREB: no new quarter")
-    return got
+    return got, failed
 
 
 def insideairbnb_new() -> list[str]:
@@ -639,7 +655,7 @@ if __name__ == "__main__":
     if a.toronto:
         failed += toronto(a.toronto, a.fresh)
     if a.trreb:
-        trreb()  # a quarter not posted yet isn't a failure
+        failed += trreb()[1]  # a quarter not posted yet (a 404) isn't a failure; anything else is
     if a.insideairbnb:
         insideairbnb_new()
         failed += insideairbnb()

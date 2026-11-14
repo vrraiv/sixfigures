@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { DISCLAIMER, META, ROWS, SOCIAL, allPages, pagePath, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle } from "./site-nav.mjs";
+import { DISCLAIMER, META, ROWS, SOCIAL, allPages, pagePath, pageTarget, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle } from "./site-nav.mjs";
 
 const inputs = [...readFileSync("vite.config.js", "utf8").matchAll(/"(web\/[^"]*index\.html)"/g)].map((m) => pagePath(m[1].replace(/^web/, "")));
 
@@ -67,5 +67,26 @@ test("every page's footer opens with the disclaimer and closes with the three li
     assert.equal((f.match(/class="social"/g) ?? []).length, 1, p);
     assert.ok(foot.trimEnd().endsWith("</p>") && foot.lastIndexOf('class="social"') > foot.lastIndexOf('class="downloads"'), p);
     for (const s of SOCIAL) assert.ok(f.includes(`href="${s.href}"`), `${p} ${s.name}`);
+  }
+});
+
+test("the header starts with a skip link, and every page has the place it lands", () => {
+  for (const p of inputs) {
+    const header = siteHeader(p);
+    // the first link in the header, so the first thing the Tab key reaches
+    assert.equal(header.match(/<a [^>]*>/)[0], '<a class="skip" href="#page">', p);
+    const html = pageTarget(readFileSync(`web${p}index.html`, "utf8"));
+    assert.equal((html.match(/id="page"/g) ?? []).length, 1, p);
+    assert.match(html, /<(section|main) id="page" tabindex="-1"/, p);
+    // the page's title is at or after the landing place, never skipped
+    assert.ok(html.indexOf("<h1") > html.indexOf('id="page"'), p);
+  }
+});
+
+test("a page has one banner: its own title and controls are a named region, not a second header", () => {
+  for (const p of inputs) {
+    const html = readFileSync(`web${p}index.html`, "utf8");
+    assert.ok(!/<header\b/.test(html), p);
+    if (html.includes('class="bar"')) assert.match(html, /<section class="bar" aria-label="[^"]+">/, p);
   }
 });

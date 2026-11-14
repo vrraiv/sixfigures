@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 
 import census2016
+import extracts
 from distributions import add_distributions
 from exports import write_csvs
 from figures import GEOMETRY, write_figures
@@ -38,7 +39,7 @@ WEB = HERE.parent / "web" / "public"
 PROFILE_ZIP = RAW / "98-401-X2021006_Ontario_eng_CSV.zip"
 PROFILE_CSV = "98-401-X2021006_English_CSV_data_Ontario.csv"
 BOUNDARY = f"zip://{(RAW / 'lda_000b21a_e.zip').as_posix()}!lda_000b21a_e.shp"
-EXTRACT = OUT / "toronto_profile_long.csv"
+EXTRACT = extracts.path("toronto_profile_long.csv")
 NEIGHBOURHOODS = RAW / "toronto_neighbourhoods_4326.geojson"
 METRIC_CRS = 2952  # NAD83(CSRS) / MTM zone 10, the City of Toronto's projection
 
@@ -56,14 +57,16 @@ NAME_BYTES = [n.encode("latin-1") for _, n in TARGETS]
 
 
 def extract() -> pd.DataFrame:
-    """Stream the profile once and cache the Toronto subset as a small CSV."""
-    if EXTRACT.exists() and EXTRACT.stat().st_mtime > PROFILE_ZIP.stat().st_mtime:
+    """Toronto's rows of the profile: the extract kept in the repository (extracts.py) if it
+    holds every characteristic measures.py names, else streamed from the profile and kept."""
+    if EXTRACT.exists():
         long = pd.read_csv(EXTRACT, dtype=str, keep_default_na=False)
-        # a cache from before a characteristic was added to measures.py is stale
+        # an extract from before a characteristic was added to measures.py is stale
         if set(TARGETS) <= set(zip(long.CHARACTERISTIC_ID, long.CHARACTERISTIC_NAME)):
-            print(f"using cached {EXTRACT.name}")
+            print(f"using {EXTRACT.name}")
             return long
         print(f"{EXTRACT.name} lacks some characteristics in measures.py")
+    extracts.need_raw(PROFILE_ZIP, EXTRACT)
     print(f"streaming {PROFILE_CSV} (several minutes) ...")
     kept, total = [], 0
     with zipfile.ZipFile(PROFILE_ZIP) as z, z.open(PROFILE_CSV) as f:
@@ -84,7 +87,7 @@ def extract() -> pd.DataFrame:
         if (r[8], r[9].strip()) in TARGETS
     ]
     assert cols[11] == "C1_COUNT_TOTAL" and cols[12] == "SYMBOL", cols
-    OUT.mkdir(exist_ok=True)
+    EXTRACT.parent.mkdir(exist_ok=True)
     pd.DataFrame(
         out,
         columns=["DGUID", "ALT_GEO_CODE", "GEO_LEVEL", "CHARACTERISTIC_ID",
