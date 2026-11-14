@@ -30,6 +30,7 @@ communities add to its total (TRREB's own totals are off by a sale or two at tim
 every community name maps; every one of the 158 neighbourhoods has a community.
 """
 import argparse
+import itertools
 import json
 import re
 import sys
@@ -145,16 +146,48 @@ def file_order(d: pd.DataFrame) -> pd.DataFrame:
     return d.sort_values(["district", "q", "year"], key=lambda c: c.str[0] if c.name == "district" else c, kind="stable")
 
 
+def known_names(nbhd: list[str]) -> set[str]:
+    return set(nbhd) | set(SPLITS) | set(RENAMES) | set(RENAMES.values())
+
+
+def resolve(n: str, known: set[str]) -> str | None:
+    """A name as TRREB prints it -> the known name it stands for: without a district
+    suffix, and completed where TRREB cut it short."""
+    n = SUFFIX.sub("", n).strip()
+    if n not in known:
+        full = [k for k in known if k.startswith(n)]
+        n = full[0] if len(full) == 1 else None
+    return n
+
+
+# Letter pairs a report's font can draw as one glyph. The 2026 Q3 reports' font has no text
+# for two of them, and they come out of the PDF as a NUL character: "Junc\x00on Area",
+# "Li\x00le Portugal".
+LIGATURES = ("ti", "tt", "fi", "fl", "ff", "ft", "th")
+
+
+def unligature(n: str, known: set[str]) -> str:
+    """A name with NUL characters where the PDF had ligatures, with the letters put back:
+    each NUL is tried as each pair, and the reading kept is the only one that is a known
+    name. Left as it is where none or several are, for the unmapped-names check to report."""
+    if "\x00" not in n:
+        return n
+    parts = n.split("\x00")
+    found = set()
+    for combo in itertools.product(LIGATURES, repeat=len(parts) - 1):
+        cand = "".join(p + c for p, c in zip(parts, combo)) + parts[-1]
+        if resolve(cand, known):
+            found.add(cand)
+    return found.pop() if len(found) == 1 else n
+
+
 def community_of(names: pd.Series, nbhd: list[str]) -> pd.Series:
     """TRREB's community name -> the City's name of before 2022. Drops a district
     suffix, completes names TRREB cut short, and applies RENAMES."""
-    known = set(nbhd) | set(SPLITS) | set(RENAMES) | set(RENAMES.values())
+    known = known_names(nbhd)
 
     def one(n: str) -> str | None:
-        n = SUFFIX.sub("", n).strip()
-        if n not in known:
-            full = [k for k in known if k.startswith(n)]
-            n = full[0] if len(full) == 1 else None
+        n = resolve(n, known)
         return RENAMES.get(n, n) if n else None
 
     return names.map(one)
@@ -176,6 +209,7 @@ def main(new: bool = False) -> int:
         sys.exit("sales times average doesn't match dollar volume")
     totals = d[d.name.str.match(DISTRICT.pattern)]
     d = d[~d.name.str.match(DISTRICT.pattern)].copy()
+    d["name"] = d.name.map(lambda n: unligature(n, known_names(nbhd)))
     d["community"] = community_of(d.name, nbhd)
     if d.community.isna().any():
         sys.exit(f"unmapped names: {sorted(d.name[d.community.isna()].unique())}")
