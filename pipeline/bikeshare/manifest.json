@@ -1,0 +1,75 @@
+{
+  "built": "2026-11-14",
+  "months": [
+    "2017-01",
+    "2026-09"
+  ],
+  "trips": 44122040,
+  "files": {
+    "toronto_bikeshare_2017.zip": 24484084,
+    "toronto_bikeshare_2018.zip": 34011563,
+    "toronto_bikeshare_2019.zip": 324112878,
+    "toronto_bikeshare_2020.zip": 389354150,
+    "toronto_bikeshare_2021.zip": 91552040,
+    "toronto_bikeshare_2022.zip": 117433457,
+    "toronto_bikeshare_2023.zip": 143338358,
+    "toronto_bikeshare_2024.zip": 206173633,
+    "toronto_bikeshare_2025.zip": 226611421,
+    "toronto_bikeshare_2026.zip": 204008141
+  },
+  "under_a_minute_left_out": {
+    "2017": 30050,
+    "2018": 0,
+    "2019": 18194,
+    "2020": 6381,
+    "2021": 11279,
+    "2022": 10155,
+    "2023": 12031,
+    "2024": 17782,
+    "2025": 19913,
+    "2026": 22655
+  },
+  "rows_without_a_readable_start_time": {
+    "2017": 0,
+    "2018": 0,
+    "2019": 0,
+    "2020": 249,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+  },
+  "unnumbered_trips_without_a_station": 271572,
+  "stations": {
+    "with_trips": 1204,
+    "located": 1163,
+    "listed_now": 1067,
+    "placed_by_intersection": 88
+  },
+  "share_of_starts_at_a_numbered_station": {
+    "2017": 0.8143,
+    "2018": 1.0,
+    "2019": 1.0,
+    "2020": 1.0,
+    "2021": 1.0,
+    "2022": 1.0,
+    "2023": 1.0,
+    "2024": 1.0,
+    "2025": 1.0,
+    "2026": 1.0
+  },
+  "share_of_station_starts_located": {
+    "2017": 0.9868,
+    "2018": 0.9811,
+    "2019": 0.9826,
+    "2020": 0.9841,
+    "2021": 0.9862,
+    "2022": 0.9851,
+    "2023": 0.9917,
+    "2024": 0.9994,
+    "2025": 0.9978,
+    "2026": 1.0
+  }
+}

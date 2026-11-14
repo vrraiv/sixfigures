@@ -613,6 +613,12 @@ body.doc { display: block; height: auto; }
 .seg-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .key-dot.hollow { background: var(--surface); border: 1.5px solid var(--ink-2); box-sizing: border-box; }
 .key-sq.hatch { background: repeating-linear-gradient(45deg, #f0f0ec 0 3px, #c9c9c3 3px 5px); }
+/* Stations over a neighbourhood map (Getting around): dots that let the pointer through to the shapes. */
+.measure-bar #month { flex: 0 0 auto; width: auto; }
+.toggle[hidden], .seg[hidden] { display: none; }
+.st-dots { pointer-events: none; }
+.st-dots circle { fill: #c2410c; fill-opacity: 0.6; stroke: #fff; stroke-width: 0.6; }
+.key-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; background: #c2410c; opacity: 0.75; }
 .key-line { display: inline-block; width: 2px; height: 12px; margin-right: 6px; vertical-align: -2px; background: var(--ink); }
 .sp-row.sel .sp-year { color: var(--ink); font-weight: 650; }
 /* year by year: lines in a stretched SVG, dots and labels in HTML */

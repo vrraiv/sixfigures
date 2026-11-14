@@ -1,0 +1,31 @@
+{
+  "built": "2026-11-14",
+  "ridehail": [
+    "2018-01",
+    "2026-07"
+  ],
+  "subway": [
+    "2014-01",
+    "2026-09"
+  ],
+  "counters": [
+    "2023-04",
+    "2026-07"
+  ],
+  "counter_sites": 4,
+  "files": {
+    "toronto_bicycle_counters_daily.csv": 6060658,
+    "toronto_bicycle_counters_locations.csv": 10952,
+    "toronto_ptc_summary.csv": 503868,
+    "toronto_subway_delays_2014_2017a.xlsx": 3700416,
+    "toronto_subway_delays_2017b.xlsx": 688838,
+    "toronto_subway_delays_2018.xlsx": 1087991,
+    "toronto_subway_delays_2019.xlsx": 1012697,
+    "toronto_subway_delays_2020.xlsx": 782670,
+    "toronto_subway_delays_2021.xlsx": 889437,
+    "toronto_subway_delays_2022.xlsx": 1087107,
+    "toronto_subway_delays_2023.xlsx": 1237103,
+    "toronto_subway_delays_2024.xlsx": 1423602,
+    "toronto_subway_delays_2025.csv": 3234026
+  }
+}

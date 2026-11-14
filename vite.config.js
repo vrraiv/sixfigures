@@ -49,6 +49,7 @@ export default defineConfig({
     __PRICES_VERSION__: JSON.stringify(version("web/public/prices.json")),
     __SAFETY_VERSION__: JSON.stringify(version("web/public/safety.json")),
     __TREES_VERSION__: JSON.stringify(version("web/public/trees.json")),
+    __TRANSPORT_VERSION__: JSON.stringify(version("web/public/transport.json")),
     __EXPLORER_VERSION__: JSON.stringify(versionAll("web/public/explorer")),
     __NEIGHBOURHOODS_VERSION__: JSON.stringify(version("web/public/neighbourhoods.json")),
     __TREES_DA_VERSION__: JSON.stringify(version("web/public/trees_da.json")),
@@ -59,10 +60,10 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Fifteen pages (each also listed in scripts/site-nav.mjs): / (the landing page) and /about/, /census/ (2016 and 2021), /2011/,
-    // the Insights pages /insights/ (census), /insights/schools/, /insights/housing/, /insights/prices/, /insights/safety/, /insights/trees/,
+    // Sixteen pages (each also listed in scripts/site-nav.mjs): / (the landing page) and /about/, /census/ (2016 and 2021), /2011/,
+    // the Insights pages /insights/ (census), /insights/schools/, /insights/housing/, /insights/prices/, /insights/safety/, /insights/trees/, /insights/transport/,
     // /insights/explorer/ and /insights/neighbourhoods/, and the Forecasts pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
-    rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
+    rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", transport: "web/insights/transport/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling", "Content-Security-Policy": readFileSync("web/public/_headers", "utf8").match(/Content-Security-Policy: (.*)/)[1] } },

@@ -344,6 +344,27 @@ canopy-change:
 trees-page:
 	$(PYTHON) pipeline/trees_insights.py
 
+# Getting around. `make bikeshare` fetches Bike Share's trip files (a year each, 1.8 GB in all;
+# a year already in pipeline/raw is kept, so delete the current year's to refresh it) and counts
+# them by station and month into pipeline/bikeshare/. `make transport` does the same for the
+# ride-hail summary, subway delays and bicycle counters, into pipeline/transport/. Both are
+# committed; `make transport-page` writes the page's transport.json from them, on any checkout.
+# (All of it for the latest months: `make refresh-transport`.)
+.PHONY: bikeshare transport transport-page refresh-transport
+bikeshare:
+	$(PYTHON) pipeline/download.py --toronto $(foreach y,2017 2018 2019 2020 2021 2022 2023 2024 2025 2026,toronto_bikeshare_$(y).zip) toronto_intersections_4326.csv toronto_neighbourhoods_4326.geojson
+	$(PYTHON) pipeline/bikeshare.py
+
+transport:
+	$(PYTHON) pipeline/download.py --toronto toronto_ptc_summary.csv toronto_bicycle_counters_daily.csv toronto_bicycle_counters_locations.csv toronto_subway_delays_2014_2017a.xlsx toronto_subway_delays_2017b.xlsx $(foreach y,2018 2019 2020 2021 2022 2023 2024,toronto_subway_delays_$(y).xlsx) toronto_subway_delays_2025.csv
+	$(PYTHON) pipeline/transport.py
+
+transport-page:
+	$(PYTHON) pipeline/transport_insights.py
+
+refresh-transport:
+	$(PYTHON) pipeline/data_refresh.py transport
+
 # The Data Explorer's catalogue and per-source data (web/public/explorer/), from the pages'
 # JSON files and pipeline/elections and pipeline/rentals. Run after any of them is rebuilt.
 .PHONY: explorer
