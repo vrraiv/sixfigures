@@ -42,7 +42,8 @@ function renderForecast() {
   drawMap($("nb-map"), $("map-key"), D, vals, (v) => `${Math.round(v)}%`, tip, `Map of the neighbourhoods by forecast ${name} score, ${L.target}`);
   $("map-lede").innerHTML = `Each neighbourhood's forecast ${name} score for ${L.target} (the ${schoolYear(L.target)} school year): the share of fully participating students at the provincial standard, as the mean of reading, writing and math, `
     + `averaged over its schools with their ${dashYear(L.enrolment)} enrolment. Ridge regression, fitted on every one-year change up to ${L.origin}, forecasts each school; the City's ${L.origin} level carries over. `
-    + `${L.nbhd.length} neighbourhoods have a school with a ${name} score in ${L.origin}; the rest are hatched. Made on 3 November 2026. Classes hold about equal numbers of neighbourhoods.`;
+    + `${L.nbhd.length} neighbourhoods have a school with a ${name} score in ${L.origin}; the rest are hatched. Made on 3 November 2026. Classes hold about equal numbers of neighbourhoods.`
+    + (L.implied_change == null ? "" : ` Taken together the forecasts sit ${Math.abs(L.implied_change).toFixed(1)} points ${L.implied_change >= 0 ? "above" : "below"} the same schools' ${L.origin} scores: the model forecasts where each school stands, not the City's level, and that small ${L.implied_change >= 0 ? "rise" : "fall"} comes from its arithmetic, not from a view that results will ${L.implied_change >= 0 ? "improve" : "decline"}. Read a neighbourhood's forecast against the others' rather than against its own last score.`);
   markPick();
   renderList();
   $("list-lede").innerHTML = `The bar is the 80% range: the forecast ± ${fmtPts(r.more, 1)} points, or ± ${fmtPts(r.one, 1)} where the neighbourhood has one school `

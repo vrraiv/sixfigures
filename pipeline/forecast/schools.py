@@ -298,7 +298,9 @@ def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> tuple[list[str], list
 def live(s: pd.DataFrame, census: dict, city: dict, B: dict, origin: int) -> None:
     """A live forecast of origin + 1 from origin (docs/forecast-spec.md): ridge fitted on
     every one-year transition to the origin, each school's and neighbourhood's figure,
-    and the range. Written once; a later run that differs is refused."""
+    and the range. Written once and never rewritten. A later run refits it from the inputs
+    as they are now, and says so where the result differs (a revised Ministry file, a library
+    update): the frozen forecast stands, and the rest of the run goes on."""
     LIVE.mkdir(exist_ok=True)
     sch, nbs = [], []
     print()
@@ -317,7 +319,8 @@ def live(s: pd.DataFrame, census: dict, city: dict, B: dict, origin: int) -> Non
     for f, text in files.items():
         if f.exists():  # frozen: never rewritten
             if f.read_text(encoding="utf-8").replace("\r\n", "\n") != text:
-                sys.exit(f"{f} is a frozen forecast and this run differs from it: not overwritten")
+                print(f"  WARNING: {f.name} is a frozen forecast and a refit from today's inputs differs from it. "
+                      f"It is kept as published; the inputs have changed since it was made.")
             continue
         f.write_text(text, encoding="utf-8", newline="\n")
     print(f"  {LIVE / f'schools_{origin + 1}.csv'} (neighbourhoods) and schools_{origin + 1}_schools.csv: written or unchanged")

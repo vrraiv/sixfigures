@@ -89,8 +89,8 @@ def r(v, k=2):
 def main() -> int:
     need = [INSIGHTS, *(MODEL / f for f in ("schools_scores.csv", "schools_predictions.csv", "schools_ranges.csv",
                                              "schools_covid.csv", "value_scores.csv", "value_range_backtest.csv",
-                                             "value_live.csv", f"schools_{LIVE_ORIGIN}_scored.csv")),
-            LIVE / f"schools_{LIVE_ORIGIN + 1}.csv"]
+                                             f"schools_{LIVE_ORIGIN}_scored.csv")),
+            LIVE / f"schools_{LIVE_ORIGIN + 1}.csv", LIVE / "value_2026.csv"]
     for f in need:
         if not f.exists():
             sys.exit(f"{f} is missing (make forecast)")
@@ -137,7 +137,13 @@ def main() -> int:
                        "schools": int(rg.second_schools), "frozen": int(rg.second_frozen), "nbhd": nb_rows(sb)},
             "covid": [{k: (r(v, 4) if isinstance(v, float) else v) for k, v in x.items() if k != "grade"}
                       for x in Cv[Cv.grade == g].to_dict("records")],
+            # What the neighbourhood forecasts add up to: the enrolment-weighted mean change they
+            # imply for the City. The model forecasts each school's standing and carries the City's
+            # level over, but the way back from the logit scale doesn't keep the mean, so the
+            # forecasts as a set rise a little. Published beside them rather than removed, since
+            # removing it cost skill on the holdout (docs/forecast-spec.md).
             "live": {"origin": LIVE_ORIGIN, "target": LIVE_ORIGIN + 1, "enrolment": ENROLMENT_YEAR,
+                     "implied_change": r(float(np.average(live.pred - live.score0, weights=live.enrol))),
                      "nbhd": [{"i": index[int(x.nbhd_id)], "n": int(x.n_schools), "score0": r(x.score0), "pred": r(x.pred),
                                "low": r(x.low), "high": r(x.high)} for x in live.itertuples()]},
         }
@@ -152,7 +158,7 @@ def main() -> int:
                      "forward_raw": get("forward", "mae_raw"), "reverse_raw": get("reverse", "mae_raw"),
                      "skill": r(f.loc["forward", "skill"], 4), "rho_change": get("forward", "rho_change")})
     B = pd.read_csv(MODEL / "value_range_backtest.csv")
-    Lv = pd.read_csv(MODEL / "value_live.csv")
+    Lv = pd.read_csv(LIVE / "value_2026.csv")  # frozen (forecast/value.py)
     city = insights["measures"]["value"]["city"]
     value = {
         "scores": rows,

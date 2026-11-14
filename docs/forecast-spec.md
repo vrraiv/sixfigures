@@ -649,8 +649,10 @@ written alongside (`mae_raw`).
   The 0.05 allows for the group's average shift (up to 0.047 seen) and the City
   nowcast's error.
 - **Dollars:** City times exp(ratio), rounded to the nearest $1,000.
-- **Output:** written to `pipeline/out/model/value_live.csv`. Not yet published on the
-  site.
+- **Output:** frozen in `pipeline/model/value_2026.csv` (since 13 November 2026, from the
+  table published on 3 November): written once and never rewritten, like the schools'
+  forecasts, with the 2026 window pinned to Q1 and Q2. A later run writes its own table to
+  `pipeline/out/model/value_live.csv` and says where it differs from the frozen one.
 
 ## Centred scores and the live table: first run (2026-11-01)
 
@@ -876,3 +878,21 @@ over. Written to `pipeline/model/schools_2027.csv` (neighbourhoods) and
 `schools_2027_schools.csv`.
 
 Selection, holdout and 2019 to 2022 outputs are the same as before the change.
+
+## Changes of 13 November 2026 (after the code review)
+
+- **The decision rule's bar is kept per fold.** A rung with one fold only (a nowcast) can
+  lead; the folds it lacks keep the bar of the rung it replaced. Before, a later rung was
+  judged against it on the one fold alone. The choices are unchanged: ridge for the schools,
+  own mean for dwelling value.
+- **A cross-validation error that isn't a number can't be chosen** when tuning.
+- **Frozen forecasts no longer stop the run.** A refit from today's inputs that differs from a
+  frozen file is reported and the frozen file kept; before, `make forecast` stopped for good
+  once an input was revised. On this date both the schools' and the value forecast were
+  reproduced exactly.
+- **The schools' forecasts as a set sit above the scores they start from**: by 1.41 points
+  (Grade 3) and 0.86 (Grade 6), enrolment-weighted, for 2026 to 2027. It comes from the way
+  back from the logit scale, not from a forecast of the City's level, which is carried over.
+  Centring the predicted changes would remove it, and lowered skill on the 2024 to 2025
+  holdout from 20.2% to 18.6% in the review's trial, so the forecasts stand as frozen and the
+  page states the figure beside them (`implied_change` in forecasts.json).
