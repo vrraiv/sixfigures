@@ -2,10 +2,10 @@
 // of the 158 neighbourhoods, and the biggest changes between censuses. Charts are
 // inline SVG and HTML; the figures come from insights.json (pipeline/insights.py).
 import "./style.css";
-import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, ordinal } from "./catalogue.js";
+import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, ordinal, loadJSON, loadFailed } from "./catalogue.js";
 import { R_EDGES, fmtR, initPick, initTip, quantile, rColor, seg, spearman } from "./charts.js";
 
-const data = await fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json());
+const data = await loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`).catch(loadFailed);
 const YEARS = data.years; // ["2006", "2011", "2016", "2021"]
 // 2006 has only the measures comparable to later censuses (pipeline/census2006.py).
 const PAIRS = [["2006", "2011"], ["2011", "2016"], ["2016", "2021"], ["2011", "2021"], ["2006", "2021"]];

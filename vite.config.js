@@ -76,6 +76,7 @@ export default defineConfig({
       .replace("<!-- site-guide -->", () => siteGuide()).replace("<!-- city-map -->", () => heroSvg()).replace("<!-- city-map-key -->", () => heroKey()),
   }, {
     name: "da-tiles-in-html",
-    transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION)),
+    transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION))
+      .replace("__BREAKS_VERSION__", JSON.stringify(version("web/public/breaks.json"))),
   }],
 });

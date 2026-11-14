@@ -208,6 +208,15 @@ a { color: var(--accent); }
   background: var(--ink); color: #fff; font-size: 13px; box-shadow: var(--shadow);
 }
 .toast a { color: #9ec5f4; }
+.toast button { font: inherit; color: #9ec5f4; background: none; border: 0; padding: 0 0 0 4px; text-decoration: underline; cursor: pointer; }
+
+/* a page whose data didn't load says so (catalogue.js loadFailed) */
+.load-error {
+  margin: 16px auto; max-width: 560px; padding: 10px 14px; border-left: 3px solid #d03b3b; border-radius: 6px;
+  background: #fff; color: var(--ink); font-size: 14px; box-shadow: var(--shadow);
+}
+.load-error button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+.map-wrap > .load-error { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6; margin: 0; width: max-content; max-width: calc(100% - 24px); }
 
 /* snip overlay: dim the map, keep the selected rectangle clear */
 .snip { position: absolute; inset: 0; z-index: 5; cursor: crosshair; touch-action: none; background: rgba(26, 26, 25, 0.35); }

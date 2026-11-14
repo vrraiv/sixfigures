@@ -1,7 +1,7 @@
 // The School Forecasts page: each neighbourhood's forecast Grade 3 and Grade 6 score with
 // its range, and the backtests (docs/forecast-spec.md), from forecasts.json.
 import { seg } from "./charts.js";
-import { $, drawMap, escapeHTML, fmtPct, fmtPts, fmtShare, initTip, load, marksNote, nbFromHash, pickBar, rangeList, rungName, scatter, scatterKey, signed } from "./forecasts.js";
+import { $, drawMap, escapeHTML, fmtPct, fmtPts, fmtShare, initTip, load, marksNote, nbFromHash, own, pickBar, rangeList, rungName, scatter, scatterKey, signed } from "./forecasts.js";
 
 const D = await load();
 const GRADES = { g3: "Grade 3", g6: "Grade 6" };
@@ -17,7 +17,7 @@ const schoolYear = (y) => `${y - 1}–${String(y).slice(2)}`;
 const dashYear = (s) => s.replace("-", "–");
 
 const hash = new URLSearchParams(location.hash.slice(1));
-const state = { g: GRADES[hash.get("g")] ? hash.get("g") : "g3", sort: hash.get("s") === "name" ? "name" : "pred", filter: "", nb: nbFromHash(D, hash.get("nb")) };
+const state = { g: own(GRADES, hash.get("g")) ? hash.get("g") : "g3", sort: hash.get("s") === "name" ? "name" : "pred", filter: "", nb: nbFromHash(D, hash.get("nb")) };
 const writeHash = () => {
   const h = new URLSearchParams({ g: state.g, s: state.sort });
   if (state.nb != null) h.set("nb", D.nbhd[state.nb].id);

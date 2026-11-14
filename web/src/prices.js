@@ -3,13 +3,13 @@
 // census figures from insights.json. TRREB's communities are the City's neighbourhoods
 // of before 2022; a neighbourhood split in 2022 shows its community's figures.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
 
 const [P, census] = await Promise.all([
-  fetch(`/prices.json?v=${__PRICES_VERSION__}`).then((r) => r.json()),
-  fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json()),
-]);
+  loadJSON(`/prices.json?v=${__PRICES_VERSION__}`),
+  loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`),
+]).catch(loadFailed);
 const nbhd = P.nbhd, C = P.communities, Q = P.quarters;
 const LIGHT = COLORS[1], MID = COLORS[3], DARK = COLORS[5], ORANGE = "#c2410c", GREY = "#6b6b66";
 const MIN_SALES = 10; // fewer in a year and a community has no median for it
@@ -86,7 +86,7 @@ const nbIndex = (id) => {
   return k < 0 ? null : k;
 };
 const state = {
-  m: M[hash.get("m")] ? hash.get("m") : "price",
+  m: own(M, hash.get("m")) ? hash.get("m") : "price",
   y: +hash.get("y") || null,
   rate: hash.get("r") === "1",
   span: ["2011-2016", "2016-2021"].includes(hash.get("cs")) ? hash.get("cs") : "2016-2021",

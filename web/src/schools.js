@@ -3,13 +3,13 @@
 // schools.json (pipeline/school_insights.py), with the 2021 Census figures from
 // insights.json. Charts are inline SVG and HTML, as on the Census Insights page.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed } from "./catalogue.js";
 import { cellStyle, fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
 
 const [D, census] = await Promise.all([
-  fetch(`/schools.json?v=${__SCHOOLS_VERSION__}`).then((r) => r.json()),
-  fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json()),
-]);
+  loadJSON(`/schools.json?v=${__SCHOOLS_VERSION__}`),
+  loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`),
+]).catch(loadFailed);
 const YEARS = D.years.map(String); // test years: 2018, 2019, 2022-2025
 const PRELIM = new Set(D.preliminary.map(String));
 const TESTS = D.tests;

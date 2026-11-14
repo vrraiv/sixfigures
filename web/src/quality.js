@@ -29,11 +29,13 @@ const MEASURED_FOR = 7 * 24 * 3600 * 1000;
 const store = (v) => { try { v == null ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, v); } catch {} };
 
 export const cfg = () => LEVELS[detail.level];
+// a level's name from a link or from storage: "constructor" is on every object and is not one
+const isLevel = (v) => v != null && Object.hasOwn(LEVELS, v);
 
 export function initDetail(hashParams) {
   const q = hashParams.get("q");
   let v = null;
-  if (q in LEVELS) {
+  if (isLevel(q)) {
     v = q;
     detail.source = "link";
     store(q);
@@ -43,13 +45,13 @@ export function initDetail(hashParams) {
     try { v = localStorage.getItem(KEY); } catch {}
     detail.source = "kept";
   }
-  if (v in LEVELS) {
+  if (isLevel(v)) {
     detail.level = v;
     detail.mode = "chosen";
     return detail;
   }
   const [, level, at] = /^auto:(\w+)@(\d+)$/.exec(v ?? "") ?? [];
-  if (level in LEVELS && Date.now() - Number(at) < MEASURED_FOR) detail.level = level; // measured on an earlier visit
+  if (isLevel(level) && Date.now() - Number(at) < MEASURED_FOR) detail.level = level; // measured on an earlier visit
   else detail.source = ""; // nothing kept: measured after the first idle
   return detail;
 }
@@ -61,14 +63,19 @@ export function forget() {
   store(null);
 }
 
-// Basemap layers that cost most and show least: fills under the DA colours,
-// minor roads, road casings and the subtle duplicates of major roads.
-const PRUNE = new Set(["park", "landcover_wood", "building", "landuse_residential", "aeroway-area", "road_area_pier"]);
-const prune = (l) => l.source === "openmaptiles" && (PRUNE.has(l.id) || /^(highway_path|highway_minor|road_pier|aeroway|railway|tunnel)/.test(l.id) || /subtle|casing/.test(l.id));
+// Basemap layers that cost most and show least (the Protomaps layers of
+// scripts/basemap-style.mjs, whose test checks this still matches some): the
+// land-cover and land-use fills and the buildings, all under the DA colours;
+// minor roads, paths, piers, runways, rail and tunnels; and every road casing.
+// Water, the major roads and the labels stay.
+export const BASEMAP_SOURCE = "protomaps";
+const PRUNE = new Set(["landcover", "buildings", "roads_other", "roads_minor", "roads_minor_service", "roads_pier", "roads_rail", "roads_runway", "roads_taxiway",
+  "roads_bridges_other", "roads_bridges_minor"]);
+export const pruned = (l) => l.source === BASEMAP_SOURCE && l.type !== "symbol" && (PRUNE.has(l.id) || /^landuse_|^roads_tunnels_|_casing/.test(l.id));
 
-export function applyBasemap(map, pruned) {
+export function applyBasemap(map, thin) {
   for (const l of map.getStyle().layers) {
-    if (prune(l)) map.setLayoutProperty(l.id, "visibility", pruned ? "none" : "visible");
+    if (pruned(l)) map.setLayoutProperty(l.id, "visibility", thin ? "none" : "visible");
   }
 }
 
@@ -129,7 +136,7 @@ export function detailControls(map, { apply }) {
 
   function applyDetail() {
     const c = cfg();
-    map.setPixelRatio(c.ratio ?? devicePixelRatio);
+    map.setPixelRatio(c.ratio ?? undefined); // undefined: follow the device, so the map stays sharp after a browser zoom
     applyBasemap(map, c.prune);
     apply(c);
     for (const b of buttons) {
@@ -150,7 +157,9 @@ export function detailControls(map, { apply }) {
     return `Auto switched to ${level} detail: this device draws the map slowly${ms}.`;
   }
 
+  let autoRun = 0; // a measurement in progress is dropped when a level is chosen or another begins
   function setDetail(level, mode, source) {
+    if (mode === "chosen") autoRun++;
     detail.level = level;
     detail.mode = mode;
     detail.source = source;
@@ -161,6 +170,7 @@ export function detailControls(map, { apply }) {
   // Measures the device and applies what it calls for; the auto button and, with
   // nothing chosen or kept, the first idle after loading.
   async function autoDetail() {
+    const run = ++autoRun;
     forget();
     detail.mode = "auto";
     detail.source = "measuring";
@@ -170,13 +180,16 @@ export function detailControls(map, { apply }) {
     // say so, so a throttled reading gets a second try before it stands.
     for (let attempt = 0; attempt < 2; attempt++) {
       if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
-      detail.measured = await calibrate(map);
+      const measured = await calibrate(map);
+      if (run !== autoRun) return; // a level was chosen meanwhile: it stands
+      detail.measured = measured;
       const level = levelFor(detail.measured);
       if (level) {
         setDetail(level, "auto", "measured");
         return;
       }
       await new Promise((r) => setTimeout(r, 3000));
+      if (run !== autoRun) return;
     }
     detail.source = "throttled";
     applyDetail();

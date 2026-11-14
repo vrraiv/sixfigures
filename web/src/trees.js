@@ -2,15 +2,15 @@
 // summer surface temperature by neighbourhood, from trees.json (pipeline/trees_insights.py),
 // with the outlines and 2021 Census figures from insights.json. No map tiles.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
-  fetch(`/trees.json?v=${__TREES_VERSION__}`).then((r) => r.json()),
-  fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json()),
-]);
+  loadJSON(`/trees.json?v=${__TREES_VERSION__}`),
+  loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`),
+]).catch(loadFailed);
 const nbhd = census.nbhd, N = nbhd.length, INK = "#1a1a19", NB = D.nbhd;
 const GREENS = ["#e3f1dc", "#bfdfae", "#8fc67c", "#5ea852", "#357f34", "#1b5221"];
 // cool to hot, for surface temperature (classes, not centred on zero)
@@ -84,7 +84,7 @@ const nbIndex = (id) => {
   return k < 0 ? null : k;
 };
 const state = {
-  m: M[hash.get("m")] ? hash.get("m") : "canopy",
+  m: own(M, hash.get("m")) ? hash.get("m") : "canopy",
   ov: ["measure", "both", "income"].includes(hash.get("ov")) ? hash.get("ov") : "both",
   inc: INCOME.includes(hash.get("inc")) ? hash.get("inc") : "med_hh_tot",
   sx: hash.get("sx"),
@@ -323,7 +323,7 @@ $("in-nb").addEventListener("change", (e) => {
 new IntersectionObserver(async (entries, obs) => {
   if (!entries.some((e) => e.isIntersecting)) return;
   obs.disconnect();
-  DA = await fetch(`/trees_da.json?v=${__TREES_DA_VERSION__}`).then((r) => r.json());
+  DA = await loadJSON(`/trees_da.json?v=${__TREES_DA_VERSION__}`);
   for (const m of Object.keys(M)) if (M[m].da !== false) daBreaks[m] = breaks(DA.nbhd.flatMap((n) => n[m]));
   renderInside();
 }, { rootMargin: "600px 0px" }).observe($("inside"));

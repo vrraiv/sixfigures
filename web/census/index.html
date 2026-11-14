@@ -94,13 +94,14 @@
         // the app script and the basemap style (vite.config.js fills in the tile
         // source and the figures version). The tiles: works out the opening view
         // and the tiles in it.
-        (function (t, fv) {
+        (function (t, fv, bv) {
           var link = function (href) {
             var l = document.createElement("link");
             l.rel = "preload"; l.as = "fetch"; l.crossOrigin = "anonymous"; l.href = href;
             document.head.appendChild(l);
           };
           var h = location.hash, m = /[#&]m=([a-z0-9_]+)/.exec(h), y = /[#&]y=2016(&|$)/.test(h) ? "2016" : "2021";
+          link("/breaks.json?v=" + bv); // the classes and city figures: main.js waits for it before anything else
           link("/data/figures/" + y + "/common.json?v=" + fv);
           link("/data/figures/" + y + "/" + (m ? m[1] : "med_hh_tot") + ".json?v=" + fv);
           var el = document.getElementById("map");
@@ -123,7 +124,7 @@
               link("/" + t.tiles.replace("{z}", z).replace("{x}", x).replace("{y}", y));
             }
           }
-        })(__DA_TILES__, __FIGURES_VERSION__);
+        })(__DA_TILES__, __FIGURES_VERSION__, __BREAKS_VERSION__);
       </script>
       <div class="crosshair" aria-hidden="true"></div>
       <div id="pinchip" class="pinchip" hidden></div>

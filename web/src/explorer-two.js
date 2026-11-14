@@ -130,8 +130,10 @@ function renderChange() {
       : "The two measures don't share two points in time, so their changes can't be set side by side.";
     return;
   }
-  if (S.pairFrom == null || S.pairFrom >= ps.length) S.pairFrom = 0;
-  if (S.pairTo == null || S.pairTo >= ps.length) S.pairTo = ps.length - 1;
+  // from the link, so anything: not a whole number in range means the first and last
+  const inRange = (k) => Number.isInteger(k) && k >= 0 && k < ps.length;
+  if (!inRange(S.pairFrom)) S.pairFrom = 0;
+  if (!inRange(S.pairTo)) S.pairTo = ps.length - 1;
   const opts = ps.map((p, k) => `<option value="${k}">${escapeHTML(pairLabel(p))}</option>`).join("");
   $("t-chg-from").innerHTML = opts;
   $("t-chg-to").innerHTML = opts;

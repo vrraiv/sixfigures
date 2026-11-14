@@ -3,7 +3,7 @@
 // measure pickers, the link, the picked neighbourhood and the CSV download, and shows the view
 // for the number of measures chosen: explorer-one.js, explorer-two.js or explorer-three.js.
 import "./style.css";
-import { $, escapeHTML } from "./catalogue.js";
+import { $, escapeHTML, own } from "./catalogue.js";
 import { initTip } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { fillFinder } from "./nbtools.js";
@@ -66,8 +66,8 @@ const api = {
 };
 
 // ---- the pickers: one row per measure -------------------------------------------------------------------
-const options = (chosen, own) => C.sources.map((s) => `<optgroup label="${escapeHTML(s.label)}">${C.measures.filter((m) => m.source === s.key)
-  .map((m) => `<option value="${m.id}"${chosen.includes(m.id) && m.id !== own ? " disabled" : ""}>${escapeHTML(m.label)}</option>`).join("")}</optgroup>`).join("");
+const options = (chosen, mine) => C.sources.map((s) => `<optgroup label="${escapeHTML(s.label)}">${C.measures.filter((m) => m.source === s.key)
+  .map((m) => `<option value="${m.id}"${chosen.includes(m.id) && m.id !== mine ? " disabled" : ""}>${escapeHTML(m.label)}</option>`).join("")}</optgroup>`).join("");
 function buildSlots() {
   const ids = S.cur.map((m) => m.d.id), n = ids.length;
   const focused = document.activeElement?.closest?.("#slots") ? document.activeElement : null;
@@ -198,5 +198,5 @@ $("method-note").textContent = `Built ${C.built}. ${C.measures.length} measures 
 initOne(api);
 initTwo(api);
 S.nb = nbIndex(hash.get("nb"));
-const start = KEYS.map(([m, p]) => ({ id: hash.get(m), p: hash.get(p) })).filter((s, k, all) => DEF[s.id] && all.findIndex((x) => x.id === s.id) === k);
+const start = KEYS.map(([m, p]) => ({ id: hash.get(m), p: hash.get(p) })).filter((s, k, all) => own(DEF, s.id) && all.findIndex((x) => x.id === s.id) === k);
 await select(start.length ? start : [{ id: "census.med_hh_tot", p: null }], { f: hash.get("f"), t: hash.get("t"), pf: hash.get("pf"), pt: hash.get("pt") });

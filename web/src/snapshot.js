@@ -20,8 +20,19 @@ const idle = (map) => new Promise((resolve) => (map.loaded() && !map.isMoving() 
  * valid (so the map needs no preserveDrawingBuffer). scale > 1 re-renders the
  * map at a higher pixel ratio for a sharper image, then restores it.
  * Returns { canvas, ratio } where ratio = image pixels per CSS pixel.
+ *
+ * One grab at a time: a second call that began while the first had the pixel ratio raised
+ * would read the raised ratio as the map's own and leave it there. `restore` is the ratio
+ * the page pins the map to (quality.js: medium and low detail), or null where the map
+ * follows the device, which it goes back to doing.
  */
-export async function grabMap(map, scale = 1) {
+let grabbing = Promise.resolve();
+export function grabMap(map, scale = 1, restore = null) {
+  const run = grabbing.then(() => grabOnce(map, scale, restore));
+  grabbing = run.catch(() => {});
+  return run;
+}
+async function grabOnce(map, scale, restore) {
   const original = map.getPixelRatio();
   if (scale !== 1) {
     map.setPixelRatio(original * scale);
@@ -40,7 +51,7 @@ export async function grabMap(map, scale = 1) {
   map.triggerRepaint();
   const out = await grab;
   if (scale !== 1) {
-    map.setPixelRatio(original);
+    map.setPixelRatio(restore ?? undefined); // undefined: follow the device again (browser zoom changes it)
     await nextRender(map);
   }
   return out;

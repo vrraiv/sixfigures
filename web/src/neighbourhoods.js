@@ -10,13 +10,13 @@
 // neighbourhood's representative point), the same affinity on the census measures that go back
 // to 2006, and a picture of the neighbourhoods on the two axes that separate them most.
 import "./style.css";
-import { $, COLORS, escapeHTML, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, escapeHTML, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, initTip, seg } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { buildToc, nbMap } from "./nbtools.js";
 import { fmt, lc } from "./units.js";
 
-const D = await fetch(`/neighbourhoods.json?v=${__NEIGHBOURHOODS_VERSION__}`).then((r) => r.json());
+const D = await loadJSON(`/neighbourhoods.json?v=${__NEIGHBOURHOODS_VERSION__}`).catch(loadFailed);
 const nbhd = D.nbhd, N = nbhd.length;
 const M = Object.fromEntries(D.measures.map((m) => [m.id, m]));
 const THEME = Object.fromEntries(D.themes.map((t) => [t.key, t]));
@@ -101,12 +101,14 @@ function recompute() {
     for (const g of gs) if (!Number.isNaN(g[k])) { s += g[k]; n++; }
     overall[k] = n ? s / n : NaN;
   }
+  // null where a neighbourhood has no figure on any theme counted (no school results, with only Schools counted)
   typical = nbhd.map((_, i) => {
-    let s = 0;
-    for (let j = 0; j < N; j++) if (j !== i) s += 100 - overall[i * N + j];
-    return s / (N - 1);
+    let s = 0, n = 0;
+    for (let j = 0; j < N; j++) if (j !== i && !Number.isNaN(overall[i * N + j])) { s += 100 - overall[i * N + j]; n++; }
+    return n ? s / n : null;
   });
-  cityMean = typical.reduce((a, v) => a + v, 0) / N;
+  const known = typical.filter((v) => v != null);
+  cityMean = known.length ? known.reduce((a, v) => a + v, 0) / known.length : null;
 }
 
 function aff(by, i, j) {
@@ -168,8 +170,9 @@ function listHTML(a, idx, rank, extra) {
 function renderAlike() {
   const i = S.nb, a = row(S.by, i), order = ordered(a), single = M[S.by] ?? null, me = nameOf(i);
   const first = order[0], last = order.at(-1), k = kindOf(i);
-  const beside = single ? ` (${escapeHTML(fmt(single, single.values[first]))} against ${escapeHTML(fmt(single, single.values[i]))})` : "";
-  $("alike-lede").innerHTML = single && single.values[i] == null ? `There is no figure for ${escapeHTML(lc(single.label))} in <b>${me}</b>.`
+  const beside = single && order.length ? ` (${escapeHTML(fmt(single, single.values[first]))} against ${escapeHTML(fmt(single, single.values[i]))})` : "";
+  // nothing to compare on: a measure or a theme with no figure here (seven neighbourhoods have no school results)
+  $("alike-lede").innerHTML = !order.length ? `There ${single ? "is no figure" : "are no figures"} for ${escapeHTML(lc((single ?? THEME[S.by] ?? { label: "the themes counted" }).label))} in <b>${me}</b>, so there is nothing to compare it on. Choose another measure above.`
     : `<b>${me}</b> is one of the city's ${k.n} ${escapeHTML(lower(k.name))}. ${basis()}, the neighbourhood most like it is <b>${nameOf(first)}</b>, with an affinity of ${show(a[first])} out of 100${beside},
       and the least like it is <b>${nameOf(last)}</b>, at ${show(a[last])}.${S.by === "all" ? ` Two Toronto neighbourhoods taken at random average ${show(cityMean)}.` : ""}
       The map shades every neighbourhood by its affinity with ${me}; pick one, there or in the lists, to set it beside ${me}.`;
@@ -350,9 +353,9 @@ function renderTypical() {
   const li = (j, k) => `<li${j === i ? ' class="sel"' : ""}><span class="rk">${k}</span><button type="button" class="nm nx-nm" data-pick="${j}" data-tip="${escapeHTML(kindOf(j).name)}">${dot(j)}${nameOf(j)}</button>
     <span class="barcell"><span class="bar-fill" style="width:${typical[j].toFixed(1)}%;background:${shade(typical[j])}"></span></span><span class="vl">${show(typical[j])}</span></li>`;
   $("typ-lede").innerHTML = `A neighbourhood's average affinity with the other 157, ${lower(basis("all"))}: high for the neighbourhoods that are a bit like everywhere, low for the ones like nowhere else. The city-wide average is ${show(cityMean)}.
-    ${i == null ? "" : `<b>${nameOf(i)}</b> averages ${show(typical[i])}, the ${ordinal(order.indexOf(i) + 1)} highest of ${N}.`} Pick a name to explore it.`;
+    ${i == null || typical[i] == null ? "" : `<b>${nameOf(i)}</b> averages ${show(typical[i])}, the ${ordinal(order.indexOf(i) + 1)} highest of ${order.length}.`} Pick a name to explore it.`;
   $("typ-top").innerHTML = order.slice(0, 10).map((j, k) => li(j, k + 1)).join("");
-  $("typ-bottom").innerHTML = order.slice(-10).reverse().map((j, k) => li(j, N - k)).join("");
+  $("typ-bottom").innerHTML = order.slice(-10).reverse().map((j, k) => li(j, order.length - k)).join("");
   const pairs = [];
   for (let a = 0; a < N; a++) for (let b = a + 1; b < N; b++) if (!Number.isNaN(overall[a * N + b])) pairs.push([100 - overall[a * N + b], a, b]);
   pairs.sort((x, y) => y[0] - x[0]);
@@ -367,6 +370,7 @@ function renderTypical() {
 // ---- drawing and choosing ------------------------------------------------------------------------------
 function render() {
   const has = S.nb != null;
+  if (has && S.off.size && !ordered(row("all", S.nb)).length) { S.off.clear(); recompute(); } // no figure on the themes left: count them all
   if (has && (S.vs == null || S.vs === S.nb)) { S.vs = ordered(row("all", S.nb))[0]; S.auto = true; }
   $("nb").value = has ? S.nb : "";
   $("by").value = S.by;
@@ -433,10 +437,10 @@ initTip();
 S.nb = nbIndex(hash.get("nb"));
 S.vs = S.nb == null ? null : nbIndex(hash.get("vs"));
 S.auto = S.vs == null;
-for (const key of (hash.get("off") ?? "").split(".")) if (THEME[key]) S.off.add(key);
+for (const key of (hash.get("off") ?? "").split(".")) if (own(THEME, key)) S.off.add(key);
 if (S.off.size >= D.themes.length) S.off.clear();
 if (hash.get("c") === "aff") S.colour = "aff";
 const by = hash.get("by");
-if (by && (THEME[by] || M[by])) S.by = by;
+if (own(THEME, by) || own(M, by)) S.by = by;
 recompute();
 render();

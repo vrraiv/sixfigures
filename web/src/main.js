@@ -5,9 +5,7 @@ import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
 import { cfg, initDetail, detailControls } from "./quality.js";
 import "./style.css";
-import {
-  tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML, showInView,
-} from "./common.js";
+import { tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML, showInView, loadJSON, loadFailed, own, parseAt } from "./common.js";
 
 // Boundary overlays (`make overlays`); null when the file wasn't built.
 const OVERLAY_TILES = TILES.ov;
@@ -23,7 +21,7 @@ const changeBy = $("changeby");
 // find=<address> runs a search on arrival.
 const hashParams = new URLSearchParams(location.hash.slice(1));
 initDetail(hashParams);
-if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
+if (own(MEASURES, hashParams.get("m"))) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
 // The change-basis menu depends on the measure's unit. wantBasis is the last
 // basis asked for, so "real" comes back after a visit to a rate measure.
@@ -50,14 +48,14 @@ changeBy.addEventListener("change", () => (wantBasis = changeBy.value));
 const dauidParam = (k) => (/^\d{8}$/.test(hashParams.get(k) ?? "") ? hashParams.get(k) : null);
 const linkedDA = dauidParam("da");
 const linkedPin = dauidParam("vs");
-const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
-const linkedView = linkedAt.length === 3 && linkedAt.every(Number.isFinite);
-const camera = linkedView ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] } : openingCamera($("map"));
+const linkedAt = parseAt(hashParams.get("at")); // null for a position that isn't one: the opening view then
+const linkedView = linkedAt != null;
+const camera = linkedAt ?? openingCamera($("map"));
 document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 // closed to start with where it would cover much of the map: a phone, a short window
 if (narrow.matches || $("map").clientHeight < 420) $("legend").open = false;
 
-const breaks = await fetch(`/breaks.json?v=${__BREAKS_VERSION__}`).then((r) => r.json());
+const breaks = await loadJSON(`/breaks.json?v=${__BREAKS_VERSION__}`).catch(loadFailed);
 // 2015 dollars -> 2020 dollars for incomes, 2016 -> 2021 for census-dated figures
 // (annual-average CPI, table 18-10-0005-01; see breaks.json).
 const cpiOf = (m) => (MEASURES[m].dated === "census" ? breaks.cpi.factor_census : breaks.cpi.factor);
@@ -153,14 +151,22 @@ async function paintView() {
   try {
     await f.load(m);
   } catch {
-    if (token === paintToken) showToast("Couldn't load this measure's figures. Check your connection and try again.");
+    if (token !== paintToken) return;
+    // The legend already names this measure: don't leave the last one's colours under it.
+    for (const dauid of f.dauids) map.removeFeatureState({ source: src, sourceLayer: "da", id: dauid }, "cls");
+    paintFailed = true;
+    showToast("Couldn't load this measure's figures. Check your connection.", 15000, { label: "Try again", run: paintView });
     return;
   }
   if (token !== paintToken) return;
+  paintFailed = false;
   for (const dauid of f.dauids) {
     map.setFeatureState({ source: src, sourceLayer: "da", id: dauid }, { cls: classOf(f.props(dauid, [m]), m) });
   }
 }
+// A measure whose figures didn't arrive is asked for again when the connection returns.
+let paintFailed = false;
+addEventListener("online", () => paintFailed && paintView());
 
 
 // ---- legend -----------------------------------------------------------------
@@ -349,7 +355,7 @@ const OVERLAYS = {
   fsa: { name: "Postal areas (FSA)", labelMinzoom: 10.5 },
 };
 const OVERLAY_FIRST = `ov-${Object.keys(OVERLAYS)[0]}`;
-let overlay = hashParams.get("o") in OVERLAYS ? hashParams.get("o") : "none";
+let overlay = own(OVERLAYS, hashParams.get("o")) ? hashParams.get("o") : "none";
 
 // Added for every kind right after the 2021 DA layers, so the 2016 layers (added
 // later) can be slotted beneath them; a kind missing from the tiles draws nothing.
@@ -509,10 +515,9 @@ async function setView(next) {
     setStatus(`DA ${dauid}'s boundary changed between 2016 and 2021, so it has no direct counterpart. Click a DA to see its figures.`);
     return;
   }
-  await idle();
-  if (view !== next) return; // toggled again while waiting
-  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
-  if (!f) return;
+  // Whether the other census has this DA is in its figures; the tiles only know the ones in view.
+  const there = await figures[toSrc].load().then((f) => !!f.props(dauid), () => false);
+  if (view !== next || !there) return; // toggled again while waiting, or not a DA of that census
   select_(toSrc, [dauid]);
   showDetails(toSrc, dauid, lngLat, note);
 }
@@ -761,11 +766,10 @@ async function carryPin(toSrc) {
     showToast(`Unpinned DA ${dauid}: its boundary changed between 2016 and 2021.`, 5000);
     return;
   }
-  await idle();
-  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
+  const there = await figures[toSrc].load().then((f) => !!f.props(dauid), () => false);
   if (sourceOf(view) !== toSrc) return; // toggled back while waiting
-  if (f) setPin({ source: toSrc, dauid });
-  else showToast(`Unpinned DA ${dauid}: it isn't loaded at this zoom. Zoom in and pin it again.`, 5000);
+  if (there) setPin({ source: toSrc, dauid });
+  else showToast(`Unpinned DA ${dauid}: its figures for the other census didn't load. Pin it again.`, 5000);
 }
 
 document.addEventListener("click", (e) => {
@@ -811,10 +815,14 @@ async function showDetails(source, dauid, lngLat, note) {
   try {
     await figures[source].load(...groupOf(select.value));
   } catch {
-    if (token === detailsToken) showToast("Couldn't load this DA's figures. Check your connection and try again.");
+    if (token === detailsToken) showToast("Couldn't load this DA's figures. Check your connection.", 15000, { label: "Try again", run: () => showDetails(source, dauid, lngLat, note) });
     return;
   }
   if (token !== detailsToken) return;
+  // Meanwhile the census may have been switched (this DA belongs to the other boundary set)
+  // or the measure changed to a group whose figures aren't here yet.
+  if (source !== sourceOf(view)) return;
+  if (!figures[source].has(...groupOf(select.value))) return showDetails(source, dauid, lngLat, note);
   const props = propsOf(source, dauid);
   if (!props) return;
   const html = detailsHTML(detailsModel(props, note));
@@ -885,10 +893,11 @@ async function openLinkedDA(dauid) {
 // A shared link's pinned DA (vs=): pin it once its tile has loaded.
 async function pinLinkedDA(dauid) {
   const source = sourceOf(view);
-  await idle();
-  const [f] = map.querySourceFeatures(source, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
-  if (f) setPin({ source, dauid });
-  else showToast(`The link's pinned DA ${dauid} isn't loaded in this part of the map or at this zoom, so nothing is pinned.`, 5000);
+  // by the figures, so a pin outside this screen's view (a phone opening a desktop's link) is kept
+  const there = await figures[source].load().then((f) => !!f.props(dauid), () => null);
+  if (sourceOf(view) !== source) return;
+  if (there) setPin({ source, dauid });
+  else showToast(there == null ? `The link's pinned DA ${dauid} couldn't be checked: its figures didn't load.` : `The link's pinned DA ${dauid} isn't a dissemination area of the ${yearOf(view)} Census, so nothing is pinned.`, 5000);
 }
 
 $("sheet-close").addEventListener("click", closeDetails);
@@ -951,23 +960,29 @@ map.once("style.load", () => {
   firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
   addSourceLayers("da");
   addOverlayLayers();
+  // a census picked before the style arrived (the radios work from the start)
+  view = document.querySelector("input[name=year]:checked")?.value ?? view;
+  ready = true;
   applyView();
   detailUI.apply();
 });
 
+// The controls answer as soon as the layers are in (style.load), not at MapLibre's `load`, which
+// waits for every tile: on a slow connection that is long after the page looks ready. A choice
+// made before then is read from the controls when the layers go in.
+let ready = false;
+for (const control of [select, changeBy]) {
+  control.addEventListener("change", () => {
+    if (!ready) return;
+    applyView();
+    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
+  });
+}
+for (const r of document.querySelectorAll("input[name=year]")) {
+  r.addEventListener("change", () => r.checked && ready && setView(r.value));
+}
 
 map.on("load", () => {
-  select.addEventListener("change", () => {
-    applyView();
-    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
-  });
-  changeBy.addEventListener("change", () => {
-    applyView();
-    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
-  });
-  for (const r of document.querySelectorAll("input[name=year]")) {
-    r.addEventListener("change", () => r.checked && setView(r.value));
-  }
   // A click off every DA closes the popup (the bottom sheet has its own ×).
   map.on("click", (e) => {
     if (!map.queryRenderedFeatures(e.point, { layers: hitLayers() }).length) popup.remove();
@@ -1065,6 +1080,7 @@ async function goTo(hit, kind) {
     [Infinity, Infinity, -Infinity, -Infinity]);
   map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: narrow.matches ? 40 : 80, maxZoom: 15, duration: 900 });
   await idle();
+  if (sourceOf(view) !== source) return; // the census was switched during the flight: these are the other one's DAs
 
   const label = hit.detail ? `${hit.label}, ${hit.detail}` : hit.label;
   if (das.length > 1) {
@@ -1232,8 +1248,16 @@ toast.setAttribute("role", "status");
 toast.hidden = true;
 document.body.append(toast);
 let toastTimer;
-function showToast(text, ms = 5000) {
+// action: { label, run } adds a button (a retry) that runs it and puts the toast away.
+function showToast(text, ms = 5000, action = null) {
   toast.textContent = text;
+  if (action) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = action.label;
+    b.addEventListener("click", () => { toast.hidden = true; action.run(); });
+    toast.append(" ", b);
+  }
   toast.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (toast.hidden = true), ms);
@@ -1348,7 +1372,7 @@ let snap = null; // { region, grabs: {scale: grab}, canvas, blob, url }
 async function render() {
   const scale = +opt("scale").value;
   dlgInfo.textContent = "Rendering…";
-  snap.grabs[scale] ??= await grabMap(map, scale);
+  snap.grabs[scale] ??= await grabMap(map, scale, cfg().ratio);
   const hasDA = !!current;
   for (const n of ["details", "label"]) opt(n).disabled = !hasDA;
   const { canvas, labelHidden } = compose({

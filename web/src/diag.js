@@ -8,7 +8,7 @@
 // d hides or shows the DA layers. Drag the map with one hidden to feel which
 // side costs the time.
 
-import { detail } from "./quality.js";
+import { BASEMAP_SOURCE, detail } from "./quality.js";
 
 export function diagnostics(map) {
   const box = document.createElement("pre");
@@ -234,7 +234,7 @@ export function diagnostics(map) {
 
   // ---- keys: p profile, b basemap, d DA layers ---------------------------------
   const hidden = { basemap: false, da: false };
-  const layersOf = (which) => map.getStyle().layers.filter((l) => (which === "da" ? ["da", "da16", "ov"].includes(l.source) : l.source === "openmaptiles"));
+  const layersOf = (which) => map.getStyle().layers.filter((l) => (which === "da" ? ["da", "da16", "da11", "ov"].includes(l.source) : l.source === BASEMAP_SOURCE));
   const saved = {};
   function toggle(which) {
     hidden[which] = !hidden[which];
@@ -273,7 +273,7 @@ export function diagnostics(map) {
       `renderer: ${renderer}`,
       `cpu threads: ${navigator.hardwareConcurrency ?? "?"} · cpu index: ${cpuIndex} · dpr: ${devicePixelRatio} · ${innerWidth}×${innerHeight} of ${screen.width}×${screen.height} · link: ${link}`,
       `load: style ${at("style")} · basemap ${at("basemap")} · DA tiles ${at("tiles")} · first idle ${at("idle")}`,
-      `detail: ${detail.level} (${detail.mode}, ${detail.source || "not measured"}${detail.measured ? `, frames at rest ${detail.measured.rest.toFixed(0)} ms, repainting ${detail.measured.repaint == null ? "not timed: throttled" : `${detail.measured.repaint.toFixed(0)} ms`}` : ""}) · canvas ${map.getCanvas().width}×${map.getCanvas().height}`,
+      `detail: ${detail.level} (${detail.mode}, ${detail.source || "not measured"}${detail.measured?.rest == null ? (detail.measured ? ", not measured: the map never held still" : "") : `, frames at rest ${detail.measured.rest.toFixed(0)} ms, repainting ${detail.measured.repaint == null ? "not timed: throttled" : `${detail.measured.repaint.toFixed(0)} ms`}`}) · canvas ${map.getCanvas().width}×${map.getCanvas().height}`,
       "fetched:",
       ...network(),
       `frames: avg ${avg.toFixed(0)} ms, worst ${worst.toFixed(0)} ms (last 60) · worst ${worst10.toFixed(0)} ms (last 10 s)`,
