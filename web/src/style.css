@@ -618,6 +618,10 @@ body.doc { display: block; height: auto; }
 .toggle[hidden], .seg[hidden] { display: none; }
 .st-dots { pointer-events: none; }
 .st-dots circle { fill: #c2410c; fill-opacity: 0.6; stroke: #fff; stroke-width: 0.6; }
+.st-dots.ttc circle { fill: #0d366b; fill-opacity: 0.85; stroke: #fff; stroke-width: 0.8; }
+.key-dot.ttc { background: #0d366b; opacity: 0.9; }
+.panels.one { grid-template-columns: 1fr; }
+#delay-ranks { max-width: 760px; margin-top: 8px; }
 .key-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; background: #c2410c; opacity: 0.75; }
 .key-line { display: inline-block; width: 2px; height: 12px; margin-right: 6px; vertical-align: -2px; background: var(--ink); }
 .sp-row.sel .sp-year { color: var(--ink); font-weight: 650; }

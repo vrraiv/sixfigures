@@ -1,0 +1,1530 @@
+month,cause,incidents,delays,minutes
+2014-01,A person at track level,11,11,362
+2014-01,Closures and construction,3,3,50
+2014-01,Doors and passengers,44,37,154
+2014-01,"Fire, smoke and weather",104,64,578
+2014-01,Ill or injured customers,300,81,439
+2014-01,Other,504,161,1148
+2014-01,Security and police,106,70,454
+2014-01,Staff and operations,448,98,447
+2014-01,"Track, signals and power",127,46,390
+2014-01,Trains,136,112,565
+2014-02,A person at track level,9,4,93
+2014-02,Closures and construction,4,3,31
+2014-02,Doors and passengers,39,33,141
+2014-02,"Fire, smoke and weather",125,70,568
+2014-02,Ill or injured customers,277,84,432
+2014-02,Other,659,177,1802
+2014-02,Security and police,112,65,311
+2014-02,Staff and operations,466,112,492
+2014-02,"Track, signals and power",83,31,195
+2014-02,Trains,107,86,400
+2014-03,A person at track level,7,5,138
+2014-03,Closures and construction,3,1,3
+2014-03,Doors and passengers,52,43,199
+2014-03,"Fire, smoke and weather",101,45,299
+2014-03,Ill or injured customers,289,89,466
+2014-03,Other,608,128,735
+2014-03,Security and police,110,57,337
+2014-03,Staff and operations,446,87,396
+2014-03,"Track, signals and power",133,54,524
+2014-03,Trains,130,99,491
+2014-04,A person at track level,15,13,181
+2014-04,Closures and construction,6,4,87
+2014-04,Doors and passengers,39,31,151
+2014-04,"Fire, smoke and weather",32,23,405
+2014-04,Ill or injured customers,303,92,533
+2014-04,Other,456,70,377
+2014-04,Security and police,134,90,595
+2014-04,Staff and operations,401,72,287
+2014-04,"Track, signals and power",117,55,595
+2014-04,Trains,113,73,358
+2014-05,A person at track level,8,7,284
+2014-05,Closures and construction,1,0,0
+2014-05,Doors and passengers,39,29,167
+2014-05,"Fire, smoke and weather",17,13,282
+2014-05,Ill or injured customers,350,85,439
+2014-05,Other,400,63,379
+2014-05,Security and police,124,75,493
+2014-05,Staff and operations,418,67,292
+2014-05,"Track, signals and power",115,52,317
+2014-05,Trains,127,79,404
+2014-06,A person at track level,8,7,165
+2014-06,Closures and construction,3,2,11
+2014-06,Doors and passengers,32,27,112
+2014-06,"Fire, smoke and weather",20,17,223
+2014-06,Ill or injured customers,352,75,369
+2014-06,Other,425,79,464
+2014-06,Security and police,114,68,427
+2014-06,Staff and operations,385,76,337
+2014-06,"Track, signals and power",95,37,467
+2014-06,Trains,122,88,459
+2014-07,A person at track level,10,8,241
+2014-07,Closures and construction,2,2,70
+2014-07,Doors and passengers,33,23,89
+2014-07,"Fire, smoke and weather",23,20,253
+2014-07,Ill or injured customers,376,119,635
+2014-07,Other,429,62,299
+2014-07,Security and police,111,66,405
+2014-07,Staff and operations,419,95,436
+2014-07,"Track, signals and power",101,40,281
+2014-07,Trains,141,97,493
+2014-08,A person at track level,20,15,398
+2014-08,Closures and construction,3,2,9
+2014-08,Doors and passengers,31,26,112
+2014-08,"Fire, smoke and weather",18,17,283
+2014-08,Ill or injured customers,407,92,494
+2014-08,Other,391,43,227
+2014-08,Security and police,110,51,284
+2014-08,Staff and operations,507,86,385
+2014-08,"Track, signals and power",106,37,569
+2014-08,Trains,120,76,350
+2014-09,A person at track level,16,12,187
+2014-09,Closures and construction,6,4,36
+2014-09,Doors and passengers,33,23,98
+2014-09,"Fire, smoke and weather",29,26,429
+2014-09,Ill or injured customers,420,108,598
+2014-09,Other,436,49,312
+2014-09,Security and police,121,47,321
+2014-09,Staff and operations,419,79,375
+2014-09,"Track, signals and power",98,37,637
+2014-09,Trains,94,60,327
+2014-10,A person at track level,21,15,206
+2014-10,Closures and construction,8,5,44
+2014-10,Doors and passengers,25,21,96
+2014-10,"Fire, smoke and weather",27,22,489
+2014-10,Ill or injured customers,396,109,705
+2014-10,Other,488,67,316
+2014-10,Security and police,156,84,523
+2014-10,Staff and operations,419,84,385
+2014-10,"Track, signals and power",101,41,171
+2014-10,Trains,128,95,480
+2014-11,A person at track level,12,10,337
+2014-11,Closures and construction,3,3,50
+2014-11,Doors and passengers,29,26,137
+2014-11,"Fire, smoke and weather",37,24,346
+2014-11,Ill or injured customers,352,82,486
+2014-11,Other,476,40,340
+2014-11,Security and police,131,72,419
+2014-11,Staff and operations,421,88,352
+2014-11,"Track, signals and power",78,41,234
+2014-11,Trains,85,62,304
+2014-12,A person at track level,14,9,251
+2014-12,Closures and construction,3,3,18
+2014-12,Doors and passengers,27,23,117
+2014-12,"Fire, smoke and weather",56,32,380
+2014-12,Ill or injured customers,360,75,471
+2014-12,Other,479,61,315
+2014-12,Security and police,127,59,342
+2014-12,Staff and operations,450,79,343
+2014-12,"Track, signals and power",77,36,303
+2014-12,Trains,94,65,284
+2015-01,A person at track level,26,18,439
+2015-01,Closures and construction,1,1,4
+2015-01,Doors and passengers,31,23,101
+2015-01,"Fire, smoke and weather",56,36,366
+2015-01,Ill or injured customers,271,54,419
+2015-01,Other,480,73,413
+2015-01,Security and police,140,68,547
+2015-01,Staff and operations,416,70,312
+2015-01,"Track, signals and power",89,25,136
+2015-01,Trains,140,96,503
+2015-02,A person at track level,16,10,194
+2015-02,Closures and construction,1,0,0
+2015-02,Doors and passengers,33,24,116
+2015-02,"Fire, smoke and weather",144,53,618
+2015-02,Ill or injured customers,324,69,434
+2015-02,Other,545,95,2041
+2015-02,Security and police,123,70,428
+2015-02,Staff and operations,443,72,309
+2015-02,"Track, signals and power",119,39,405
+2015-02,Trains,122,83,436
+2015-03,A person at track level,9,6,106
+2015-03,Closures and construction,4,4,115
+2015-03,Doors and passengers,38,23,113
+2015-03,"Fire, smoke and weather",33,23,1297
+2015-03,Ill or injured customers,299,58,311
+2015-03,Other,631,62,619
+2015-03,Security and police,127,65,439
+2015-03,Staff and operations,508,59,245
+2015-03,"Track, signals and power",103,33,151
+2015-03,Trains,201,86,397
+2015-04,A person at track level,23,18,457
+2015-04,Closures and construction,2,1,4
+2015-04,Doors and passengers,15,14,55
+2015-04,"Fire, smoke and weather",16,13,587
+2015-04,Ill or injured customers,276,52,274
+2015-04,Other,564,58,271
+2015-04,Security and police,107,49,285
+2015-04,Staff and operations,494,69,328
+2015-04,"Track, signals and power",95,33,255
+2015-04,Trains,136,65,323
+2015-05,A person at track level,13,9,114
+2015-05,Closures and construction,5,4,29
+2015-05,Doors and passengers,40,31,143
+2015-05,"Fire, smoke and weather",17,15,252
+2015-05,Ill or injured customers,350,60,301
+2015-05,Other,559,52,350
+2015-05,Security and police,96,45,268
+2015-05,Staff and operations,468,70,320
+2015-05,"Track, signals and power",132,59,407
+2015-05,Trains,107,70,356
+2015-06,A person at track level,13,9,196
+2015-06,Closures and construction,1,1,17
+2015-06,Doors and passengers,24,15,73
+2015-06,"Fire, smoke and weather",23,18,232
+2015-06,Ill or injured customers,361,72,380
+2015-06,Other,560,51,362
+2015-06,Security and police,91,53,373
+2015-06,Staff and operations,395,58,262
+2015-06,"Track, signals and power",91,38,422
+2015-06,Trains,114,71,378
+2015-07,A person at track level,7,6,121
+2015-07,Closures and construction,1,1,10
+2015-07,Doors and passengers,20,16,68
+2015-07,"Fire, smoke and weather",23,20,336
+2015-07,Ill or injured customers,424,75,412
+2015-07,Other,666,67,366
+2015-07,Security and police,107,61,318
+2015-07,Staff and operations,421,54,212
+2015-07,"Track, signals and power",112,50,240
+2015-07,Trains,106,71,291
+2015-08,A person at track level,13,9,139
+2015-08,Doors and passengers,17,12,49
+2015-08,"Fire, smoke and weather",20,19,235
+2015-08,Ill or injured customers,392,79,411
+2015-08,Other,643,51,294
+2015-08,Security and police,116,60,340
+2015-08,Staff and operations,340,54,220
+2015-08,"Track, signals and power",78,27,103
+2015-08,Trains,120,80,363
+2015-09,A person at track level,11,6,135
+2015-09,Closures and construction,3,1,5
+2015-09,Doors and passengers,28,22,96
+2015-09,"Fire, smoke and weather",25,21,215
+2015-09,Ill or injured customers,422,90,575
+2015-09,Other,686,74,547
+2015-09,Security and police,121,63,443
+2015-09,Staff and operations,395,58,282
+2015-09,"Track, signals and power",79,27,198
+2015-09,Trains,128,84,354
+2015-10,A person at track level,19,14,240
+2015-10,Closures and construction,7,2,11
+2015-10,Doors and passengers,41,36,151
+2015-10,"Fire, smoke and weather",16,15,257
+2015-10,Ill or injured customers,406,75,507
+2015-10,Other,567,60,537
+2015-10,Security and police,115,58,385
+2015-10,Staff and operations,431,61,269
+2015-10,"Track, signals and power",69,38,237
+2015-10,Trains,96,59,251
+2015-11,A person at track level,15,10,75
+2015-11,Closures and construction,1,0,0
+2015-11,Doors and passengers,34,26,125
+2015-11,"Fire, smoke and weather",25,21,392
+2015-11,Ill or injured customers,401,107,572
+2015-11,Other,603,48,327
+2015-11,Security and police,114,57,376
+2015-11,Staff and operations,397,64,305
+2015-11,"Track, signals and power",100,29,139
+2015-11,Trains,110,64,307
+2015-12,A person at track level,13,8,220
+2015-12,Closures and construction,7,4,55
+2015-12,Doors and passengers,31,22,98
+2015-12,"Fire, smoke and weather",14,9,94
+2015-12,Ill or injured customers,370,86,564
+2015-12,Other,592,37,308
+2015-12,Security and police,150,71,546
+2015-12,Staff and operations,382,75,344
+2015-12,"Track, signals and power",66,23,106
+2015-12,Trains,97,51,235
+2016-01,A person at track level,13,9,80
+2016-01,Closures and construction,6,4,26
+2016-01,Doors and passengers,26,20,90
+2016-01,"Fire, smoke and weather",24,17,128
+2016-01,Ill or injured customers,303,61,388
+2016-01,Other,510,51,308
+2016-01,Security and police,145,72,454
+2016-01,Staff and operations,376,72,302
+2016-01,"Track, signals and power",114,42,249
+2016-01,Trains,141,93,430
+2016-02,A person at track level,21,16,251
+2016-02,Closures and construction,4,2,16
+2016-02,Doors and passengers,24,19,83
+2016-02,"Fire, smoke and weather",19,14,139
+2016-02,Ill or injured customers,326,81,458
+2016-02,Other,530,58,315
+2016-02,Security and police,124,77,490
+2016-02,Staff and operations,322,44,194
+2016-02,"Track, signals and power",110,38,295
+2016-02,Trains,83,54,242
+2016-03,A person at track level,21,15,447
+2016-03,Closures and construction,7,5,98
+2016-03,Doors and passengers,32,27,125
+2016-03,"Fire, smoke and weather",39,26,321
+2016-03,Ill or injured customers,364,84,473
+2016-03,Other,649,40,642
+2016-03,Security and police,135,62,371
+2016-03,Staff and operations,344,57,249
+2016-03,"Track, signals and power",72,23,236
+2016-03,Trains,87,53,271
+2016-04,A person at track level,8,5,42
+2016-04,Closures and construction,8,6,36
+2016-04,Doors and passengers,35,23,96
+2016-04,"Fire, smoke and weather",31,24,411
+2016-04,Ill or injured customers,386,81,577
+2016-04,Other,581,60,342
+2016-04,Security and police,129,61,382
+2016-04,Staff and operations,340,68,333
+2016-04,"Track, signals and power",98,35,188
+2016-04,Trains,89,63,346
+2016-05,A person at track level,14,9,161
+2016-05,Closures and construction,3,2,8
+2016-05,Doors and passengers,24,16,72
+2016-05,"Fire, smoke and weather",26,23,941
+2016-05,Ill or injured customers,406,82,488
+2016-05,Other,538,46,277
+2016-05,Security and police,140,66,404
+2016-05,Staff and operations,393,71,307
+2016-05,"Track, signals and power",111,40,335
+2016-05,Trains,107,86,403
+2016-06,A person at track level,12,10,216
+2016-06,Closures and construction,5,4,28
+2016-06,Doors and passengers,30,24,127
+2016-06,"Fire, smoke and weather",28,25,503
+2016-06,Ill or injured customers,401,93,590
+2016-06,Other,566,56,381
+2016-06,Security and police,145,82,511
+2016-06,Staff and operations,355,83,359
+2016-06,"Track, signals and power",83,35,245
+2016-06,Trains,97,81,405
+2016-07,A person at track level,11,10,207
+2016-07,Closures and construction,4,4,44
+2016-07,Doors and passengers,33,26,126
+2016-07,"Fire, smoke and weather",26,22,409
+2016-07,Ill or injured customers,469,104,525
+2016-07,Other,547,73,384
+2016-07,Security and police,144,76,497
+2016-07,Staff and operations,406,105,480
+2016-07,"Track, signals and power",72,31,193
+2016-07,Trains,99,77,383
+2016-08,A person at track level,14,10,273
+2016-08,Closures and construction,3,3,33
+2016-08,Doors and passengers,30,27,124
+2016-08,"Fire, smoke and weather",29,23,354
+2016-08,Ill or injured customers,450,95,720
+2016-08,Other,606,57,283
+2016-08,Security and police,128,68,450
+2016-08,Staff and operations,475,83,382
+2016-08,"Track, signals and power",77,26,204
+2016-08,Trains,136,111,512
+2016-09,A person at track level,13,11,175
+2016-09,Closures and construction,3,1,4
+2016-09,Doors and passengers,28,24,108
+2016-09,"Fire, smoke and weather",12,10,137
+2016-09,Ill or injured customers,423,92,617
+2016-09,Other,575,83,460
+2016-09,Security and police,112,61,408
+2016-09,Staff and operations,385,82,348
+2016-09,"Track, signals and power",75,35,305
+2016-09,Trains,126,96,457
+2016-10,A person at track level,14,13,406
+2016-10,Closures and construction,4,4,70
+2016-10,Doors and passengers,30,29,115
+2016-10,"Fire, smoke and weather",23,16,189
+2016-10,Ill or injured customers,383,87,520
+2016-10,Other,546,63,360
+2016-10,Security and police,116,65,414
+2016-10,Staff and operations,400,90,436
+2016-10,"Track, signals and power",102,60,485
+2016-10,Trains,121,90,442
+2016-11,A person at track level,22,17,463
+2016-11,Closures and construction,5,4,47
+2016-11,Doors and passengers,49,43,180
+2016-11,"Fire, smoke and weather",9,6,61
+2016-11,Ill or injured customers,408,102,605
+2016-11,Other,641,70,449
+2016-11,Security and police,170,83,528
+2016-11,Staff and operations,385,62,283
+2016-11,"Track, signals and power",128,82,759
+2016-11,Trains,111,66,323
+2016-12,A person at track level,18,10,327
+2016-12,Closures and construction,6,4,36
+2016-12,Doors and passengers,60,53,233
+2016-12,"Fire, smoke and weather",38,23,315
+2016-12,Ill or injured customers,365,88,586
+2016-12,Other,541,64,854
+2016-12,Security and police,144,72,543
+2016-12,Staff and operations,417,88,378
+2016-12,"Track, signals and power",102,50,233
+2016-12,Trains,133,72,348
+2017-01,A person at track level,20,17,350
+2017-01,Closures and construction,2,2,13
+2017-01,Doors and passengers,45,38,174
+2017-01,"Fire, smoke and weather",11,6,59
+2017-01,Ill or injured customers,333,74,361
+2017-01,Other,501,33,149
+2017-01,Security and police,130,54,480
+2017-01,Staff and operations,288,70,340
+2017-01,"Track, signals and power",97,51,317
+2017-01,Trains,95,62,313
+2017-02,A person at track level,28,21,445
+2017-02,Closures and construction,2,2,11
+2017-02,Doors and passengers,33,30,159
+2017-02,"Fire, smoke and weather",19,16,202
+2017-02,Ill or injured customers,303,68,363
+2017-02,Other,469,60,370
+2017-02,Security and police,120,60,370
+2017-02,Staff and operations,291,65,316
+2017-02,"Track, signals and power",58,22,307
+2017-02,Trains,77,45,236
+2017-03,A person at track level,9,7,91
+2017-03,Closures and construction,2,1,3
+2017-03,Doors and passengers,42,37,157
+2017-03,"Fire, smoke and weather",14,11,120
+2017-03,Ill or injured customers,354,84,506
+2017-03,Other,523,51,300
+2017-03,Security and police,144,67,387
+2017-03,Staff and operations,292,57,247
+2017-03,"Track, signals and power",76,32,320
+2017-03,Trains,99,80,397
+2017-04,A person at track level,19,15,335
+2017-04,Closures and construction,1,0,0
+2017-04,Doors and passengers,31,24,95
+2017-04,"Fire, smoke and weather",11,10,92
+2017-04,Ill or injured customers,388,73,473
+2017-04,Other,439,68,398
+2017-04,Security and police,148,79,568
+2017-04,Staff and operations,269,61,248
+2017-04,"Track, signals and power",89,51,264
+2017-04,Trains,84,70,379
+2017-05,A person at track level,19,14,398
+2017-05,Closures and construction,3,2,24
+2017-05,Doors and passengers,42,35,147
+2017-05,"Fire, smoke and weather",13,11,224
+2017-05,Ill or injured customers,371,86,540
+2017-05,Other,540,97,1037
+2017-05,Security and police,150,72,444
+2017-05,Staff and operations,331,60,286
+2017-05,"Track, signals and power",71,29,136
+2017-05,Trains,94,73,365
+2017-06,A person at track level,21,11,223
+2017-06,Closures and construction,3,2,24
+2017-06,Doors and passengers,35,31,155
+2017-06,"Fire, smoke and weather",16,14,286
+2017-06,Ill or injured customers,400,96,499
+2017-06,Other,483,86,935
+2017-06,Security and police,134,51,340
+2017-06,Staff and operations,301,60,337
+2017-06,"Track, signals and power",81,41,216
+2017-06,Trains,94,72,321
+2017-07,A person at track level,12,9,320
+2017-07,Closures and construction,1,0,0
+2017-07,Doors and passengers,36,30,129
+2017-07,"Fire, smoke and weather",9,8,168
+2017-07,Ill or injured customers,385,89,509
+2017-07,Other,414,38,191
+2017-07,Security and police,127,68,423
+2017-07,Staff and operations,311,63,275
+2017-07,"Track, signals and power",88,32,160
+2017-07,Trains,114,81,402
+2017-08,A person at track level,19,17,293
+2017-08,Closures and construction,6,6,51
+2017-08,Doors and passengers,27,20,103
+2017-08,"Fire, smoke and weather",8,6,63
+2017-08,Ill or injured customers,440,99,620
+2017-08,Other,371,39,251
+2017-08,Security and police,120,55,434
+2017-08,Staff and operations,308,65,294
+2017-08,"Track, signals and power",132,44,256
+2017-08,Trains,150,72,361
+2017-09,A person at track level,20,14,349
+2017-09,Closures and construction,2,2,45
+2017-09,Doors and passengers,27,23,116
+2017-09,"Fire, smoke and weather",7,7,91
+2017-09,Ill or injured customers,408,106,583
+2017-09,Other,392,35,374
+2017-09,Security and police,106,52,413
+2017-09,Staff and operations,304,59,319
+2017-09,"Track, signals and power",88,29,192
+2017-09,Trains,124,72,344
+2017-10,A person at track level,14,10,275
+2017-10,Closures and construction,92,18,88
+2017-10,Doors and passengers,39,32,148
+2017-10,"Fire, smoke and weather",7,4,39
+2017-10,Ill or injured customers,401,78,401
+2017-10,Other,408,40,376
+2017-10,Security and police,152,74,435
+2017-10,Staff and operations,277,64,359
+2017-10,"Track, signals and power",70,33,196
+2017-10,Trains,145,79,426
+2017-11,A person at track level,14,11,203
+2017-11,Closures and construction,51,13,160
+2017-11,Doors and passengers,32,27,116
+2017-11,"Fire, smoke and weather",14,11,137
+2017-11,Ill or injured customers,438,114,668
+2017-11,Other,432,36,201
+2017-11,Security and police,164,98,626
+2017-11,Staff and operations,342,90,424
+2017-11,"Track, signals and power",76,31,212
+2017-11,Trains,122,72,310
+2017-12,A person at track level,34,26,869
+2017-12,Closures and construction,33,29,197
+2017-12,Doors and passengers,37,30,135
+2017-12,"Fire, smoke and weather",48,31,396
+2017-12,Ill or injured customers,404,94,635
+2017-12,Other,494,104,716
+2017-12,Security and police,185,98,638
+2017-12,Staff and operations,378,105,529
+2017-12,"Track, signals and power",93,35,284
+2017-12,Trains,175,109,600
+2018-01,A person at track level,11,10,225
+2018-01,Closures and construction,35,29,314
+2018-01,Doors and passengers,33,33,161
+2018-01,"Fire, smoke and weather",59,37,524
+2018-01,Ill or injured customers,427,118,728
+2018-01,Other,478,83,750
+2018-01,Security and police,189,106,800
+2018-01,Staff and operations,370,145,662
+2018-01,"Track, signals and power",92,39,497
+2018-01,Trains,179,107,567
+2018-02,A person at track level,20,17,470
+2018-02,Closures and construction,21,18,124
+2018-02,Doors and passengers,30,25,123
+2018-02,"Fire, smoke and weather",14,10,62
+2018-02,Ill or injured customers,356,94,549
+2018-02,Other,395,80,699
+2018-02,Security and police,139,72,684
+2018-02,Staff and operations,316,116,536
+2018-02,"Track, signals and power",74,32,276
+2018-02,Trains,105,69,355
+2018-03,A person at track level,17,14,436
+2018-03,Closures and construction,26,21,140
+2018-03,Doors and passengers,51,47,232
+2018-03,"Fire, smoke and weather",13,11,357
+2018-03,Ill or injured customers,419,104,582
+2018-03,Other,363,51,419
+2018-03,Security and police,186,120,1181
+2018-03,Staff and operations,342,98,442
+2018-03,"Track, signals and power",78,38,192
+2018-03,Trains,126,71,350
+2018-04,A person at track level,14,11,153
+2018-04,Closures and construction,19,16,199
+2018-04,Doors and passengers,43,39,199
+2018-04,"Fire, smoke and weather",28,21,584
+2018-04,Ill or injured customers,439,93,477
+2018-04,Other,359,34,565
+2018-04,Security and police,171,90,820
+2018-04,Staff and operations,331,85,390
+2018-04,"Track, signals and power",86,46,284
+2018-04,Trains,107,64,322
+2018-05,A person at track level,11,7,133
+2018-05,Closures and construction,22,21,196
+2018-05,Doors and passengers,54,50,232
+2018-05,"Fire, smoke and weather",13,11,241
+2018-05,Ill or injured customers,487,99,597
+2018-05,Other,382,75,567
+2018-05,Security and police,158,79,539
+2018-05,Staff and operations,364,126,565
+2018-05,"Track, signals and power",97,47,326
+2018-05,Trains,173,91,467
+2018-06,A person at track level,27,24,682
+2018-06,Closures and construction,25,18,129
+2018-06,Doors and passengers,39,35,159
+2018-06,"Fire, smoke and weather",11,7,93
+2018-06,Ill or injured customers,531,131,764
+2018-06,Other,345,62,454
+2018-06,Security and police,150,98,640
+2018-06,Staff and operations,419,151,612
+2018-06,"Track, signals and power",75,41,274
+2018-06,Trains,172,87,450
+2018-07,A person at track level,19,17,227
+2018-07,Closures and construction,42,30,298
+2018-07,Doors and passengers,29,21,103
+2018-07,"Fire, smoke and weather",12,10,157
+2018-07,Ill or injured customers,513,121,736
+2018-07,Other,316,68,392
+2018-07,Security and police,170,88,585
+2018-07,Staff and operations,532,259,1078
+2018-07,"Track, signals and power",114,55,364
+2018-07,Trains,138,75,343
+2018-08,A person at track level,17,15,334
+2018-08,Closures and construction,37,24,195
+2018-08,Doors and passengers,40,36,164
+2018-08,"Fire, smoke and weather",12,9,307
+2018-08,Ill or injured customers,534,97,597
+2018-08,Other,392,58,324
+2018-08,Security and police,139,71,633
+2018-08,Staff and operations,509,234,1022
+2018-08,"Track, signals and power",114,56,313
+2018-08,Trains,143,81,425
+2018-09,A person at track level,12,6,61
+2018-09,Closures and construction,31,24,199
+2018-09,Doors and passengers,36,30,127
+2018-09,"Fire, smoke and weather",11,6,132
+2018-09,Ill or injured customers,500,119,586
+2018-09,Other,402,40,232
+2018-09,Security and police,136,62,388
+2018-09,Staff and operations,388,105,514
+2018-09,"Track, signals and power",95,53,386
+2018-09,Trains,183,80,407
+2018-10,A person at track level,30,21,386
+2018-10,Closures and construction,33,30,218
+2018-10,Doors and passengers,36,34,133
+2018-10,"Fire, smoke and weather",7,3,39
+2018-10,Ill or injured customers,500,125,711
+2018-10,Other,463,52,374
+2018-10,Security and police,167,86,1040
+2018-10,Staff and operations,348,100,497
+2018-10,"Track, signals and power",84,34,244
+2018-10,Trains,134,80,415
+2018-11,A person at track level,13,9,343
+2018-11,Closures and construction,19,17,151
+2018-11,Doors and passengers,49,41,190
+2018-11,"Fire, smoke and weather",18,13,179
+2018-11,Ill or injured customers,500,123,787
+2018-11,Other,363,48,353
+2018-11,Security and police,176,75,490
+2018-11,Staff and operations,363,113,526
+2018-11,"Track, signals and power",134,61,288
+2018-11,Trains,103,61,322
+2018-12,A person at track level,28,24,781
+2018-12,Closures and construction,34,29,218
+2018-12,Doors and passengers,37,30,138
+2018-12,"Fire, smoke and weather",5,3,10
+2018-12,Ill or injured customers,383,81,483
+2018-12,Other,298,43,227
+2018-12,Security and police,170,94,536
+2018-12,Staff and operations,310,123,572
+2018-12,"Track, signals and power",73,26,144
+2018-12,Trains,127,65,304
+2019-01,A person at track level,16,8,282
+2019-01,Closures and construction,41,32,267
+2019-01,Doors and passengers,36,33,175
+2019-01,"Fire, smoke and weather",117,67,578
+2019-01,Ill or injured customers,468,132,932
+2019-01,Other,417,53,452
+2019-01,Security and police,188,91,626
+2019-01,Staff and operations,301,116,536
+2019-01,"Track, signals and power",135,57,310
+2019-01,Trains,152,82,411
+2019-02,A person at track level,18,14,511
+2019-02,Closures and construction,35,27,184
+2019-02,Doors and passengers,29,18,83
+2019-02,"Fire, smoke and weather",51,34,344
+2019-02,Ill or injured customers,355,73,538
+2019-02,Other,441,98,1577
+2019-02,Security and police,180,87,526
+2019-02,Staff and operations,295,97,461
+2019-02,"Track, signals and power",47,20,297
+2019-02,Trains,147,87,394
+2019-03,A person at track level,16,15,309
+2019-03,Closures and construction,24,19,122
+2019-03,Doors and passengers,26,23,108
+2019-03,"Fire, smoke and weather",11,8,110
+2019-03,Ill or injured customers,391,92,539
+2019-03,Other,339,47,442
+2019-03,Security and police,191,103,899
+2019-03,Staff and operations,287,84,365
+2019-03,"Track, signals and power",103,49,269
+2019-03,Trains,115,74,486
+2019-04,A person at track level,16,14,244
+2019-04,Closures and construction,43,34,197
+2019-04,Doors and passengers,31,29,123
+2019-04,"Fire, smoke and weather",9,4,45
+2019-04,Ill or injured customers,406,99,711
+2019-04,Other,317,53,297
+2019-04,Security and police,186,107,597
+2019-04,Staff and operations,349,142,658
+2019-04,"Track, signals and power",52,29,199
+2019-04,Trains,141,86,390
+2019-05,A person at track level,24,19,451
+2019-05,Closures and construction,77,41,267
+2019-05,Doors and passengers,37,31,139
+2019-05,"Fire, smoke and weather",9,6,97
+2019-05,Ill or injured customers,468,110,571
+2019-05,Other,345,63,398
+2019-05,Security and police,190,85,589
+2019-05,Staff and operations,386,166,739
+2019-05,"Track, signals and power",65,32,319
+2019-05,Trains,104,66,318
+2019-06,A person at track level,14,11,322
+2019-06,Closures and construction,52,43,240
+2019-06,Doors and passengers,31,25,111
+2019-06,"Fire, smoke and weather",17,12,533
+2019-06,Ill or injured customers,509,111,703
+2019-06,Other,294,46,271
+2019-06,Security and police,168,86,514
+2019-06,Staff and operations,335,134,570
+2019-06,"Track, signals and power",59,34,617
+2019-06,Trains,125,75,422
+2019-07,A person at track level,17,10,133
+2019-07,Closures and construction,45,38,251
+2019-07,Doors and passengers,32,28,127
+2019-07,"Fire, smoke and weather",11,9,166
+2019-07,Ill or injured customers,517,95,649
+2019-07,Other,319,71,475
+2019-07,Security and police,166,77,468
+2019-07,Staff and operations,360,143,699
+2019-07,"Track, signals and power",76,34,196
+2019-07,Trains,153,96,507
+2019-08,A person at track level,12,10,371
+2019-08,Closures and construction,55,34,188
+2019-08,Doors and passengers,33,29,126
+2019-08,"Fire, smoke and weather",12,9,232
+2019-08,Ill or injured customers,506,97,662
+2019-08,Other,280,51,336
+2019-08,Security and police,176,84,529
+2019-08,Staff and operations,353,115,551
+2019-08,"Track, signals and power",63,21,103
+2019-08,Trains,140,79,364
+2019-09,A person at track level,17,14,346
+2019-09,Closures and construction,54,32,182
+2019-09,Doors and passengers,33,28,136
+2019-09,"Fire, smoke and weather",7,7,109
+2019-09,Ill or injured customers,457,101,701
+2019-09,Other,314,47,290
+2019-09,Security and police,150,71,402
+2019-09,Staff and operations,311,105,476
+2019-09,"Track, signals and power",49,23,209
+2019-09,Trains,139,70,323
+2019-10,A person at track level,19,13,191
+2019-10,Closures and construction,42,33,210
+2019-10,Doors and passengers,46,42,196
+2019-10,"Fire, smoke and weather",6,4,55
+2019-10,Ill or injured customers,452,89,512
+2019-10,Other,254,38,422
+2019-10,Security and police,153,63,461
+2019-10,Staff and operations,337,135,623
+2019-10,"Track, signals and power",71,36,557
+2019-10,Trains,117,65,289
+2019-11,A person at track level,24,15,285
+2019-11,Closures and construction,52,44,238
+2019-11,Doors and passengers,35,31,148
+2019-11,"Fire, smoke and weather",24,17,218
+2019-11,Ill or injured customers,476,106,633
+2019-11,Other,216,44,436
+2019-11,Security and police,179,79,563
+2019-11,Staff and operations,293,108,482
+2019-11,"Track, signals and power",61,22,360
+2019-11,Trains,103,73,349
+2019-12,A person at track level,22,19,300
+2019-12,Closures and construction,65,51,265
+2019-12,Doors and passengers,43,37,180
+2019-12,"Fire, smoke and weather",4,4,211
+2019-12,Ill or injured customers,461,93,667
+2019-12,Other,234,47,326
+2019-12,Security and police,224,112,905
+2019-12,Staff and operations,366,135,625
+2019-12,"Track, signals and power",46,23,186
+2019-12,Trains,109,56,256
+2020-01,A person at track level,16,12,421
+2020-01,Closures and construction,45,35,176
+2020-01,Doors and passengers,41,37,154
+2020-01,"Fire, smoke and weather",11,8,88
+2020-01,Ill or injured customers,412,102,625
+2020-01,Other,185,44,454
+2020-01,Security and police,233,130,778
+2020-01,Staff and operations,243,97,437
+2020-01,"Track, signals and power",42,16,125
+2020-01,Trains,111,67,599
+2020-02,A person at track level,21,16,314
+2020-02,Closures and construction,65,54,450
+2020-02,Doors and passengers,32,30,132
+2020-02,"Fire, smoke and weather",23,17,260
+2020-02,Ill or injured customers,398,91,603
+2020-02,Other,177,36,308
+2020-02,Security and police,177,81,610
+2020-02,Staff and operations,260,112,957
+2020-02,"Track, signals and power",62,34,287
+2020-02,Trains,92,51,294
+2020-03,A person at track level,25,20,671
+2020-03,Closures and construction,51,39,236
+2020-03,Doors and passengers,33,32,138
+2020-03,"Fire, smoke and weather",6,5,198
+2020-03,Ill or injured customers,350,99,643
+2020-03,Other,205,38,193
+2020-03,Security and police,226,119,795
+2020-03,Staff and operations,469,301,1154
+2020-03,"Track, signals and power",53,38,275
+2020-03,Trains,77,47,243
+2020-04,A person at track level,31,22,557
+2020-04,Closures and construction,36,28,185
+2020-04,Doors and passengers,20,20,85
+2020-04,"Fire, smoke and weather",6,2,9
+2020-04,Ill or injured customers,219,47,290
+2020-04,Other,113,34,248
+2020-04,Security and police,210,111,704
+2020-04,Staff and operations,711,621,2388
+2020-04,"Track, signals and power",27,12,108
+2020-04,Trains,65,41,234
+2020-05,A person at track level,19,14,413
+2020-05,Closures and construction,24,20,144
+2020-05,Doors and passengers,22,19,84
+2020-05,"Fire, smoke and weather",7,3,27
+2020-05,Ill or injured customers,213,33,238
+2020-05,Other,157,44,885
+2020-05,Security and police,178,91,511
+2020-05,Staff and operations,311,223,876
+2020-05,"Track, signals and power",84,33,390
+2020-05,Trains,75,51,364
+2020-06,A person at track level,18,15,232
+2020-06,Closures and construction,29,23,135
+2020-06,Doors and passengers,21,18,74
+2020-06,"Fire, smoke and weather",8,4,100
+2020-06,Ill or injured customers,208,29,152
+2020-06,Other,153,34,230
+2020-06,Security and police,158,81,491
+2020-06,Staff and operations,200,110,468
+2020-06,"Track, signals and power",73,32,260
+2020-06,Trains,61,44,219
+2020-07,A person at track level,24,20,690
+2020-07,Closures and construction,35,23,142
+2020-07,Doors and passengers,21,18,71
+2020-07,"Fire, smoke and weather",5,4,113
+2020-07,Ill or injured customers,231,36,226
+2020-07,Other,183,52,453
+2020-07,Security and police,201,78,460
+2020-07,Staff and operations,387,299,1187
+2020-07,"Track, signals and power",47,28,194
+2020-07,Trains,73,43,257
+2020-08,A person at track level,31,22,547
+2020-08,Closures and construction,25,24,142
+2020-08,Doors and passengers,17,16,78
+2020-08,"Fire, smoke and weather",8,7,90
+2020-08,Ill or injured customers,249,39,258
+2020-08,Other,167,64,436
+2020-08,Security and police,175,76,534
+2020-08,Staff and operations,304,206,825
+2020-08,"Track, signals and power",38,21,243
+2020-08,Trains,77,46,221
+2020-09,A person at track level,20,15,453
+2020-09,Closures and construction,24,21,119
+2020-09,Doors and passengers,10,8,30
+2020-09,"Fire, smoke and weather",8,7,74
+2020-09,Ill or injured customers,289,38,219
+2020-09,Other,183,69,452
+2020-09,Security and police,184,86,604
+2020-09,Staff and operations,215,125,606
+2020-09,"Track, signals and power",37,20,289
+2020-09,Trains,80,48,227
+2020-10,A person at track level,30,23,466
+2020-10,Closures and construction,53,47,389
+2020-10,Doors and passengers,21,20,94
+2020-10,"Fire, smoke and weather",10,6,193
+2020-10,Ill or injured customers,339,55,356
+2020-10,Other,199,63,338
+2020-10,Security and police,245,113,760
+2020-10,Staff and operations,239,127,554
+2020-10,"Track, signals and power",56,25,138
+2020-10,Trains,78,50,280
+2020-11,A person at track level,33,28,861
+2020-11,Closures and construction,35,31,212
+2020-11,Doors and passengers,32,28,118
+2020-11,"Fire, smoke and weather",9,7,114
+2020-11,Ill or injured customers,324,53,316
+2020-11,Other,180,55,560
+2020-11,Security and police,232,91,542
+2020-11,Staff and operations,279,181,754
+2020-11,"Track, signals and power",70,41,727
+2020-11,Trains,69,53,341
+2020-12,A person at track level,42,30,524
+2020-12,Closures and construction,26,21,122
+2020-12,Doors and passengers,33,26,104
+2020-12,"Fire, smoke and weather",12,7,141
+2020-12,Ill or injured customers,336,71,542
+2020-12,Other,184,51,790
+2020-12,Security and police,303,134,985
+2020-12,Staff and operations,234,131,626
+2020-12,"Track, signals and power",49,29,331
+2020-12,Trains,84,59,335
+2021-01,A person at track level,39,33,1260
+2021-01,Closures and construction,48,38,196
+2021-01,Doors and passengers,39,32,118
+2021-01,"Fire, smoke and weather",13,10,175
+2021-01,Ill or injured customers,305,68,500
+2021-01,Other,145,36,300
+2021-01,Security and police,289,136,882
+2021-01,Staff and operations,185,109,482
+2021-01,"Track, signals and power",48,26,182
+2021-01,Trains,105,73,377
+2021-02,A person at track level,33,22,264
+2021-02,Closures and construction,43,31,191
+2021-02,Doors and passengers,48,42,183
+2021-02,"Fire, smoke and weather",20,9,228
+2021-02,Ill or injured customers,355,56,406
+2021-02,Other,139,33,248
+2021-02,Security and police,295,137,855
+2021-02,Staff and operations,180,107,462
+2021-02,"Track, signals and power",49,29,190
+2021-02,Trains,83,58,301
+2021-03,A person at track level,44,36,624
+2021-03,Closures and construction,30,28,147
+2021-03,Doors and passengers,55,51,230
+2021-03,"Fire, smoke and weather",7,2,46
+2021-03,Ill or injured customers,300,43,296
+2021-03,Other,155,25,115
+2021-03,Security and police,288,146,969
+2021-03,Staff and operations,156,93,451
+2021-03,"Track, signals and power",67,42,382
+2021-03,Trains,65,47,253
+2021-04,A person at track level,33,24,553
+2021-04,Closures and construction,57,47,634
+2021-04,Doors and passengers,36,31,152
+2021-04,"Fire, smoke and weather",5,3,52
+2021-04,Ill or injured customers,303,65,472
+2021-04,Other,187,43,414
+2021-04,Security and police,261,117,853
+2021-04,Staff and operations,174,101,450
+2021-04,"Track, signals and power",54,38,312
+2021-04,Trains,60,42,253
+2021-05,A person at track level,39,27,664
+2021-05,Closures and construction,29,27,141
+2021-05,Doors and passengers,46,43,201
+2021-05,"Fire, smoke and weather",5,5,146
+2021-05,Ill or injured customers,338,71,498
+2021-05,Other,146,33,684
+2021-05,Security and police,274,129,1136
+2021-05,Staff and operations,177,97,477
+2021-05,"Track, signals and power",38,27,210
+2021-05,Trains,76,44,258
+2021-06,A person at track level,30,23,699
+2021-06,Closures and construction,26,21,105
+2021-06,Doors and passengers,35,30,133
+2021-06,"Fire, smoke and weather",13,8,192
+2021-06,Ill or injured customers,385,58,333
+2021-06,Other,204,47,224
+2021-06,Security and police,238,102,751
+2021-06,Staff and operations,191,111,483
+2021-06,"Track, signals and power",62,38,583
+2021-06,Trains,81,65,303
+2021-07,A person at track level,28,19,151
+2021-07,Closures and construction,24,21,247
+2021-07,Doors and passengers,33,31,152
+2021-07,"Fire, smoke and weather",3,3,96
+2021-07,Ill or injured customers,379,62,448
+2021-07,Other,172,46,386
+2021-07,Security and police,229,109,752
+2021-07,Staff and operations,208,139,620
+2021-07,"Track, signals and power",88,57,324
+2021-07,Trains,80,58,317
+2021-08,A person at track level,30,20,620
+2021-08,Closures and construction,39,30,166
+2021-08,Doors and passengers,19,17,90
+2021-08,"Fire, smoke and weather",4,2,64
+2021-08,Ill or injured customers,339,53,338
+2021-08,Other,217,46,707
+2021-08,Security and police,216,100,815
+2021-08,Staff and operations,191,105,504
+2021-08,"Track, signals and power",143,75,407
+2021-08,Trains,75,61,347
+2021-09,A person at track level,31,24,330
+2021-09,Closures and construction,42,40,233
+2021-09,Doors and passengers,33,31,131
+2021-09,"Fire, smoke and weather",4,2,13
+2021-09,Ill or injured customers,342,53,290
+2021-09,Other,200,42,399
+2021-09,Security and police,247,113,935
+2021-09,Staff and operations,315,234,889
+2021-09,"Track, signals and power",130,71,459
+2021-09,Trains,89,64,310
+2021-10,A person at track level,46,34,511
+2021-10,Closures and construction,84,75,590
+2021-10,Doors and passengers,35,32,145
+2021-10,"Fire, smoke and weather",7,5,369
+2021-10,Ill or injured customers,393,61,416
+2021-10,Other,189,56,514
+2021-10,Security and police,276,123,945
+2021-10,Staff and operations,372,288,1119
+2021-10,"Track, signals and power",80,46,698
+2021-10,Trains,78,55,275
+2021-11,A person at track level,55,40,649
+2021-11,Closures and construction,116,101,843
+2021-11,Doors and passengers,47,43,179
+2021-11,"Fire, smoke and weather",11,7,93
+2021-11,Ill or injured customers,467,83,543
+2021-11,Other,189,53,401
+2021-11,Security and police,315,173,1500
+2021-11,Staff and operations,370,299,1324
+2021-11,"Track, signals and power",109,66,661
+2021-11,Trains,92,61,324
+2021-12,A person at track level,60,41,590
+2021-12,Closures and construction,79,71,455
+2021-12,Doors and passengers,42,37,164
+2021-12,"Fire, smoke and weather",10,5,74
+2021-12,Ill or injured customers,491,95,651
+2021-12,Other,202,64,667
+2021-12,Security and police,377,173,1675
+2021-12,Staff and operations,294,163,726
+2021-12,"Track, signals and power",232,137,925
+2021-12,Trains,71,49,259
+2022-01,A person at track level,53,40,918
+2022-01,Closures and construction,88,72,518
+2022-01,Doors and passengers,41,35,192
+2022-01,"Fire, smoke and weather",41,27,741
+2022-01,Ill or injured customers,380,73,432
+2022-01,Other,234,79,1053
+2022-01,Security and police,358,160,1279
+2022-01,Staff and operations,425,281,1273
+2022-01,"Track, signals and power",217,120,916
+2022-01,Trains,62,46,274
+2022-02,A person at track level,41,29,420
+2022-02,Closures and construction,62,54,365
+2022-02,Doors and passengers,27,26,138
+2022-02,"Fire, smoke and weather",49,24,285
+2022-02,Ill or injured customers,428,87,597
+2022-02,Other,205,86,852
+2022-02,Security and police,352,164,1933
+2022-02,Staff and operations,219,147,701
+2022-02,"Track, signals and power",164,100,593
+2022-02,Trains,76,50,327
+2022-03,A person at track level,65,52,1112
+2022-03,Closures and construction,96,81,478
+2022-03,Doors and passengers,51,41,198
+2022-03,"Fire, smoke and weather",10,7,161
+2022-03,Ill or injured customers,489,77,518
+2022-03,Other,173,59,565
+2022-03,Security and police,371,183,1640
+2022-03,Staff and operations,188,126,584
+2022-03,"Track, signals and power",140,89,768
+2022-03,Trains,66,46,318
+2022-04,A person at track level,45,35,702
+2022-04,Closures and construction,89,73,548
+2022-04,Doors and passengers,50,47,250
+2022-04,"Fire, smoke and weather",13,4,71
+2022-04,Ill or injured customers,429,94,696
+2022-04,Other,192,46,545
+2022-04,Security and police,352,178,1631
+2022-04,Staff and operations,266,175,830
+2022-04,"Track, signals and power",113,63,810
+2022-04,Trains,70,48,324
+2022-05,A person at track level,46,38,678
+2022-05,Closures and construction,96,92,517
+2022-05,Doors and passengers,53,50,240
+2022-05,"Fire, smoke and weather",11,6,104
+2022-05,Ill or injured customers,444,90,618
+2022-05,Other,246,74,567
+2022-05,Security and police,307,129,1359
+2022-05,Staff and operations,192,104,551
+2022-05,"Track, signals and power",157,101,769
+2022-05,Trains,72,40,230
+2022-06,A person at track level,49,40,1122
+2022-06,Closures and construction,90,74,512
+2022-06,Doors and passengers,24,22,121
+2022-06,"Fire, smoke and weather",13,8,251
+2022-06,Ill or injured customers,477,99,582
+2022-06,Other,254,62,616
+2022-06,Security and police,291,129,1152
+2022-06,Staff and operations,194,107,519
+2022-06,"Track, signals and power",173,112,704
+2022-06,Trains,79,60,299
+2022-07,A person at track level,41,33,486
+2022-07,Closures and construction,86,75,526
+2022-07,Doors and passengers,39,37,182
+2022-07,"Fire, smoke and weather",16,7,491
+2022-07,Ill or injured customers,396,77,506
+2022-07,Other,253,63,877
+2022-07,Security and police,285,123,1198
+2022-07,Staff and operations,212,115,692
+2022-07,"Track, signals and power",115,63,401
+2022-07,Trains,85,60,351
+2022-08,A person at track level,55,41,1344
+2022-08,Closures and construction,63,52,443
+2022-08,Doors and passengers,40,37,172
+2022-08,"Fire, smoke and weather",10,8,128
+2022-08,Ill or injured customers,469,77,438
+2022-08,Other,292,92,1226
+2022-08,Security and police,281,118,1096
+2022-08,Staff and operations,237,126,690
+2022-08,"Track, signals and power",120,83,481
+2022-08,Trains,60,44,264
+2022-09,A person at track level,52,43,677
+2022-09,Closures and construction,73,65,314
+2022-09,Doors and passengers,38,34,178
+2022-09,"Fire, smoke and weather",9,7,121
+2022-09,Ill or injured customers,518,108,716
+2022-09,Other,207,57,381
+2022-09,Security and police,298,133,1053
+2022-09,Staff and operations,275,179,860
+2022-09,"Track, signals and power",141,92,554
+2022-09,Trains,78,72,538
+2022-10,A person at track level,56,40,611
+2022-10,Closures and construction,81,68,485
+2022-10,Doors and passengers,58,55,255
+2022-10,"Fire, smoke and weather",7,6,238
+2022-10,Ill or injured customers,520,128,776
+2022-10,Other,174,49,522
+2022-10,Security and police,333,148,1298
+2022-10,Staff and operations,189,109,682
+2022-10,"Track, signals and power",139,100,592
+2022-10,Trains,109,83,444
+2022-11,A person at track level,57,39,907
+2022-11,Closures and construction,74,56,314
+2022-11,Doors and passengers,51,43,237
+2022-11,"Fire, smoke and weather",13,11,203
+2022-11,Ill or injured customers,546,116,796
+2022-11,Other,188,56,667
+2022-11,Security and police,327,130,1146
+2022-11,Staff and operations,211,120,599
+2022-11,"Track, signals and power",107,64,426
+2022-11,Trains,74,49,362
+2022-12,A person at track level,49,38,640
+2022-12,Closures and construction,60,44,300
+2022-12,Doors and passengers,53,52,272
+2022-12,"Fire, smoke and weather",20,14,182
+2022-12,Ill or injured customers,543,109,646
+2022-12,Other,180,52,941
+2022-12,Security and police,392,186,1726
+2022-12,Staff and operations,217,127,711
+2022-12,"Track, signals and power",130,74,507
+2022-12,Trains,35,28,170
+2023-01,A person at track level,60,49,998
+2023-01,Closures and construction,43,34,207
+2023-01,Doors and passengers,51,45,228
+2023-01,"Fire, smoke and weather",7,3,117
+2023-01,Ill or injured customers,544,119,797
+2023-01,Other,163,45,524
+2023-01,Security and police,483,192,1540
+2023-01,Staff and operations,179,78,410
+2023-01,"Track, signals and power",131,92,629
+2023-01,Trains,77,56,318
+2023-02,A person at track level,55,33,712
+2023-02,Closures and construction,39,31,216
+2023-02,Doors and passengers,44,41,198
+2023-02,"Fire, smoke and weather",16,12,235
+2023-02,Ill or injured customers,502,81,506
+2023-02,Other,185,70,914
+2023-02,Security and police,744,180,1398
+2023-02,Staff and operations,122,60,285
+2023-02,"Track, signals and power",140,88,518
+2023-02,Trains,57,46,284
+2023-03,A person at track level,67,46,962
+2023-03,Closures and construction,39,32,207
+2023-03,Doors and passengers,54,47,221
+2023-03,"Fire, smoke and weather",12,5,84
+2023-03,Ill or injured customers,599,112,738
+2023-03,Other,187,58,516
+2023-03,Security and police,760,236,2117
+2023-03,Staff and operations,171,86,480
+2023-03,"Track, signals and power",128,76,672
+2023-03,Trains,88,69,362
+2023-04,A person at track level,53,35,889
+2023-04,Closures and construction,48,38,273
+2023-04,Doors and passengers,47,45,231
+2023-04,"Fire, smoke and weather",25,14,603
+2023-04,Ill or injured customers,492,108,741
+2023-04,Other,226,74,1011
+2023-04,Security and police,643,194,1681
+2023-04,Staff and operations,167,72,422
+2023-04,"Track, signals and power",111,66,435
+2023-04,Trains,73,44,257
+2023-05,A person at track level,58,42,970
+2023-05,Closures and construction,30,28,178
+2023-05,Doors and passengers,41,35,181
+2023-05,"Fire, smoke and weather",10,8,191
+2023-05,Ill or injured customers,569,109,684
+2023-05,Other,270,104,936
+2023-05,Security and police,595,187,1800
+2023-05,Staff and operations,156,66,424
+2023-05,"Track, signals and power",111,66,455
+2023-05,Trains,79,50,305
+2023-06,A person at track level,52,35,815
+2023-06,Closures and construction,41,34,302
+2023-06,Doors and passengers,47,43,223
+2023-06,"Fire, smoke and weather",9,6,153
+2023-06,Ill or injured customers,620,139,890
+2023-06,Other,230,85,1104
+2023-06,Security and police,541,175,1689
+2023-06,Staff and operations,203,76,418
+2023-06,"Track, signals and power",142,97,863
+2023-06,Trains,88,54,321
+2023-07,A person at track level,48,28,387
+2023-07,Closures and construction,42,35,293
+2023-07,Doors and passengers,41,37,182
+2023-07,"Fire, smoke and weather",9,6,338
+2023-07,Ill or injured customers,615,125,807
+2023-07,Other,196,48,887
+2023-07,Security and police,528,162,1554
+2023-07,Staff and operations,168,69,381
+2023-07,"Track, signals and power",127,84,598
+2023-07,Trains,78,57,368
+2023-08,A person at track level,66,46,773
+2023-08,Closures and construction,26,23,125
+2023-08,Doors and passengers,55,51,272
+2023-08,"Fire, smoke and weather",7,5,177
+2023-08,Ill or injured customers,632,118,746
+2023-08,Other,80,11,68
+2023-08,Security and police,544,155,1505
+2023-08,Staff and operations,165,58,297
+2023-08,"Track, signals and power",137,93,577
+2023-08,Trains,82,54,317
+2023-09,A person at track level,71,44,898
+2023-09,Closures and construction,30,28,186
+2023-09,Doors and passengers,39,35,184
+2023-09,"Fire, smoke and weather",9,6,91
+2023-09,Ill or injured customers,668,159,911
+2023-09,Other,94,14,60
+2023-09,Security and police,505,154,1676
+2023-09,Staff and operations,162,70,333
+2023-09,"Track, signals and power",172,112,902
+2023-09,Trains,78,66,455
+2023-10,A person at track level,51,24,378
+2023-10,Closures and construction,39,34,294
+2023-10,Doors and passengers,55,50,228
+2023-10,"Fire, smoke and weather",3,1,10
+2023-10,Ill or injured customers,660,148,914
+2023-10,Other,109,13,78
+2023-10,Security and police,583,182,1766
+2023-10,Staff and operations,168,77,407
+2023-10,"Track, signals and power",132,92,617
+2023-10,Trains,66,50,263
+2023-11,A person at track level,56,35,541
+2023-11,Closures and construction,30,25,151
+2023-11,Doors and passengers,55,50,256
+2023-11,"Fire, smoke and weather",7,4,53
+2023-11,Ill or injured customers,697,146,868
+2023-11,Other,134,19,84
+2023-11,Security and police,684,189,1538
+2023-11,Staff and operations,140,59,331
+2023-11,"Track, signals and power",137,74,429
+2023-11,Trains,78,57,410
+2023-12,A person at track level,75,42,770
+2023-12,Closures and construction,34,26,147
+2023-12,Doors and passengers,61,51,290
+2023-12,"Fire, smoke and weather",5,2,60
+2023-12,Ill or injured customers,704,126,874
+2023-12,Other,89,18,131
+2023-12,Security and police,716,221,1797
+2023-12,Staff and operations,209,102,541
+2023-12,"Track, signals and power",122,85,611
+2023-12,Trains,52,30,156
+2024-01,A person at track level,90,46,757
+2024-01,Closures and construction,39,35,257
+2024-01,Doors and passengers,82,76,366
+2024-01,"Fire, smoke and weather",11,9,140
+2024-01,Ill or injured customers,668,142,931
+2024-01,Other,143,30,178
+2024-01,Security and police,702,231,1875
+2024-01,Staff and operations,174,93,476
+2024-01,"Track, signals and power",261,158,980
+2024-01,Trains,89,63,392
+2024-02,A person at track level,52,35,522
+2024-02,Closures and construction,35,31,273
+2024-02,Doors and passengers,71,64,332
+2024-02,"Fire, smoke and weather",12,8,135
+2024-02,Ill or injured customers,675,133,882
+2024-02,Other,127,20,80
+2024-02,Security and police,701,228,1777
+2024-02,Staff and operations,162,70,409
+2024-02,"Track, signals and power",205,112,703
+2024-02,Trains,62,47,363
+2024-03,A person at track level,80,48,947
+2024-03,Closures and construction,32,24,181
+2024-03,Doors and passengers,98,82,421
+2024-03,"Fire, smoke and weather",9,2,21
+2024-03,Ill or injured customers,664,158,991
+2024-03,Other,138,23,112
+2024-03,Security and police,745,218,1701
+2024-03,Staff and operations,171,80,477
+2024-03,"Track, signals and power",178,102,1239
+2024-03,Trains,104,77,415
+2024-04,A person at track level,82,48,926
+2024-04,Closures and construction,57,41,319
+2024-04,Doors and passengers,89,76,419
+2024-04,"Fire, smoke and weather",19,11,765
+2024-04,Ill or injured customers,721,157,1183
+2024-04,Other,149,25,154
+2024-04,Security and police,695,207,1874
+2024-04,Staff and operations,157,65,419
+2024-04,"Track, signals and power",203,101,746
+2024-04,Trains,76,50,314
+2024-05,A person at track level,65,40,465
+2024-05,Closures and construction,55,44,238
+2024-05,Doors and passengers,66,52,264
+2024-05,"Fire, smoke and weather",14,10,328
+2024-05,Ill or injured customers,740,157,1118
+2024-05,Other,152,33,220
+2024-05,Security and police,707,235,2013
+2024-05,Staff and operations,197,85,416
+2024-05,"Track, signals and power",274,128,852
+2024-05,Trains,114,74,1212
+2024-06,A person at track level,61,33,754
+2024-06,Closures and construction,23,16,139
+2024-06,Doors and passengers,49,42,212
+2024-06,"Fire, smoke and weather",12,8,184
+2024-06,Ill or injured customers,676,136,802
+2024-06,Other,124,22,138
+2024-06,Security and police,575,157,1214
+2024-06,Staff and operations,190,87,456
+2024-06,"Track, signals and power",144,72,495
+2024-06,Trains,78,48,252
+2024-07,A person at track level,49,32,421
+2024-07,Closures and construction,27,21,128
+2024-07,Doors and passengers,42,34,179
+2024-07,"Fire, smoke and weather",27,14,792
+2024-07,Ill or injured customers,681,167,990
+2024-07,Other,145,25,135
+2024-07,Security and police,540,153,1307
+2024-07,Staff and operations,215,80,455
+2024-07,"Track, signals and power",238,113,860
+2024-07,Trains,86,52,538
+2024-08,A person at track level,51,25,480
+2024-08,Closures and construction,30,20,189
+2024-08,Doors and passengers,58,51,286
+2024-08,"Fire, smoke and weather",9,4,71
+2024-08,Ill or injured customers,798,216,1325
+2024-08,Other,167,28,192
+2024-08,Security and police,555,194,1750
+2024-08,Staff and operations,317,94,557
+2024-08,"Track, signals and power",246,158,1250
+2024-08,Trains,92,63,491
+2024-09,A person at track level,50,30,679
+2024-09,Closures and construction,11,7,201
+2024-09,Doors and passengers,38,31,164
+2024-09,"Fire, smoke and weather",3,1,13
+2024-09,Ill or injured customers,726,172,1037
+2024-09,Other,206,26,173
+2024-09,Security and police,502,145,1108
+2024-09,Staff and operations,293,93,530
+2024-09,"Track, signals and power",253,167,1445
+2024-09,Trains,103,73,408
+2024-10,A person at track level,70,41,1002
+2024-10,Closures and construction,17,13,158
+2024-10,Doors and passengers,73,65,380
+2024-10,"Fire, smoke and weather",10,5,121
+2024-10,Ill or injured customers,719,185,1193
+2024-10,Other,160,19,122
+2024-10,Security and police,557,183,1441
+2024-10,Staff and operations,387,109,578
+2024-10,"Track, signals and power",188,121,888
+2024-10,Trains,96,65,423
+2024-11,A person at track level,37,23,391
+2024-11,Closures and construction,41,32,201
+2024-11,Doors and passengers,64,57,344
+2024-11,"Fire, smoke and weather",9,5,125
+2024-11,Ill or injured customers,662,147,980
+2024-11,Other,184,30,208
+2024-11,Security and police,523,175,1516
+2024-11,Staff and operations,321,118,540
+2024-11,"Track, signals and power",187,113,769
+2024-11,Trains,115,79,529
+2024-12,A person at track level,69,35,706
+2024-12,Closures and construction,47,41,302
+2024-12,Doors and passengers,71,65,304
+2024-12,"Fire, smoke and weather",22,17,618
+2024-12,Ill or injured customers,616,147,1209
+2024-12,Other,153,24,119
+2024-12,Security and police,648,211,1804
+2024-12,Staff and operations,429,101,507
+2024-12,"Track, signals and power",176,104,1048
+2024-12,Trains,114,70,370
+2025-01,A person at track level,58,36,539
+2025-01,Closures and construction,13,11,139
+2025-01,Doors and passengers,65,58,287
+2025-01,"Fire, smoke and weather",8,3,40
+2025-01,Ill or injured customers,632,157,1055
+2025-01,Other,159,29,163
+2025-01,Security and police,594,221,1687
+2025-01,Staff and operations,284,109,588
+2025-01,"Track, signals and power",181,113,1327
+2025-01,Trains,112,71,556
+2025-02,A person at track level,56,31,531
+2025-02,Closures and construction,13,11,245
+2025-02,Doors and passengers,61,53,304
+2025-02,"Fire, smoke and weather",224,175,2973
+2025-02,Ill or injured customers,568,123,800
+2025-02,Other,183,42,224
+2025-02,Security and police,517,185,1421
+2025-02,Staff and operations,328,86,508
+2025-02,"Track, signals and power",201,132,1326
+2025-02,Trains,123,79,434
+2025-03,A person at track level,54,28,834
+2025-03,Closures and construction,48,21,178
+2025-03,Doors and passengers,59,54,310
+2025-03,"Fire, smoke and weather",12,8,55
+2025-03,Ill or injured customers,548,150,1127
+2025-03,Other,159,36,204
+2025-03,Security and police,483,169,1332
+2025-03,Staff and operations,248,89,580
+2025-03,"Track, signals and power",241,164,1194
+2025-03,Trains,134,82,491
+2025-04,A person at track level,62,34,449
+2025-04,Closures and construction,58,16,212
+2025-04,Doors and passengers,57,49,254
+2025-04,"Fire, smoke and weather",16,12,280
+2025-04,Ill or injured customers,569,131,1126
+2025-04,Other,138,27,116
+2025-04,Security and police,483,146,981
+2025-04,Staff and operations,332,105,708
+2025-04,"Track, signals and power",281,151,1290
+2025-04,Trains,121,80,639
+2025-05,A person at track level,52,25,449
+2025-05,Closures and construction,73,38,433
+2025-05,Doors and passengers,65,58,275
+2025-05,"Fire, smoke and weather",7,2,32
+2025-05,Ill or injured customers,665,161,1048
+2025-05,Other,136,14,70
+2025-05,Security and police,485,164,1197
+2025-05,Staff and operations,358,94,451
+2025-05,"Track, signals and power",203,106,1072
+2025-05,Trains,131,69,405
+2025-06,A person at track level,41,22,425
+2025-06,Closures and construction,51,21,195
+2025-06,Doors and passengers,54,47,255
+2025-06,"Fire, smoke and weather",23,13,240
+2025-06,Ill or injured customers,560,124,823
+2025-06,Other,142,16,115
+2025-06,Security and police,419,140,1075
+2025-06,Staff and operations,346,112,660
+2025-06,"Track, signals and power",209,107,974
+2025-06,Trains,96,62,355
+2025-07,A person at track level,35,15,206
+2025-07,Closures and construction,47,12,223
+2025-07,Doors and passengers,62,54,296
+2025-07,"Fire, smoke and weather",14,8,291
+2025-07,Ill or injured customers,568,126,858
+2025-07,Other,153,24,120
+2025-07,Security and police,459,158,1431
+2025-07,Staff and operations,454,96,569
+2025-07,"Track, signals and power",207,118,1118
+2025-07,Trains,123,77,485
+2025-08,A person at track level,39,27,447
+2025-08,Closures and construction,55,37,408
+2025-08,Doors and passengers,53,48,221
+2025-08,"Fire, smoke and weather",6,3,16
+2025-08,Ill or injured customers,601,185,1209
+2025-08,Other,118,17,80
+2025-08,Security and police,436,123,909
+2025-08,Staff and operations,1083,134,662
+2025-08,"Track, signals and power",191,104,737
+2025-08,Trains,137,63,438
+2025-09,A person at track level,32,19,313
+2025-09,Closures and construction,54,17,200
+2025-09,Doors and passengers,54,49,239
+2025-09,"Fire, smoke and weather",18,5,65
+2025-09,Ill or injured customers,556,137,742
+2025-09,Other,133,18,176
+2025-09,Security and police,458,127,880
+2025-09,Staff and operations,162,78,405
+2025-09,"Track, signals and power",245,104,707
+2025-09,Trains,101,60,466
+2025-10,A person at track level,50,32,384
+2025-10,Closures and construction,33,13,152
+2025-10,Doors and passengers,76,67,297
+2025-10,"Fire, smoke and weather",11,6,125
+2025-10,Ill or injured customers,624,140,919
+2025-10,Other,187,26,191
+2025-10,Security and police,512,142,1330
+2025-10,Staff and operations,223,118,627
+2025-10,"Track, signals and power",191,98,758
+2025-10,Trains,120,62,367
+2025-11,A person at track level,54,29,445
+2025-11,Closures and construction,30,9,65
+2025-11,Doors and passengers,66,61,259
+2025-11,"Fire, smoke and weather",23,18,134
+2025-11,Ill or injured customers,660,163,1145
+2025-11,Other,177,24,147
+2025-11,Security and police,571,170,1386
+2025-11,Staff and operations,217,117,542
+2025-11,"Track, signals and power",285,171,1712
+2025-11,Trains,132,72,352
+2025-12,A person at track level,59,35,585
+2025-12,Closures and construction,30,8,58
+2025-12,Doors and passengers,76,69,331
+2025-12,"Fire, smoke and weather",37,23,514
+2025-12,Ill or injured customers,636,145,1023
+2025-12,Other,168,23,103
+2025-12,Security and police,616,195,1479
+2025-12,Staff and operations,239,122,646
+2025-12,"Track, signals and power",254,143,1149
+2025-12,Trains,127,79,570
+2026-01,A person at track level,50,24,407
+2026-01,Closures and construction,27,11,83
+2026-01,Doors and passengers,73,64,372
+2026-01,"Fire, smoke and weather",209,149,6064
+2026-01,Ill or injured customers,686,173,1066
+2026-01,Other,195,26,199
+2026-01,Security and police,587,186,1421
+2026-01,Staff and operations,254,136,785
+2026-01,"Track, signals and power",239,127,1285
+2026-01,Trains,161,98,694
+2026-02,A person at track level,49,28,517
+2026-02,Closures and construction,47,14,251
+2026-02,Doors and passengers,72,61,370
+2026-02,"Fire, smoke and weather",38,26,293
+2026-02,Ill or injured customers,609,161,1044
+2026-02,Other,144,19,84
+2026-02,Security and police,541,163,1258
+2026-02,Staff and operations,192,85,533
+2026-02,"Track, signals and power",233,109,1000
+2026-02,Trains,123,83,466
+2026-03,A person at track level,49,27,396
+2026-03,Closures and construction,47,11,93
+2026-03,Doors and passengers,76,72,357
+2026-03,"Fire, smoke and weather",26,18,115
+2026-03,Ill or injured customers,708,183,1294
+2026-03,Other,166,27,140
+2026-03,Security and police,754,217,1513
+2026-03,Staff and operations,222,105,563
+2026-03,"Track, signals and power",231,98,818
+2026-03,Trains,121,76,500
+2026-04,A person at track level,59,43,536
+2026-04,Closures and construction,21,9,63
+2026-04,Doors and passengers,81,75,367
+2026-04,"Fire, smoke and weather",16,10,229
+2026-04,Ill or injured customers,776,176,1090
+2026-04,Other,204,27,122
+2026-04,Security and police,867,218,1400
+2026-04,Staff and operations,286,115,580
+2026-04,"Track, signals and power",288,153,1405
+2026-04,Trains,121,66,1413
+2026-05,A person at track level,56,34,676
+2026-05,Closures and construction,49,16,241
+2026-05,Doors and passengers,88,73,303
+2026-05,"Fire, smoke and weather",20,14,180
+2026-05,Ill or injured customers,766,199,1137
+2026-05,Other,195,26,130
+2026-05,Security and police,866,210,1362
+2026-05,Staff and operations,254,116,556
+2026-05,"Track, signals and power",221,102,619
+2026-05,Trains,118,76,413
+2026-06,A person at track level,41,23,251
+2026-06,Closures and construction,21,14,73
+2026-06,Doors and passengers,92,77,334
+2026-06,"Fire, smoke and weather",23,13,388
+2026-06,Ill or injured customers,724,178,1034
+2026-06,Other,203,33,180
+2026-06,Security and police,847,172,1333
+2026-06,Staff and operations,288,156,820
+2026-06,"Track, signals and power",240,109,555
+2026-06,Trains,159,101,603
+2026-07,A person at track level,38,26,339
+2026-07,Closures and construction,26,8,41
+2026-07,Doors and passengers,63,55,222
+2026-07,"Fire, smoke and weather",23,13,199
+2026-07,Ill or injured customers,736,180,994
+2026-07,Other,271,45,192
+2026-07,Security and police,690,159,1001
+2026-07,Staff and operations,286,138,666
+2026-07,"Track, signals and power",250,106,558
+2026-07,Trains,130,92,570
+2026-08,A person at track level,49,27,316
+2026-08,Closures and construction,33,14,126
+2026-08,Doors and passengers,63,56,260
+2026-08,"Fire, smoke and weather",9,5,162
+2026-08,Ill or injured customers,739,154,899
+2026-08,Other,186,20,109
+2026-08,Security and police,624,142,936
+2026-08,Staff and operations,244,79,380
+2026-08,"Track, signals and power",227,96,572
+2026-08,Trains,132,85,387
+2026-09,A person at track level,51,32,457
+2026-09,Closures and construction,51,23,162
+2026-09,Doors and passengers,95,79,392
+2026-09,"Fire, smoke and weather",21,13,210
+2026-09,Ill or injured customers,753,150,962
+2026-09,Other,218,48,202
+2026-09,Security and police,608,125,827
+2026-09,Staff and operations,299,112,509
+2026-09,"Track, signals and power",232,101,554
+2026-09,Trains,112,65,332

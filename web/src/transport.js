@@ -133,9 +133,36 @@ function renderProfile() {
       : `On weekdays members' trips peak at ${hourLabel(peak(wd.member))} and casual riders' at ${hourLabel(peak(wd.casual))}; at the weekend, at ${hourLabel(peak(we.member))} and ${hourLabel(peak(we.casual))}.`);
 }
 
+// ---- 3b. subway delays: why, and where ------------------------------------------------------------------------
+const CAUSE_COLORS = ["#0d366b", "#1c5cab", "#3987e5", "#86b6ef", "#c2410c", "#e98b5a", "#7a5195", "#b9a3c9", "#6b6b66", "#c9c9c3"];
+function renderDelays() {
+  const yl = TT.cause_years.map((y, k) => (TT.cause_partial && k === TT.cause_years.length - 1 ? `${y}*` : y));
+  const lastMonth = LONG[+TT.cause_last.slice(5) - 1];
+  $("why").innerHTML = panel("Why trains were held: minutes of delay", chart({ labels: yl, fmt: fmtBig, height: 220,
+    tipLabel: (l, k) => (TT.cause_partial && k === yl.length - 1 ? `${TT.cause_years[k]}, January to ${lastMonth}` : String(TT.cause_years[k])),
+    partialFrom: TT.cause_partial ? yl.length - 1 : null,
+    bars: TT.causes.map((c, k) => ({ name: c, color: CAUSE_COLORS[k], values: TT.cause_minutes[k] })) })
+    + key(TT.causes.map((c, k) => [c, CAUSE_COLORS[k]])),
+  `Every delay that held a subway train, by year and by the cause group of the TTC's code${TT.cause_partial ? `; ${TT.cause_years.at(-1)} runs to ${lastMonth}` : ""}. Line 3 (Scarborough) closed in July 2023.`);
+  const st = TT.stations.filter((s) => s.minutes > 0).sort((a, b) => b.minutes - a.minutes);
+  const top = st.slice(0, 15), max = top[0].minutes;
+  const main = (s) => { const k = s.by.indexOf(Math.max(...s.by)); return `${TT.causes[k]} (${Math.round((s.by[k] / s.minutes) * 100)}%)`; };
+  $("delay-ranks").innerHTML = top.map((s, k) => `<li><span class="rk">${k + 1}</span><button type="button" class="nm" data-nb="${s.nb}" title="Find ${escapeHTML(nbhd[s.nb].name)} on the map">${escapeHTML(s.name)}</button>
+    <span class="barcell" data-tip="${escapeHTML(`${s.name} (Line ${s.lines.replaceAll("/", " and ")})<br><b>${fmtN(s.minutes)}</b> minutes in ${fmtN(s.delays)} delays<br>Most: ${main(s)}<br>${nbhd[s.nb].name}`)}"><span class="bar-fill" style="width:${((s.minutes / max) * 100).toFixed(1)}%"></span></span>
+    <span class="vl">${fmtN(s.minutes)}</span><span class="move"></span></li>`).join("");
+  const total = TT.stations.reduce((a, s) => a + s.minutes, 0);
+  $("delay-lede").innerHTML = `The stations where the most minutes of subway delay began, ${ml(TT.stations_period[0])} to ${ml(TT.stations_period[1])}: ${fmtN(total)} minutes at ${st.length} stations. `
+    + "A delay is logged where it began, so a busy interchange or a terminus collects the delays of the trains held behind it. Delays logged between two stations or for a whole line are in the chart and not in the list. Pick a station to find its neighbourhood on the map.";
+}
+
 // ---- neighbourhood measures --------------------------------------------------------------------------------
 // A period is a year, or one month of it. A neighbourhood with no trip in the period has no
 // figure: it had no station then.
+const TT = T.ttc;
+const sumModes = (w) => w.bus.map((v, i) => v + w.streetcar[i] + w.subway[i]);
+const lower1 = (s) => s.charAt(0).toLowerCase() + s.slice(1); // "TTC" and month names keep their capitals
+const fmtDate = (iso) => { const d = new Date(`${iso}T12:00`); return `${d.getDate()} ${LONG[d.getMonth()]} ${d.getFullYear()}`; };
+const feedLabel = (k) => `${MON[+TT.feeds[k].slice(5, 7) - 1]} ${TT.feeds[k].slice(0, 4)}`;
 const NBM = NB.months, YEARS = [...new Set(NBM.map((m) => +m.slice(0, 4)))];
 const monthsOf = (y, mo) => NBM.map((m, k) => [m, k]).filter(([m]) => +m.slice(0, 4) === y && (!mo || +m.slice(5) === mo)).map(([, k]) => k);
 const partial = (y) => monthsOf(y, 0).length < 12;
@@ -153,7 +180,17 @@ const M = {
     get: (ks) => { const s = total(NB.starts, ks), e = total(NB.ends, ks); return s.map((v, i) => (v >= MIN_BASE ? (e[i] / v) * 100 : null)); } },
   docks: { label: "Bike Share docks today", count: true, fixed: true, get: () => NB.docks.map((v) => v || null) },
   stations: { label: "Bike Share stations today", count: true, fixed: true, get: () => NB.stations.map((v) => v || null) },
+  // The TTC's schedule: a period at a time (TT.feeds), not a year or month
+  ttc_all: { label: "TTC departures on a weekday, every mode", group: "ttc", count: true, get: (f) => sumModes(TT.nb[f].weekday) },
+  ttc_bus: { label: "TTC departures on a weekday, by bus", group: "ttc", count: true, get: (f) => TT.nb[f].weekday.bus },
+  ttc_streetcar: { label: "TTC departures on a weekday, by streetcar and LRT", group: "ttc", count: true, get: (f) => TT.nb[f].weekday.streetcar },
+  ttc_subway: { label: "TTC departures on a weekday, by subway", group: "ttc", count: true, get: (f) => TT.nb[f].weekday.subway },
+  ttc_sunday: { label: "TTC Sunday service, as a share of a weekday's", group: "ttc", unit: "pct",
+    get: (f) => sumModes(TT.nb[f].weekday).map((w, i) => (w ? (TT.nb[f].sunday[i] / w) * 100 : null)) },
+  ttc_frequent: { label: "Residents within 400 m of a stop served every 10 minutes all day", group: "ttc", unit: "pct", get: (f) => TT.nb[f].frequent },
+  ttc_rapid: { label: "Residents within 800 m of a subway or LRT station", group: "ttc", unit: "pct", get: (f) => TT.nb[f].rapid },
 };
+const isTTC = (m = state.m) => M[m].group === "ttc";
 const years = (m) => YEARS.filter((y) => y >= (M[m].from ?? YEARS[0]));
 
 // ---- state, kept in the address -------------------------------------------------------------
@@ -166,6 +203,7 @@ const state = {
   m: own(M, hash.get("m")) ? hash.get("m") : "starts",
   y: +hash.get("y") || null,
   mo: Math.min(12, Math.max(0, +hash.get("mo") || 0)),
+  f: Math.max(0, TT.feeds.indexOf(hash.get("f") ?? TT.feeds.at(-1))),
   rate: hash.get("r") !== "0",
   dots: hash.get("st") === "1",
   sx: hash.get("sx"),
@@ -178,6 +216,7 @@ const fixPeriod = () => {
 fixPeriod();
 const writeHash = () => {
   const h = new URLSearchParams({ m: state.m, y: state.y, mo: state.mo, r: state.rate ? "1" : "0" });
+  if (isTTC()) { h.delete("y"); h.delete("mo"); h.set("f", TT.feeds[state.f]); }
   if (state.dots) h.set("st", "1");
   if (state.sx) h.set("sx", state.sx);
   if (state.nb != null) h.set("nb", nbhd[state.nb].id);
@@ -186,16 +225,17 @@ const writeHash = () => {
 
 const isRate = () => state.rate && M[state.m].count;
 function values() {
-  let vs = M[state.m].get(monthsOf(state.y, state.mo), state.y, state.mo);
+  let vs = isTTC() ? M[state.m].get(state.f) : M[state.m].get(monthsOf(state.y, state.mo), state.y, state.mo);
   if (isRate()) vs = vs.map((v, i) => (v == null ? null : (v / T.pop[i]) * 1000));
   return vs;
 }
 function fmtV(v) {
   if (v == null) return "—";
   const u = M[state.m].unit;
-  return u === "spct" ? fmtSPct(v) : u === "ratio" ? v.toFixed(0) : isRate() ? (v >= 100 ? fmtN(v) : v.toFixed(1)) : fmtN(v);
+  return u === "spct" ? fmtSPct(v) : u === "pct" ? `${v.toFixed(v > 0 && v < 10 ? 1 : 0)}%` : u === "ratio" ? v.toFixed(0) : isRate() ? (v >= 100 ? fmtN(v) : v.toFixed(1)) : fmtN(v);
 }
 function period() {
+  if (isTTC()) return `, the TTC's schedule from ${fmtDate(TT.feeds[state.f])}${M[state.m].unit === "pct" ? "" : ` (a typical weekday: ${fmtDate(TT.days[state.f].weekday)})`}`;
   if (M[state.m].fixed) return "";
   if (state.mo) return `, ${LONG[state.mo - 1]} ${state.y}`;
   const ks = monthsOf(state.y, 0);
@@ -205,16 +245,19 @@ const describe = () => `${escapeHTML(M[state.m].label)}${period()}${isRate() ? "
 
 // ---- controls ----------------------------------------------------------------------------------
 const select = $("measure"), monthSel = $("month");
-select.innerHTML = Object.entries(M).map(([k, d]) => `<option value="${k}">${escapeHTML(d.label)}</option>`).join("");
+const opts = (g) => Object.entries(M).filter(([, d]) => (d.group ?? "bike") === g).map(([k, d]) => `<option value="${k}">${escapeHTML(d.label)}</option>`).join("");
+select.innerHTML = `<optgroup label="Bike Share">${opts("bike")}</optgroup><optgroup label="TTC">${opts("ttc")}</optgroup>`;
 select.addEventListener("change", () => set({ m: select.value }));
 monthSel.addEventListener("change", () => set({ mo: +monthSel.value }));
 $("rate").addEventListener("change", (e) => set({ rate: e.target.checked }));
 $("dots").addEventListener("change", (e) => set({ dots: e.target.checked }));
 function controls() {
   select.value = state.m;
-  const fixed = !!M[state.m].fixed;
-  $("period").hidden = monthSel.hidden = fixed;
-  seg($("period"), years(state.m).map((y) => [String(y), partial(y) ? `${y}*` : String(y)]), String(state.y), (y) => set({ y: +y }));
+  const fixed = !!M[state.m].fixed, ttc = isTTC();
+  monthSel.hidden = fixed || ttc;
+  $("period").hidden = fixed || (ttc && TT.feeds.length < 2);
+  if (ttc) seg($("period"), TT.feeds.map((_, k) => [String(k), feedLabel(k)]), String(state.f), (k) => set({ f: +k }));
+  else seg($("period"), years(state.m).map((y) => [String(y), partial(y) ? `${y}*` : String(y)]), String(state.y), (y) => set({ y: +y }));
   const have = new Set(monthsOf(state.y, 0).map((k) => +NBM[k].slice(5)));
   monthSel.innerHTML = `<option value="0">All year</option>${LONG.map((n, k) => (have.has(k + 1) ? `<option value="${k + 1}">${n}</option>` : "")).join("")}`;
   monthSel.value = String(state.mo);
@@ -254,27 +297,41 @@ function renderMap() {
   const cls = (v) => b.filter((e) => v >= e).length;
   const shapes = nbhd.map((n, i) => {
     const v = vs[i];
-    const t = `${escapeHTML(n.name)}<br>${v == null ? (NB.stations[i] ? "No figure for this period" : "No Bike Share station") : `<b>${fmtV(v)}</b> · ${ordinal(rank.get(i))} of ${order.length}`}`
-      + `<br>${NB.stations[i] ? `${NB.stations[i]} station${NB.stations[i] === 1 ? "" : "s"}, ${fmtN(NB.docks[i])} docks today` : ""}`;
+    const t = `${escapeHTML(n.name)}<br>${v == null ? (isTTC() ? "No figure" : NB.stations[i] ? "No figure for this period" : "No Bike Share station") : `<b>${fmtV(v)}</b> · ${ordinal(rank.get(i))} of ${order.length}`}`
+      + (isTTC() ? `<br>${fmtN(TT.nb[state.f].stops[i])} stops with a weekday departure`
+        : `<br>${NB.stations[i] ? `${NB.stations[i]} station${NB.stations[i] === 1 ? "" : "s"}, ${fmtN(NB.docks[i])} docks today` : ""}`);
     return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : pal[cls(v)]}" data-i="${i}" data-tip="${t}"/>`;
   }).join("");
-  const big = Math.max(...T.stations.map((d) => d.starts));
-  const dots = state.dots ? `<g class="st-dots">${T.stations.map((d) => `<circle cx="${d.x}" cy="${d.y}" r="${(1.5 + 5 * Math.sqrt(d.starts / big)).toFixed(1)}"/>`).join("")}</g>` : "";
+  const pts = isTTC() ? TT.stations.map((d) => ({ x: d.x, y: d.y, n: d.departures })) : T.stations.map((d) => ({ x: d.x, y: d.y, n: d.starts }));
+  const big = Math.max(...pts.map((d) => d.n));
+  const dots = state.dots ? `<g class="st-dots${isTTC() ? " ttc" : ""}">${pts.map((d) => `<circle cx="${d.x}" cy="${d.y}" r="${(isTTC() ? 2.5 + 3 * Math.sqrt(d.n / big) : 1.5 + 5 * Math.sqrt(d.n / big)).toFixed(1)}"/>`).join("")}</g>` : "";
   $("nb-map").innerHTML = `<svg viewBox="0 0 ${T.map.width} ${T.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${M[state.m].label.toLowerCase()}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
     <g>${shapes}</g>${dots}</svg>`;
   const edges = [null, ...b, null];
   const label = (k) => (edges[k] == null ? `under ${fmtV(edges[k + 1])}` : edges[k + 1] == null ? `${fmtV(edges[k])} or more` : `${fmtV(edges[k])} to ${fmtV(edges[k + 1])}`);
   $("map-key").innerHTML = pal.map((c, k) => `<li><span class="key-sq" style="background:${c}"></span>${label(k)}</li>`).join("")
-    + (vs.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No station, or no figure</li>` : "")
-    + (state.dots ? `<li><span class="key-dot"></span>A station, sized by its trips started, ${ml(T.stations_period[0])} to ${ml(T.stations_period[1])}</li>` : "");
+    + (vs.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>${isTTC() ? "No figure" : "No station, or no figure"}</li>` : "")
+    + (state.dots ? (isTTC() ? `<li><span class="key-dot ttc"></span>A subway or LRT station, sized by its weekday departures</li>`
+      : `<li><span class="key-dot"></span>A Bike Share station, sized by its trips started, ${ml(T.stations_period[0])} to ${ml(T.stations_period[1])}</li>`) : "");
   const none = nbhd.length - NB.stations.filter(Boolean).length;
-  $("map-lede").innerHTML = `${describe()}, by neighbourhood${diverging ? "" : ", in classes of about equal numbers of neighbourhoods"}. A neighbourhood's trips are those of the stations inside it; ${none} neighbourhoods have no station.`
+  $("map-lede").innerHTML = isTTC() ? `${describe()}, by neighbourhood, in classes of about equal numbers of neighbourhoods. ${TTC_NOTES[state.m] ?? ""}${isRate() ? " Per resident, service is highest where many routes pass through few residents: downtown and around the subway's end stations." : ""}`
+    : `${describe()}, by neighbourhood${diverging ? "" : ", in classes of about equal numbers of neighbourhoods"}. A neighbourhood's trips are those of the stations inside it; ${none} neighbourhoods have no station.`
     + (state.m === "balance" ? " Under 100, more bikes leave than arrive, and Bike Share's trucks make up the difference: often the top of a hill." : "")
     + (state.m === "change" ? ` Only neighbourhoods with ${fmtN(MIN_BASE)} trips or more in the earlier period; a new station nearby raises a neighbourhood's trips as surely as more riding does.` : "")
     + (isRate() ? " Trips per resident are highest where people visit more than live: downtown, the waterfront, the parks." : "");
   markPick();
 }
+
+const TTC_NOTES = {
+  ttc_all: "A departure is a bus, streetcar or train leaving a stop in the neighbourhood: a route through it counts once at every stop. Counts are from the schedule, not of riders.",
+  ttc_bus: "A departure is a bus leaving a stop in the neighbourhood; a route through it counts once at every stop.",
+  ttc_streetcar: "Streetcars and Lines 5 and 6 (Eglinton and Finch West), each leaving a stop in the neighbourhood.",
+  ttc_subway: "A train leaving a station platform in the neighbourhood; most neighbourhoods have none.",
+  ttc_sunday: "Departures on a typical Sunday against a typical weekday: under 100%, the neighbourhood loses service at the weekend.",
+  ttc_frequent: "A stop served by six departures or more in every hour from 7 am to 7 pm on a weekday, at that stop (one side of the street); residents count where their dissemination area's centre is within 400 m of one, as the crow flies.",
+  ttc_rapid: "Within 800 m, as the crow flies, of a subway station or a Line 5 or 6 LRT stop, by dissemination area centre.",
+};
 
 // ---- 5. highest and lowest -------------------------------------------------------------------------------
 function renderRanks() {
@@ -292,11 +349,17 @@ function renderRanks() {
 }
 
 // ---- 6. one neighbourhood, month by month -------------------------------------------------------------------
+function ttcLine(i) {
+  const f = TT.feeds.length - 1, w = TT.nb[f].weekday, all = w.bus[i] + w.streetcar[i] + w.subway[i];
+  const parts = [["bus", w.bus[i]], ["streetcar and LRT", w.streetcar[i]], ["subway", w.subway[i]]].filter(([, v]) => v).map(([k, v]) => `${fmtN(v)} by ${k}`);
+  return ` On a weekday the TTC schedules <b>${fmtN(all)}</b> departures from its ${fmtN(TT.nb[f].stops[i])} stops (${parts.join(", ")}); `
+    + `${TT.nb[f].frequent[i].toFixed(0)}% of its residents live within 400 m of a stop served every 10 minutes all day, and ${TT.nb[f].rapid[i].toFixed(0)}% within 800 m of a subway or LRT station.`;
+}
 function renderOne() {
   const i = state.nb;
   if (i == null || !NB.starts.some((row) => row[i])) {
-    $("one-lede").textContent = i == null ? "Pick a neighbourhood on the map, in a list or by name to see its trips month by month."
-      : `${nbhd[i].name} has had no Bike Share station since ${ml(NBM[0])}.`;
+    if (i == null) $("one-lede").textContent = "Pick a neighbourhood on the map, in a list or by name to see its trips month by month.";
+    else $("one-lede").innerHTML = `<b>${escapeHTML(nbhd[i].name)}</b> has had no Bike Share station since ${ml(NBM[0])}.${ttcLine(i)}`;
     $("one").innerHTML = "";
     return;
   }
@@ -304,7 +367,7 @@ function renderOne() {
   const city = NBM.map((m) => B.trips[B.months.indexOf(m)]);
   const share = starts.map((v, k) => (v / city[k]) * 100);
   const here = T.stations.filter((d) => d.nb === i).sort((a, b) => b.starts - a.starts);
-  $("one-lede").innerHTML = `<b>${escapeHTML(nbhd[i].name)}</b>: ${NB.stations[i] ? `${NB.stations[i]} station${NB.stations[i] === 1 ? "" : "s"} and ${fmtN(NB.docks[i])} docks today` : "no station today"}, ${fmtN(T.pop[i])} residents (2021 Census).`;
+  $("one-lede").innerHTML = `<b>${escapeHTML(nbhd[i].name)}</b>: ${NB.stations[i] ? `${NB.stations[i]} station${NB.stations[i] === 1 ? "" : "s"} and ${fmtN(NB.docks[i])} docks today` : "no station today"}, ${fmtN(T.pop[i])} residents (2021 Census).${ttcLine(i)}`;
   $("one").innerHTML = panel("Trips started and ended", chart({ labels: NBM.map(ml), fmt: fmtBig, tipLabel: (_, k) => mlLong(NBM[k]),
     bars: [{ name: "Started here", color: MID, values: starts }], lines: [{ name: "Ended here", color: ORANGE, values: ends }] })
     + key([["Started here", MID], ["Ended here", ORANGE, "line"]]), `By month, ${ml(NBM[0])} to ${ml(NBM.at(-1))}.`)
@@ -321,7 +384,7 @@ function renderCorr() {
   const rs = censusMeasures.map((c) => ({ c, v: spearman(vs, census.measures[c].values["2021"]) })).filter((r) => r.v).sort((a, b) => b.v.r - a.v.r);
   $("corr-body").hidden = !rs.length;
   if (!rs.length) {
-    $("corr-lede").textContent = `Too few neighbourhoods have a figure for ${describe().toLowerCase()} to compare it with the census.`;
+    $("corr-lede").innerHTML = `Too few neighbourhoods have a figure for ${lower1(describe())} to compare it with the census.`;
     return;
   }
   if (!state.sx || !rs.some((r) => r.c === state.sx)) state.sx = [...rs].sort((a, b) => Math.abs(b.v.r) - Math.abs(a.v.r))[0].c;
@@ -332,7 +395,7 @@ function renderCorr() {
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
   }).join("");
-  $("corr-lede").innerHTML = `How closely ${describe().toLowerCase()} follows each 2021 Census measure across the neighbourhoods that have a figure (Spearman rank correlation: 1, the same order; −1, the reverse). Stations were put where riders were expected, so these describe where Bike Share is as much as who uses it. Choose one to see its neighbourhoods.`;
+  $("corr-lede").innerHTML = `How closely ${lower1(describe())} follows each 2021 Census measure across the neighbourhoods that have a figure (Spearman rank correlation: 1, the same order; −1, the reverse). ${isTTC() ? "Routes follow the main roads and the subway follows its lines, so these describe where the network runs as much as who it serves." : "Stations were put where riders were expected, so these describe where Bike Share is as much as who uses it."} Choose one to see its neighbourhoods.`;
   const c = state.sx, xs = census.measures[c].values["2021"];
   const idx = nbhd.map((_, i) => i).filter((i) => xs[i] != null && vs[i] != null);
   const sx = idx.map((i) => xs[i]).sort((a, b) => a - b), sy = idx.map((i) => vs[i]).sort((a, b) => a - b);
@@ -375,5 +438,6 @@ function render() {
 renderCards();
 renderMonths();
 renderProfile();
+renderDelays();
 render();
 buildToc();

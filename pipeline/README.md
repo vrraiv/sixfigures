@@ -323,6 +323,28 @@ Each script's docstring has the detail; the points that took finding:
   cycling. It ends where they stop covering every month, which can be a month or two
   before the file does.
 
+### The TTC (`ttc.py`, `make ttc`)
+
+- **Schedule.** `ttc-routes-and-schedules` holds the current GTFS only (29 MB), replaced
+  with each board period. There is no archive on the portal, and the Mobility Database's
+  history needs an account, so `pipeline/ttc/service.csv` keeps each period the script has
+  seen and grows from 1 November 2026. A period's typical weekday is its first Wednesday
+  with the services most of its weekdays run (holidays pass over); Saturday and Sunday
+  likewise. A departure is a row of `stop_times.txt` where boarding is allowed, at a stop
+  inside the neighbourhood: a route through it counts at every stop. Lines 5 and 6 are
+  route type 0, with the streetcars.
+- **Reach.** A DA's residents (2021) count as within reach when its centroid is within
+  400 m of a frequent stop (6 departures or more at that stop in every hour from 7:00 to
+  19:00 on the weekday) or within 800 m of a subway or LRT stop, as the crow flies: 73.9%
+  and 31.7% of the city's residents in the November 2026 schedule.
+- **Stations.** The schedule names Bloor (Line 1) and Yonge (Line 2), and Sheppard (Lines 1
+  and 4), separately; they are merged as Bloor-Yonge and Sheppard-Yonge.
+- **Delays by station.** The log's station names are free text, cut to 22 characters, with
+  lines and directions attached ("KENNEDY BD STATION (APPRO"). `ttc.norm` reduces them to the
+  name, and `STATION_ALIASES` covers the renamed and shortened (Dundas is TMU, Eglinton West
+  is Cedarvale, VMC). 95.8% of delays match a station; the rest are Line 3's closed stations,
+  stretches between stations and yards. Codes go to ten cause groups (`CAUSES`).
+
 ## Forecast backtests
 
 `make forecast` runs `pipeline/forecast/schools.py` (one-year forecasts of each

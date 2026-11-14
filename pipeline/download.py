@@ -191,6 +191,7 @@ TORONTO = {
     # counts by station and month in pipeline/bikeshare/, so only the years it lacks are needed.
     **{f"toronto_bikeshare_{y}.zip": ("bike-share-toronto-ridership-data", f"bikeshare-ridership-{y}.zip", b"PK")
        for y in range(2017, 2027)},
+    "toronto_ttc_gtfs.zip": ("ttc-routes-and-schedules", "TTC Routes and Schedules Data", b"PK"),
     "toronto_ptc_summary.csv": (
         "private-transportation-companies-summary-and-trip-data", "summary_stats.csv", b"_id,"),
     "toronto_bicycle_counters_daily.csv": (

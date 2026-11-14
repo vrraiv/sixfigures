@@ -350,7 +350,10 @@ trees-page:
 # ride-hail summary, subway delays and bicycle counters, into pipeline/transport/. Both are
 # committed; `make transport-page` writes the page's transport.json from them, on any checkout.
 # (All of it for the latest months: `make refresh-transport`.)
-.PHONY: bikeshare transport transport-page refresh-transport
+# `make ttc` reads the TTC's current schedule (GTFS) and the subway delays: service by
+# neighbourhood, adding the schedule's period to pipeline/ttc/service.csv, and delays by
+# station and cause.
+.PHONY: bikeshare transport ttc transport-page refresh-transport
 bikeshare:
 	$(PYTHON) pipeline/download.py --toronto $(foreach y,2017 2018 2019 2020 2021 2022 2023 2024 2025 2026,toronto_bikeshare_$(y).zip) toronto_intersections_4326.csv toronto_neighbourhoods_4326.geojson
 	$(PYTHON) pipeline/bikeshare.py
@@ -358,6 +361,10 @@ bikeshare:
 transport:
 	$(PYTHON) pipeline/download.py --toronto toronto_ptc_summary.csv toronto_bicycle_counters_daily.csv toronto_bicycle_counters_locations.csv toronto_subway_delays_2014_2017a.xlsx toronto_subway_delays_2017b.xlsx $(foreach y,2018 2019 2020 2021 2022 2023 2024,toronto_subway_delays_$(y).xlsx) toronto_subway_delays_2025.csv
 	$(PYTHON) pipeline/transport.py
+
+ttc: transport
+	$(PYTHON) pipeline/download.py --toronto toronto_ttc_gtfs.zip
+	$(PYTHON) pipeline/ttc.py
 
 transport-page:
 	$(PYTHON) pipeline/transport_insights.py

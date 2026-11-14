@@ -174,9 +174,16 @@ station. The trip files don't say where a station is: current stations are place
 live list, removed ones by the intersection they were named for, and 98% to 100% of a month's trips
 start at a station with a place. The files' member and casual labels can't be used from October
 2021 to December 2023, and the page shows those months' trips whole. The TTC publishes no ridership
-by route, station or month, so transit appears only through its delays. Its data is
-`web/public/transport.json` (`pipeline/transport_insights.py`, from `pipeline/bikeshare.py` and
-`pipeline/transport.py`, whose counts are kept in `pipeline/bikeshare/` and `pipeline/transport/`).
+by route, station or month, so transit appears through its schedule and its delays: by neighbourhood,
+the departures on a weekday by mode, Sunday service against a weekday's, and the share of residents
+within 400 m of a stop served every 10 minutes all day (74% city-wide) or 800 m of a subway or LRT
+station (32%); and for the subway, the minutes trains were held by year and cause group, and the
+stations where the most delay began over the last twelve months. The schedule is the current one
+only (the City keeps no past ones), so the service figures gain a period each time the TTC publishes
+a new schedule, about every six weeks. Its data is
+`web/public/transport.json` (`pipeline/transport_insights.py`, from `pipeline/bikeshare.py`,
+`pipeline/transport.py` and `pipeline/ttc.py`, whose counts are kept in `pipeline/bikeshare/`,
+`pipeline/transport/` and `pipeline/ttc/`).
 It isn't in the two Explorers yet.
 
 On the Safety, Trees and Explorer pages a neighbourhood can be picked on any map, chart or list, or
