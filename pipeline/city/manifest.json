@@ -1,25 +1,25 @@
 {
-  "built": "2026-11-13",
+  "built": "2026-11-14",
   "files": {
     "apartments": {
       "name": "toronto_apartment_buildings.csv",
       "bytes": 1562199,
-      "retrieved": "2026-11-13"
+      "retrieved": "2026-11-14"
     },
     "demolitions": {
       "name": "toronto_rental_demolition.csv",
       "bytes": 42495,
-      "retrieved": "2026-11-13"
+      "retrieved": "2026-11-14"
     },
     "development": {
       "name": "toronto_development_applications.csv",
       "bytes": 14119990,
-      "retrieved": "2026-11-13"
+      "retrieved": "2026-11-14"
     },
     "affordable": {
       "name": "toronto_affordable_pipeline_4326.csv",
       "bytes": 54996,
-      "retrieved": "2026-11-13"
+      "retrieved": "2026-11-14"
     }
   },
   "checks": {
@@ -107,7 +107,7 @@
       },
       "project_units_2010_16_vs_permits_created_2013_21": {
         "r": 0.858,
-        "rho": 0.748,
+        "rho": 0.751,
         "proposed": 234934,
         "permits": 161724
       }
