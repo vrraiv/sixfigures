@@ -332,6 +332,20 @@ $(LAYERS):
 safety:
 	$(PYTHON) pipeline/safety_insights.py
 
+# The City's tree points from aerial LiDAR, by neighbourhood (pipeline/treepoints/): how tall
+# the trees are and whose land they are on. Then `make trees-page`.
+.PHONY: tree-points
+tree-points:
+	$(PYTHON) pipeline/download.py --toronto toronto_topo_trees.zip
+	$(PYTHON) pipeline/tree_points.py
+
+# The street-tree figures alone, from a newer copy of the City's inventory: canopy and heat in
+# pipeline/trees/ are left as they are (the quarterly refresh runs this). Then `make trees-page`.
+.PHONY: street-trees
+street-trees:
+	$(PYTHON) pipeline/download.py --toronto toronto_street_trees_4326.csv --fresh
+	$(PYTHON) pipeline/trees.py --street-trees
+
 # Canopy change 2008 to 2018 alone (pipeline/trees/canopy_change_nbhd.csv), without the canopy and
 # Landsat steps of `make trees`.
 .PHONY: canopy-change
@@ -406,14 +420,14 @@ neighbourhoods:
 # Scheduled refreshes (docs/data-catalogue.md): download what's new from the scripted sources,
 # rebuild only the pages whose inputs changed. .github/workflows/data-refresh.yml runs the same
 # script on a schedule and opens a pull request.
-#   refresh-quarterly  TRREB's latest quarter and Inside Airbnb's latest scrape
+#   refresh-quarterly  TRREB's latest quarter, Inside Airbnb's latest scrape, the City's street trees and tree points
 #   refresh-safety     the police's crime files and KSI collisions (March, once the year is complete)
 #   refresh-housing    permits, the City's housing files, CMHC and the StatCan series (March)
 #   publish-inputs     upload the StatCan files housing needs to the pipeline-inputs release, for
 #                      the workflow (once; scripts/publish-inputs.sh)
 .PHONY: refresh-quarterly refresh-safety refresh-housing publish-inputs
 refresh-quarterly:
-	$(PYTHON) pipeline/data_refresh.py prices rentals
+	$(PYTHON) pipeline/data_refresh.py prices rentals trees
 
 refresh-safety:
 	$(PYTHON) pipeline/data_refresh.py safety

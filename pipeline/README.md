@@ -323,6 +323,18 @@ Each script's docstring has the detail; the points that took finding:
   cycling. It ends where they stop covering every month, which can be a month or two
   before the file does.
 
+### Trees seen from the air (`tree_points.py`, `make tree-points`)
+
+`topographic-mapping-physical-location-of-trees`: a shapefile of 1,249,665 points (61 MB
+zipped, an 835 MB attribute table), each with `DERIVED_HE` (height, m) and, for 41%,
+`DERIVED_OW` (a public owner and the division that holds the land). The portal says
+quarterly and the file is replaced quarterly, but every point's `LAST_GEOME` is January
+or May 2021: it is one extraction, and the readme gives no flight date. It is not a count
+of trees (3.6 points a hectare in the Yonge-Bay Corridor against 9.0 street trees), and
+its points per hectare follow the 2018 canopy at Spearman 0.95, so the page uses it for
+height and ownership only. 163 points under 2 m, over 50 m or without a height are left
+out, and 352 outside the neighbourhoods. The docstring has the owner groups.
+
 ### The TTC (`ttc.py`, `make ttc`)
 
 - **Schedule.** `ttc-routes-and-schedules` holds the current GTFS only (29 MB), replaced

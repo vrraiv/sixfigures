@@ -57,6 +57,8 @@ pipeline/out/
 !pipeline/elections/*.csv
 !pipeline/trees/*.csv
 !pipeline/rentals/*.csv
+# the City's tree points by neighbourhood (tree_points.py)
+!pipeline/treepoints/*.csv
 # the locked kinds of neighbourhood (kinds.py)
 !pipeline/kinds/*.csv
 # Getting around: Bike Share's trips by station and month (bikeshare.py), and the ride-hail,

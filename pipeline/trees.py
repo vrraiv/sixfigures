@@ -1,6 +1,7 @@
 """Street trees, tree canopy and summer surface temperature, by DA and neighbourhood.
 
     python pipeline/trees.py
+    python pipeline/trees.py --street-trees    # the street-tree figures alone (the quarterly refresh)
 
 Three sources, for the "hotter and fewer trees, against income" story. Writes
 pipeline/trees/:
@@ -324,6 +325,75 @@ def diversity(t: pd.DataFrame) -> dict:
             "top_genus": [g.index[0], round(float(g.iloc[0]), 4)], "top_family": [f.index[0], round(float(f.iloc[0]), 4)],
             "nbhds_meeting_10_20_30": int(out.meets_10_20_30.sum()),
             "species_by_nbhd_rows": int(len(top)), "trees_in_nbhds": int(total.sum())}
+
+
+STREET_COLS = ["trees", "trees_per_ha", "dbh_median", "large_share", "top_species", "top_species_common", "top_species_share"]
+ROUND = {"area_ha": 2, "trees_per_ha": 2, "dbh_median": 1, "large_share": 3, "top_species_share": 3,
+         "canopy_ha": 2, "canopy_share": 3, "lst_c": 2, "lst_anom": 2}
+
+
+def street_tables(da: gpd.GeoDataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
+    """The street trees placed, their figures by DA and by neighbourhood (trees filled, per
+    hectare added, unrounded) and the checks on them. Stops if the sums disagree."""
+    da_area = pd.Series(da.area.values / 1e4, index=da.dauid)
+    nbhd = pd.Series(da.nbhd_id.astype(int).values, index=da.dauid)
+    t = street_trees()
+    by_da = tree_stats(t, "dauid").reindex(da.dauid)
+    by_nb = tree_stats(t, "nbhd_id")
+    by_nb.index = by_nb.index.astype(int)
+    by_nb = by_nb.reindex(sorted(nbhd.unique()))
+    placed = int(t.dauid.notna().sum())
+    no_xy = int((t.lon.isna() | t.lat.isna()).sum())
+    checks = {
+        "rows": int(len(t)), "max_id": int(t._id.max()), "placed": placed, "no_coordinates": no_xy,
+        "outside_das": int(len(t) - placed - no_xy), "placed_share": round(placed / len(t), 4),
+        "by_da_sum": int(by_da.trees.sum()), "by_nbhd_sum": int(by_nb.trees.sum()),
+        "dbh_missing": int(t.DBH_TRUNK.isna().sum()), "dbh_over_max": int((t.DBH_TRUNK > DBH_MAX).sum()),
+        "dbh_median_city": float(t.dbh.median()), "large_share_city": round(float((t.dbh >= LARGE_DBH).sum() / t.dbh.count()), 4),
+        "das_without_trees": int(by_da.trees.isna().sum()),
+        "top_species_city": {k: int(v) for k, v in t.species.value_counts().head(10).items()},
+    }
+    if not (checks["by_da_sum"] == checks["by_nbhd_sum"] == placed):
+        sys.exit(f"tree sums don't match: {checks}")
+    by_da = by_da.assign(area_ha=da_area)
+    by_nb = by_nb.assign(area_ha=da_area.groupby(nbhd).sum())
+    for f in (by_da, by_nb):
+        f["trees"] = f.trees.fillna(0).astype(int)
+        f["trees_per_ha"] = f.trees / f.area_ha
+    return t, by_da, by_nb, checks
+
+
+def street_only() -> int:
+    """`python pipeline/trees.py --street-trees`: the street-tree figures alone, from a newer
+    copy of the City's file. The canopy and Landsat steps need large files and don't change
+    with it, so their columns in by_da.csv and by_nbhd.csv are left exactly as they are."""
+    if not TREES.exists():
+        sys.exit(f"missing {TREES.name}; run pipeline/download.py --toronto {TREES.name}")
+    kept = {}
+    for name, key in (("by_da.csv", "dauid"), ("by_nbhd.csv", "nbhd_id")):
+        if not (OUT / name).exists():
+            sys.exit(f"{OUT / name} is missing: --street-trees updates it, `make trees` makes it")
+        kept[name] = pd.read_csv(OUT / name, dtype={"dauid": str}, keep_default_na=False, na_values=[""]).set_index(key)
+    da = da_polygons()
+    t, by_da, by_nb, checks = street_tables(da)
+    print(json.dumps({k: v for k, v in checks.items() if k != "top_species_city"}))
+    for name, new in (("by_da.csv", by_da), ("by_nbhd.csv", by_nb)):
+        old = kept[name]
+        new = new.reindex(old.index.astype(new.index.dtype) if name == "by_nbhd.csv" else old.index)
+        if new.trees.isna().any():
+            sys.exit(f"{name}: its rows don't match the DAs or neighbourhoods now")
+        for c in STREET_COLS:
+            old[c] = new[c].round(ROUND[c]).values if c in ROUND else new[c].values
+        old.to_csv(OUT / name)
+    m = OUT / "manifest.json"
+    manifest = json.loads(m.read_text())
+    manifest["files"]["street_trees"] = file_info(TREES)
+    manifest["checks"]["street_trees"] = checks
+    manifest["checks"]["diversity"] = diversity(t)
+    manifest["street_trees_updated"] = dt.date.today().isoformat()
+    m.write_text(json.dumps(manifest, indent=2) + "\n")
+    print(f"Wrote the street-tree columns of by_da.csv and by_nbhd.csv and the species files: {checks['rows']:,} trees")
+    return 0
 
 
 def species_only() -> int:
@@ -714,24 +784,7 @@ def main() -> int:
     checks = {}
 
     print("street trees")
-    t = street_trees()
-    by_da = tree_stats(t, "dauid").reindex(da.dauid)
-    by_nb = tree_stats(t, "nbhd_id")
-    by_nb.index = by_nb.index.astype(int)
-    by_nb = by_nb.reindex(sorted(nbhd.unique()))
-    placed = int(t.dauid.notna().sum())
-    no_xy = int((t.lon.isna() | t.lat.isna()).sum())
-    checks["street_trees"] = {
-        "rows": int(len(t)), "max_id": int(t._id.max()), "placed": placed, "no_coordinates": no_xy,
-        "outside_das": int(len(t) - placed - no_xy), "placed_share": round(placed / len(t), 4),
-        "by_da_sum": int(by_da.trees.sum()), "by_nbhd_sum": int(by_nb.trees.sum()),
-        "dbh_missing": int(t.DBH_TRUNK.isna().sum()), "dbh_over_max": int((t.DBH_TRUNK > DBH_MAX).sum()),
-        "dbh_median_city": float(t.dbh.median()), "large_share_city": round(float((t.dbh >= LARGE_DBH).sum() / t.dbh.count()), 4),
-        "das_without_trees": int(by_da.trees.isna().sum()),
-        "top_species_city": {k: int(v) for k, v in t.species.value_counts().head(10).items()},
-    }
-    if not (checks["street_trees"]["by_da_sum"] == checks["street_trees"]["by_nbhd_sum"] == placed):
-        sys.exit(f"tree sums don't match: {checks['street_trees']}")
+    t, by_da, by_nb, checks["street_trees"] = street_tables(da)
     print(json.dumps({k: v for k, v in checks["street_trees"].items() if k != "top_species_city"}))
     checks["diversity"] = diversity(t)
     checks["canopy_change"] = canopy_change()
@@ -755,27 +808,21 @@ def main() -> int:
     l_nb = lst_summary(s, c, log["city_means"], nbhd, a)
     lst_by_pass(s, c, log["city_means"], nbhd, a).to_csv(OUT / "lst_by_pass_nbhd.csv", index=False, lineterminator="\n")
 
-    out = by_da.assign(area_ha=da_area)
-    out["trees"] = out.trees.fillna(0).astype(int)
-    out["trees_per_ha"] = out.trees / out.area_ha
+    out = by_da
     out["canopy_ha"] = can_da
     out["canopy_share"] = can_da / out.area_ha
     out = out.join(l_da)
     out.insert(0, "nbhd_id", nbhd)
 
-    nb = by_nb.assign(area_ha=da_area.groupby(nbhd).sum())
-    nb["trees"] = nb.trees.fillna(0).astype(int)
-    nb["trees_per_ha"] = nb.trees / nb.area_ha
+    nb = by_nb
     nb["canopy_ha"] = can_da.groupby(nbhd).sum()
     nb["canopy_share"] = nb.canopy_ha / nb.area_ha
     nb = nb.join(l_nb)
 
     cols = ["area_ha", "trees", "trees_per_ha", "dbh_median", "large_share", "top_species", "top_species_common",
             "top_species_share", "canopy_ha", "canopy_share", "lst_c", "lst_anom", "lst_scenes"]
-    rnd = {"area_ha": 2, "trees_per_ha": 2, "dbh_median": 1, "large_share": 3, "top_species_share": 3,
-           "canopy_ha": 2, "canopy_share": 3, "lst_c": 2, "lst_anom": 2}
-    out = out[["nbhd_id", *cols]].round(rnd)
-    nb = nb[cols].round(rnd)
+    out = out[["nbhd_id", *cols]].round(ROUND)
+    nb = nb[cols].round(ROUND)
     out.index.name, nb.index.name = "dauid", "nbhd_id"
     out.to_csv(OUT / "by_da.csv")
     nb.to_csv(OUT / "by_nbhd.csv")
@@ -798,4 +845,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(species_only() if "--species" in sys.argv[1:] else change_only() if "--canopy-change" in sys.argv[1:] else main())
+    args = sys.argv[1:]
+    sys.exit(street_only() if "--street-trees" in args else species_only() if "--species" in args
+             else change_only() if "--canopy-change" in args else main())

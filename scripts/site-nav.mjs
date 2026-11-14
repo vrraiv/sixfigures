@@ -25,7 +25,7 @@ export const ROWS = [
     { href: "/insights/housing/", label: "Housing", blurb: "What is being built and what it costs to rent: building permits, development applications, housing starts and rents, by year and by neighbourhood." },
     { href: "/insights/prices/", label: "Sale prices", blurb: "Home sales and median sale prices by quarter, for the city and each neighbourhood, set against the census." },
     { href: "/insights/safety/", label: "Safety", blurb: "Crime, shootings, homicides and road injuries in each neighbourhood, year by year." },
-    { href: "/insights/trees/", label: "Trees", blurb: "Tree canopy, street trees and summer ground temperature: where the shade is, and where it isn't." },
+    { href: "/insights/trees/", label: "Trees", blurb: "Tree canopy, street trees, how tall the trees are and summer ground temperature: where the shade is, and where it isn't." },
     { href: "/insights/transport/", label: "Getting around", blurb: "Bike Share trips and TTC service by neighbourhood, subway delays and why, ride-hail trips and bicycle counts, month by month." },
   ] },
   { label: "Tools", lede: "Across subjects: put any of the site's measures side by side, or start from one neighbourhood.", links: [

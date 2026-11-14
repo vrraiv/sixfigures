@@ -129,3 +129,13 @@ test("Getting around: whole months in order, and no neighbourhood with more trip
     if (t.bike.member[k] != null) assert.equal(t.bike.member[k] + t.bike.casual[k], t.bike.trips[k], `${m}: members and casual riders add to the trips`);
   });
 });
+
+test("Trees: the tree points' shares are shares, and the owner groups add to the points", () => {
+  const t = json(`${PUBLIC}/trees.json`);
+  assert.equal(t.nbhd.air_points.length, 158);
+  for (const k of ["air_tall", "air_public"]) assert.ok(t.nbhd[k].every((v) => v >= 0 && v <= 100), `${k} is a share`);
+  assert.ok(t.nbhd.air_height.every((v) => v >= 2 && v <= 50), "a median height is a tree's");
+  const byGroup = t.air.groups.reduce((a, g) => a + g.bands.reduce((s, v) => s + v, 0), 0);
+  assert.equal(byGroup, t.air.points, "the height bands by owner add to the points kept");
+  assert.equal(t.nbhd.air_points.reduce((a, v) => a + v, 0), t.air.points, "the neighbourhoods' points add to the city's");
+});

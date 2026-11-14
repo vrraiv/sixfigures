@@ -37,6 +37,15 @@ reads, and the other neighbourhood layers, and writes:
                     whether it shares that group's figures; how many of the 140
                     rose and fell on each reading and on both; the two readings'
                     correlation; and the check against the study's Table 35
+                    and from tree_points.py (pipeline/treepoints/): air_points,
+                    air_ha (the City's tree points per hectare), air_height (their
+                    median height, m), air_tall (% of them 15 m or taller) and
+                    air_public (% on land with a public owner listed)
+  air               the tree points city-wide: how many, the dates they carry and
+                    when the City last replaced the file, the height that counts as
+                    tall, the median height and tall share, each owner group's share
+                    and median height, and `bands`: the points in each height band
+                    by owner group
   days              each Landsat pass (as in passes): by neighbourhood, its mean
                     surface temperature (lst) and difference from that day's city
                     mean (anom); null where clouds or the scene's edge left it
@@ -84,6 +93,9 @@ from safety_insights import COMMON, INSIGHTS, WEB, other_measures, r1
 
 HERE = Path(__file__).parent
 TREES = HERE / "trees"
+AIR = HERE / "treepoints"
+AIR_GROUPS = [("road", "Road allowances"), ("parks", "Parks"), ("conservation", "Conservation lands"),
+              ("other_public", "Other public land"), ("unlisted", "No public owner listed")]
 OUT = WEB / "trees.json"
 OUT_DA = WEB / "trees_da.json"
 DA_W = 400  # px, each neighbourhood's box
@@ -127,9 +139,10 @@ def da_shapes(ids: list[int], d: pd.DataFrame) -> list[dict]:
 
 
 def main() -> int:
-    for f in (TREES / "by_nbhd.csv", TREES / "by_da.csv", TREES / "manifest.json", INSIGHTS, COMMON):
+    for f in (TREES / "by_nbhd.csv", TREES / "by_da.csv", TREES / "manifest.json", AIR / "by_nbhd.csv", AIR / "city.csv",
+              AIR / "manifest.json", INSIGHTS, COMMON):
         if not f.exists():
-            sys.exit(f"{f} is missing (make trees)")
+            sys.exit(f"{f} is missing (make trees, make tree-points)")
     manifest = json.loads((TREES / "manifest.json").read_text())
     insights = json.loads(INSIGHTS.read_text())
     ids = [n["id"] for n in insights["nbhd"]]
@@ -161,6 +174,19 @@ def main() -> int:
                "genus_name": dv.top_genus.tolist(), "family_name": dv.top_family.tolist(),
                "family": col(dv.top_family_share * 100), "species_top": col(dv.top_species_share * 100),
                "meets": dv.meets_10_20_30.astype(bool).tolist()})
+    # the City's tree points from aerial LiDAR (tree_points.py): height and ownership
+    ap = pd.read_csv(AIR / "by_nbhd.csv").set_index("nbhd_id").reindex(ids)
+    if ap.points.isna().any():
+        sys.exit("treepoints/by_nbhd.csv is missing neighbourhoods")
+    nb.update({"air_points": ap.points.astype(int).tolist(), "air_ha": col(ap.per_ha), "air_height": col(ap.height_median),
+               "air_tall": col(ap.tall_share * 100), "air_public": col(ap.public_share * 100)})
+    am = json.loads((AIR / "manifest.json").read_text())
+    bands = pd.read_csv(AIR / "city.csv")
+    air = {"points": am["kept"], "dated": sorted(am["points_dated"]), "replaced": am["file"]["replaced_by_the_city"], "tall_m": am["tall_m"],
+           "median": am["height_median_m"], "tall": round(am["tall_share"] * 100, 1),
+           "groups": [{"key": k, "label": lbl, "share": round(am["owner_share"][k] * 100, 1), "median": am["height_median_by_owner_m"][k],
+                       "bands": bands[k].astype(int).tolist()} for k, lbl in AIR_GROUPS],
+           "bands": bands.band.tolist()}
     sc = pd.read_csv(TREES / "species_city.csv")
     fam = sc.groupby("family").trees.sum().sort_values(ascending=False) / sc.trees.sum()
     gen = sc.groupby("genus").trees.sum().sort_values(ascending=False) / sc.trees.sum()
@@ -235,7 +261,7 @@ def main() -> int:
            "retrieved": manifest["files"]["street_trees"]["retrieved"],
            "city": city, "nbhd": nb, "pop": pop.astype(int).tolist(), "passes": passes, "da_fit": da_fit,
            "spread": [None if pd.isna(v) else round(float(v), 2) for v in spread],
-           "species_city": species_city, "goal": goal, "days": days, "change": change, "species": species_lists, "other": other}
+           "air": air, "species_city": species_city, "goal": goal, "days": days, "change": change, "species": species_lists, "other": other}
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
     das = da_shapes(ids, d)
     if sum(len(x["dauid"]) for x in das) != len(d):

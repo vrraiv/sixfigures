@@ -1,7 +1,7 @@
 """Refresh the site's data from its scripted sources, and rebuild only what changed.
 
-    python pipeline/data_refresh.py prices rentals                  # the quarterly run
-    python pipeline/data_refresh.py prices rentals safety housing   # March: the year's too
+    python pipeline/data_refresh.py prices rentals trees            # the quarterly run
+    python pipeline/data_refresh.py prices rentals trees safety housing   # March: the year's too
     python pipeline/data_refresh.py transport                       # the monthly run
     python pipeline/data_refresh.py housing --report report.md
 
@@ -25,6 +25,11 @@ The parts (each downloads its inputs, then rebuilds its committed outputs):
            scripts/publish-inputs.sh uploads them). Without that release the part is
            skipped, and the others still run.
 
+  trees    the City's street-tree inventory, updated a few times a year (trees.py
+           --street-trees: the street-tree figures alone, leaving canopy and heat as
+           they are), and its tree points from aerial LiDAR, replaced quarterly
+           (tree_points.py; one extraction dated 2021 so far, so nothing new until the
+           City issues another). Canopy and the Landsat summers stay manual
   transport  Bike Share's trips for the current year (and last year's until April,
            whose final months arrive late), the ride-hail summary, the subway delay
            file, the bicycle counters and the TTC's schedule (bikeshare.py for those
@@ -46,7 +51,7 @@ missing for files that never change ("toronto_once").
 anything to check before merging, and the files changed. In GitHub Actions it also
 sets the step outputs `changed` (true or false) and `title`.
 
-Schools, trees, search and the census stay manual: they need EQAO's results (which
+Schools, canopy and heat, search and the census stay manual: they need EQAO's results (which
 only download by hand) or a decision per edition, or are a project (the census).
 """
 import argparse
@@ -111,6 +116,16 @@ PARTS = {
         "dirs": ["pipeline/permits", "pipeline/city", "pipeline/cmhc", "pipeline/series"],
         "data": ["pipeline/permits/by_nbhd.csv", "pipeline/city/*.csv", "pipeline/cmhc/*.csv", "pipeline/series/*.csv"],
         "pages": ["housing_insights.py"],
+    },
+    "trees": {
+        "label": "Trees (the City's street-tree inventory and tree points)",
+        "toronto": ["toronto_street_trees_4326.csv", "toronto_topo_trees.zip"],
+        "build": [["trees.py", "--street-trees"], ["tree_points.py"]],
+        "dirs": ["pipeline/trees", "pipeline/treepoints"],
+        "data": ["pipeline/trees/by_nbhd.csv", "pipeline/trees/by_da.csv", "pipeline/trees/species_city.csv",
+                 "pipeline/trees/species_by_nbhd.csv", "pipeline/trees/diversity_by_nbhd.csv",
+                 "pipeline/treepoints/by_nbhd.csv", "pipeline/treepoints/city.csv"],
+        "pages": ["trees_insights.py"],
     },
     "transport": {
         "label": "Getting around (Bike Share, ride-hail, subway delays, bicycle counters)",
@@ -206,12 +221,21 @@ def news_transport(read) -> str:
             + (f", TTC schedule from {periods[-1]} ({len(periods)} period{'s' if len(periods) > 1 else ''})" if periods else ""))
 
 
+def news_trees(read) -> str:
+    street, air = read("pipeline/trees/manifest.json"), read("pipeline/treepoints/manifest.json")
+    if not (street and air):
+        return "none"
+    s, m = json.loads(street)["checks"]["street_trees"], json.loads(air)
+    return f"{s['rows']:,} street trees; {m['points']:,} tree points dated {', '.join(sorted(m['points_dated']))}"
+
+
 NEWS = {
     "prices": lambda read: news_prices(read("pipeline/trreb/community.csv")),
     "rentals": lambda read: news_rentals(read("pipeline/rentals/snapshots.json")),
     "safety": lambda read: news_safety(read("pipeline/crime/manifest.json")),
     "housing": news_housing,
     "transport": news_transport,
+    "trees": news_trees,
 }
 
 
