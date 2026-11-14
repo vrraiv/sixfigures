@@ -49,6 +49,10 @@ Work through all of these. The last three sections are the ones that get forgott
   link and its `blurb`, which is also the landing page's card), and the About page's lists
   of topics and sources.
 - Say on the page what the data can't show, and credit the source in the page's footer.
+- To put a label inside a sentence, use `lc` (`web/src/catalogue.js`, or `web/src/units.js`
+  for the Explorers' labels): it lowers the first letter only and leaves a leading
+  abbreviation alone. Never call `.toLowerCase()` on a label: it turned "TTC" into "tTC",
+  "CMHC" into "cmhc" and "LIM-AT" into "lim-at".
 
 ### 3. The two Explorers
 

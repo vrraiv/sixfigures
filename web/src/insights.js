@@ -2,7 +2,7 @@
 // of the 158 neighbourhoods, and the biggest changes between censuses. Charts are
 // inline SVG and HTML; the figures come from insights.json (pipeline/insights.py).
 import "./style.css";
-import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, ordinal, loadJSON, loadFailed } from "./catalogue.js";
+import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, lc, ordinal, loadJSON, loadFailed } from "./catalogue.js";
 import { R_EDGES, fmtR, initPick, initTip, quantile, rColor, seg, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -221,7 +221,7 @@ function renderMap() {
       : `${escapeHTML(n.name)}<br>${yearLabel(m, y)}: <b>${fmt(m, v)}</b>`;
     return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : color(v)}" data-i="${k}" data-tip="${t}"/>`;
   }).join("");
-  $("nb-map").innerHTML = `<svg viewBox="0 0 ${data.map.width} ${data.map.height}" role="img" aria-label="${escapeHTML(`Map of the 158 neighbourhoods: ${MEASURES[m].long.toLowerCase()}, ${change ? `change from ${refYear(m, prev)} to ${refYear(m, y)}` : yearLabel(m, y)}`)}">
+  $("nb-map").innerHTML = `<svg viewBox="0 0 ${data.map.width} ${data.map.height}" role="img" aria-label="${escapeHTML(`Map of the 158 neighbourhoods: ${lc(MEASURES[m].long)}, ${change ? `change from ${refYear(m, prev)} to ${refYear(m, y)}` : yearLabel(m, y)}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
     <g>${shapes}</g></svg>`;
   $("map-key").innerHTML = key.map(([c, t]) => `<li><span class="key-sq" style="background:${c}"></span>${t}</li>`).join("")
@@ -466,7 +466,7 @@ function renderCorr() {
     return `<li><span class="key-sq" style="background:${col}"></span>${fmtR(lo)} to ${fmtR(hi)}</li>`;
   }).join("");
   $("corr-lede").innerHTML = `How closely each pair of measures rises and falls together across the neighbourhoods in the ${y} census (Spearman rank correlation: 1, the same order; −1, the reverse; 0, unrelated). `
-    + `<span class="wide-only">The rows and columns of the selected measure are outlined. </span><span class="narrow-only">Here: ${escapeHTML(MEASURES[m].long.toLowerCase())} against each other measure. </span>Choose a pair to see its neighbourhoods.`;
+    + `<span class="wide-only">The rows and columns of the selected measure are outlined. </span><span class="narrow-only">Here: ${escapeHTML(lc(MEASURES[m].long))} against each other measure. </span>Choose a pair to see its neighbourhoods.`;
   renderScatter();
 }
 // The explorer's axis menus: every measure, grouped as in the measure bar.
@@ -576,7 +576,7 @@ function renderShift() {
       <span class="sh-strip"><span class="sh-zero"></span><span class="sh-move" style="left:${Math.min(x(r0), x(r1)).toFixed(1)}%;width:${Math.abs(x(r1) - x(r0)).toFixed(1)}%"></span>${dots}</span>
       <span class="sh-val">${fmtR(r0)} → ${fmtR(r1)}</span></button></li>`;
   }).join("") || `<li class="none">No pairs to show.</li>`;
-  $("shift-lede").innerHTML = `The pairs of measures whose correlation across neighbourhoods changed most between the ${a} and ${b} censuses${state.shiftOnly ? `, among pairs with ${escapeHTML(MEASURES[state.m].long.toLowerCase())}` : ""}. `
+  $("shift-lede").innerHTML = `The pairs of measures whose correlation across neighbourhoods changed most between the ${a} and ${b} censuses${state.shiftOnly ? `, among pairs with ${escapeHTML(lc(MEASURES[state.m].long))}` : ""}. `
     + `Each strip runs from −1 to 1; the dots are the censuses. Choose a pair to see it in the chart above.`;
   yearKey($("shift-key"));
 }

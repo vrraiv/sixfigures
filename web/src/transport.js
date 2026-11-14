@@ -6,6 +6,7 @@ import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
+import { lc } from "./units.js";
 
 const [T, census] = await Promise.all([
   loadJSON(`/transport.json?v=${__TRANSPORT_VERSION__}`),
@@ -160,7 +161,6 @@ function renderDelays() {
 // figure: it had no station then.
 const TT = T.ttc;
 const sumModes = (w) => w.bus.map((v, i) => v + w.streetcar[i] + w.subway[i]);
-const lower1 = (s) => s.charAt(0).toLowerCase() + s.slice(1); // "TTC" and month names keep their capitals
 const fmtDate = (iso) => { const d = new Date(`${iso}T12:00`); return `${d.getDate()} ${LONG[d.getMonth()]} ${d.getFullYear()}`; };
 const feedLabel = (k) => `${MON[+TT.feeds[k].slice(5, 7) - 1]} ${TT.feeds[k].slice(0, 4)}`;
 const NBM = NB.months, YEARS = [...new Set(NBM.map((m) => +m.slice(0, 4)))];
@@ -305,7 +305,7 @@ function renderMap() {
   const pts = isTTC() ? TT.stations.map((d) => ({ x: d.x, y: d.y, n: d.departures })) : T.stations.map((d) => ({ x: d.x, y: d.y, n: d.starts }));
   const big = Math.max(...pts.map((d) => d.n));
   const dots = state.dots ? `<g class="st-dots${isTTC() ? " ttc" : ""}">${pts.map((d) => `<circle cx="${d.x}" cy="${d.y}" r="${(isTTC() ? 2.5 + 3 * Math.sqrt(d.n / big) : 1.5 + 5 * Math.sqrt(d.n / big)).toFixed(1)}"/>`).join("")}</g>` : "";
-  $("nb-map").innerHTML = `<svg viewBox="0 0 ${T.map.width} ${T.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${M[state.m].label.toLowerCase()}`)}">
+  $("nb-map").innerHTML = `<svg viewBox="0 0 ${T.map.width} ${T.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${lc(M[state.m].label)}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
     <g>${shapes}</g>${dots}</svg>`;
   const edges = [null, ...b, null];
@@ -384,7 +384,7 @@ function renderCorr() {
   const rs = censusMeasures.map((c) => ({ c, v: spearman(vs, census.measures[c].values["2021"]) })).filter((r) => r.v).sort((a, b) => b.v.r - a.v.r);
   $("corr-body").hidden = !rs.length;
   if (!rs.length) {
-    $("corr-lede").innerHTML = `Too few neighbourhoods have a figure for ${lower1(describe())} to compare it with the census.`;
+    $("corr-lede").innerHTML = `Too few neighbourhoods have a figure for ${lc(describe())} to compare it with the census.`;
     return;
   }
   if (!state.sx || !rs.some((r) => r.c === state.sx)) state.sx = [...rs].sort((a, b) => Math.abs(b.v.r) - Math.abs(a.v.r))[0].c;
@@ -395,7 +395,7 @@ function renderCorr() {
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
   }).join("");
-  $("corr-lede").innerHTML = `How closely ${lower1(describe())} follows each 2021 Census measure across the neighbourhoods that have a figure (Spearman rank correlation: 1, the same order; −1, the reverse). ${isTTC() ? "Routes follow the main roads and the subway follows its lines, so these describe where the network runs as much as who it serves." : "Stations were put where riders were expected, so these describe where Bike Share is as much as who uses it."} Choose one to see its neighbourhoods.`;
+  $("corr-lede").innerHTML = `How closely ${lc(describe())} follows each 2021 Census measure across the neighbourhoods that have a figure (Spearman rank correlation: 1, the same order; −1, the reverse). ${isTTC() ? "Routes follow the main roads and the subway follows its lines, so these describe where the network runs as much as who it serves." : "Stations were put where riders were expected, so these describe where Bike Share is as much as who uses it."} Choose one to see its neighbourhoods.`;
   const c = state.sx, xs = census.measures[c].values["2021"];
   const idx = nbhd.map((_, i) => i).filter((i) => xs[i] != null && vs[i] != null);
   const sx = idx.map((i) => xs[i]).sort((a, b) => a - b), sy = idx.map((i) => vs[i]).sort((a, b) => a - b);

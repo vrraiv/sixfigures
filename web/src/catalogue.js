@@ -60,7 +60,10 @@ export const YEARS = {
 export const VIEWS = ["2016", "2021", "change"];
 // The year measure m's figures refer to, for census "2016" or "2021".
 export const refYear = (m, y) => (MEASURES[m].dated === "census" ? y : YEARS[y].income);
-export const lc = (s) => s[0].toLowerCase() + s.slice(1); // keeps "LIM-AT"
+// A label inside a sentence: its first letter in lower case, the rest as written ("LIM-AT",
+// "CMHC", "the City's"), and a label that opens with an abbreviation ("TTC departures") left alone.
+// Never lower-case a whole label.
+export const lc = (s) => (/^[A-Z][A-Z]/.test(s) ? s : s[0].toLowerCase() + s.slice(1));
 
 export const narrow = window.matchMedia("(max-width: 640px)");
 export const $ = (id) => document.getElementById(id);

@@ -3,7 +3,7 @@
 // census figures from insights.json. TRREB's communities are the City's neighbourhoods
 // of before 2022; a neighbourhood split in 2022 shows its community's figures.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -211,7 +211,7 @@ function renderMap() {
     const t = `${escapeHTML(n.name)}<br>${v == null ? "No figure" : `<b>${fmtV(v)}</b> · ${ordinal(rank.get(n.c))} of ${order.length} communities`}${commOf(i)}`;
     return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : pal[cls(v)]}" data-i="${i}" data-tip="${t}"/>`;
   }).join("");
-  $("nb-map").innerHTML = `<svg viewBox="0 0 ${P.map.width} ${P.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${M[state.m].label.toLowerCase()}`)}">
+  $("nb-map").innerHTML = `<svg viewBox="0 0 ${P.map.width} ${P.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${lc(M[state.m].label)}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
     <g>${shapes}</g></svg>`;
   const edges = [null, ...b, null];
@@ -250,7 +250,7 @@ function renderCorr() {
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
   }).join("");
-  $("corr-lede").innerHTML = `How closely ${describe(base).toLowerCase()} follows each 2021 Census measure across the neighbourhoods (Spearman rank correlation, as on the Census Insights page: 1, the same order; −1, the reverse). Choose one to see its neighbourhoods.`;
+  $("corr-lede").innerHTML = `How closely ${lc(describe(base))} follows each 2021 Census measure across the neighbourhoods (Spearman rank correlation, as on the Census Insights page: 1, the same order; −1, the reverse). Choose one to see its neighbourhoods.`;
   const c = state.sx, xs = census.measures[c].values["2021"];
   const idx = nbhd.map((_, i) => i).filter((i) => xs[i] != null && vs[i] != null);
   const sx = idx.map((i) => xs[i]).sort((a, b) => a - b), sy = idx.map((i) => vs[i]).sort((a, b) => a - b);
