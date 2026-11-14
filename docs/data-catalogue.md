@@ -217,7 +217,7 @@ The same workflow runs on the **18th of every month** for Getting around alone
 until April, last year's, whose final months arrive in the new year), the ride-hail
 summary, the subway delay file, the bicycle counters and the TTC's schedule, recounts them,
 and rebuilds the page. A new schedule period adds a period to the TTC's service figures,
-so the monthly run is what builds their history. The explorers hold none of its figures, so they are left alone. A month with nothing
+so the monthly run is what builds their history. The two explorers are rebuilt after it (Bike Share trips by year and the TTC's service are among their measures); the kinds of neighbourhood are locked, so that never regroups them. A month with nothing
 new opens no pull request.
 
 If a run fails, the Actions tab shows which step: usually a source that was down (rerun

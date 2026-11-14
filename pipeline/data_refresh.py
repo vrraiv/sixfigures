@@ -36,8 +36,8 @@ manifest's retrieval dates: an unchanged part is put back as it was, so a run wi
 nothing new leaves no diff. For rentals that means a new scrape. The pages that read
 a changed part are then rebuilt, in order (price_insights.py, housing_insights.py,
 safety_insights.py, trees_insights.py, transport_insights.py), and after them the two
-explorers (explorer_data.py, affinity.py), unless only Getting Around was rebuilt: the
-explorers hold none of its figures.
+explorers (explorer_data.py, affinity.py). The kinds of neighbourhood are locked
+(pipeline/kinds/), so this never regroups or renames them.
 
 The City's files a part reads are fetched fresh once per run ("toronto"), or only if
 missing for files that never change ("toronto_once").
@@ -128,7 +128,6 @@ PARTS = {
 }
 PAGE_ORDER = ["price_insights.py", "housing_insights.py", "safety_insights.py", "trees_insights.py", "transport_insights.py"]
 EXPLORERS = ["explorer_data.py", "affinity.py"]
-NOT_IN_EXPLORERS = {"transport_insights.py"}  # pages whose figures the explorers don't hold
 # every run: the neighbourhood outlines the page scripts draw (school_insights.paths)
 COMMON_ONCE = ["toronto_neighbourhoods_4326.geojson"]
 SETUP = "the `pipeline-inputs` release isn't set up: see docs/data-catalogue.md, \"One-time setup\""
@@ -253,7 +252,7 @@ def main() -> int:
         print(f"\n{name}: {'changed' if done[name] else 'nothing new'}", flush=True)
 
     pages = [p for p in PAGE_ORDER if any(done[n] and p in PARTS[n]["pages"] for n in done)]
-    explorers = EXPLORERS if set(pages) - NOT_IN_EXPLORERS else []
+    explorers = EXPLORERS if pages else []
     for page in pages + explorers if pages else []:
         run([page])
 

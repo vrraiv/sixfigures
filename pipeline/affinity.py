@@ -8,7 +8,7 @@ writes what the page needs to compare any neighbourhood with every other:
 
   nbhd, map    the neighbourhoods (id, name, SVG outline) and map box, as in
                the Explorer's catalogue
-  themes       the nine named themes in page order (key, label, the ids of their
+  themes       the named themes in page order (key, label, the ids of their
                measures, optional: whether the page lets it be switched off by
                default it is on). Likeness is averaged within a theme, then
                across themes, so five income measures don't count five times
@@ -44,7 +44,7 @@ The method (the page computes the likeness itself, so themes can be switched):
     extreme), and leaving it out would make A's likeness to B differ from B's to A
 Measures that restate another are left out (pedestrians within all road
 injuries, the school score built from the six results, listings counted three
-ways), as is canopy change, which is a trend, not a state. Checked against other
+ways, Bike Share's docks beside its trips), as is canopy change, which is a trend, not a state. Checked against other
 ways of measuring likeness on 2026-11-12: the first principal component alone
 (25% of the variance, an affluence axis) shares 21% of top-ten lists with this,
 five components 62%, every measure weighted equally 80%.
@@ -98,9 +98,13 @@ THEMES = [
                                "safety.shootings safety.homicides safety.ksi_persons"),
     ("schools", "Schools", True, "schools.g3_read schools.g3_write schools.g3_math schools.g6_read schools.g6_write schools.g6_math"),
     ("trees", "Trees and heat", True, "trees.canopy trees.trees_ha trees.large trees.shannon trees.maple trees.heat"),
+    ("transport", "Getting around", True, "transport.bike_trips transport.ttc_departures transport.ttc_frequent transport.ttc_rapid"),
     ("voting", "Voting", True, "elections.turnout elections.tory elections.chow elections.bailao"),
 ]
-NOT_TYPED = {"voting"}  # left out of the types: a kind of place shouldn't be defined by how it votes
+# Left out of the types. Voting: a kind of place shouldn't be defined by how it votes. Getting
+# around: the kinds were cut and locked (kinds.py) before the theme was added, so they don't rest
+# on it; take it out of this set when they are cut again, and it will count like the others.
+NOT_TYPED = {"voting", "transport"}
 
 def pct_rank(v: pd.Series) -> pd.Series:
     """Percentile rank among the known values, 0-100; ties share the middle."""

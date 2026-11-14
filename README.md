@@ -184,7 +184,9 @@ a new schedule, about every six weeks. Its data is
 `web/public/transport.json` (`pipeline/transport_insights.py`, from `pipeline/bikeshare.py`,
 `pipeline/transport.py` and `pipeline/ttc.py`, whose counts are kept in `pipeline/bikeshare/`,
 `pipeline/transport/` and `pipeline/ttc/`).
-It isn't in the two Explorers yet.
+Five of its neighbourhood measures are in the Data Explorer (Bike Share trips and docks per 1,000
+residents, weekday TTC departures per 1,000 residents, and the two shares of residents near
+transit), and four of them make the Neighbourhood Explorer's Getting around theme.
 
 On the Safety, Trees, Getting Around and Explorer pages a neighbourhood can be picked on any map, chart or list, or
 found by name in a menu, and is then marked everywhere on the page. Every Insights, Explorer and
@@ -195,8 +197,9 @@ next tap elsewhere hides them. Under each line and bar chart, "Figures as a tabl
 chart's numbers as a table, for screen readers and for copying. A page whose data fails to load
 says so and offers to try again.
 
-The Data Explorer, `/insights/explorer/`, offers every neighbourhood measure on the site in one menu: 68 measures from the census,
-safety, schools, sale prices, housing, trees and heat, elections and short-term rentals. Up to
+The Data Explorer, `/insights/explorer/`, offers every neighbourhood measure on the site in one menu: 73 measures from the census,
+safety, schools, sale prices, housing, trees and heat, getting around, elections and short-term
+rentals. Up to
 three can be chosen, each with its own period, and the page shows the view that suits the number:
 - **One:** the map with a period slider (one colour scale for all periods), the spread, the
   highest and lowest neighbourhoods, the median neighbourhood over time with the middle half and
@@ -219,14 +222,14 @@ and one module per view.
 
 The Neighbourhood Explorer, `/insights/neighbourhoods/`,
 starts from a neighbourhood instead of a measure: pick one and it shows which of the other 157
-are most and least like it. Likeness is an **affinity** out of 100, from 60 of the Explorer's
-measures at their latest period, grouped into nine named themes (Income, Housing costs, Homes,
-People, New building, Safety, Schools, Trees and heat, Voting):
+are most and least like it. Likeness is an **affinity** out of 100, from 64 of the Explorer's
+measures at their latest period, grouped into ten named themes (Income, Housing costs, Homes,
+People, New building, Safety, Schools, Trees and heat, Getting around, Voting):
 - every measure becomes a percentile rank among the 158 neighbourhoods;
 - two neighbourhoods' gap on a theme is the mean difference in their ranks on its measures, and
   their overall gap the mean of the theme gaps, so a theme with ten measures counts no more
   than one with four;
-- affinity is 100 less the gap. Two neighbourhoods taken at random average about 66.
+- affinity is 100 less the gap. Two neighbourhoods taken at random average about 67.
 
 On the Neighbourhood Explorer, Safety, Trees and the Data Explorer, a small box finds the
 neighbourhood an address or intersection is in (`web/src/addressfinder.js`), for readers
@@ -257,7 +260,8 @@ The kinds cut a continuum (silhouette about 0.1), so each neighbourhood also car
 nearest kind, and one clustering of them changes with the figures it is given: a new quarter of
 sale prices used to redraw two of the kinds and leave them without names. So the kinds are cut
 once and locked (`pipeline/kinds.py`, `pipeline/kinds/`). The same clustering (Ward's, on the
-percentiles, every theme but Voting weighted equally, a missing figure at the median, eight
+percentiles, every theme but Voting and Getting around weighted equally: the kinds were locked
+before Getting around was added, and it will count when they are cut again; a missing figure at the median, eight
 groups) is rerun 72 times, each with something left out: one measure in turn (56 runs), one theme
 in turn (8), or the latest period of one source or of all, the census at 2016 for 2021 (8). Two
 neighbourhoods' agreement is the share of reruns that put them in the same group, and the kinds
