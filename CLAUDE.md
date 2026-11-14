@@ -35,6 +35,10 @@ Work through all of these. The last three sections are the ones that get forgott
   docstring what was left out and how much. Make the script stop, not guess, when a file's
   layout has changed.
 - Place points in neighbourhoods with `pipeline/places.py`, as the other layers do.
+- Where a service doesn't reach a neighbourhood (no Bike Share station, no school inside
+  it), give it no figure, not 0. A 0 is true, but medians, rankings and correlations then
+  describe who has the service, not how much it is used. Say how many neighbourhoods have
+  a figure.
 - Add tests in `pipeline/tests/` for the parsing rules that took finding, and a check on
   the page's committed file in `scripts/data-invariants.test.mjs`.
 
