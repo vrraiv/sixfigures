@@ -39,8 +39,9 @@ be checked. Delete it when these are settled.
 - **The data refresh workflow** (`.github/workflows/data-refresh.yml`) was split in two: the
   refresh runs read-only and passes its changes as a patch to a second job, the only one with
   write access. It parses, and nothing more: it has not run. Its next scheduled run is 12 December
-  2026; run it by hand before then (Actions, Data refresh, Run workflow) and check that the pull
-  request appears with the same files as before.
+  2026. A run by hand on 14 November stopped earlier, in `trreb.py`, on the 2026 Q3 reports'
+  ligatures (fixed since); run it again and check that the pull request appears with the same
+  kind of files as before.
 - **Both workflows now use Python 3.14 and `pipeline/requirements.lock`** (pip freeze from the
   PC's WSL environment). CI's first run on the pull request shows whether every pinned version
   installs on the runner.
@@ -63,14 +64,13 @@ be checked. Delete it when these are settled.
 - **`exports.py` and `cpi.json` are still not prerequisites of the build** in the Makefile. The
   comment there says why (`make breaks` reapplies them without the raw files); making them
   prerequisites would send a CPI update through a full rebuild.
-- **Outputs still differ between machines**: `pipeline/places.py` takes DA outlines from the
-  boundary file where it is present and from the z13 tiles where it isn't (the heat figures moved
-  by up to 0.17 between the two in a trial), and most scripts stamp `"built": today`. The tree
-  page's DA outlines (`trees_da.json`) were kept as committed for that reason.
-- **`trreb.py`** still skips its row check for a report with no district totals; **`trees.py`**
-  still asks the network for the scene list with every scene cached; **address matching** exists
-  three ways (`permits.py`, `city_layers.py`, `rentals.py`) and **`corr()`** is defined six times.
-- **`ENROLMENT_YEAR`** in `forecast_pages.py` is still a constant ("2024-25").
+- **Build dates still differ between runs**: most scripts stamp `"built": today`, so a rebuild
+  that changes nothing still changes each file's date. (The DA outlines no longer differ:
+  `pipeline/places.py` reads them from the committed tiles on every machine, and the tree page's
+  DA file now rebuilds identically on the PC.)
+- **`trees.py`** still asks the network for the scene list with every scene cached; **address
+  matching** exists three ways (`permits.py`, `city_layers.py`, `rentals.py`) and **`corr()`** is
+  defined six times. Left on purpose: merging them risks changing outputs for no visible gain.
 - **A full `make trees`** was not run: the street-tree file is live and would move the tree
   counts. Only the Landsat passes were read again, for the heat rule.
 

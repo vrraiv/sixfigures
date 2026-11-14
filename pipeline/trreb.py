@@ -52,6 +52,11 @@ ROW = re.compile(r"^(?P<name>[A-Za-z][^$]*?)\s+(?P<sales>\d[\d,]*)\s+\$(?P<vol>[
 # The same row where the sales count ran into the name ("York Mills84",
 # "St. James Tow5n6"): the name's letters, and its digits as the count.
 GLUED = re.compile(r"^(?P<head>[A-Za-z][^$]*?)\s+\$(?P<vol>[\d,]+)\s+(?:\$(?P<avg>[\d,]+)|-)\s+(?:\$(?P<med>[\d,]+)|-)")
+# A community listed without figures: TRREB reports no prices where a quarter had two sales
+# or fewer, leaving the sales, new listings and active listings ("Rustic 2 12 5",
+# "The Islands 0 0 0"). It has no row in the output, but it was read, which the check on a
+# report without district totals needs to know.
+EMPTY = re.compile(r"^(?P<name>[A-Za-z][^$]*?)\s+\d\s+\d[\d,]*\s+\d[\d,]*$")
 DISTRICT = re.compile(r"^Toronto [WCE]\d\d$")  # the district's own total row
 SUFFIX = re.compile(r"\s+[WCE]\d{0,2}$")  # in 2018 the district number is lost
 
@@ -105,8 +110,10 @@ def pages(f: Path, cache: dict) -> list[str]:
 
 
 def read_reports(skip: frozenset = frozenset()) -> pd.DataFrame:
-    """Every report's community rows, in file name order, except quarters (year, q) in skip."""
-    rows = []
+    """Every report's community rows, in file name order, except quarters (year, q) in skip.
+    The communities listed without figures are in the frame's attrs["empty"], as
+    (year, q, district, name)."""
+    rows, empty = [], []
     cache = json.loads(CACHE.read_text()) if CACHE.exists() else {}
     for f in sorted(RAW.glob("Toronto*Q*.pdf")):
         m = re.fullmatch(r"Toronto(\w+?)Q(\d)(\d{4})\.pdf", f.name)
@@ -123,6 +130,8 @@ def read_reports(skip: frozenset = frozenset()) -> pd.DataFrame:
                     r = {**gl.groupdict(), "name": re.sub(r"\d", "", head), "sales": "".join(re.findall(r"\d", head))}
                 if not r:
                     s = line.strip()  # a wrapped name's start: short, no figures, not a heading
+                    if e := EMPTY.match(s):
+                        empty.append((year, q, district, e["name"].strip()))
                     prev = s if len(s) < 40 and not re.search(r"\d|Community|Sales", s) else ""
                     continue
                 g = r if isinstance(r, dict) else r.groupdict()
@@ -137,7 +146,9 @@ def read_reports(skip: frozenset = frozenset()) -> pd.DataFrame:
                              "med": float(g["med"].replace(",", "")) if g["med"] else None})
     CACHE.parent.mkdir(exist_ok=True)
     CACHE.write_text(json.dumps(cache))
-    return pd.DataFrame(rows, columns=["year", "q", "file", "district", "name", "sales", "vol", "avg", "med"])
+    d = pd.DataFrame(rows, columns=["year", "q", "file", "district", "name", "sales", "vol", "avg", "med"])
+    d.attrs["empty"] = empty
+    return d
 
 
 # A full run reads the reports in file name order: region (Central, East, West, which are
@@ -193,6 +204,34 @@ def community_of(names: pd.Series, nbhd: list[str]) -> pd.Series:
     return names.map(one)
 
 
+def missed_rows(d: pd.DataFrame, before: pd.DataFrame, empty: list, quarters: list, nbhd: list[str]) -> list[str]:
+    """For reports that print no district totals to add up to: the communities a district had
+    in the quarter before that the report has no row for, as "2026 Q3 C01: Niagara". A
+    district's list doesn't change from one quarter to the next, so a community that has gone
+    is a row that wasn't read, unless the report lists it without figures (`empty`). `before` is
+    the quarters read on earlier runs; d has columns year, q, district, community."""
+    known = known_names(nbhd)
+    listed = {}
+    for y, q, district, name in empty:
+        c = community_of(pd.Series([unligature(name, known)]), nbhd).iloc[0]
+        listed.setdefault((y, q, district), set()).add(c)
+    cols = ["year", "q", "district", "community"]
+    every = pd.concat([before[cols], d[cols]]) if len(before) else d[cols]
+    sets = every.groupby(["year", "q", "district"]).community.agg(set)
+    times = sorted({(y, q) for y, q, _ in sets.index})
+    out = []
+    for y, q in quarters:
+        earlier = [t for t in times if t < (y, q)]
+        if not earlier:
+            continue
+        py, pq = earlier[-1]
+        for district in sorted({k[2] for k in sets.index if k[:2] == (py, pq)}):
+            now = sets.get((y, q, district), set()) | listed.get((y, q, district), set())
+            gone = sets[(py, pq, district)] - now
+            out += [f"{y} Q{q} {district}: {c}" for c in sorted(gone)]
+    return out
+
+
 def main(new: bool = False) -> int:
     nbhd = [n["name"] for n in json.loads(INSIGHTS.read_text(encoding="utf-8"))["nbhd"]]
     kept, kept_gaps = pd.DataFrame(), 0
@@ -218,10 +257,16 @@ def main(new: bool = False) -> int:
     t = totals.assign(district=totals.name.str[-3:]).set_index(["year", "q", "district"]).sales
     gap = (s.reindex(t.index).fillna(0) - t)
     # TRREB's own district totals are off by a sale or two now and then. Some reports
-    # (2026 Q2) print no district totals, so there is nothing to add up for them.
-    no_totals = sorted({f"{y} Q{q}" for y, q in zip(d.year, d.q)} - {f"{y} Q{q}" for y, q, _ in t.index})
+    # (2026 Q2 and Q3) print no district totals, so there is nothing to add up for them:
+    # each of their districts must have the communities it had the quarter before instead.
+    no_totals = sorted({(int(y), int(q)) for y, q in zip(d.year, d.q)} - {(int(y), int(q)) for y, q, _ in t.index})
     if no_totals:
-        print(f"No district totals to check against in {', '.join(no_totals)}")
+        gone = missed_rows(d, kept, d.attrs.get("empty", []), no_totals, nbhd)
+        span = (f"{no_totals[0][0]} Q{no_totals[0][1]}" if len(no_totals) == 1
+                else f"{len(no_totals)} quarters, {no_totals[0][0]} Q{no_totals[0][1]} to {no_totals[-1][0]} Q{no_totals[-1][1]}")
+        print(f"No district totals in {span}: each district's communities checked against the quarter before ({len(gone)} missing)")
+        if gone:
+            sys.exit("communities with a row the quarter before and none now (a row was missed):\n  " + "\n  ".join(gone))
     if len(gap):
         print(f"Districts whose communities don't add to the total: {int((gap != 0).sum())} of {len(gap)}, at most {int(gap.abs().max())} sales")
     if len(gap) and gap.abs().max() > 2:

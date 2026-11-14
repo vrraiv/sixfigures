@@ -75,7 +75,11 @@ CHOSEN = {"schools": "ridge", "value": "own_mean"}
 # The schools forecast shown is the latest one frozen in pipeline/model/ (schools_<target>.csv):
 # from 2026 to 2027 until forecast/schools.py freezes the next.
 LIVE_ORIGIN = max(int(f.stem.split("_")[1]) for f in (HERE / "model").glob("schools_[0-9][0-9][0-9][0-9].csv")) - 1
-ENROLMENT_YEAR = "2024-25"  # the Ministry's latest, carried to 2026
+# The school year of the Ministry's latest file, whose enrolment weights the live forecast: read
+# from the schools manifest (schools.py records each file's test year), "2024-25" until the
+# Ministry publishes the next.
+_files = json.loads((HERE / "schools" / "manifest.json").read_text(encoding="utf-8"))["files"]
+ENROLMENT_YEAR = max((k for k, v in _files.items() if isinstance(v, dict) and v.get("test_year")), key=lambda k: _files[k]["test_year"])
 
 # TRREB Market Watch, City of Toronto, all home types, May (read by hand into
 # docs/forecast-spec.md; the medians must agree with forecast/value.py's).
