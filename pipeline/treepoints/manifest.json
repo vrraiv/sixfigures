@@ -1,0 +1,37 @@
+{
+  "built": "2026-11-14",
+  "file": {
+    "name": "toronto_topo_trees.zip",
+    "bytes": 60879270,
+    "replaced_by_the_city": "2026-08-07"
+  },
+  "points": 1249665,
+  "points_dated": {
+    "2021-01": 726535,
+    "2021-05": 523130
+  },
+  "left_out": {
+    "no_height": 1,
+    "under_2_m": 87,
+    "over_50_m": 75,
+    "outside_the_neighbourhoods": 352
+  },
+  "kept": 1249150,
+  "tall_m": 15,
+  "height_median_m": 12.79,
+  "tall_share": 0.3666,
+  "owner_share": {
+    "road": 0.2171,
+    "conservation": 0.0697,
+    "parks": 0.0888,
+    "other_public": 0.031,
+    "unlisted": 0.5933
+  },
+  "height_median_by_owner_m": {
+    "road": 11.03,
+    "conservation": 17.16,
+    "parks": 15.36,
+    "other_public": 12.31,
+    "unlisted": 12.93
+  }
+}

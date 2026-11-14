@@ -122,6 +122,7 @@ so a quarterly upstream change needs no quarterly refresh. `crime.py`'s five-yea
 | Data | Upstream | On the site | Used by | Refresh with |
 |---|---|---|---|---|
 | Street Tree Data (City) | irregular (last 4 June 2026) | that copy | Trees, the explorers | delete `toronto_street_trees_4326.csv`; `make trees` |
+| Topographic Mapping, physical location of trees: a point and height for each tree found in aerial LiDAR (City) | **quarterly** file; its contents are one extraction dated January and May 2021 | 1,249,150 trees | Trees (how tall, and whose) | **automated** (quarterly). By hand: delete `toronto_topo_trees.zip`; `make tree-points`, `make trees-page` |
 | 2018 Tree Canopy Study land cover (City) | one-off; no newer study published | 2018 | Trees, the explorers | static until a new study |
 | 2008 tree cover by neighbourhood (Wellbeing Toronto) | never | 2008 | Trees (canopy change) | static |
 | Landsat 8 and 9 summer surface temperature (USGS, through Microsoft Planetary Computer) | every summer | summers 2022-2025 (11 clear passes) | Trees, the explorers | extend `SUMMERS` in `trees.py`; `make trees` |
@@ -199,6 +200,8 @@ latest scrape. A run before TRREB posts finds nothing new for prices, and the ne
 picks the quarter up; a run with nothing new at all opens no pull request. What it does
 (`make refresh-quarterly` by hand):
 
+0. The City's tree points: fetch the file and recount it (`tree_points.py`). It has held
+   the same 2021 extraction since it was first read, so this is a watch for a new one.
 1. TRREB: fetch the new quarter's three reports and add them to `community.csv`
    (`download.py --trreb`, `trreb.py --new`).
 2. Inside Airbnb: add any newer scrape and rebuild the rental layer; the City's

@@ -186,6 +186,8 @@ TORONTO = {
     "toronto_ksi_4326.csv": (
         "motor-vehicle-collisions-involving-killed-or-seriously-injured-persons",
         "Motor Vehicle Collisions with KSI Data - 4326.csv", b"_id,"),
+    # The City's tree points from aerial LiDAR (tree_points.py): 61 MB, replaced quarterly
+    "toronto_topo_trees.zip": ("topographic-mapping-physical-location-of-trees", "Tree Point", b"PK"),
     # Getting around (bikeshare.py, transport.py). Bike Share's trips come a year to a file (the
     # current year's grows each month; 2019 on are 90 to 390 MB each); bikeshare.py keeps their
     # counts by station and month in pipeline/bikeshare/, so only the years it lacks are needed.

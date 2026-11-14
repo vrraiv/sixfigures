@@ -150,7 +150,14 @@ genus's share can be mapped (`pipeline/trees.py --species` writes the species ta
 canopy sets the City's target (40% canopy cover by 2050, city-wide; reaffirmed by Council in 2021)
 against the canopy measured here (26.2%; the City's own 2018 estimate is 28.4-31%) and lists the
 neighbourhoods furthest from 40% of their area, in hectares or points, and points to the City's
-Tree Equity Score Analyzer for planting priorities. Canopy change, 2008 to 2018, sets the City's
+Tree Equity Score Analyzer for planting priorities. How tall, and whose uses a second City map: a point and a height for each of 1.25 million trees its
+software finds in aerial laser scans, on public and private land (`pipeline/tree_points.py`, kept in
+`pipeline/treepoints/`). Their median height is 12.8 m and 37% are 15 m or taller; 41% stand on land
+with a public owner listed (road allowances 22%, parks 9%, conservation lands 7%). Tall trees, median
+height and the share on public land can be mapped, ranked and set against income. It is a map of the
+larger trees, not a count (downtown it finds fewer than the street-tree inventory lists), it follows
+the 2018 canopy closely (rank correlation 0.95), and every point is dated 2021, so it adds height and
+ownership and says nothing about canopy since 2018. Canopy change, 2008 to 2018, sets the City's
 2008 tree cover by neighbourhood against its 2018 land cover: the city-wide change depends on
 whether 2018's shrubs count (27.9% to 25.9% as trees only, to 30.6% with shrubs; the City's
 sampled headline is 26.6% to 28.4%), so the map shows each neighbourhood's change against the
@@ -483,7 +490,8 @@ own tests (`pipeline/tests/`), and both run on every pull request
 
 Every dataset, its publisher's update cadence, what the site holds now and how to refresh
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
-(a monthly run for Getting around, a quarterly run for TRREB and Inside Airbnb, two annual
+(a monthly run for Getting around, a quarterly run for TRREB, Inside Airbnb and the City's tree
+points, two annual
 runs, and the 2026 Census releases).
 The monthly and quarterly runs and the yearly police and housing refreshes are automated: the Data
 refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that

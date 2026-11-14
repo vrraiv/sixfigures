@@ -21,6 +21,10 @@ on:
     - cron: "23 11 18 * *"
   workflow_dispatch:
     inputs:
+      trees:
+        description: "Trees: the City's tree points from the air"
+        type: boolean
+        default: false
       transport:
         description: "Getting around: Bike Share, ride-hail, subway delays, bicycle counters"
         type: boolean
@@ -79,6 +83,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           CRON: ${{ github.event.schedule }}
           TRANSPORT: ${{ inputs.transport }}
+          TREES: ${{ inputs.trees }}
           PRICES: ${{ inputs.prices }}
           RENTALS: ${{ inputs.rentals }}
           SAFETY: ${{ inputs.safety }}
@@ -87,11 +92,12 @@ jobs:
           if [ "$EVENT" = schedule ] && [ "$CRON" = "23 11 18 * *" ]; then
             parts="transport"
           elif [ "$EVENT" = schedule ]; then
-            parts="prices rentals"
+            parts="prices rentals trees"
             if [ "$(date -u +%m)" = 03 ]; then parts="$parts safety housing"; fi
           else
             parts=""
             if [ "$TRANSPORT" = true ]; then parts="$parts transport"; fi
+            if [ "$TREES" = true ]; then parts="$parts trees"; fi
             if [ "$PRICES" = true ]; then parts="$parts prices"; fi
             if [ "$RENTALS" = true ]; then parts="$parts rentals"; fi
             if [ "$SAFETY" = true ]; then parts="$parts safety"; fi

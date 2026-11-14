@@ -57,6 +57,14 @@ const M = {
   gap_ha: { label: "Canopy short of 40% of the area (hectares)", short: "Hectares short of 40%", fmt: (v) => `${fmtN(v)} ha`, axis: (v) => fmtN(v), ramp: ORANGES,
     more: "Further from 40%", less: "Closer to 40%", bad: true, gap: "x", da: false,
     pool: (idx) => sum(idx.map((i) => NB.gap_ha[i])), poolNote: "the fifth's neighbourhoods' gaps added up" },
+  air_tall: { label: `Trees ${D.air.tall_m} m or taller, share of the trees seen from the air`, short: "Tall trees", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: GREENS,
+    more: "More tall trees", less: "Fewer tall trees", gap: "pts", da: false, pool: W(NB.air_tall, NB.air_points), poolNote: "weighted by the trees seen from the air" },
+  air_height: { label: "Median height of the trees seen from the air (m)", short: "Tree height", fmt: (v) => `${v.toFixed(1)} m`, axis: (v) => `${Math.round(v)}`, ramp: GREENS,
+    more: "Taller trees", less: "Shorter trees", gap: "x", da: false, pool: W(NB.air_height, NB.air_points), poolNote: "neighbourhood medians weighted by the trees seen from the air" },
+  air_public: { label: "On public land, share of the trees seen from the air", short: "Trees on public land", fmt: (v) => `${v.toFixed(1)}%`, axis: (v) => `${Math.round(v)}%`, ramp: GREENS,
+    more: "More on public land", less: "More on other land", gap: "pts", da: false, pool: W(NB.air_public, NB.air_points), poolNote: "weighted by the trees seen from the air" },
+  air_ha: { label: "Trees seen from the air, per hectare", short: "Trees from the air per ha", fmt: (v) => v.toFixed(1), axis: (v) => v.toFixed(0), ramp: GREENS,
+    more: "More trees seen", less: "Fewer trees seen", gap: "x", da: false, pool: (idx) => sum(idx.map((i) => NB.air_points[i])) / sum(idx.map((i) => NB.area_ha[i])), poolNote: "trees over area" },
   chg: { label: "Canopy change against the city's, 2008 to 2018 (points)", short: "Canopy change", fmt: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)} pts`,
     axis: (v) => `${sign(+v.toFixed(0))}${Math.abs(v).toFixed(0)}`, ramp: GAIN, about0: true, more: "Gained canopy against the city", less: "Lost canopy against the city", gap: "pts", da: false,
     pool: W(NB.chg, NB.area_ha), poolNote: "weighted by area; tree class in both years" },
@@ -103,7 +111,7 @@ initTip();
 
 // ---- controls ----------------------------------------------------------------------------
 const select = $("measure");
-select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["Toward 40% canopy", ["gap_pts", "gap_ha", "chg"]], ["What's planted", ["shannon", "maple", "genus"]], ["Heat", ["heat", "lst"]]]
+select.innerHTML = [["Trees", ["canopy", "trees_ha", "large", "dbh"]], ["Toward 40% canopy", ["gap_pts", "gap_ha", "chg"]], ["How tall, and whose (from the air)", ["air_tall", "air_height", "air_public", "air_ha"]], ["What's planted", ["shannon", "maple", "genus"]], ["Heat", ["heat", "lst"]]]
   .map(([g, ms]) => `<optgroup label="${g}">${ms.map((m) => `<option value="${m}">${escapeHTML(M[m].label)}</option>`).join("")}</optgroup>`).join("");
 select.addEventListener("change", () => set({ m: select.value }));
 $("income").innerHTML = INCOME.map((m) => `<option value="${m}">${escapeHTML(CENSUS[m].long)}, 2021</option>`).join("");
@@ -551,6 +559,33 @@ function renderAlways() {
 // differs with the reading, so the map shows each neighbourhood's change less the city's.
 let ccBasis = hash.get("cb") === "ts" ? "ts" : "tree";
 const CC_EDGES = [-6, -3, -1, 1, 3, 6];
+// ---- how tall, and whose: the City's tree points from aerial LiDAR ------------------------------------------
+const AIR_COLORS = ["#8a8a84", "#5ea852", "#1b5221", "#bfdfae", "#d8c9a8"];
+function renderAir() {
+  const A = D.air, G = A.groups, by = Object.fromEntries(G.map((g) => [g.key, g]));
+  const pub = 100 - by.unlisted.share;
+  const months = A.dated.map((d) => new Date(`${d}-15`).toLocaleString("en-CA", { month: "long", year: "numeric" }));
+  $("air-lede").innerHTML = `The canopy map says how much of a neighbourhood is under leaves. A second City map says something about the trees themselves: software picks out individual crowns in laser scans taken from aircraft and gives each a height. `
+    + `It found <b>${fmtN(A.points)}</b> trees, on streets, in parks and ravines and in back yards alike. Their median height is <b>${A.median.toFixed(1)} m</b>, and <b>${A.tall.toFixed(0)}%</b> are ${A.tall_m} m or taller, about a five-storey building. `
+    + `<b>${pub.toFixed(0)}%</b> stand on land with a public owner: road allowances (${by.road.share.toFixed(0)}%), parks (${by.parks.share.toFixed(0)}%), conservation lands (${by.conservation.share.toFixed(0)}%) and other public land (${by.other_public.share.toFixed(0)}%). The other ${by.unlisted.share.toFixed(0)}% have no public owner listed: private land, for the most part.`;
+  $("air-panels").innerHTML = `<figure class="panel"><h3 class="sub-h">How tall, by whose land</h3>${chart({ labels: A.bands, fmt: (v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : fmtN(v)), height: 200,
+    bars: G.map((g, k) => ({ name: g.label, color: AIR_COLORS[k], values: g.bands })) })}
+    <ul class="year-key">${G.map((g, k) => `<li><span class="key-sq" style="background:${AIR_COLORS[k]}"></span>${g.label}</li>`).join("")}</ul>
+    <figcaption>Trees in each height band. Street trees are the short ones: the median on road allowances is ${by.road.median.toFixed(1)} m, against ${by.parks.median.toFixed(1)} m in parks, ${by.conservation.median.toFixed(1)} m on conservation lands and ${by.unlisted.median.toFixed(1)} m where no public owner is listed.</figcaption></figure>
+    <figure class="panel"><h3 class="sub-h">Where the tall trees are</h3><ol class="rank-list">${rankOrder(NB.air_tall).slice(0, 8).map((i, k) => `<li><span class="rk">${k + 1}</span><button type="button" class="nm" data-nb="${i}">${escapeHTML(nbhd[i].name)}</button>
+      <span class="barcell"><span class="bar-fill" style="width:${((NB.air_tall[i] / Math.max(...NB.air_tall)) * 100).toFixed(1)}%"></span></span><span class="vl">${NB.air_tall[i].toFixed(0)}%</span><span class="move"></span></li>`).join("")}</ol>
+    <figcaption>The neighbourhoods with the largest share of their trees at ${A.tall_m} m or more. Tall trees, their height and the share on public land can be mapped, ranked and set against income with the menu above: <button type="button" class="nx-link" data-air="air_tall">map the tall trees</button> or <button type="button" class="nx-link" data-air="air_public">the share on public land</button>.</figcaption></figure>`;
+  $("air-note").textContent = `Read it as a map of the larger trees, not a count of all of them: the software misses small trees and those beside tall buildings, so downtown it finds fewer trees than the City's own street-tree inventory lists. `
+    + `Neighbourhood by neighbourhood its trees per hectare follow the 2018 canopy closely (rank correlation ${fmtR(spearman(NB.air_ha, NB.canopy)?.r)}), so it adds height and ownership more than a new measure of cover, and it can't say whether canopy has grown since 2018. `
+    + `Every tree in the file is dated ${months.join(" or ")}; the City replaces the file each quarter (last on ${A.replaced ?? "a date it doesn't give"}) but its contents have not changed, and it doesn't say when the scans were flown. The City calls the method "in development". Trees under 2 m or over 50 m are left out as not trees.`;
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-air]");
+  if (!b) return;
+  set({ m: b.dataset.air, ov: "measure" });
+  $("on-map").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 function renderCanopyChange() {
   const X = D.change, ts = ccBasis === "ts", key = ts ? "treeshrub" : "tree";
   seg($("cc-basis"), [["tree", "2018: trees only"], ["ts", "2018: trees and shrubs"]], ccBasis, (k) => { ccBasis = k; renderCanopyChange(); writeHash(); });
@@ -603,5 +638,6 @@ function render() {
 }
 renderCards();
 renderAlways();
+renderAir();
 render();
 buildToc($("toc"));
