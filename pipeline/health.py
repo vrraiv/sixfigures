@@ -82,7 +82,7 @@ Placement:
     inspection's outcome is the same on all its rows; one "Temporarily Not
     Operating" counts in inspections only. Convictions are spelled two ways
     ("Conviction - Fined", "Conviction: Fined"); pending charges are not counted.
-    Without the StatCan boundary file places.py reads DAs from the PMTiles, whose
+    places.py reads DAs from the PMTiles, whose
     simplified edges leave slivers: 28 of 20,118 establishments (0.14%), all
     within 0.4 m of a DA, go unplaced and are left out
 

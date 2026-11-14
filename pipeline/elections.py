@@ -83,7 +83,7 @@ undercount turnout, more so where advance voting was common.
 Apportionment to 2021 DAs: subdivisions and DAs don't nest (a median
 subdivision touches 7 DAs, counting slivers; 624 of 2022's 1,460 put 95% or
 more of their weight in one DA). Each subdivision is cut by the DA outlines
-(places.da_polygons(): StatCan's boundary file, or the committed tiles at
+(places.da_polygons(): the committed tiles at
 z13), and its votes, electors and voted are split over the pieces in
 proportion to each piece's estimated 2021 population: the DA's population
 (figures file pop21) times the share of the DA's address points that lie in

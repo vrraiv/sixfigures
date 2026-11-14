@@ -5,14 +5,18 @@ rentals.py) so each places its records the same way permits.py and
 city_layers.py do: a point lies in a 2021 DA by point-in-polygon, and a DA in
 a neighbourhood by the 2021 figures file's assignment (common.json's nbhd_id).
 
-DA outlines come from StatCan's 2021 boundary file (pipeline/raw/
-lda_000b21a_e.zip) when it is on disk. StatCan's bot challenge often blocks
-scripts from fetching it, so without it they are read from the committed
-web/public/toronto_da.pmtiles at its deepest zoom (z13), whose tiles cut each
-DA along tile edges; the pieces are dissolved by DAUID. At z13 a tile's 4096
-units are about 1.4 m in Toronto, so only points within a metre or two of a DA
-boundary can land in the neighbouring DA, and a point in a sliver between
-pieces goes to the nearest DA within SNAP (2 m).
+DA outlines are read from the committed web/public/toronto_da.pmtiles at its
+deepest zoom (z13), on every machine. They used to come from StatCan's 2021
+boundary file where it was on disk and from the tiles where it wasn't (StatCan's
+bot challenge often blocks scripts from fetching it), so the same script gave
+slightly different figures on the PC and in a cloud or CI run: a trial of the
+heat figures moved 865 DAs by up to 0.17 degrees between the two. The tiles are
+what every checkout has, and what the committed figures were made from.
+
+The tiles cut each DA along tile edges; the pieces are dissolved by DAUID. At
+z13 a tile's 4096 units are about 1.4 m in Toronto, so only points within a
+metre or two of a DA boundary can land in the neighbouring DA, and a point in a
+sliver between pieces goes to the nearest DA within SNAP (2 m).
 
     da_polygons()        GeoDataFrame dauid, nbhd_id, geometry (EPSG:2952)
     place(df, lon, lat)  df with dauid and nbhd_id (NaN outside Toronto's DAs)
@@ -31,7 +35,6 @@ HERE = Path(__file__).parent
 RAW = HERE / "raw"
 WEB = HERE.parent / "web" / "public"
 COMMON = WEB / "data" / "figures" / "2021" / "common.json"
-BOUNDARY = RAW / "lda_000b21a_e.zip"
 TILES = WEB / "toronto_da.pmtiles"
 METRIC_CRS = 2952  # NAD83(CSRS) MTM zone 10, metres
 SNAP = 2  # metres: a point off every DA goes to the nearest within this
@@ -47,20 +50,14 @@ def common() -> pd.DataFrame:
 def da_polygons() -> gpd.GeoDataFrame:
     """Toronto's 2021 DAs with their neighbourhood, in EPSG:2952."""
     c = common()
-    if BOUNDARY.exists():
-        g = gpd.read_file(f"zip://{BOUNDARY.as_posix()}!lda_000b21a_e.shp", columns=["DAUID"])
-        g = g.rename(columns={"DAUID": "dauid"})
-        g = g[g.dauid.isin(c.dauid)].to_crs(METRIC_CRS)
-        source = "StatCan boundary file"
-    else:
-        layer = pyogrio.list_layers(TILES)[0][0]
-        # GDAL opens a PMTiles file at its deepest zoom
-        zmax = pyogrio.read_info(TILES, layer=layer)["dataset_metadata"]["ZOOM_LEVEL"]
-        g = gpd.read_file(TILES, layer=layer, columns=["dauid"])
-        g = g[g.dauid.isin(c.dauid)].to_crs(METRIC_CRS)
-        g["geometry"] = g.buffer(0)
-        g = g.dissolve("dauid").reset_index()[["dauid", "geometry"]]
-        source = f"toronto_da.pmtiles z{zmax}"
+    layer = pyogrio.list_layers(TILES)[0][0]
+    # GDAL opens a PMTiles file at its deepest zoom
+    zmax = pyogrio.read_info(TILES, layer=layer)["dataset_metadata"]["ZOOM_LEVEL"]
+    g = gpd.read_file(TILES, layer=layer, columns=["dauid"])
+    g = g[g.dauid.isin(c.dauid)].to_crs(METRIC_CRS)
+    g["geometry"] = g.buffer(0)
+    g = g.dissolve("dauid").reset_index()[["dauid", "geometry"]]
+    source = f"toronto_da.pmtiles z{zmax}"
     g = g.merge(c[["dauid", "nbhd_id"]], on="dauid", how="left")
     if len(g) != len(c):
         raise SystemExit(f"{len(g)} DA outlines from the {source}, expected {len(c)}")
