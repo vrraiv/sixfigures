@@ -28,7 +28,7 @@ const EDGES = [50, 60, 70, 80, 90], RANGES = ["under 50", "50 to 59", "60 to 69"
 const shade = (a) => COLORS[EDGES.filter((e) => Math.round(a) >= e).length];
 const show = (a) => (a == null ? "—" : String(Math.round(a)));
 const nameOf = (i) => escapeHTML(nbhd[i].name);
-const lower = (s) => s[0].toLowerCase() + s.slice(1);
+const lower = (s) => (/^[A-Z][A-Z]/.test(s) ? s : s[0].toLowerCase() + s.slice(1)); // not a leading abbreviation
 const poss = (i) => `${nameOf(i)}${nbhd[i].name.endsWith("s") ? "’" : "’s"}`; // Trinity-Bellwoods’, Rustic’s
 const kindOf = (i) => D.types[D.type[i]];
 // the themes the kinds aren't made from, as words: "voting and getting around"

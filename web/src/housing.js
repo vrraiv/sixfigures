@@ -4,7 +4,7 @@
 // (pipeline/housing_insights.py), with the 2021 Census figures from insights.json.
 // Charts are inline SVG and HTML, as on the other Insights pages.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, key, pearson, quantile, rColor, seg, spark, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -273,7 +273,7 @@ function renderMap() {
     const t = `${escapeHTML(n.name)}<br>${v == null ? "No figure" : `<b>${fmtV(v)}</b> · ${ordinal(rank.get(i))} of ${order.length}`}${z}`;
     return `<path d="${n.path}" fill="${v == null ? "url(#nb-hatch)" : pal[cls(v)]}" data-i="${i}" data-tip="${t}"/>`;
   }).join("");
-  $("nb-map").innerHTML = `<svg viewBox="0 0 ${D.map.width} ${D.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${M[state.m].label.toLowerCase()}`)}">
+  $("nb-map").innerHTML = `<svg viewBox="0 0 ${D.map.width} ${D.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${lc(M[state.m].label)}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
     <g>${shapes}</g></svg>`;
   const edges = [null, ...b, null];
@@ -324,7 +324,7 @@ function renderRanks() {
   const at = (k) => (k <= 0 ? 0 : cum[Math.min(k, cum.length) - 1]);
   const pts = [[0, 0], ...cum.map((v, k) => [(k + 1) / N, v])];
   conc.innerHTML = `<h3 class="sub-h">How concentrated</h3>
-    <p class="ins-lede">The share of the City's ${fmtN(tot)} ${escapeHTML(M[state.m].label.toLowerCase())} (${periodLabel() || "today"}) in the neighbourhoods with the most, counted in units (not per household): the top 5 hold <b>${Math.round(at(5) * 100)}%</b>, the top 10 <b>${Math.round(at(10) * 100)}%</b>, the top 16 (a tenth) <b>${Math.round(at(16) * 100)}%</b>; ${N - s.length} neighbourhoods have none.</p>
+    <p class="ins-lede">The share of the City's ${fmtN(tot)} ${escapeHTML(lc(M[state.m].label))} (${periodLabel() || "today"}) in the neighbourhoods with the most, counted in units (not per household): the top 5 hold <b>${Math.round(at(5) * 100)}%</b>, the top 10 <b>${Math.round(at(10) * 100)}%</b>, the top 16 (a tenth) <b>${Math.round(at(16) * 100)}%</b>; ${N - s.length} neighbourhoods have none.</p>
     <div class="ch-box conc-box"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       <line x1="0" y1="100" x2="100" y2="0" stroke="#c9c9c3" vector-effect="non-scaling-stroke" stroke-dasharray="4 3"/>
       <polyline points="${pts.map(([x, y]) => `${(x * 100).toFixed(2)},${(100 - y * 100).toFixed(2)}`).join(" ")}" fill="none" stroke="${DARK}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
@@ -409,7 +409,7 @@ function renderCorr() {
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
   }).join("");
-  $("corr-lede").innerHTML = `How closely ${describe(base).toLowerCase()} follows each 2021 Census measure across the neighbourhoods (Spearman rank correlation, as on the Census Insights page: 1, the same order; −1, the reverse). Choose one to see its neighbourhoods.`;
+  $("corr-lede").innerHTML = `How closely ${lc(describe(base))} follows each 2021 Census measure across the neighbourhoods (Spearman rank correlation, as on the Census Insights page: 1, the same order; −1, the reverse). Choose one to see its neighbourhoods.`;
   // the scatter
   const c = state.sx, xs = census.measures[c].values["2021"];
   const idx = nbhd.map((_, i) => i).filter((i) => xs[i] != null && vs[i] != null);

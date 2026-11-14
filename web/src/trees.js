@@ -78,7 +78,7 @@ function fewPasses() {
 const income = (m = state.inc) => census.measures[m].values["2021"];
 const incomeUp = (m = state.inc) => m !== "lim_at";
 const fmtInc = (v, m = state.inc) => (v == null ? "—" : isMoney(m) ? fmtMoney(v) : `${v.toFixed(1)}%`);
-const lc = (s) => s[0].toLowerCase() + s.slice(1);
+const lc = (s) => (/^[A-Z][A-Z]/.test(s) ? s : s[0].toLowerCase() + s.slice(1)); // not a leading abbreviation
 
 // ---- state, kept in the address ----------------------------------------------------------
 const hash = new URLSearchParams(location.hash.slice(1));

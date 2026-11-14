@@ -3,7 +3,7 @@
 // with the neighbourhood outlines and 2021 Census figures from insights.json. No map
 // tiles: the map is the neighbourhoods' SVG outlines, as on the other Insights pages.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, incomeFifths, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
@@ -26,7 +26,7 @@ const fmtRate = (v) => (v == null ? "—" : v === 0 ? "0" : v >= 100 ? fmtN(v) :
 const fmtMoney = (v) => (v == null ? "—" : `$${Math.round(v).toLocaleString("en-CA")}`);
 const fmtChange = (a, b) => (a == null || b == null || !a ? "—" : `${sign(+((b / a - 1) * 100).toFixed(0))}${Math.abs((b / a - 1) * 100).toFixed(0)}%`);
 // a category's name inside a sentence
-const lcName = (c) => CAT[c].label[0].toLowerCase() + CAT[c].label.slice(1);
+const lcName = (c) => lc(CAT[c].label);
 const years = (c) => Object.keys(D.counts[c]).map(Number);
 
 // ---- periods and values ---------------------------------------------------------------
@@ -202,10 +202,10 @@ function renderMap() {
     const t = `${escapeHTML(n.name)}<br>${escapeHTML(CAT[state.m].short)}: <b>${fmtV(vs[i])}</b> · ${ordinal(rank.get(i))} of ${N}<br>${escapeHTML(CENSUS[state.inc].short)}: <b>${fmtInc(inc[i])}</b>`;
     return `<path d="${n.path}" fill="${fill(i)}" data-i="${i}" data-tip="${t}"/>`;
   }).join("");
-  $("nb-map").innerHTML = `<svg viewBox="0 0 ${census.map.width} ${census.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${CAT[state.m].label.toLowerCase()}${state.ov === "crime" ? "" : " and income"}`)}">
+  $("nb-map").innerHTML = `<svg viewBox="0 0 ${census.map.width} ${census.map.height}" role="img" aria-label="${escapeHTML(`Map of the neighbourhoods by ${lc(CAT[state.m].label)}${state.ov === "crime" ? "" : " and income"}`)}">
     <defs><pattern id="nb-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f0f0ec"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c3" stroke-width="3"/></pattern></defs>
     <g>${shapes}</g></svg>`;
-  const incName = CENSUS[state.inc].long.toLowerCase().replace("lim-at", "LIM-AT");
+  const incName = lc(CENSUS[state.inc].long);
   const fi = (v) => (isMoney(state.inc) ? `$${Math.round(v / 1000)}k` : `${v.toFixed(1)}%`);
   if (state.ov === "both") {
     $("map-key").innerHTML = "";
@@ -248,7 +248,7 @@ function renderIncome() {
   const head = ["Lowest", "Second", "Middle", "Fourth", "Highest"].map((n, q) => `<th>${n}<br><span class="small">${range(fifths[q])}</span></th>`).join("");
   $("inc-table").innerHTML = `<thead><tr><th>Category</th><th class="txt hide-sm">Years</th>${head}<th>City</th><th>Lowest ÷ highest</th></tr></thead><tbody>${rows}</tbody>`;
   const r = $("inc-table").querySelector("tr.sel td:last-child")?.textContent;
-  $("inc-lede").innerHTML = `The neighbourhoods in fifths by ${escapeHTML(CENSUS[state.inc].long.toLowerCase().replace("lim-at", "LIM-AT"))} (2021 Census${incomeUp() ? "" : "; the lowest-income fifth has the highest rate"}), about 31 each, and every category's rate in each fifth: its count over its residents, per 100,000 a year over the latest five years. For ${escapeHTML(lcName(state.m))}, the lowest-income fifth's rate is <b>${r}</b> the highest-income fifth's.`;
+  $("inc-lede").innerHTML = `The neighbourhoods in fifths by ${escapeHTML(lc(CENSUS[state.inc].long))} (2021 Census${incomeUp() ? "" : "; the lowest-income fifth has the highest rate"}), about 31 each, and every category's rate in each fifth: its count over its residents, per 100,000 a year over the latest five years. For ${escapeHTML(lcName(state.m))}, the lowest-income fifth's rate is <b>${r}</b> the highest-income fifth's.`;
   $("inc-note").textContent = "Shading runs along each row, from the fifth with the lowest rate to the highest. Rates are per resident: a fifth that holds downtown counts visitors' and workers' incidents against a small population.";
 }
 
