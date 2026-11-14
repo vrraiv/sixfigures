@@ -9,7 +9,7 @@ neighbourhoods, and sets it side by side so it can be compared.
 
 A great deal is published about Toronto: the census every five years, school test
 results, home sale prices, new construction and rents, crime and road safety, the tree
-canopy and summer heat, Bike Share and ride-hail trips, elections. But it comes from many different organizations, in
+canopy and summer heat, Bike Share, the TTC and ride-hail trips, elections. But it comes from many different organizations, in
 different formats, on different maps and at different times. That makes simple questions
 hard to answer: how do a neighbourhood's incomes compare with its school results? Which
 parts of the city have the least tree cover and the hottest summer ground? How has a
@@ -162,7 +162,7 @@ one colour scale and lists the neighbourhoods in the hottest sixth on nearly eve
 
 Getting Around, `/insights/transport/`, is the one topic shown by month, because its sources are
 that fine: every Bike Share Toronto trip (January 2017 on, 44 million of them), the City's daily
-summary of ride-hail trips (2018 on), the TTC's log of subway delays (2014 on) and the City's
+summary of ride-hail trips (2018 on), the TTC's schedule and its log of subway delays (2014 on) and the City's
 permanent bicycle counters. For the city it has each source's latest month against a year before,
 the series month by month (Bike Share and ride-hail also as the year to each month against 2019),
 and Bike Share's trips by the hour of the day. Bike Share's trips are by station, so they can be
@@ -186,7 +186,7 @@ a new schedule, about every six weeks. Its data is
 `pipeline/transport/` and `pipeline/ttc/`).
 It isn't in the two Explorers yet.
 
-On the Safety, Trees and Explorer pages a neighbourhood can be picked on any map, chart or list, or
+On the Safety, Trees, Getting Around and Explorer pages a neighbourhood can be picked on any map, chart or list, or
 found by name in a menu, and is then marked everywhere on the page. Every Insights, Explorer and
 Forecasts page opens with a contents list, and once it has scrolled away a "↑ Contents" button
 at the corner of the screen comes back to it; the Trees measure menu stays pinned only over the
