@@ -24,6 +24,16 @@ insights.json and the 2021 population in the figures files, and writes, month by
   stations    every station with a location and a trip in the last twelve months: name,
               neighbourhood (index), x and y on the map, docks, and its trips started and
               ended in those months
+  ttc         from ttc.py (pipeline/ttc/): `feeds`, the schedule periods held (their first
+              dates); for each, by neighbourhood, the weekday departures by mode, all
+              departures on a Saturday and a Sunday, the stops with a weekday departure,
+              and the residents within reach of frequent service and of a subway or LRT
+              station (`frequent`, `rapid`); the city's departures by mode and day for each
+              period; the subway delays' minutes and delays by cause group and year
+              (`causes`, `cause_years`, the last year marked partial when it is); and the
+              subway and LRT stations with x and y, lines, weekday departures, and their
+              delays and minutes in the twelve months to the delay file's last month, with
+              those minutes by cause
 
 Members and casual riders. The files label each trip "Annual Member" or "Casual Member",
 and from October 2021 the casual share climbs out of season (64% in October and November
@@ -52,6 +62,7 @@ INSIGHTS = WEB / "insights.json"
 COMMON = WEB / "data" / "figures" / "2021" / "common.json"
 BIKE = HERE / "bikeshare"
 CITY = HERE / "transport"
+TTC = HERE / "ttc"
 OUT = WEB / "transport.json"
 FROM = "2019-01"  # neighbourhood figures start here: the network of 2017 and 2018 was a third of today's
 LINES = ["YU", "BD", "SHP", "SRT", "other"]
@@ -66,9 +77,71 @@ def nums(s, places: int = 2) -> list:
     return [None if pd.isna(v) else round(float(v), places) for v in s]
 
 
+TTC_MODES = ["subway", "streetcar", "bus"]
+
+
+def ttc_block(ids: list, index: dict, on_map) -> dict:
+    sv = pd.read_csv(TTC / "service.csv", dtype={"feed": str})
+    ac = pd.read_csv(TTC / "access.csv", dtype={"feed": str})
+    feeds = sorted(sv.feed.unique())
+    n = len(ids)
+
+    def row(t: pd.DataFrame, col: str) -> list:
+        return ints(t.groupby("nbhd_id")[col].sum().reindex(ids).fillna(0))
+
+    nb = []
+    for f in feeds:
+        s = sv[sv.feed == f]
+        wd = s[s.day == "weekday"]
+        a = ac[ac.feed == f].set_index("nbhd_id").reindex(ids)
+        nb.append({
+            "weekday": {m: row(wd[wd["mode"] == m], "departures") for m in TTC_MODES},
+            "saturday": row(s[s.day == "saturday"], "departures"), "sunday": row(s[s.day == "sunday"], "departures"),
+            # stops are counted per mode; a stop served by two modes is rare (a few streetcar and bus stops)
+            "stops": ints(wd.groupby("nbhd_id").stops.max().reindex(ids).fillna(0)),
+            "frequent": nums(a.frequent / a["pop"] * 100, 1), "rapid": nums(a.rapid / a["pop"] * 100, 1),
+        })
+    city = [{d: {m: int(sv[(sv.feed == f) & (sv.day == d) & (sv["mode"] == m)].departures.sum()) for m in TTC_MODES}
+             for d in ("weekday", "saturday", "sunday")} for f in feeds]
+    reach = [{"frequent": round(float(ac[ac.feed == f].frequent.sum() / ac[ac.feed == f]["pop"].sum() * 100), 1),
+              "rapid": round(float(ac[ac.feed == f].rapid.sum() / ac[ac.feed == f]["pop"].sum() * 100), 1)} for f in feeds]
+
+    cm = pd.read_csv(TTC / "cause_month.csv")
+    last = cm.month.max()
+    cm["year"] = cm.month.str[:4]
+    causes = cm.groupby("cause").minutes.sum().sort_values(ascending=False).index.tolist()
+    causes = [c for c in causes if c != "Other"] + ["Other"]
+    yrs = sorted(cm.year.unique())
+    by_year = cm.groupby(["year", "cause"])[["minutes", "delays"]].sum()
+
+    sd = pd.read_csv(TTC / "station_delays.csv")
+    months12 = sorted(sd.month.unique())
+    months12 = [m for m in months12 if m <= last][-12:]
+    recent = sd[sd.month.isin(months12)]
+    per = recent.groupby("station")[["delays", "minutes"]].sum()
+    mix = recent.pivot_table(index="station", columns="cause", values="minutes", aggfunc="sum").reindex(columns=causes).fillna(0)
+    stops = on_map(pd.read_csv(TTC / "stops.csv"))
+    stops = stops[stops.nbhd_id.notna()]
+    stations = [{"name": r.name, "nb": index[int(r.nbhd_id)], "x": r.x, "y": r.y, "lines": str(r.lines), "departures": int(r.departures),
+                 "delays": int(per.delays.get(r.name, 0)), "minutes": int(per.minutes.get(r.name, 0)),
+                 "by": ints(mix.loc[r.name]) if r.name in mix.index else None}
+                for r in stops.itertuples(index=False)]
+    if not len(stations) or sum(s["minutes"] for s in stations) == 0:
+        sys.exit("no subway delays matched to a station in the last twelve months")
+    held = json.loads((TTC / "manifest.json").read_text())["feeds"]
+    return {
+        "feeds": feeds, "days": [held[f]["days"] for f in feeds], "nb": nb, "city": city, "reach": reach,
+        "causes": causes, "cause_years": yrs, "cause_partial": not last.endswith("-12"), "cause_last": last,
+        "cause_minutes": [ints(by_year.minutes.unstack().reindex(index=yrs, columns=causes).fillna(0)[c]) for c in causes],
+        "cause_delays": [ints(by_year.delays.unstack().reindex(index=yrs, columns=causes).fillna(0)[c]) for c in causes],
+        "stations": stations, "stations_period": [months12[0], months12[-1]],
+    }
+
+
 def main() -> int:
     need = [BIKE / f for f in ("city_month.csv", "station_month.csv", "profile.csv", "stations.csv")]
     need += [CITY / f for f in ("ridehail_month.csv", "subway_month.csv", "counters_month.csv", "counter_sites.csv")]
+    need += [TTC / f for f in ("service.csv", "access.csv", "stops.csv", "station_delays.csv", "cause_month.csv")]
     for f in [*need, INSIGHTS, COMMON]:
         if not f.exists():
             sys.exit(f"{f} is missing (make bikeshare, make transport; insights.json is committed)")
@@ -106,8 +179,13 @@ def main() -> int:
     recent = sm[sm.month.isin(year)].groupby("station")[["starts", "ends"]].sum()
     dots = st[st.lat.notna() & st.nbhd_id.notna() & st.station.isin(recent.index)].join(recent, on="station")
     to_map = Transformer.from_crs(4326, proj["crs"], always_xy=True)
-    x, y = to_map.transform(dots.lon.values, dots.lat.values)
-    dots = dots.assign(x=((x - proj["x0"]) * proj["k"]).round(1), y=((proj["y1"] - y) * proj["k"]).round(1))
+
+    def on_map(t: pd.DataFrame) -> pd.DataFrame:
+        x, y = to_map.transform(t.lon.values, t.lat.values)
+        return t.assign(x=((x - proj["x0"]) * proj["k"]).round(1), y=((proj["y1"] - y) * proj["k"]).round(1))
+
+    dots = on_map(dots)
+    ttc = ttc_block(ids, index, on_map)
 
     ride = pd.read_csv(CITY / "ridehail_month.csv")
     sub = pd.read_csv(CITY / "subway_month.csv")
@@ -157,12 +235,14 @@ def main() -> int:
                       "docks": None if pd.isna(r.capacity) else int(r.capacity), "starts": int(r.starts), "ends": int(r.ends)}
                      for r in dots.itertuples(index=False)],
         "stations_period": [year[0], year[-1]],
+        "ttc": ttc,
     }
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")
     b = out["bike"]
     print(f"Wrote {OUT}: Bike Share {months[0]} to {months[-1]} ({b['trips'][-1]:,} trips in the last month, {b['stations'][-1]} stations); "
           f"neighbourhoods from {nb_months[0]}, {sum(1 for v in out['nb']['stations'] if v)} with a station; "
-          f"ride-hail to {ride.month.iloc[-1]}, subway to {sub_months[-1]}, counters to {cnt.month.iloc[-1]}; {OUT.stat().st_size / 1024:.0f} KB")
+          f"ride-hail to {ride.month.iloc[-1]}, subway to {sub_months[-1]}, counters to {cnt.month.iloc[-1]}; "
+          f"TTC schedule periods {', '.join(ttc['feeds'])}; {OUT.stat().st_size / 1024:.0f} KB")
     return 0
 
 

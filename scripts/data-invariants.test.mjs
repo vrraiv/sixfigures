@@ -116,6 +116,15 @@ test("Getting around: whole months in order, and no neighbourhood with more trip
       assert.ok(sum >= 0.95 * city, `${m}: ${((sum / city) * 100).toFixed(1)}% of trips are at a station with a place`);
     }
   });
+  for (const nb of t.ttc.nb) {
+    for (const k of ["frequent", "rapid"]) assert.ok(nb[k].every((v) => v != null && v >= 0 && v <= 100), `TTC ${k}: a share of residents for every neighbourhood`);
+    assert.ok(nb.weekday.bus.every((v) => v >= 0), "TTC departures are counts");
+  }
+  t.ttc.city.forEach((c, k) => {
+    const nbAll = ["bus", "streetcar", "subway"].reduce((a, m) => a + t.ttc.nb[k].weekday[m].reduce((s, v) => s + v, 0), 0);
+    const all = Object.values(c.weekday).reduce((a, v) => a + v, 0);
+    assert.equal(nbAll, all, `${t.ttc.feeds[k]}: the neighbourhoods' weekday departures add to the city's`);
+  });
   t.bike.months.forEach((m, k) => {
     if (t.bike.member[k] != null) assert.equal(t.bike.member[k] + t.bike.casual[k], t.bike.trips[k], `${m}: members and casual riders add to the trips`);
   });

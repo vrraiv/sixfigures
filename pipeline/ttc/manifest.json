@@ -1,0 +1,21 @@
+{
+  "built": "2026-11-14",
+  "feeds": {
+    "2026-11-01": {
+      "days": {
+        "weekday": "2026-11-04",
+        "saturday": "2026-11-07",
+        "sunday": "2026-11-01"
+      },
+      "file_bytes": 29042816
+    }
+  },
+  "frequent": "6 departures in every hour from 7:00 to 19:00 at one stop, weekday",
+  "delays": {
+    "incidents": 270282,
+    "delays": 93874,
+    "delays_at_a_named_station": 0.9578,
+    "minutes_at_a_named_station": 0.9309,
+    "cause_other_share": 0.1766
+  }
+}

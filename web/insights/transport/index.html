@@ -7,12 +7,12 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="How Toronto gets around, month by month: Bike Share trips by neighbourhood and station, ride-hail trips, subway delays and bicycle counts, from the City's open data." />
+    <meta name="description" content="How Toronto gets around, month by month: Bike Share trips by neighbourhood and station, TTC service by neighbourhood, subway delays by station and cause, ride-hail trips and bicycle counts, from the City's open data." />
   </head>
   <body class="with-nav doc">
     <!-- site-header -->
     <section class="bar" aria-label="This page">
-      <h1>Getting Around <span class="sub">Bike Share, ride-hail, subway delays and bicycle counts in Toronto, month by month</span></h1>
+      <h1>Getting Around <span class="sub">Bike Share, the TTC, ride-hail and bicycle counts in Toronto, month by month</span></h1>
     </section>
 
     <main class="insights">
@@ -40,6 +40,15 @@
         <div id="profile" class="panels"></div>
       </section>
 
+      <section class="ins-section" aria-labelledby="delay-h">
+        <div class="ins-head">
+          <h2 id="delay-h">Subway delays: why, and where</h2>
+        </div>
+        <div id="why" class="panels one"></div>
+        <p class="ins-lede" id="delay-lede"></p>
+        <ol id="delay-ranks" class="rank-list"></ol>
+      </section>
+
       <!-- The measure and period for the neighbourhood sections below. -->
       <div class="measure-bar" id="measure-bar">
         <label for="measure">Neighbourhoods by</label>
@@ -52,7 +61,7 @@
 
       <section class="ins-section" aria-labelledby="map-h">
         <div class="ins-head">
-          <h2 id="map-h">Bike Share on the map</h2>
+          <h2 id="map-h">Neighbourhoods on the map</h2>
           <label class="toggle"><input type="checkbox" id="dots" /> Show the stations</label>
         </div>
         <p class="ins-lede" id="map-lede"></p>
@@ -101,9 +110,9 @@
       City of Toronto Open Data, under the
       <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>: Bike Share Toronto Ridership Data
       (Toronto Parking Authority) and Bike Share's station list; Private Transportation Companies summary data; TTC Subway Delay Data;
-      Permanent Bicycle Counters. Statistics Canada, 2021 Census of Population, under the
+      Permanent Bicycle Counters; TTC Routes and Schedules (GTFS). Statistics Canada, 2021 Census of Population, under the
       <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
-      The TTC publishes no ridership by route, station or month as open data, so transit appears here only through its delays.
+      The TTC publishes no ridership by route, station or month as open data, so transit appears here through its schedule and its delays.
       <a href="https://github.com/vrraiv/sixfigures">Source</a>
     </footer>
 
