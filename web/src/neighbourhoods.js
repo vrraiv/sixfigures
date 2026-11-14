@@ -384,6 +384,11 @@ function render() {
   $("about").innerHTML = `${has ? "" : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
     Each of ${D.measures.length} measures becomes a percentile rank among the ${N} neighbourhoods. Two neighbourhoods' gap on a theme is the average difference in their ranks on its measures,
     and their <b>affinity</b> is 100 less the average gap over the themes counted: 100 would be the same standing on everything, and two neighbourhoods taken at random average about ${show(cityMean)}.`;
+  // the kinds in plain words, for a reader who has just arrived: the method is at the foot of the page
+  const eg = D.types.filter((t) => !t.loose).slice(1, 4).map((t) => escapeHTML(lower(t.name)));
+  $("about-kinds").innerHTML = `The neighbourhoods also fall into ${WORDS[D.types.length]} <a href="#kinds"><b>kinds</b></a>, such as ${eg.slice(0, -1).join(", ")} or ${eg.at(-1)}. `
+    + `They come from the figures, not from anyone's map of the city: the neighbourhoods were sorted into groups ${D.typing.reruns} times, each time with a different piece of the data held back, and the ones that kept landing together make a kind. `
+    + "The kinds are then left alone until the next census is out, so a neighbourhood's kind doesn't shift every time a figure is updated.";
   if (has) { renderAlike(); renderThemes(); renderSide(); renderTime(); }
   renderKinds();
   renderSpace();
@@ -432,10 +437,14 @@ document.addEventListener("click", (e) => {
   else if ($("kinds-map").contains(t) || $("space-fig").contains(t)) { setNb(+t.dataset.i); jump("measure-bar"); }
 });
 
-$("kinds-note").textContent = `The kinds are a convenient way to cut a continuum, not sharply separate groups, so each neighbourhood also carries the kind it is next nearest to. `
-  + `One clustering of the neighbourhoods changes with the figures it is given, so the kinds were made from ${D.typing.reruns} trial runs, each with one measure, one theme or the latest period left out (Ward's hierarchical clustering of the percentile ranks, every theme but voting counting equally: a kind of place shouldn't be defined by how it votes). `
-  + `Neighbourhoods that the runs kept putting together form a kind. They were fixed on ${D.typing.cut} and will be made again once ${D.typing.recut_after.replace(/ \(.*\)$/, "")}; until then new figures change what a kind is like, not which neighbourhoods are in it. `
-  + `The silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`;
+const held = D.types.map((t) => `${lower(t.name)} ${Math.round(t.together * 100)}%`).join(", ");
+$("kinds-method").textContent = `The kinds of neighbourhood. The neighbourhoods are a continuum, not separate groups, so one clustering of them changes with the figures it is given. `
+  + `The kinds are therefore made from ${D.typing.reruns} runs of the same clustering (Ward's hierarchical method on the percentile ranks, every theme but Voting weighted equally, a missing figure at the median, eight groups), `
+  + "each with something left out: one measure in turn, one theme in turn, or the latest period of one source or of all (the census at 2016 for 2021). "
+  + `Two neighbourhoods' agreement is the share of runs that put them in the same group, and the kinds are average-linkage clusters of that agreement, cut at ${D.types.length}: the most that leaves no kind under four neighbourhoods. `
+  + `How often two members of a kind shared a group, over the runs: ${held}. `
+  + `The kinds were fixed on ${D.typing.cut} and will be made again once ${D.typing.recut_after.replace(/ \(.*\)$/, "")}; until then new figures change what a kind is like (the measures it is higher and lower on, the neighbourhood nearest its centre) and each neighbourhood's next nearest kind, not which neighbourhoods are in a kind or what it is called. `
+  + `Voting is left out because a kind of place shouldn't be defined by how it votes. On the current figures the kinds' silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`;
 $("method-note").textContent = `Built ${D.built}. ${D.measures.length} measures in ${D.themes.length} themes, each at its latest period, from the Data Explorer's figures. `
   + "Percentile ranks are among the 158 neighbourhoods, ties sharing the middle. A theme's gap is averaged over the measures both neighbourhoods have a figure for (a few have no school results), and the overall gap over the themes counted, so a theme with many measures counts no more than one with few.";
 

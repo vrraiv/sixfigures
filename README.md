@@ -27,8 +27,8 @@ measure can be mapped, ranked and set against any other. On the site you can:
 - **Compare any measures** in the Data Explorer: choose up to three and see how they line
   up across the city and over time.
 - **Find a neighbourhood's closest matches** in the Neighbourhood Explorer: which
-  neighbourhoods are most and least alike, theme by theme, and how that has changed since
-  2006.
+  neighbourhoods are most and least alike, theme by theme, how that has changed since
+  2006, and which of nine kinds of neighbourhood each one is.
 - **See where the numbers might go** in the Forecasts, an experiment in predicting school
   results and home values that publishes its own errors.
 
@@ -257,9 +257,12 @@ The kinds cut a continuum (silhouette about 0.1), so each neighbourhood also car
 nearest kind, and one clustering of them changes with the figures it is given: a new quarter of
 sale prices used to redraw two of the kinds and leave them without names. So the kinds are cut
 once and locked (`pipeline/kinds.py`, `pipeline/kinds/`). The same clustering (Ward's, on the
-percentiles, every theme but Voting weighted equally) is rerun 72 times, each with one measure,
-one theme or the latest period left out; neighbourhoods the reruns keep putting together form a
-kind. Seven of the nine hold together in about 80% of reruns or more; two (the fast-building
+percentiles, every theme but Voting weighted equally, a missing figure at the median, eight
+groups) is rerun 72 times, each with something left out: one measure in turn (56 runs), one theme
+in turn (8), or the latest period of one source or of all, the census at 2016 for 2021 (8). Two
+neighbourhoods' agreement is the share of reruns that put them in the same group, and the kinds
+are average-linkage clusters of that agreement, cut at nine: the most that leaves no kind under
+four neighbourhoods. The page says this in plain words near its top and in full at its foot. Seven of the nine hold together in about 80% of reruns or more; two (the fast-building
 apartment areas and the modest house suburbs) hold in 66% and 73%, and the page says they are
 looser. Their names are written by hand in `pipeline/kinds/names.json`. A data refresh changes
 what a kind is like (its highest and lowest measures, its centre), never its members or name.
