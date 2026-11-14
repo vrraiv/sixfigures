@@ -4,6 +4,7 @@
 import "./style.css";
 import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, ordinal, loadJSON, loadFailed } from "./catalogue.js";
 import { R_EDGES, fmtR, initPick, initTip, quantile, rColor, seg, spearman } from "./charts.js";
+import { buildToc } from "./nbtools.js";
 
 const data = await loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`).catch(loadFailed);
 const YEARS = data.years; // ["2006", "2011", "2016", "2021"]
@@ -630,3 +631,4 @@ renderCorr();
 renderShift();
 renderGap();
 writeHash();
+buildToc();

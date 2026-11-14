@@ -45,13 +45,32 @@ export function biKey({ xName, xRanges, xArrow, yName, yRanges, yArrow }) {
 }
 
 
-// The contents list at the top of a long page: a link to each visible section that has an id.
-export function buildToc(nav) {
-  const secs = [...document.querySelectorAll("main section[id]")].filter((s) => !s.hidden && !s.closest("[hidden]"));
+// The contents list at the top of a long page: a link to each visible section with a heading.
+// With no nav given, the page's #toc, made at the top of <main> where the page has none. A
+// section without an id gets one from its heading's. Once the list has scrolled away, a
+// "Contents" button at the corner of the screen comes back to it: these pages run to many
+// screens on a phone, and the list is the only way around them.
+export function buildToc(nav = document.getElementById("toc")) {
+  const main = document.querySelector("main");
+  const secs = [...main.querySelectorAll("section")].filter((s) => s.querySelector("h2") && !s.hidden && !s.closest("[hidden]"));
+  if (!nav) {
+    if (secs.length < 3) return;
+    nav = Object.assign(document.createElement("nav"), { className: "toc", id: "toc" });
+    nav.setAttribute("aria-label", "On this page");
+    main.prepend(nav);
+  }
+  for (const s of secs) if (!s.id) s.id = `sec-${(s.getAttribute("aria-labelledby") ?? s.querySelector("h2").id ?? "").replace(/-h$/, "") || secs.indexOf(s)}`;
   nav.innerHTML = `<span class="toc-label">On this page</span>${secs.map((s) => `<a href="#${s.id}">${escapeHTML(s.dataset.toc ?? s.querySelector("h2").textContent)}</a>`).join("")}`;
   // the address holds the page's choices after "#", so jump by script and leave it alone
   if (nav.dataset.wired) return; // built again when the sections on show change
   nav.dataset.wired = "1";
+  const top = Object.assign(document.createElement("button"), { type: "button", className: "toc-top", textContent: "↑ Contents", hidden: true });
+  document.body.append(top);
+  top.addEventListener("click", () => {
+    nav.scrollIntoView({ behavior: "smooth", block: "center" });
+    nav.querySelector("a")?.focus({ preventScroll: true });
+  });
+  if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => { top.hidden = e.isIntersecting || e.boundingClientRect.top >= 0; }).observe(nav);
   nav.addEventListener("click", (e) => {
     const a = e.target.closest("a");
     if (!a) return;

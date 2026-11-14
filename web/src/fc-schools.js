@@ -2,6 +2,7 @@
 // its range, and the backtests (docs/forecast-spec.md), from forecasts.json.
 import { seg } from "./charts.js";
 import { $, drawMap, escapeHTML, fmtPct, fmtPts, fmtShare, initTip, load, marksNote, nbFromHash, own, pickBar, rangeList, rungName, scatter, scatterKey, signed } from "./forecasts.js";
+import { buildToc } from "./nbtools.js";
 
 const D = await load();
 const GRADES = { g3: "Grade 3", g6: "Grade 6" };
@@ -120,3 +121,4 @@ function render() {
   writeHash();
 }
 render();
+buildToc();

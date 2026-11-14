@@ -281,8 +281,9 @@ function detailsHTML(p) {
     hist: meta.hist[YEAR], value: v, ref: stats.city, fmt: fmtAxis(m), zero: money ? "$0" : "0%", max: money ? Infinity : 100,
     caption: `${d.long} across ${fmtCount(stats.n)} Toronto DAs, ${refYear(m)}. This DA in orange; the line marks the ${money ? `city ${d.stat}` : "city as a whole"} (${fmtVal(m, stats.city)}).`,
   });
-  return `<h2>DA ${escapeHTML(p.dauid)} (2011 boundary)</h2>
-    <p class="place">${escapeHTML(p.nbhd2 ? `Mostly ${p.nbhd}, partly ${p.nbhd2}` : `${p.nbhd} (City neighbourhood ${p.nbhd_id})`)}</p>
+  // headed by the neighbourhood, as on the main map; the DA's number follows
+  return `<h2>${escapeHTML(p.nbhd)}</h2>
+    <p class="place">${escapeHTML(`Dissemination area ${p.dauid} (2011 boundary)${p.nbhd2 ? `, mostly in ${p.nbhd}, partly in ${p.nbhd2}` : ` · City neighbourhood ${p.nbhd_id}`}`)}</p>
     <table class="dt"><thead><tr><th></th><th>${GROUPS[d.group].col}</th><th>Percentile</th></tr></thead><tbody>${rows}</tbody></table>
     ${dist}
     ${lines.map((l) => `<p class="${l.note ? "note" : "cmp"}">${escapeHTML(l.text)}</p>`).join("")}

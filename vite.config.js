@@ -5,7 +5,7 @@ import { defineConfig } from "vite";
 import { extractTiles } from "./scripts/extract-tiles.mjs";
 import { basemapLayers } from "./scripts/basemap-style.mjs";
 import { brandSvg, heroKey, heroSvg } from "./scripts/city-map.mjs";
-import { pagePath, pageTarget, siteFooter, siteGuide, siteHeader, siteTitle } from "./scripts/site-nav.mjs";
+import { pagePath, pageTarget, siteFooter, siteGuide, siteHeader, siteTitle, socialTags } from "./scripts/site-nav.mjs";
 
 // Content hashes of the data files, appended as ?v= so they can be cached as
 // immutable (see web/public/_headers) yet still bust when the data is rebuilt.
@@ -72,7 +72,7 @@ export default defineConfig({
     // The site header and name, and the footer's disclaimer and links, on every page (scripts/site-nav.mjs);
     // on the landing page, the guide to the header's links and the city map too (scripts/city-map.mjs).
     name: "site-header",
-    transformIndexHtml: (html, ctx) => siteFooter(siteTitle(pageTarget(html))).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path), BRAND))
+    transformIndexHtml: (html, ctx) => socialTags(siteFooter(siteTitle(pageTarget(html))), pagePath(ctx.path)).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path), BRAND))
       .replace("<!-- site-guide -->", () => siteGuide()).replace("<!-- city-map -->", () => heroSvg()).replace("<!-- city-map-key -->", () => heroKey()),
   }, {
     name: "da-tiles-in-html",

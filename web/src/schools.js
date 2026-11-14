@@ -5,6 +5,7 @@
 import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed } from "./catalogue.js";
 import { cellStyle, fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
+import { buildToc } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   loadJSON(`/schools.json?v=${__SCHOOLS_VERSION__}`),
@@ -594,3 +595,4 @@ function render() {
   writeHash();
 }
 render();
+buildToc();

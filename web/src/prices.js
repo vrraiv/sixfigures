@@ -5,6 +5,7 @@
 import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
+import { buildToc } from "./nbtools.js";
 
 const [P, census] = await Promise.all([
   loadJSON(`/prices.json?v=${__PRICES_VERSION__}`),
@@ -324,3 +325,4 @@ function render() {
 renderCards();
 renderQuarters();
 render();
+buildToc();

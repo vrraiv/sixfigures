@@ -6,7 +6,7 @@ import "./style.css";
 import { $, escapeHTML, own } from "./catalogue.js";
 import { initTip } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
-import { fillFinder } from "./nbtools.js";
+import { buildToc, fillFinder } from "./nbtools.js";
 import { C, DEF, S, SRC, columns, fmt, nbhd, nearest, pctOrd, pctRank, vals, whenOf } from "./explorer-core.js";
 import { initOne, renderOne, suggestion } from "./explorer-one.js";
 import { initTwo, renderTwo } from "./explorer-two.js";
@@ -189,6 +189,7 @@ function draw() {
   else renderThree();
   markPicks();
   $("find-nb").value = S.nb ?? "";
+  buildToc(); // the sections on show follow the number of measures and whether they have a history
   writeHash();
 }
 

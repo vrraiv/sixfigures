@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { DISCLAIMER, META, ROWS, SOCIAL, allPages, pagePath, pageTarget, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle } from "./site-nav.mjs";
+import { CARD, DISCLAIMER, META, ORIGIN, ROWS, SOCIAL, allPages, pagePath, pageTarget, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle, socialTags } from "./site-nav.mjs";
 
 const inputs = [...readFileSync("vite.config.js", "utf8").matchAll(/"(web\/[^"]*index\.html)"/g)].map((m) => pagePath(m[1].replace(/^web/, "")));
 
@@ -51,6 +51,21 @@ test("the old address of the census map sends its links on", () => {
 
 test("a section's first page is its top link", () => {
   for (const l of ROWS.flatMap((r) => r.links)) if (l.pages) assert.equal(l.pages[0].href, l.href);
+});
+
+test("every page gets its own address, title and description for a shared link, and the card is there", () => {
+  for (const p of inputs) {
+    const html = socialTags(siteTitle(readFileSync(`web${p}index.html`, "utf8")), p);
+    assert.ok(html.includes(`<link rel="canonical" href="${ORIGIN}${p}" />`), p);
+    assert.ok(html.includes(`<meta property="og:url" content="${ORIGIN}${p}" />`), p);
+    const title = html.match(/<meta property="og:title" content="([^"]*)"/)[1], desc = html.match(/<meta property="og:description" content="([^"]*)"/)[1];
+    assert.ok(title.includes("Six Figures") && title.length < 90, `${p}: ${title}`);
+    assert.ok(desc.length > 60, `${p}: ${desc}`);
+    assert.equal((html.match(/rel="canonical"/g) ?? []).length, 1, p);
+    assert.ok(html.indexOf("og:image") < html.indexOf("</head>"), p);
+  }
+  assert.ok(existsSync(`web/public${CARD.src}`), "run node scripts/make-icons.mjs");
+  assert.throws(() => socialTags("<head><title>A</title></head>", "/x/"), /meta description/);
 });
 
 test("the site's name is added to a title once", () => {

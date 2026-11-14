@@ -379,6 +379,29 @@ a { color: var(--accent); }
   body:not(.doc) .site-sub, body:not(.doc) .bar .sub { display: none; }
 }
 @media (max-width: 380px) { .site-more { display: none; } }
+/* A phone held sideways is wide but very short: at full size the site's links and the page's
+   controls took four fifths of it. On the map pages they fold as on a narrow phone (the links
+   behind Menu, the section's pages beside the name) and the controls share one line, so the map
+   has most of the screen. */
+@media (max-height: 480px) and (orientation: landscape) {
+  body.map-page .site { padding: 4px 16px; gap: 2px 14px; }
+  body.map-page .site-title { font-size: 16px; }
+  body.map-page .site-mark { width: 40px; height: 29px; }
+  body.map-page .site-sub, body.map-page .bar .sub { display: none; }
+  body.map-page .site.js .site-menu { display: block; order: 2; padding: 3px 10px; }
+  body.map-page .site.js:not(.open) .site-nav { display: none; }
+  body.map-page .site-nav { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; }
+  body.map-page .site-local { order: 1; flex: 0 1 auto; margin: 0; padding: 0; background: none; border: 0; }
+  body.map-page .site-local .site-label { display: none; }
+  body.map-page .bar { padding: 6px 16px; gap: 8px; flex-wrap: nowrap; }
+  body.map-page .bar h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  body.map-page .search { flex: 1 1 180px; max-width: none; }
+  body.map-page .measure:not(.changeby) { flex: 1 1 160px; min-width: 0; }
+  body.map-page .measure:not(.changeby) select { width: 100%; min-width: 0; }
+  body.map-page .viewctl .changeby select { max-width: 150px; }
+  body.map-page .map-screen { min-height: 300px; }
+  body.map-page .legend { max-height: calc(100% - 24px); overflow: auto; }
+}
 body.with-nav { grid-template-rows: auto auto 1fr auto; }
 /* The map pages (census/, 2011/): the site header, the controls and the map fill the screen
    between them, so the map gets every line the controls leave; the footer is below, a scroll
@@ -857,6 +880,13 @@ section[hidden] { display: none; }
 .toc a { padding: 3px 10px; color: var(--ink-2); text-decoration: none; background: #fff; border: 1px solid #d6d6cf; border-radius: 999px; white-space: nowrap; }
 .toc a:hover, .toc a:focus-visible { color: var(--accent); border-color: var(--accent); }
 .toc:empty { display: none; }
+/* back to the contents list from anywhere down the page (nbtools.js buildToc) */
+.toc-top {
+  position: fixed; right: 12px; bottom: 12px; z-index: 6; padding: 8px 12px; font: inherit; font-size: 13px; color: var(--ink);
+  background: var(--panel); border: 1px solid #d6d6cf; border-radius: 999px; box-shadow: var(--shadow); cursor: pointer;
+}
+.toc-top[hidden] { display: none; }
+.toc-top:hover, .toc-top:focus-visible { color: var(--accent); border-color: var(--accent); }
 /* the measure menu sticks only while its own sections are on screen */
 .bar-scope > .ins-section:last-of-type { border-bottom: 1px solid var(--rule); }
 /* the picked-neighbourhood bar when nothing is picked: a hint, in its usual place */

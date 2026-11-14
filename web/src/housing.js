@@ -6,6 +6,7 @@
 import "./style.css";
 import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, key, pearson, quantile, rColor, seg, spark, spearman } from "./charts.js";
+import { buildToc } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   loadJSON(`/housing.json?v=${__HOUSING_VERSION__}`),
@@ -470,3 +471,4 @@ renderCards();
 renderYears();
 renderContext();
 render();
+buildToc();
