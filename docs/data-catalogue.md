@@ -136,15 +136,16 @@ Then `make trees-page`. Landsat data courtesy of the U.S. Geological Survey.
 | Bike Share's station list (GBFS `station_information`, live) | live | the list on the day of the last run; removed stations keep the place `pipeline/bikeshare/stations.csv` has for them | Getting around (where a station is, docks) | read by `bikeshare.py` on every run |
 | Private Transportation Companies summary: daily ride-hail trips, fares, waits, vehicles | **monthly**, about two months behind | January 2018 to July 2026 | Getting around | **automated** (monthly). By hand: `make transport` after deleting `toronto_ptc_summary.csv` |
 | TTC Subway Delay Data | **monthly** | January 2014 to September 2026 | Getting around | as above (`toronto_subway_delays_2025.csv` is the open file; a new year may start a new one, to add to `download.py`) |
+| TTC Routes and Schedules (GTFS) | **about every six weeks**, with each board period | the period from 1 November 2026; one more period is kept with each new one | Getting around (service and reach by neighbourhood, stations) | **automated** (monthly). By hand: `make ttc` after deleting `toronto_ttc_gtfs.zip`. The City keeps only the current schedule, so a period missed is gone |
 | Permanent Bicycle Counters, daily counts | **monthly** | April 2023 to July 2026, the four sites that counted every month | Getting around | as above (`toronto_bicycle_counters_daily.csv`) |
 
 Then `make transport-page` (all of it: `make refresh-transport`). The trip files are large
 (1.8 GB for 2017 to 2026), so `make download` leaves them out and `pipeline/bikeshare/`
 keeps their counts by station and month: a refresh needs only the current year's file.
 Not on the portal: TTC ridership by route, station or month (the last files end in 2017 to
-2019), which is why transit appears only through its delays. On the portal and not yet
-used: ride-hail trips by pickup and drop-off ward and hour, traffic counts at
-intersections, the TTC's schedules (GTFS), bus and streetcar delays.
+2019), which is why transit appears through its schedule and its delays. On the portal and not
+yet used: ride-hail trips by pickup and drop-off ward and hour, traffic counts at
+intersections, bus and streetcar delays.
 
 ### Elections (City of Toronto)
 
@@ -214,8 +215,9 @@ alone don't make a pull request: they aren't on the site, and wait for the next 
 The same workflow runs on the **18th of every month** for Getting around alone
 (`make refresh-transport` by hand): it fetches Bike Share's file for the current year (and,
 until April, last year's, whose final months arrive in the new year), the ride-hail
-summary, the subway delay file and the bicycle counters, recounts them, and rebuilds the
-page. The explorers hold none of its figures, so they are left alone. A month with nothing
+summary, the subway delay file, the bicycle counters and the TTC's schedule, recounts them,
+and rebuilds the page. A new schedule period adds a period to the TTC's service figures,
+so the monthly run is what builds their history. The explorers hold none of its figures, so they are left alone. A month with nothing
 new opens no pull request.
 
 If a run fails, the Actions tab shows which step: usually a source that was down (rerun

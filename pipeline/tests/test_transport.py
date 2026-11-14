@@ -12,6 +12,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import bikeshare  # noqa: E402
 import transport  # noqa: E402
+import ttc  # noqa: E402
 
 
 class Dates(unittest.TestCase):
@@ -51,6 +52,29 @@ class WholeMonths(unittest.TestCase):
     def test_a_month_that_runs_to_its_last_day_is_kept(self):
         days = pd.Series(pd.date_range("2026-06-01", "2026-07-31"))
         self.assertTrue(transport.whole_months(days).all())
+
+
+class SubwayDelays(unittest.TestCase):
+    def test_a_station_name_loses_its_line_and_what_follows(self):
+        self.assertEqual(ttc.norm("ST GEORGE YUS STATION"), "ST GEORGE")
+        self.assertEqual(ttc.norm("KENNEDY BD STATION (APPRO"), "KENNEDY")
+        self.assertEqual(ttc.norm("PIONEER VILLAGE STATIO"), "PIONEER VILLAGE")
+        self.assertEqual(ttc.norm("APPROACHING KIPLING ST"), "KIPLING ST")
+        self.assertEqual(ttc.norm("Bloor-Yonge"), "BLOOR YONGE")
+
+    def test_yonge_is_bloor_yonge_unless_it_is_on_line_4(self):
+        self.assertEqual(ttc.norm("YONGE SHP STATION"), "YONGE SHEPPARD")
+        self.assertEqual(ttc.STATION_ALIASES[ttc.norm("YONGE BD STATION")], "BLOOR YONGE")
+
+    def test_codes_go_to_their_group(self):
+        self.assertEqual(ttc.cause("MUIS"), "Ill or injured customers")
+        self.assertEqual(ttc.cause("PUMST"), "Ill or injured customers")  # a fall on the stairs, not the plant
+        self.assertEqual(ttc.cause("PUSI"), "Track, signals and power")
+        self.assertEqual(ttc.cause("SUUT"), "A person at track level")
+        self.assertEqual(ttc.cause("SUDP"), "Security and police")
+        self.assertEqual(ttc.cause("EUDO"), "Trains")
+        self.assertEqual(ttc.cause("TUNOA"), "Staff and operations")
+        self.assertEqual(ttc.cause("XX"), ttc.OTHER)
 
 
 if __name__ == "__main__":

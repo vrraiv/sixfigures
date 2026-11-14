@@ -27,7 +27,9 @@ The parts (each downloads its inputs, then rebuilds its committed outputs):
 
   transport  Bike Share's trips for the current year (and last year's until April,
            whose final months arrive late), the ride-hail summary, the subway delay
-           file and the bicycle counters (bikeshare.py for those years, transport.py)
+           file, the bicycle counters and the TTC's schedule (bikeshare.py for those
+           years, transport.py, ttc.py: a new schedule period adds a period to
+           pipeline/ttc/service.csv)
 
 A part counts as changed when its data does (each part's "data" below), not just its
 manifest's retrieval dates: an unchanged part is put back as it was, so a run with
@@ -113,13 +115,14 @@ PARTS = {
     "transport": {
         "label": "Getting around (Bike Share, ride-hail, subway delays, bicycle counters)",
         "toronto": [*(f"toronto_bikeshare_{y}.zip" for y in BIKE_YEARS), "toronto_ptc_summary.csv", "toronto_subway_delays_2025.csv",
-                    "toronto_bicycle_counters_daily.csv", "toronto_bicycle_counters_locations.csv"],
+                    "toronto_bicycle_counters_daily.csv", "toronto_bicycle_counters_locations.csv", "toronto_ttc_gtfs.zip"],
         # the closed years of subway delays, and the intersections removed stations are placed by
         "toronto_once": ["toronto_subway_delays_2014_2017a.xlsx", "toronto_subway_delays_2017b.xlsx",
                          *(f"toronto_subway_delays_{y}.xlsx" for y in range(2018, 2025)), "toronto_intersections_4326.csv"],
-        "build": [["bikeshare.py", *map(str, BIKE_YEARS)], ["transport.py"]],
-        "dirs": ["pipeline/bikeshare", "pipeline/transport"],
-        "data": ["pipeline/bikeshare/city_month.csv", "pipeline/bikeshare/station_month.csv", "pipeline/transport/*.csv"],
+        "build": [["bikeshare.py", *map(str, BIKE_YEARS)], ["transport.py"], ["ttc.py"]],
+        "dirs": ["pipeline/bikeshare", "pipeline/transport", "pipeline/ttc"],
+        "data": ["pipeline/bikeshare/city_month.csv", "pipeline/bikeshare/station_month.csv", "pipeline/transport/*.csv",
+                 "pipeline/ttc/service.csv", "pipeline/ttc/cause_month.csv"],
         "pages": ["transport_insights.py"],
     },
 }
@@ -198,7 +201,10 @@ def news_transport(read) -> str:
     if not (bike and ride and sub):
         return "none"
     last = lambda text: pd.read_csv(io.StringIO(text)).month.max()  # noqa: E731
-    return f"Bike Share to {last(bike)}, ride-hail to {last(ride)}, subway delays to {last(sub)}"
+    feeds = read("pipeline/ttc/service.csv")
+    periods = sorted(pd.read_csv(io.StringIO(feeds), dtype={"feed": str}).feed.unique()) if feeds else []
+    return (f"Bike Share to {last(bike)}, ride-hail to {last(ride)}, subway delays to {last(sub)}"
+            + (f", TTC schedule from {periods[-1]} ({len(periods)} period{'s' if len(periods) > 1 else ''})" if periods else ""))
 
 
 NEWS = {
