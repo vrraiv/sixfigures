@@ -2,6 +2,7 @@
 
     python pipeline/data_refresh.py prices rentals                  # the quarterly run
     python pipeline/data_refresh.py prices rentals safety housing   # March: the year's too
+    python pipeline/data_refresh.py transport                       # the monthly run
     python pipeline/data_refresh.py housing --report report.md
 
 The scheduled GitHub Actions workflow (.github/workflows/data-refresh.yml) runs this
@@ -24,12 +25,17 @@ The parts (each downloads its inputs, then rebuilds its committed outputs):
            scripts/publish-inputs.sh uploads them). Without that release the part is
            skipped, and the others still run.
 
+  transport  Bike Share's trips for the current year (and last year's until April,
+           whose final months arrive late), the ride-hail summary, the subway delay
+           file and the bicycle counters (bikeshare.py for those years, transport.py)
+
 A part counts as changed when its data does (each part's "data" below), not just its
 manifest's retrieval dates: an unchanged part is put back as it was, so a run with
 nothing new leaves no diff. For rentals that means a new scrape. The pages that read
 a changed part are then rebuilt, in order (price_insights.py, housing_insights.py,
-safety_insights.py, trees_insights.py), and after them the two explorers
-(explorer_data.py, affinity.py).
+safety_insights.py, trees_insights.py, transport_insights.py), and after them the two
+explorers (explorer_data.py, affinity.py), unless only Getting Around was rebuilt: the
+explorers hold none of its figures.
 
 The City's files a part reads are fetched fresh once per run ("toronto"), or only if
 missing for files that never change ("toronto_once").
@@ -55,6 +61,10 @@ import pandas as pd
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 PY = sys.executable
+
+# Bike Share's file for a year is finished early in the next: until April, read last year's too.
+_TODAY = dt.date.today()
+BIKE_YEARS = [_TODAY.year - 1, _TODAY.year] if _TODAY.month <= 3 else [_TODAY.year]
 
 PARTS = {
     "prices": {
@@ -100,9 +110,22 @@ PARTS = {
         "data": ["pipeline/permits/by_nbhd.csv", "pipeline/city/*.csv", "pipeline/cmhc/*.csv", "pipeline/series/*.csv"],
         "pages": ["housing_insights.py"],
     },
+    "transport": {
+        "label": "Getting around (Bike Share, ride-hail, subway delays, bicycle counters)",
+        "toronto": [*(f"toronto_bikeshare_{y}.zip" for y in BIKE_YEARS), "toronto_ptc_summary.csv", "toronto_subway_delays_2025.csv",
+                    "toronto_bicycle_counters_daily.csv", "toronto_bicycle_counters_locations.csv"],
+        # the closed years of subway delays, and the intersections removed stations are placed by
+        "toronto_once": ["toronto_subway_delays_2014_2017a.xlsx", "toronto_subway_delays_2017b.xlsx",
+                         *(f"toronto_subway_delays_{y}.xlsx" for y in range(2018, 2025)), "toronto_intersections_4326.csv"],
+        "build": [["bikeshare.py", *map(str, BIKE_YEARS)], ["transport.py"]],
+        "dirs": ["pipeline/bikeshare", "pipeline/transport"],
+        "data": ["pipeline/bikeshare/city_month.csv", "pipeline/bikeshare/station_month.csv", "pipeline/transport/*.csv"],
+        "pages": ["transport_insights.py"],
+    },
 }
-PAGE_ORDER = ["price_insights.py", "housing_insights.py", "safety_insights.py", "trees_insights.py"]
+PAGE_ORDER = ["price_insights.py", "housing_insights.py", "safety_insights.py", "trees_insights.py", "transport_insights.py"]
 EXPLORERS = ["explorer_data.py", "affinity.py"]
+NOT_IN_EXPLORERS = {"transport_insights.py"}  # pages whose figures the explorers don't hold
 # every run: the neighbourhood outlines the page scripts draw (school_insights.paths)
 COMMON_ONCE = ["toronto_neighbourhoods_4326.geojson"]
 SETUP = "the `pipeline-inputs` release isn't set up: see docs/data-catalogue.md, \"One-time setup\""
@@ -170,11 +193,20 @@ def news_housing(read) -> str:
     return f"permits retrieved {json.loads(permits)['retrieved']}, starts to {month}, rental survey to October {year}"
 
 
+def news_transport(read) -> str:
+    bike, ride, sub = read("pipeline/bikeshare/city_month.csv"), read("pipeline/transport/ridehail_month.csv"), read("pipeline/transport/subway_month.csv")
+    if not (bike and ride and sub):
+        return "none"
+    last = lambda text: pd.read_csv(io.StringIO(text)).month.max()  # noqa: E731
+    return f"Bike Share to {last(bike)}, ride-hail to {last(ride)}, subway delays to {last(sub)}"
+
+
 NEWS = {
     "prices": lambda read: news_prices(read("pipeline/trreb/community.csv")),
     "rentals": lambda read: news_rentals(read("pipeline/rentals/snapshots.json")),
     "safety": lambda read: news_safety(read("pipeline/crime/manifest.json")),
     "housing": news_housing,
+    "transport": news_transport,
 }
 
 
@@ -216,8 +248,9 @@ def main() -> int:
 
     pages = [p for p in PAGE_ORDER if any(done[n] and p in PARTS[n]["pages"] for n in done)]
     notes = []
+    explorers = EXPLORERS if set(pages) - NOT_IN_EXPLORERS else []
     if pages:
-        for page in pages + EXPLORERS:
+        for page in pages + explorers:
             notes += [line.strip() for line in run([page])[1].splitlines() if "no name for the type" in line]
 
     any_change = any(done.values())
@@ -243,7 +276,7 @@ def main() -> int:
             "|---|---|---|---|",
             *rows,
             "",
-            f"**Pages rebuilt:** {', '.join(p.removesuffix('.py') for p in pages + EXPLORERS)}." if pages else "**Pages rebuilt:** none.",
+            f"**Pages rebuilt:** {', '.join(p.removesuffix('.py') for p in pages + explorers)}." if pages else "**Pages rebuilt:** none.",
             "",
             "**Before merging** (merging deploys the site):",
             *[f"- {c}" for c in checks],

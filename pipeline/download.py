@@ -186,6 +186,22 @@ TORONTO = {
     "toronto_ksi_4326.csv": (
         "motor-vehicle-collisions-involving-killed-or-seriously-injured-persons",
         "Motor Vehicle Collisions with KSI Data - 4326.csv", b"_id,"),
+    # Getting around (bikeshare.py, transport.py). Bike Share's trips come a year to a file (the
+    # current year's grows each month; 2019 on are 90 to 390 MB each); bikeshare.py keeps their
+    # counts by station and month in pipeline/bikeshare/, so only the years it lacks are needed.
+    **{f"toronto_bikeshare_{y}.zip": ("bike-share-toronto-ridership-data", f"bikeshare-ridership-{y}.zip", b"PK")
+       for y in range(2017, 2027)},
+    "toronto_ptc_summary.csv": (
+        "private-transportation-companies-summary-and-trip-data", "summary_stats.csv", b"_id,"),
+    "toronto_bicycle_counters_daily.csv": (
+        "permanent-bicycle-counters", "cycling_permanent_counts_daily.csv", b"_id,"),
+    "toronto_bicycle_counters_locations.csv": (
+        "permanent-bicycle-counters", "cycling_permanent_counts_locations.csv", b"_id,"),
+    **{f"toronto_subway_delays_{y}.xlsx": ("ttc-subway-delay-data", f"ttc-subway-delay-data-{y}", b"PK")
+       for y in range(2018, 2025)},
+    "toronto_subway_delays_2014_2017a.xlsx": ("ttc-subway-delay-data", "ttc-subway-delay-jan-2014-april-2017", b"PK"),
+    "toronto_subway_delays_2017b.xlsx": ("ttc-subway-delay-data", "ttc-subway-delay-may-december-2017", b"PK"),
+    "toronto_subway_delays_2025.csv": ("ttc-subway-delay-data", "TTC Subway Delay Data since 2025.csv", b"_id,"),
     # Short-term rental registrations (rentals.py): active numbers only, refreshed daily
     "toronto_str_registrations.csv": (
         "short-term-rentals-registration", "short-term-rental-registrations-data.csv", b"_id,"),
@@ -215,6 +231,9 @@ TORONTO = {
 # Inside Airbnb Toronto listings (rentals.py), CC BY 4.0, into pipeline/raw/insideairbnb/: the
 # scrapes listed on insideairbnb.com/get-the-data (quarterly, ~last 12 months). Add each new date
 # here and to rentals.SNAPSHOTS.
+# Fetched only by name (make bikeshare), not by a plain `make download`: 1.8 GB between them.
+ON_REQUEST = {n for n in TORONTO if n.startswith("toronto_bikeshare_")}
+
 INSIDEAIRBNB_DIR = RAW / "insideairbnb"
 INSIDEAIRBNB = "https://data.insideairbnb.com/canada/on/toronto/{}/data/listings.csv.gz"
 INSIDEAIRBNB_PAGE = "https://insideairbnb.com/get-the-data/"
@@ -629,7 +648,7 @@ def main() -> int:
         if not (fetch_zipped if zipped else fetch_checked)(url, dest, digest):
             missing.append((name, url))
     missing += cmhc()
-    missing += toronto(list(TORONTO), fresh=False)
+    missing += toronto([n for n in TORONTO if n not in ON_REQUEST], fresh=False)
     SCHOOLS_DIR.mkdir(exist_ok=True)
     for name, path in SCHOOLS.items():
         dest = SCHOOLS_DIR / name

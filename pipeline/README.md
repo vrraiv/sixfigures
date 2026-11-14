@@ -282,6 +282,47 @@ match `cma_check` each year, net units issued in 2016-2020 against the 2016-2021
 households match `census_check` (83,604, 48,090, r 0.901), and the 2025 RMS average rent is
 $1,916.
 
+## Getting around: Bike Share, ride-hail, subway delays, bicycle counters
+
+Four City of Toronto Open Data packages, all published monthly, feed `/insights/transport/`.
+Each script's docstring has the detail; the points that took finding:
+
+- **Bike Share trips** (`bikeshare.py`, `make bikeshare`). One zip per year, 2017 on
+  (`bike-share-toronto-ridership-data`; 24 MB for 2017, 90 to 390 MB from 2019). The files
+  change layout from year to year: quarterly then monthly then one file a year, a zip
+  inside the 2022 zip, five date formats (1/4/2017 is 1 April in one quarter's file and
+  4 January in the next), and July to December 2017 without station numbers. The script
+  settles each file's date format by the months the file is named for, and stops if none
+  fits. Trips under a minute are left out (148,440 of 44.3 million). The counts by station
+  and month are committed in `pipeline/bikeshare/` (2 MB), and a year whose zip isn't on
+  disk keeps its rows, so nothing needs the 1.8 GB again; `make download` skips the zips
+  (`download.ON_REQUEST`).
+- **Where a station is.** The trip files have a station's number and name only. Current
+  stations come from Bike Share's live list (GBFS); 88 removed ones are placed at the
+  intersection in their name (the City's intersection file), 11 by hand (`bikeshare.HAND`:
+  the Toronto Islands' seasonal docks, which leave the live list each winter, among them),
+  and 41 have no place. `stations.csv` is committed and keeps a removed station's last
+  known place, so the list gets no worse as stations go. By year, 98.1% to 100% of trips
+  that start at a numbered station start at one with a place.
+- **Members and casual riders.** From October 2021 the "Casual Member" label spreads
+  until every trip of August to December 2023 carries it; the 2024 files, in a new layout,
+  have 7% in January. `transport_insights.SPLIT_UNKNOWN` blanks the split for October 2021
+  to December 2023. The counts in `pipeline/bikeshare/` are as published.
+- **Ride-hail** (`transport.py`). The daily summary (`summary_stats.csv`) of trips that
+  start or end in Toronto, 2018 on; fares, waits and active vehicles from 2020. May 2025
+  has days missing, so the page shows trips a day. The trip files (by hour and pickup and
+  drop-off ward, 30 to 55 MB a year) and the vehicle-hours files (0.5 to 1.6 GB a year)
+  aren't used.
+- **Subway delays** (`transport.py`). One row per incident, 2014 on, in Excel files to 2024
+  and a CSV from 2025. 35% of incidents held a train (`Min Delay` above 0); the others
+  are logged with no delay. 1.8% are logged against two lines or none ("other").
+- **Bicycle counters** (`transport.py`). 26 sites, most installed since 2022, and most with
+  gaps of months. Only four (Sherbourne at Gerrard and at Wellesley, Yonge at Bloor and
+  at St Clair) have counted in both directions on 20 days or more of every month since
+  April 2023, and the series is those four added, so a new counter doesn't read as more
+  cycling. It ends where they stop covering every month, which can be a month or two
+  before the file does.
+
 ## Forecast backtests
 
 `make forecast` runs `pipeline/forecast/schools.py` (one-year forecasts of each

@@ -1,5 +1,5 @@
 # The versions that built the committed data: pip freeze from the WSL environment on the PC,
-# Python 3.14.4, 13 November 2026. make deps and the workflows install from this file;
+# Python 3.14.4, 13 November 2026 (openpyxl added the day after). make deps and the workflows install from this file;
 # requirements.txt keeps the direct dependencies and their lower bounds. To move a version:
 # pip install -U <package>, rebuild, check the outputs, then pip freeze > pipeline/requirements.lock
 # and put this note back.
@@ -10,10 +10,12 @@ cffi==2.1.1
 charset-normalizer==3.5.2
 click==8.5.1
 cryptography==50.0.2
+et_xmlfile==2.0.0
 geopandas==1.2.0
 lightgbm==4.7.0
 narwhals==2.28.0
 numpy==2.5.4
+openpyxl==3.1.5
 packaging==26.3
 pandas==3.1.1
 pdfminer.six==20260107

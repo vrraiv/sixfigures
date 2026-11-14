@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Getting Around Toronto</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="How Toronto gets around, month by month: Bike Share trips by neighbourhood and station, ride-hail trips, subway delays and bicycle counts, from the City's open data." />
+  </head>
+  <body class="with-nav doc">
+    <!-- site-header -->
+    <section class="bar" aria-label="This page">
+      <h1>Getting Around <span class="sub">Bike Share, ride-hail, subway delays and bicycle counts in Toronto, month by month</span></h1>
+    </section>
+
+    <main class="insights">
+      <section class="ins-section" aria-labelledby="glance-h">
+        <div class="ins-head">
+          <h2 id="glance-h">The city at a glance</h2>
+        </div>
+        <p class="ins-lede" id="glance-lede"></p>
+        <div id="cards" class="card-row"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="months-h">
+        <div class="ins-head">
+          <h2 id="months-h">Month by month</h2>
+        </div>
+        <div id="panels" class="panels"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="prof-h">
+        <div class="ins-head">
+          <h2 id="prof-h">Bike Share through the day</h2>
+          <div class="seg" id="prof-year" role="group" aria-label="Year"></div>
+        </div>
+        <p class="ins-lede" id="prof-lede"></p>
+        <div id="profile" class="panels"></div>
+      </section>
+
+      <!-- The measure and period for the neighbourhood sections below. -->
+      <div class="measure-bar" id="measure-bar">
+        <label for="measure">Neighbourhoods by</label>
+        <select id="measure"></select>
+        <div class="seg" id="period" role="group" aria-label="Year"></div>
+        <label class="visually-hidden" for="month">Month</label>
+        <select id="month" class="inline-select"></select>
+        <label class="toggle" id="rate-wrap"><input type="checkbox" id="rate" /> Per 1,000 residents</label>
+      </div>
+
+      <section class="ins-section" aria-labelledby="map-h">
+        <div class="ins-head">
+          <h2 id="map-h">Bike Share on the map</h2>
+          <label class="toggle"><input type="checkbox" id="dots" /> Show the stations</label>
+        </div>
+        <p class="ins-lede" id="map-lede"></p>
+        <figure class="nb-map" id="nb-map"></figure>
+        <p class="nb-pick" id="map-pick" hidden></p>
+        <ul class="corr-key" id="map-key"></ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rank-h">
+        <div class="ins-head">
+          <h2 id="rank-h">Highest and lowest neighbourhoods</h2>
+        </div>
+        <p class="ins-lede" id="rank-lede"></p>
+        <div class="ranks" id="rank-body">
+          <div class="rank-col"><h3>Highest</h3><ol id="rank-top" class="rank-list"></ol></div>
+          <div class="rank-col"><h3>Lowest</h3><ol id="rank-bottom" class="rank-list"></ol></div>
+        </div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="one-h">
+        <div class="ins-head">
+          <h2 id="one-h">One neighbourhood, month by month</h2>
+        </div>
+        <p class="ins-lede" id="one-lede"></p>
+        <div id="one" class="panels"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="corr-h">
+        <div class="ins-head">
+          <h2 id="corr-h">What goes with what</h2>
+        </div>
+        <p class="ins-lede" id="corr-lede"></p>
+        <div id="corr-body">
+          <ol id="census-list" class="corr-list shown"></ol>
+          <figure class="scatter" id="scatter-fig">
+            <figcaption id="scatter-caption"></figcaption>
+            <div id="scatter"></div>
+          </figure>
+        </div>
+      </section>
+      <div id="tip" class="tip" role="tooltip" hidden></div>
+    </main>
+
+    <footer class="foot">
+      <p class="downloads" id="method-note"></p>
+      City of Toronto Open Data, under the
+      <a href="https://open.toronto.ca/open-data-licence/">Open Government Licence - Toronto</a>: Bike Share Toronto Ridership Data
+      (Toronto Parking Authority) and Bike Share's station list; Private Transportation Companies summary data; TTC Subway Delay Data;
+      Permanent Bicycle Counters. Statistics Canada, 2021 Census of Population, under the
+      <a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence - Canada</a>.
+      The TTC publishes no ridership by route, station or month as open data, so transit appears here only through its delays.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+
+    <script type="module" src="/src/transport.js"></script>
+  </body>
+</html>

@@ -9,7 +9,7 @@ neighbourhoods, and sets it side by side so it can be compared.
 
 A great deal is published about Toronto: the census every five years, school test
 results, home sale prices, new construction and rents, crime and road safety, the tree
-canopy and summer heat, elections. But it comes from many different organizations, in
+canopy and summer heat, Bike Share and ride-hail trips, elections. But it comes from many different organizations, in
 different formats, on different maps and at different times. That makes simple questions
 hard to answer: how do a neighbourhood's incomes compare with its school results? Which
 parts of the city have the least tree cover and the hottest summer ground? How has a
@@ -22,7 +22,8 @@ measure can be mapped, ranked and set against any other. On the site you can:
 - **Explore the map** of income and housing from the latest census, a few blocks at a
   time, and look up your own address.
 - **Read about one topic** (the census, schools, housing, sale prices, safety, trees and
-  heat) through maps, rankings, trends, and how it relates to everything else.
+  heat, getting around) through maps, rankings, trends, and how it relates to everything
+  else.
 - **Compare any measures** in the Data Explorer: choose up to three and see how they line
   up across the city and over time.
 - **Find a neighbourhood's closest matches** in the Neighbourhood Explorer: which
@@ -58,7 +59,7 @@ page sends old map links, such as `/#m=rent&y=2021`, on to `/census/`.)
 
 Every page carries the same header: a small map of the city and the site's name, two rows
 of links, and Home and About. **Topics** has the pages about one subject (Census, Schools,
-Housing, Sale prices, Safety, Trees); **Tools** the pages that work across subjects (Data
+Housing, Sale prices, Safety, Trees, Getting around); **Tools** the pages that work across subjects (Data
 Explorer, Neighbourhood Explorer, Forecasts). A section with pages of its own shows them
 in a third row: Census has the 2021 · 2016 map, the 2011 map and Census Insights;
 Forecasts has Method, Schools and Dwelling value. On phones the links fold behind a Menu
@@ -158,6 +159,25 @@ one colour scale and lists the neighbourhoods in the hottest sixth on nearly eve
 (`pipeline/trees.py` writes `lst_by_pass_nbhd.csv`); those outlines are `trees_da.json` (0.6 MB,
 0.23 MB compressed), fetched only when the section nears the screen. No map tiles. Its data is `web/public/trees.json`
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
+
+Getting Around, `/insights/transport/`, is the one topic shown by month, because its sources are
+that fine: every Bike Share Toronto trip (January 2017 on, 44 million of them), the City's daily
+summary of ride-hail trips (2018 on), the TTC's log of subway delays (2014 on) and the City's
+permanent bicycle counters. For the city it has each source's latest month against a year before,
+the series month by month (Bike Share and ride-hail also as the year to each month against 2019),
+and Bike Share's trips by the hour of the day. Bike Share's trips are by station, so they can be
+mapped: by neighbourhood, for any year or month from 2019, trips started or ended (as counts or per
+1,000 residents), the change from a year before, trips ended per 100 started, and today's stations
+and docks, with the stations as dots; rankings; a picked neighbourhood's trips month by month and
+its busiest stations; and correlations with the 2021 Census. 140 of the 158 neighbourhoods have a
+station. The trip files don't say where a station is: current stations are placed from Bike Share's
+live list, removed ones by the intersection they were named for, and 98% to 100% of a month's trips
+start at a station with a place. The files' member and casual labels can't be used from October
+2021 to December 2023, and the page shows those months' trips whole. The TTC publishes no ridership
+by route, station or month, so transit appears only through its delays. Its data is
+`web/public/transport.json` (`pipeline/transport_insights.py`, from `pipeline/bikeshare.py` and
+`pipeline/transport.py`, whose counts are kept in `pipeline/bikeshare/` and `pipeline/transport/`).
+It isn't in the two Explorers yet.
 
 On the Safety, Trees and Explorer pages a neighbourhood can be picked on any map, chart or list, or
 found by name in a menu, and is then marked everywhere on the page. Every Insights, Explorer and
@@ -444,9 +464,9 @@ own tests (`pipeline/tests/`), and both run on every pull request
 
 Every dataset, its publisher's update cadence, what the site holds now and how to refresh
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
-(a quarterly run for TRREB and Inside Airbnb, two annual runs, and the 2026 Census
-releases).
-The quarterly run and the yearly police and housing refreshes are automated: the Data
+(a monthly run for Getting around, a quarterly run for TRREB and Inside Airbnb, two annual
+runs, and the 2026 Census releases).
+The monthly and quarterly runs and the yearly police and housing refreshes are automated: the Data
 refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that
 schedule and opens a pull request with what changed, for review before merging. It runs as two
 jobs: one that downloads and rebuilds with read-only access to the repository, and a second
