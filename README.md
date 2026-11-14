@@ -239,7 +239,7 @@ Any theme can be unticked (Voting is the obvious one), and likeness can be measu
 or one measure alone. The page has the map shaded by affinity with the ten most and least alike
 (and every neighbourhood in a sortable table, theme by theme), the closest and furthest matches
 on each theme, a side-by-side of the picked neighbourhood and any other on every measure, the
-eight kinds of neighbourhood on a map, and the most typical and most distinctive neighbourhoods
+nine kinds of neighbourhood on a map, and the most typical and most distinctive neighbourhoods
 and closest pairs. It also shows:
 - **Twins across town:** the closest matches at least 10 km away (likeness is partly local: a
   neighbourhood's ten closest matches are typically about 5 km off, against 12 km for any two),
@@ -253,16 +253,21 @@ and closest pairs. It also shows:
   by kind or by affinity with the picked neighbourhood. It is a picture, not the measure: the
   lists come from the gaps.
 
-The kinds come from Ward's hierarchical clustering on the same percentiles,
-every theme but Voting weighted equally; they cut a continuum (silhouette about 0.1), so each
-neighbourhood also carries its next nearest kind. The link holds every choice. Its data is
-`web/public/neighbourhoods.json` (`pipeline/affinity.py`, `make neighbourhoods`, run after
-`make explorer`), where the choice of method is recorded; the code is
-`web/src/neighbourhoods.js`, which works the affinity out in the browser. The kinds' names
-are written by hand (`NAMES` in `pipeline/affinity.py`), one for the neighbourhood at each
-kind's centre. Because the kinds are weak, new data can regroup them; a kind whose centre has
-no name yet is named after the measures it stands highest on (as in "Higher on ...") until
-one is added, so check the names in a data refresh's pull request.
+The kinds cut a continuum (silhouette about 0.1), so each neighbourhood also carries its next
+nearest kind, and one clustering of them changes with the figures it is given: a new quarter of
+sale prices used to redraw two of the kinds and leave them without names. So the kinds are cut
+once and locked (`pipeline/kinds.py`, `pipeline/kinds/`). The same clustering (Ward's, on the
+percentiles, every theme but Voting weighted equally) is rerun 72 times, each with one measure,
+one theme or the latest period left out; neighbourhoods the reruns keep putting together form a
+kind. Seven of the nine hold together in about 80% of reruns or more; two (the fast-building
+apartment areas and the modest house suburbs) hold in 66% and 73%, and the page says they are
+looser. Their names are written by hand in `pipeline/kinds/names.json`. A data refresh changes
+what a kind is like (its highest and lowest measures, its centre), never its members or name.
+They are to be cut again once the 2026 Census is fully released (`make kinds-recut`); `make kinds`
+reports how the locked kinds hold on current figures. The link holds every choice. The page's
+data is `web/public/neighbourhoods.json` (`pipeline/affinity.py`, `make neighbourhoods`, run
+after `make explorer`), where the choice of method is recorded; the code is
+`web/src/neighbourhoods.js`, which works the affinity out in the browser.
 
 Forecasts are an exercise in how far public data can be pushed, not advice, and each
 forecast page opens by saying so. Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,

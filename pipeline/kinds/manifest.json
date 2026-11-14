@@ -1,0 +1,45 @@
+{
+  "cut": "2026-11-14",
+  "explorer_built": "2026-11-14",
+  "reruns": 72,
+  "method": "average-linkage clusters of how often two neighbourhoods share a group over the reruns (each Ward's method, 8 groups), cut at 9",
+  "recut_after": "the 2026 Census is fully released (scheduled for 1 December 2027)",
+  "kinds": {
+    "1": {
+      "n": 32,
+      "together": 0.662
+    },
+    "2": {
+      "n": 27,
+      "together": 0.817
+    },
+    "3": {
+      "n": 20,
+      "together": 0.725
+    },
+    "4": {
+      "n": 20,
+      "together": 0.797
+    },
+    "5": {
+      "n": 16,
+      "together": 0.96
+    },
+    "6": {
+      "n": 14,
+      "together": 0.8
+    },
+    "7": {
+      "n": 12,
+      "together": 0.955
+    },
+    "8": {
+      "n": 9,
+      "together": 0.826
+    },
+    "9": {
+      "n": 8,
+      "together": 0.983
+    }
+  }
+}

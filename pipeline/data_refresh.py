@@ -253,11 +253,9 @@ def main() -> int:
         print(f"\n{name}: {'changed' if done[name] else 'nothing new'}", flush=True)
 
     pages = [p for p in PAGE_ORDER if any(done[n] and p in PARTS[n]["pages"] for n in done)]
-    notes = []
     explorers = EXPLORERS if set(pages) - NOT_IN_EXPLORERS else []
-    if pages:
-        for page in pages + explorers:
-            notes += [line.strip() for line in run([page])[1].splitlines() if "no name for the type" in line]
+    for page in pages + explorers if pages else []:
+        run([page])
 
     any_change = any(done.values())
     today = dt.date.today().isoformat()
@@ -272,9 +270,6 @@ def main() -> int:
             "The checks in each script's output passed (the run stops on a failed check); the workflow ran `npm test` and `npm run build`.",
             "Look over the changed pages in the preview or locally (`npm run dev`).",
         ]
-        if notes:
-            checks.insert(0, "**Name the neighbourhood types** whose centre moved, in `pipeline/affinity.py`'s `NAMES`, then rerun it: "
-                          + "; ".join(notes))
         args.report.write_text("\n".join([
             f"Scheduled data refresh, {today} (`python pipeline/data_refresh.py {' '.join(parts)}`).",
             "",

@@ -49,13 +49,17 @@ ways of measuring likeness on 2026-11-12: the first principal component alone
 (25% of the variance, an affluence axis) shares 21% of top-ten lists with this,
 five components 62%, every measure weighted equally 80%.
 
-The types: Ward's hierarchical clustering of the neighbourhoods on the same
-percentiles, every theme but Voting weighted equally (a missing figure at the
-median), cut at K types. They are a convenient way to cut a continuum, not
-sharply separate groups (silhouette about 0.1), so each neighbourhood also
-carries the type it is next nearest to. A type's name is looked up by its
-medoid in NAMES; if a rebuild moves a medoid, that type falls back to a
-description by its highest measures until NAMES is updated.
+The types (the page's "kinds") are not made here: they are read from
+pipeline/kinds/ (kinds.py), where they were cut once from what 72 reruns of the
+clustering agree on, named by hand, and locked until the next census is fully
+out. So a rebuild never moves a neighbourhood to another kind or renames one. What
+this script works out afresh is what each kind is like on today's figures (the
+measures its neighbourhoods are highest and lowest on, the one nearest its
+centre) and, for each neighbourhood, the kind it is next nearest to: the kinds
+cut a continuum (silhouette about 0.1 on the percentiles, every theme but
+Voting weighted equally, a missing figure at the median). Each type carries
+`together`, how often two of its members shared a group over the reruns, and
+`loose` where that is under kinds.LOOSE_UNDER.
 
 The likeness map is a picture, not the measure: two axes hold under half of the
 differences between neighbourhoods, so the page's lists come from the gaps, not
@@ -69,14 +73,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.cluster.hierarchy import fcluster, linkage
 
 HERE = Path(__file__).parent
 WEB = HERE.parent / "web" / "public"
 EX = WEB / "explorer"
 OUT = WEB / "neighbourhoods.json"
 INSIGHTS = WEB / "insights.json"  # the neighbourhoods' representative points
-K = 8
+KINDS = HERE / "kinds"  # the locked kinds: kinds.csv, names.json, manifest.json (kinds.py)
+LOOSE_UNDER = 0.75  # as kinds.LOOSE_UNDER
 HIST_FROM = "2006"
 ANCHOR = ["census.med_hh_tot", "census.moved5"]  # the likeness map's axes run toward more of these
 
@@ -97,25 +101,6 @@ THEMES = [
     ("voting", "Voting", True, "elections.turnout elections.tory elections.chow elections.bailao"),
 ]
 NOT_TYPED = {"voting"}  # left out of the types: a kind of place shouldn't be defined by how it votes
-
-# A type's name and one-line description, by the neighbourhood nearest its centre.
-NAMES = {
-    # the centres as of the 14 November 2026 refresh (2026 Q3 sale prices)
-    "Stonegate-Queensway": ("Established house neighbourhoods", "Higher household incomes in older detached houses on streets with large trees; little low income, crowding or recent immigration."),
-    "York University Heights": ("Fast-building apartment areas", "The most construction and proposals, with more crime and crowding; little tree cover and lower individual incomes."),
-    "Brookhaven-Amesbury": ("Family apartment suburbs", "Lower incomes, crowded housing and many children, much of it in apartment buildings."),
-    "Cliffcrest": ("Modest house suburbs", "Detached houses and lower rents, fewer degrees and few condos; more auto theft and gun violence than the other house neighbourhoods."),
-    "High Park North": ("Affluent neighbourhoods", "The highest home values, incomes and school results, and the least violent crime."),
-    "Harbourfront-CityPlace": ("New condo districts", "Recent towers, young adults and constant turnover; few children or seniors."),
-    "Trinity-Bellwoods": ("Inner-city neighbourhoods", "Dense older streets near downtown: short-term rentals, few children, few detached houses."),
-    "Agincourt North": ("Ageing north-east suburbs", "More seniors and income from transfers, modest individual incomes, and almost no new building."),
-    # earlier centres, kept so a kind whose centre moves back has its name
-    "Dorset Park": ("Family apartment suburbs", "Lower incomes, crowded housing and many children, much of it in apartment buildings."),
-    "Lawrence Park South": ("Affluent house neighbourhoods", "The highest incomes, home values and school results, and the least crime."),
-    "Briar Hill-Belgravia": ("Fast-building apartment areas", "The most construction and proposals; movers, lower incomes and lower home prices; few children."),
-    "Centennial Scarborough": ("Settled house suburbs", "Detached houses, long-time owners and more seniors; few renters or movers."),
-}
-
 
 def pct_rank(v: pd.Series) -> pd.Series:
     """Percentile rank among the known values, 0-100; ties share the middle."""
@@ -156,9 +141,17 @@ def main() -> int:
     use = [m for m in measures if theme_of[m] not in NOT_TYPED]
     w = pd.Series({m: 1 / sum(theme_of[x] == theme_of[m] for x in use) for m in use})
     V = ((P[use].fillna(50) - 50) * np.sqrt(w)).to_numpy()
-    lab = fcluster(linkage(V, method="ward"), K, "maxclust")
+    for f in ("kinds.csv", "names.json", "manifest.json"):
+        if not (KINDS / f).exists():
+            sys.exit(f"{KINDS / f} is missing: the kinds are committed; python pipeline/kinds.py --recut makes them anew")
+    lock = pd.read_csv(KINDS / "kinds.csv").set_index("nbhd_id").kind.reindex([x["id"] for x in cat["nbhd"]])
+    if lock.isna().any():
+        sys.exit(f"{int(lock.isna().sum())} neighbourhoods have no kind in {KINDS / 'kinds.csv'}")
+    lab = lock.to_numpy().astype(int)
+    kind_names = json.loads((KINDS / "names.json").read_text(encoding="utf-8"))
+    cut = json.loads((KINDS / "manifest.json").read_text())
     D = np.sqrt(((V[:, None, :] - V[None, :, :]) ** 2).sum(-1))
-    order = sorted(set(lab), key=lambda c: -(lab == c).sum())  # biggest first
+    order = sorted(set(lab))  # kinds.py numbers them largest first
     centres = np.stack([V[lab == c].mean(0) for c in order])
     to_centre = np.sqrt(((V[:, None, :] - centres[None, :, :]) ** 2).sum(-1))
     type_ix = np.array([order.index(c) for c in lab])
@@ -187,13 +180,13 @@ def main() -> int:
         medoid = names[members[int(np.argmin(to_centre[members, k]))]]
         med = P.iloc[members][use].median()
         high, low = pick(med.sort_values(ascending=False), 5), pick(med.sort_values(), 4)
-        name, blurb = NAMES.get(medoid, (None, None))
-        if name is None:
-            name = "Higher on " + ", ".join(defs[m]["short"].lower() for m in high[:2])
-            blurb = "A rebuild moved this type's centre: name it in affinity.py's NAMES."
-            print(f"  no name for the type centred on {medoid}")
-        types.append({"name": name, "blurb": blurb, "medoid": medoid, "n": int(len(members)), "high": high, "low": low})
-        print(f"{len(members):3d}  {name} ({medoid}): high {[defs[m]['short'] for m in high]}; low {[defs[m]['short'] for m in low]}")
+        name, blurb = kind_names[str(c)]["name"], kind_names[str(c)]["blurb"]
+        if not name or not blurb:
+            sys.exit(f"kind {c} has no name or blurb in {KINDS / 'names.json'} (its members most attached: {kind_names[str(c)].get('most_attached')})")
+        together = cut["kinds"][str(c)]["together"]
+        types.append({"name": name, "blurb": blurb, "medoid": medoid, "n": int(len(members)), "high": high, "low": low,
+                      "together": round(together, 3), "loose": together < LOOSE_UNDER})
+        print(f"{len(members):3d}  {name} ({medoid}; together {together:.0%}): high {[defs[m]['short'] for m in high]}; low {[defs[m]['short'] for m in low]}")
 
     # ---- the likeness map: the first two principal components of what the types are made from
     U, s, Vt = np.linalg.svd(V - V.mean(0), full_matrices=False)
@@ -243,7 +236,7 @@ def main() -> int:
                       "values": [None if pd.isna(v) else v for v in X[m].tolist()],
                       "pct": [None if pd.isna(v) else round(float(v), 1) for v in P[m].tolist()]} for m in measures],
         "types": types, "type": type_ix.tolist(), "next": nxt.tolist(),
-        "typing": {"k": K, "method": "Ward's hierarchical clustering on percentile ranks, themes weighted equally, Voting left out",
+        "typing": {"k": len(order), "method": cut["method"], "cut": cut["cut"], "reruns": cut["reruns"], "recut_after": cut["recut_after"],
                    "silhouette": round(float(np.mean(sil)), 3)},
         "axes": axes, "xy": np.round(xy, 1).tolist(), "fit": round(fit, 2),
         "km": np.round(km, 1).tolist(),

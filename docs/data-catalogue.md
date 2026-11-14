@@ -30,8 +30,8 @@ and, for the forecast model's sources, [`data-sources.md`](data-sources.md).
 - **A few sources need a line of code or a decision per new edition:** Ontario's school
   files, the Landsat summers and the crime rate periods (each noted below).
 - **After any page's data is rebuilt, rebuild the two explorers**, which read every page:
-  `make explorer` then `make neighbourhoods`. `affinity.py` prints `no name for the type
-  centred on …` if a rebuild moved a neighbourhood type's centre; name it in its `NAMES`.
+  `make explorer` then `make neighbourhoods`. The kinds of neighbourhood don't change with
+  it: they are locked in `pipeline/kinds/` until the 2026 Census is fully out (below).
 - **Then check and ship:** `npm test`, `npm run build`, look over the changed pages,
   commit. Merging to `main` deploys (see the README's Deploy section).
 
@@ -251,6 +251,7 @@ so the two don't collide.
 | Late September to October 2027 | EQAO 2026-27: **score the 2026 to 2027 School Forecast**. |
 | 27 October 2027 | Immigration. |
 | 1 December 2027 | Education (degrees). Every census measure on the site is then out. |
+| After 1 December 2027 | **Recut the kinds of neighbourhood**: once the explorers hold the 2026 Census, `make kinds-recut`, read its table, and write the new kinds' names in `pipeline/kinds/names.json` (`pipeline/kinds.py` has the reasoning). `make kinds` at any time reports how the locked kinds hold on current data. |
 | Early 2028 | **The 2026 Census rebuild**: 2026 DA boundaries and the 2021 to 2026 correspondence, the census map on 2026 with 2021 to 2026 change, Census Insights and the Neighbourhood Explorer's history extended, the CPI for income year 2025, new tiles and search. A project, not a routine run. |
 | October 2030 | Next municipal general election. |
 
