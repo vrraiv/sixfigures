@@ -68,9 +68,12 @@ function fewPasses() {
   const most = Math.max(...NB.scenes);
   const few = nbhd.map((n, i) => ({ name: n.name, n: NB.scenes[i] })).filter((x) => x.n < most);
   if (!few.length) return "";
-  const names = few.map((x) => `${escapeHTML(x.name)} (${x.n})`);
+  // named where two or more passes are missing; the ones a single pass short are counted
+  const short = few.filter((x) => x.n < most - 1).sort((x, y) => x.n - y.n), one = few.length - short.length;
+  const names = [...short.map((x) => `${escapeHTML(x.name)} (${x.n})`), ...(one && short.length ? [`${one} other${one > 1 ? "s" : ""} (${most - 1})`] : [])];
+  if (!short.length) return ` ${one} neighbourhood${one > 1 ? "s are" : " is"} covered by ${most - 1} passes rather than the ${most} behind the others' figures.`;
   const listed = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
-  return ` Fewer passes cover ${listed} than the ${most} behind every other neighbourhood's figure.`;
+  return ` Fewer passes cover ${listed} than the ${most} behind every other neighbourhood's figure: the satellite's path clips the city's corners, and a pass counts only where it covers half of a neighbourhood.`;
 }
 const income = (m = state.inc) => census.measures[m].values["2021"];
 const incomeUp = (m = state.inc) => m !== "lim_at";
