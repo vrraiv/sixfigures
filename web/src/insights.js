@@ -183,7 +183,7 @@ const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
 }, (i) => {
   const y = state.mapYear === "2006" ? "2021" : state.mapYear;
   return ` <a href="${mapLink(state.m, y, i)}">Its areas on the ${y} map</a>`;
-});
+}, nbhd.map((n) => n.name));
 function renderMap() {
   const m = state.m, ys = yearsOf(m);
   if (!ys.includes(state.mapYear)) state.mapYear = "2021";

@@ -197,7 +197,7 @@ function renderQuarters() {
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   writeHash();
-});
+}, undefined, nbhd.map((n) => n.name));
 const rankOrder = (vs) => vs.map((v, i) => [v, i]).filter(([v]) => v != null).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
 function renderMap() {
   const { vs, nb, base } = values(), order = rankOrder(vs);

@@ -68,6 +68,16 @@ test("every page gets its own address, title and description for a shared link, 
   assert.throws(() => socialTags("<head><title>A</title></head>", "/x/"), /meta description/);
 });
 
+test("the landing page's map is a picture for the eye and a menu for everyone else", async () => {
+  const { heroPick, heroSvg } = await import("./city-map.mjs");
+  const svg = heroSvg(), pick = heroPick();
+  assert.ok(svg.includes('aria-hidden="true"') && !svg.includes('role="img"'));
+  assert.equal((svg.match(/<a href=/g) ?? []).length, 158);
+  assert.equal((svg.match(/tabindex="-1"/g) ?? []).length, 158);
+  assert.equal((pick.match(/<option value="\/census\//g) ?? []).length, 158);
+  assert.equal((readFileSync("web/index.html", "utf8").match(/<!-- city-map-pick -->/g) ?? []).length, 1);
+});
+
 test("the site's name is added to a title once", () => {
   assert.equal(siteTitle("<title>Toronto Safety Insights</title>"), "<title>Toronto Safety Insights · Six Figures</title>");
   assert.equal(siteTitle(siteTitle("<title>A</title>")), "<title>A · Six Figures</title>");

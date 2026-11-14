@@ -227,7 +227,7 @@ const nbRank = (vs) => {
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   writeHash();
-});
+}, undefined, nbhd.map((n) => n.name));
 // A neighbourhood's name, which finds it on the map; a school's finds its neighbourhood.
 const nameLink = (i, n = escapeHTML(nbhd[i].name)) => `<button type="button" class="nm" data-nb="${i}" title="Find ${n} on the map">${n}</button>`;
 function renderMap() {

@@ -55,9 +55,19 @@ export function iconSvg(m = cityMap(), { bg = "#ffffff", colors = COLORS, pad = 
 // Where a neighbourhood's link lands: the census map, on this measure, with neighbourhood outlines.
 export const mapHref = (n) => `/census/#m=${MEASURE}&amp;y=${YEAR}&amp;at=13/${n.at[0]}/${n.at[1]}&amp;o=nbhd`;
 
+// The map is a picture with 158 links in it, for a mouse or a finger. An image can't hold
+// links for a screen reader, and 158 tab stops would bury the page for a keyboard, so the
+// picture is hidden from both (its caption says what it shows) and heroPick() offers the same
+// links as a menu of the neighbourhoods' names.
 export function heroSvg(m = cityMap()) {
   const shapes = m.nbhd.map((n) => `<a href="${mapHref(n)}" tabindex="-1"><path fill="${fill(n)}" d="${n.path}"><title>${esc(n.name)}: ${n.value == null ? "no figure" : money(n.value)}</title></path></a>`).join("");
-  return `<svg class="home-map" viewBox="-4 -4 ${m.width + 8} ${m.height + 8}" role="img" aria-label="Toronto's 158 neighbourhoods, shaded by median household income in the 2021 Census">${shapes}</svg>`;
+  return `<svg class="home-map" viewBox="-4 -4 ${m.width + 8} ${m.height + 8}" aria-hidden="true" focusable="false">${shapes}</svg>`;
+}
+
+// The map's links as a menu, by name (web/src/home.js goes to the one chosen).
+export function heroPick(m = cityMap()) {
+  const opts = [...m.nbhd].sort((a, b) => a.name.localeCompare(b.name)).map((n) => `<option value="${mapHref(n)}">${esc(n.name)}${n.value == null ? "" : ` (${money(n.value)})`}</option>`).join("");
+  return `<label class="home-pick">Or choose a neighbourhood <select id="home-nb"><option value="">Neighbourhood…</option>${opts}</select></label>`;
 }
 
 // The hero map's key: six swatches and the range each covers.

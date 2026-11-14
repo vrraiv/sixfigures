@@ -697,6 +697,12 @@ body.doc { display: block; height: auto; }
 .ch-hit:hover { background: rgba(26, 26, 25, 0.06); }
 .ch-zero { position: absolute; left: 0; right: 0; height: 1px; background: #9a9a93; }
 .ch-xticks { position: relative; height: 16px; margin: 3px 0 0 44px; font-size: 11px; color: var(--ink-3); }
+/* a chart's figures as a table (charts.js chart), closed until asked for */
+.ch-data { margin: 6px 0 0; font-size: 12px; }
+.ch-data summary { width: max-content; padding: 2px 0; color: var(--ink-3); cursor: pointer; }
+.ch-data summary:hover, .ch-data summary:focus-visible { color: var(--accent); }
+.ch-data .tbl-wrap { max-height: 260px; overflow: auto; margin: 4px 0 0; }
+.ch-data .tbl { font-size: 12px; }
 .ch-xticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
 .conc-box { height: 180px; max-width: 640px; }
 .conc .ch-xticks { max-width: 596px; }
@@ -945,6 +951,15 @@ section[hidden] { display: none; }
   .toc a { padding: 7px 12px; }
   .inline-select { padding: 8px 8px; }
   .seg button { min-height: 36px; }
+  /* a finger needs more than a mouse: sort buttons in table heads, boxes and radios, their labels */
+  .tbl thead th button { min-height: 32px; padding-top: 6px; padding-bottom: 6px; }
+  .nx-themes input, .overlay-opts input, .snap-opts input { width: 22px; height: 22px; }
+  .nx-themes label, .overlay-opts label, .snap-opts label, .toggle { min-height: 32px; display: inline-flex; align-items: center; gap: 6px; }
+  .legend .lg-cls { min-height: 28px; }
+  .ch-data summary { padding: 8px 0; }
+  /* the charts' own labels, a size up */
+  .sc-ytick, .sc-xticks, .ch-xticks, .tr-xticks, .sp-ticks, .dist-axis, .move, .card-delta { font-size: 12px; }
+  .card-years { font-size: 11px; }
 }
 
 /* ---- Forecasts ---- */
@@ -1160,6 +1175,9 @@ body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
 .home-key { display: flex; flex-wrap: wrap; gap: 4px 12px; list-style: none; margin: 0; padding: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .home-key li { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .home-key span { width: 12px; height: 12px; border-radius: 2px; }
+.home-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin-top: 8px; color: var(--ink-2); }
+.home-pick select { font: inherit; padding: 5px 8px; max-width: 100%; color: var(--ink); background: #fff; border: 1px solid #b9b9b2; border-radius: 6px; }
+.home-pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .home-ways, .home-guide, .home-tips { padding: 28px 0 0; border-top: 1px solid var(--rule); margin-top: 4px; }
 .home-ways { margin-top: 0; }

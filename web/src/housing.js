@@ -260,7 +260,7 @@ function breaks(vs) {
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   writeHash();
-});
+}, undefined, nbhd.map((n) => n.name));
 function renderMap() {
   const { vs, base } = values(), { edges: b, zero } = breaks(vs), order = rankOrder(vs);
   const rank = new Map(order.map((i, k) => [i, k + 1]));
