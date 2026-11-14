@@ -57,6 +57,10 @@ pipeline/out/
 !pipeline/elections/*.csv
 !pipeline/trees/*.csv
 !pipeline/rentals/*.csv
+# Getting around: Bike Share's trips by station and month (bikeshare.py), and the ride-hail,
+# subway delay and bicycle counter series by month (transport.py)
+!pipeline/bikeshare/*.csv
+!pipeline/transport/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---
