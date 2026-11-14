@@ -182,7 +182,7 @@ function legendModel() {
     const f = pts ? fmtPts : fmtDiffShort(m);
     const items = DIVERGING.map((color, i) => ({
       color,
-      label: i === 0 ? `Less than ${f(s[0])}` : i === DIVERGING.length - 1 ? `${f(s.at(-1))} or more`
+      label: i === 0 ? `${f(s[0])} or less` : i === DIVERGING.length - 1 ? `${f(s.at(-1))} or more`
         : s[i - 1] < 0 && s[i] > 0 ? `Within ${pts ? `±${s[i]} pts` : money ? `±${fmtMoneyShort(m)(s[i])}` : `±${s[i]} pp`}` : `${f(s[i - 1])} to ${f(s[i])}`,
     }));
     const c = meta.change;
@@ -653,8 +653,8 @@ function detailsModel(p, note) {
       const pctl = `${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])} in percentile rank`;
       lines.push({
         text: money
-          ? `Since 2016: ${fmtSignedMoney(v - v16)} (from ${fmtMoney(v16)}), ${fmtSignedMoney(Math.round(v - v16 * cpiOf(m)))} after inflation, ${pctl}.`
-          : `Since 2016: ${fmtPP(Math.round((v - v16) * 10) / 10)} (from ${fmtPct(v16)}), ${pctl}.${d.cerb ? " 2020 includes one-off pandemic benefits (CERB)." : ""}`,
+          ? `Since ${refYear(m, "2016")}: ${fmtSignedMoney(v - v16)} (from ${fmtMoney(v16)}), ${fmtSignedMoney(Math.round(v - v16 * cpiOf(m)))} after inflation, ${pctl}.`
+          : `Since ${refYear(m, "2016")}: ${fmtPP(Math.round((v - v16) * 10) / 10)} (from ${fmtPct(v16)}), ${pctl}.${d.cerb ? " 2020 includes one-off pandemic benefits (CERB)." : ""}`,
       });
     }
     if (p.rel !== 1) lines.push({ note: true, text: `This DA's boundary changed between 2016 and 2021, so ${view === "2016" ? "2021" : "2016"} figures can't be compared directly.` });

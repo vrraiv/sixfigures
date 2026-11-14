@@ -5,7 +5,7 @@ import "./style.css";
 import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
-import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
+import { BI, INCOME as INCOMES, biKey, breaks, breaksAboutZero, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
   loadJSON(`/trees.json?v=${__TREES_VERSION__}`),
@@ -58,7 +58,7 @@ const M = {
     more: "Further from 40%", less: "Closer to 40%", bad: true, gap: "x", da: false,
     pool: (idx) => sum(idx.map((i) => NB.gap_ha[i])), poolNote: "the fifth's neighbourhoods' gaps added up" },
   chg: { label: "Canopy change against the city's, 2008 to 2018 (points)", short: "Canopy change", fmt: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)} pts`,
-    axis: (v) => `${sign(+v.toFixed(0))}${Math.abs(v).toFixed(0)}`, ramp: GAIN, more: "Gained canopy against the city", less: "Lost canopy against the city", gap: "pts", da: false,
+    axis: (v) => `${sign(+v.toFixed(0))}${Math.abs(v).toFixed(0)}`, ramp: GAIN, about0: true, more: "Gained canopy against the city", less: "Lost canopy against the city", gap: "pts", da: false,
     pool: W(NB.chg, NB.area_ha), poolNote: "weighted by area; tree class in both years" },
 };
 const vals = (m = state.m) => NB[m];
@@ -188,7 +188,8 @@ addressFinder($("addr-find"), {
 function renderMap() {
   const def = M[state.m], vs = vals(), inc = income(), order = rankOrder(vs);
   const rank = new Map(order.map((i, k) => [i, k + 1]));
-  const m6 = breaks(vs), inc6 = breaks(inc), m3 = breaks(vs, 3), inc3 = breaks(inc, 3);
+  // a change's classes meet at zero (red below, green from zero up), not at the median neighbourhood
+  const m6 = def.about0 ? breaksAboutZero(vs) : breaks(vs), inc6 = breaks(inc), m3 = breaks(vs, 3), inc3 = breaks(inc, 3);
   const ramp = def.ramp.slice(def.ramp.length - m6.edges.length - 1), blues = COLORS.slice(COLORS.length - inc6.edges.length - 1);
   const biCell = (i) => {
     let ic = cls(inc3.edges, inc[i]);
@@ -222,6 +223,7 @@ function renderMap() {
     $("map-key").innerHTML = rangeLabels(b.edges, b.zero, f).map((l, k) => `<li><span class="key-sq" style="background:${colours[k]}"></span>${escapeHTML(l)}</li>`).join("")
       + (state.ov === "income" && inc.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No figure</li>` : "");
     $("map-lede").innerHTML = state.ov === "income" ? `${escapeHTML(incName)}, 2021 Census, in sixths of the neighbourhoods. Hover or tap for the tree and heat figures too.`
+      : def.about0 && m6.edges.includes(0) ? `${escapeHTML(def.label)}: the neighbourhoods that fell behind the city in thirds (reds), and those that kept pace or gained in thirds (greens).`
       : `${escapeHTML(def.label)}, in sixths of the neighbourhoods.${def.hot ? fewPasses() : ""}`;
   }
   markPick();

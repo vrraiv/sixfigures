@@ -54,3 +54,11 @@ test("classIndex matches MapLibre's step expression", () => {
   assert.equal(classIndex(30, stops), 3);
   assert.equal(classIndex(-5, [-20, -10, -3, 3, 10, 20]), 2);
 });
+
+test("the classes of a change mirror each other about zero", () => {
+  const stops = [-20, -10, -3, 3, 10, 20];
+  for (const v of [0.5, 2.9, 3, 3.1, 9.9, 10, 19.9, 20, 25]) assert.equal(classIndex(-v, stops), 6 - classIndex(v, stops), `${v}`);
+  assert.equal(classIndex(3, stops), 4);
+  assert.equal(classIndex(-3, stops), 2);
+  assert.equal(classIndex(0, stops), 3);
+});

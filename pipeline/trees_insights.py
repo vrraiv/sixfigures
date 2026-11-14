@@ -69,7 +69,7 @@ section is first drawn (about 0.6 MB, 0.23 MB compressed, so it stays out of the
 neighbourhood in insights.json's order, its DAs' outlines as SVG path data in a
 box of its own (width DA_W, north up; the DA outlines from places.da_polygons(),
 simplified to DA_SIMPLIFY metres) and their figures: dauid, pop21, canopy,
-trees_ha, large, dbh, heat, lst, as in by_da.csv. A DA belongs to the
+trees_ha, large (none under MIN_DA_TREES trees), dbh, heat, lst, as in by_da.csv. A DA belongs to the
 neighbourhood the 2021 figures file assigns it, so a neighbourhood drawn from its
 DAs can differ slightly from its official outline where a DA straddles two.
 """
@@ -89,6 +89,7 @@ OUT_DA = WEB / "trees_da.json"
 DA_W = 400  # px, each neighbourhood's box
 DA_SIMPLIFY = 4  # metres
 SPREAD_MIN_DAS = 12
+MIN_DA_TREES = 10  # street trees in a DA before its large-tree share is published
 GOAL = 40  # per cent canopy cover, city-wide, by 2050
 GOAL_SOURCE = "https://www.toronto.ca/legdocs/mmis/2021/ie/bgrd/backgroundfile-173560.pdf"
 
@@ -116,9 +117,11 @@ def da_shapes(ids: list[int], d: pd.DataFrame) -> list[dict]:
             polys = geom.geoms if geom.geom_type == "MultiPolygon" else [geom]
             paths.append("".join(ring(p.exterior.coords) + "".join(ring(r.coords) for r in p.interiors) for p in polys))
         col = lambda c, f=1, k=1: [None if pd.isna(v) else round(float(v) * f, k) for v in sub[c]]
+        # a share of a handful of trees is 0% or 100% by chance: no figure under MIN_DA_TREES
+        large = [None if v is None or t < MIN_DA_TREES else v for v, t in zip(col("large_share", 100), sub.trees)]
         out.append({"w": w, "h": h, "dauid": sub.dauid.tolist(), "path": paths,
                     "pop": [int(pop[x]) for x in sub.dauid], "canopy": col("canopy_share", 100),
-                    "trees_ha": col("trees_per_ha"), "large": col("large_share", 100), "dbh": col("dbh_median", 1, 0),
+                    "trees_ha": col("trees_per_ha"), "large": large, "dbh": col("dbh_median", 1, 0),
                     "heat": col("lst_anom", 1, 2), "lst": col("lst_c", 1, 2)})
     return out
 
@@ -211,10 +214,15 @@ def main() -> int:
 
     other = [o for o in other_measures(insights, ids) if o["key"] not in ("canopy", "heat")]
     rates = pd.read_csv(HERE / "crime" / "rates.csv")
-    for key, cat, label, short in (("assault", "assault", "Assaults per 100,000 residents a year, 2021-2025", "Assaults"),
-                                   ("shootings", "shootings", "Shootings in which someone was hit, per 100,000 a year, 2021-2025",
+    for key, cat, label, short in (("assault", "assault", "Assaults per 100,000 residents a year, {}", "Assaults"),
+                                   ("shootings", "shootings", "Shootings in which someone was hit, per 100,000 a year, {}",
                                     "Shootings")):
-        s = rates[(rates.category == cat) & (rates.period == "2021-2025")].set_index("nbhd_id").per_100k.reindex(ids)
+        # the latest five-year period crime.py has for the category ("2021-2025" until 2030 is complete)
+        five = sorted(p for p in rates[rates.category == cat].period.astype(str).unique() if "-" in p)
+        if not five:
+            sys.exit(f"crime/rates.csv has no five-year period for {cat}")
+        label = label.format(five[-1])
+        s = rates[(rates.category == cat) & (rates.period.astype(str) == five[-1])].set_index("nbhd_id").per_100k.reindex(ids)
         other.append({"key": key, "label": label, "short": short, "unit": "rate", "source": "Toronto Police Service (crime.py)",
                       "values": [r1(v) for v in s]})
 

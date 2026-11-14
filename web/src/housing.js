@@ -20,14 +20,17 @@ const fmtN = (v) => (v == null ? "—" : Math.round(v).toLocaleString("en-CA"));
 const fmtMoney = (v) => (v == null ? "—" : `$${Math.round(v).toLocaleString("en-CA")}`);
 const fmtPct1 = (v) => (v == null ? "—" : `${v.toFixed(1)}%`);
 const fmtChangePct = (a, b) => (a == null || b == null || !a ? "—" : `${sign(+((b / a - 1) * 100).toFixed(1))}${Math.abs((b / a - 1) * 100).toFixed(1)}%`);
-const LAST = 2025; // the last complete year in every source
+// The last complete year in every source: the year before the earliest one the file marks as
+// still filling in (housing_insights.py's `partial`), or the permits' last year if none is.
+const LAST = Math.min(...Object.values(D.partial ?? {}).filter((y) => y != null), D.permits.city.year.at(-1) + 1) - 1;
 const partial = (y) => +y > LAST;
 const yLabel = (y) => (partial(y) ? `${y} to date` : `${y}`);
 
 // ---- neighbourhood measures --------------------------------------------------------
 // Flows are summed over a period; levels are averaged; the rest are one figure.
 // Counts can be shown per 1,000 households at the census nearest the period's start.
-const WINDOWS = [[2001, 2005], [2006, 2010], [2011, 2015], [2016, 2020], [2021, 2025]];
+// five-year periods on the census cycle (2001-05, 2006-10, ...), up to the last complete one
+const WINDOWS = Array.from({ length: Math.floor((LAST - 2000) / 5) }, (_, k) => [2001 + 5 * k, 2005 + 5 * k]);
 const hhCensus = (a) => (a < 2014 ? "2011" : a < 2019 ? "2016" : "2021");
 const yearly = (block, key) => (y) => block[key][String(y)];
 const M = {

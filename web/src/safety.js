@@ -30,7 +30,8 @@ const lcName = (c) => CAT[c].label[0].toLowerCase() + CAT[c].label.slice(1);
 const years = (c) => Object.keys(D.counts[c]).map(Number);
 
 // ---- periods and values ---------------------------------------------------------------
-const WINDOWS = [[2006, 2010], [2011, 2015], [2016, 2020], [2021, 2025]];
+// five-year periods on the census cycle (2006-10, 2011-15, ...), up to the last complete one
+const WINDOWS = Array.from({ length: Math.floor((LAST - 2005) / 5) }, (_, k) => [2006 + 5 * k, 2010 + 5 * k]);
 function periods(c) {
   const ys = years(c);
   const ws = WINDOWS.filter(([a, b]) => ys.includes(a) && ys.includes(b)).map(([a, b]) => [`${a}-${b}`, `${a}–${String(b).slice(2)}`]);

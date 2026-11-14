@@ -72,7 +72,9 @@ RUNGS = {
     "ridge_market": ("Ridge, with the market change", "nowcast", "2026-11-01"),
 }
 CHOSEN = {"schools": "ridge", "value": "own_mean"}
-LIVE_ORIGIN = 2026  # the schools forecast shown: 2026 to 2027
+# The schools forecast shown is the latest one frozen in pipeline/model/ (schools_<target>.csv):
+# from 2026 to 2027 until forecast/schools.py freezes the next.
+LIVE_ORIGIN = max(int(f.stem.split("_")[1]) for f in (HERE / "model").glob("schools_[0-9][0-9][0-9][0-9].csv")) - 1
 ENROLMENT_YEAR = "2024-25"  # the Ministry's latest, carried to 2026
 
 # TRREB Market Watch, City of Toronto, all home types, May (read by hand into
@@ -87,7 +89,7 @@ def r(v, k=2):
 def main() -> int:
     need = [INSIGHTS, *(MODEL / f for f in ("schools_scores.csv", "schools_predictions.csv", "schools_ranges.csv",
                                              "schools_covid.csv", "value_scores.csv", "value_range_backtest.csv",
-                                             "value_live.csv", "schools_2026_scored.csv")),
+                                             "value_live.csv", f"schools_{LIVE_ORIGIN}_scored.csv")),
             LIVE / f"schools_{LIVE_ORIGIN + 1}.csv"]
     for f in need:
         if not f.exists():
@@ -109,7 +111,7 @@ def main() -> int:
     Rg = pd.read_csv(MODEL / "schools_ranges.csv").set_index("grade")
     Cv = pd.read_csv(MODEL / "schools_covid.csv")
     L = pd.read_csv(LIVE / f"schools_{LIVE_ORIGIN + 1}.csv")
-    Sc = pd.read_csv(MODEL / "schools_2026_scored.csv", dtype={"school_number": str})
+    Sc = pd.read_csv(MODEL / f"schools_{LIVE_ORIGIN}_scored.csv", dtype={"school_number": str})
     s, _ = fs.load()
     schools = {}
     for g in fs.GRADES:

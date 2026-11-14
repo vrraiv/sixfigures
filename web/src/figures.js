@@ -73,8 +73,11 @@ export class Figures {
   }
 }
 
-// The class a value falls in: how many stops it reaches (MapLibre's step).
-export const classIndex = (value, stops) => stops.filter((s) => value >= s).length;
+// The class a value falls in: how many stops it reaches (MapLibre's step). A negative stop is
+// reached only by passing it, so the classes of a change mirror each other about zero: with
+// stops at -3 and 3, a change of -3 is in "-5 to -3" just as +3 is in "3 to 5", and the middle
+// class is the changes strictly within 3 either way. (Levels have no negative stops.)
+export const classIndex = (value, stops) => stops.filter((s) => (s < 0 ? value > s : value >= s)).length;
 
 async function defaultFetch(url) {
   const r = await fetch(url);

@@ -180,6 +180,15 @@ def class_breaks(v: pd.Series) -> tuple[np.ndarray, bool]:
     return q, zero_class
 
 
+def change_class(v: pd.Series, stops) -> np.ndarray:
+    """The legend class of each change, as the page works it out (web/src/figures.js
+    classIndex): a positive stop is reached at its value, a negative one only by passing
+    it, so the classes mirror each other about zero (-3 is in "-5 to -3" as +3 is in
+    "3 to 5")."""
+    s, x = np.asarray(stops, dtype=float), v.dropna().to_numpy(dtype=float)[:, None]
+    return np.where(s < 0, x > s, x >= s).sum(axis=1)
+
+
 def write_geojson(gdf: gpd.GeoDataFrame, path: Path):
     path.unlink(missing_ok=True)
     gdf.to_file(path, driver="GeoJSON", engine="pyogrio",
@@ -270,8 +279,8 @@ def main():
         }
         counts = lambda v: np.bincount(np.digitize(v.dropna(), q[1:-1]), minlength=6).tolist()
         print(f"  {m:12s} 2016 {counts(g16[m])}  2021 {counts(gdf[m])}")
-        print(f"  {'':12s} change $ classes {np.bincount(np.digitize(d, cb_d), minlength=7).tolist()}"
-              f"  pts classes {np.bincount(np.digitize(dp, cb_p), minlength=7).tolist()}"
+        print(f"  {'':12s} change $ classes {np.bincount(change_class(d, cb_d), minlength=7).tolist()}"
+              f"  pts classes {np.bincount(change_class(dp, cb_p), minlength=7).tolist()}"
               f"  comparable {int(comparable.sum())}, boundary changed {int((~same).sum())},"
               f" not published {int((same & ~comparable).sum())}")
     add_distributions(breaks, gdf, g16, comparables)
