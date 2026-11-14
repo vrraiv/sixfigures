@@ -896,3 +896,14 @@ Selection, holdout and 2019 to 2022 outputs are the same as before the change.
   Centring the predicted changes would remove it, and lowered skill on the 2024 to 2025
   holdout from 20.2% to 18.6% in the review's trial, so the forecasts stand as frozen and the
   page states the figure beside them (`implied_change` in forecasts.json).
+
+## Centred live forecasts for the schools (decided 14 November 2026)
+
+Live forecasts from origin 2027 on are centred (`CENTRED_FROM` in `forecast/schools.py`): one
+constant on the logit scale, per grade, brings the schools' forecasts, weighted by enrolment,
+back to the mean of the scores they start from. The forecasts keep their order and stay within
+0 to 100, and as a set imply no change in the City's level, which the model doesn't forecast.
+The two forecasts already published (2025 to 2026 and 2026 to 2027) are frozen and stay as
+they are, lift included; the page states the lift beside the second. The backtests and their
+scores are not re-run centred: when the 2027 to 2028 forecast is made, score the selection
+folds both ways and record the difference here.

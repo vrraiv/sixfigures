@@ -177,6 +177,7 @@ def self_check():
     assert choose(m, ["persistence", "ridge", "trend"]) == "ridge", "trend: worse in the fold ridge lacks"
     m["trend"] = [8.99, 9.5]
     assert choose(m, ["persistence", "ridge", "trend"]) == "trend", "trend: better in both, against each fold's bar"
+    assert abs(expit(logit(37.5)) - 37.5) < 1e-9, "expit undoes logit"
     X1, y1, w1 = rng.normal(size=(60, 1)), rng.normal(size=60), np.ones(60)
     blows_up = lambda X, y, w, g: (lambda Z: np.full(len(Z), nan if g == 0 else 0.0))  # noqa: E731
     assert tune(blows_up, [0, 1], X1, y1, w1, np.arange(60))[0] == 1, "a NaN error must not be chosen"
