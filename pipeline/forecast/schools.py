@@ -71,6 +71,15 @@ HOLDOUT = (2024, 2025)
 ONE_YEAR = [FIRST, *SELECTION, HOLDOUT]
 SECOND = (2025, 2026)  # the frozen live forecast, scored on EQAO's 2025-26 results
 LIVE_ORIGINS = [2025, 2026]
+# Live forecasts from this origin on are centred: a constant on the logit scale brings the
+# schools' forecasts, taken together with their enrolment, back to the scores they start from.
+# The model forecasts where a school stands, and the City's level is carried over, but the way
+# back from the logit scale lifted the frozen 2026 to 2027 forecasts by 1.41 points (Grade 3)
+# and 0.86 (Grade 6). Those two stay as published; the owner's decision of 14 November 2026 is
+# that later ones carry no such lift. (Centring cost skill in one trial on the holdout, 20.2%
+# to 18.6%: a forecast that implies no change in the City's level is the more honest reading
+# of a model that doesn't forecast one.)
+CENTRED_FROM = 2027
 FROZEN_RUNGS = ["persistence", "own_mean", "ridge"]  # the columns the live files keep
 RANGE_Q = 80  # percentile of the absolute neighbourhood error: an 80% range
 RUNGS = ["persistence", "own_mean", "ridge", "knn", "boost"]
@@ -295,6 +304,19 @@ def covid(p: pd.DataFrame, city: dict, s: pd.DataFrame) -> tuple[list[str], list
     return lines, recs
 
 
+def centred(pred, score0, w) -> np.ndarray:
+    """`pred` (percent) moved by one constant on the logit scale so that its weighted mean is
+    that of `score0`: the forecasts keep their order and stay within 0 to 100, and as a set
+    imply no change."""
+    pred, score0, w = (np.asarray(x, dtype=float) for x in (pred, score0, w))
+    want, x = np.average(score0, weights=w), logit(pred)
+    lo, hi = -5.0, 5.0
+    for _ in range(60):  # the mean rises with the constant: bisect
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if np.average(expit(x + mid), weights=w) < want else (lo, mid)
+    return expit(x + (lo + hi) / 2)
+
+
 def live(s: pd.DataFrame, census: dict, city: dict, B: dict, origin: int) -> None:
     """A live forecast of origin + 1 from origin (docs/forecast-spec.md): ridge fitted on
     every one-year transition to the origin, each school's and neighbourhood's figure,
@@ -308,6 +330,10 @@ def live(s: pd.DataFrame, census: dict, city: dict, B: dict, origin: int) -> Non
         test = rows(s, census, g, origin, None)
         train = pd.concat([rows(s, census, g, a, b) for a, b in [*ONE_YEAR, SECOND] if b <= origin])
         p, info = forecast(train, test, city)
+        if origin >= CENTRED_FROM:
+            for rung in FROZEN_RUNGS:
+                if rung != "persistence" and rung in p:
+                    p[rung] = centred(p[rung], p.score0, p.enrol)
         sch.append(p[["grade", "t0", "t1", "nbhd_id", "enrol", "score0", *FROZEN_RUNGS]])
         nb = with_range(nbhd(p, "ridge"), B[g]).drop(columns="actual")
         nbs.append(nb.reset_index().assign(grade=g))
