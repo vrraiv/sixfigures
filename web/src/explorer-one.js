@@ -53,7 +53,8 @@ function renderTrend() {
   const all = [...p10, ...p90, ...(pk ? known(pk) : [])];
   let lo = Math.min(...all), hi = Math.max(...all);
   const pad = (hi - lo) * 0.06 || 1;
-  lo -= pad; hi += pad;
+  lo = lo >= 0 ? Math.max(0, lo - pad) : lo - pad; // no tick below zero for a measure that is never negative
+  hi += pad;
   const t0 = d.t[0], t1 = d.t.at(-1), x = (k) => ((d.t[k] - t0) / (t1 - t0)) * 100, y = (v) => 100 - ((v - lo) / (hi - lo)) * 100;
   const pts = (vs) => vs.map((v, k) => `${x(k).toFixed(2)},${y(v).toFixed(2)}`);
   const band = (a, b, fill) => `<polygon points="${[...pts(b), ...pts(a).reverse()].join(" ")}" fill="${fill}"/>`;
@@ -76,7 +77,9 @@ function renderTrend() {
     <ul class="year-key"><li><span class="ex-key-line" style="background:${COLORS[5]}"></span>Median neighbourhood</li><li><span class="key-sq" style="background:${COLORS[1]}"></span>Middle half</li>
       <li><span class="key-sq" style="background:${COLORS[0]}"></span>Middle 80%</li>${pk ? `<li><span class="ex-key-line" style="background:${ORANGE}"></span>${escapeHTML(nbhd[S.nb].name)}</li>` : ""}</ul>`;
   const a = p50[0], b = p50.at(-1), spread0 = p75[0] - p25[0], spread1 = p75.at(-1) - p25.at(-1);
-  $("trend-lede").innerHTML = `From ${escapeHTML(when(0))} to ${escapeHTML(when(n - 1))} the median neighbourhood went from ${fmt(d, a)} to <b>${fmt(d, b)}</b> (${fmtDiff(d, b - a)}), and the gap between the 25th and 75th percentile neighbourhoods ${Math.abs(spread1 - spread0) < Math.abs(spread0) * 0.05 ? "held about steady" : spread1 > spread0 ? "widened" : "narrowed"} (${fmt(d, spread0).replace(/^[+−±]/, "")} to ${fmt(d, spread1).replace(/^[+−±]/, "")}). Pick a point to move the map to it${pk ? "" : "; pick a neighbourhood to add its line"}.`;
+  // a gap between two figures is in the measure's units of difference: percentage points for a share, not percent
+  const gap = (v) => fmtDiff(d, v).replace(/^[+−±]/, "");
+  $("trend-lede").innerHTML = `From ${escapeHTML(when(0))} to ${escapeHTML(when(n - 1))} the median neighbourhood went from ${fmt(d, a)} to <b>${fmt(d, b)}</b> (${fmtDiff(d, b - a)}), and the gap between the 25th and 75th percentile neighbourhoods ${Math.abs(spread1 - spread0) < Math.abs(spread0) * 0.05 ? "held about steady" : spread1 > spread0 ? "widened" : "narrowed"} (${gap(spread0)} to ${gap(spread1)}). Pick a point to move the map to it${pk ? "" : "; pick a neighbourhood to add its line"}.`;
 }
 
 // ---- 5. biggest changes between two periods -----------------------------------------------------------

@@ -109,13 +109,17 @@ def requested_series(table: str, geo: str, meta: dict) -> list[dict]:
     for c in choices:
         combos = [k + [m] for k in combos for m in c]
     n_months = (datetime.date.today().year - int(meta["cubeStartDate"][:4]) + 1) * 12
-    rows, missing = [], 0
+    rows, missing, reasons = [], 0, {}
     for combo in combos:
         coord = ".".join([str(geo_id)] + [str(m) for m, _ in combo] + ["0"] * (10 - 1 - len(combo)))
         try:
             data = post("getDataFromCubePidCoordAndLatestNPeriods", [{"productId": pid(table), "coordinate": coord, "latestN": n_months}])
-        except RuntimeError:
+        except RuntimeError as e:
+            # The service answers FAILED for a combination the table doesn't publish, and also
+            # when it is having a bad day: the reasons are counted and printed, so the second
+            # doesn't pass for the first.
             missing += 1
+            reasons[str(e)[:160]] = reasons.get(str(e)[:160], 0) + 1
             continue
         for p in data["vectorDataPoint"]:
             rows.append({"REF_DATE": p["refPer"][:7], "GEO": geo,
@@ -123,6 +127,10 @@ def requested_series(table: str, geo: str, meta: dict) -> list[dict]:
                          "VALUE": p["value"], "STATUS": p.get("statusCode", ""), "SYMBOL": p.get("symbolCode", ""),
                          "VECTOR": f"v{data['vectorId']}"})
     print(f"  {len(combos) - missing} of {len(combos)} series exist; {len(rows):,} rows")
+    for reason, n in sorted(reasons.items(), key=lambda kv: -kv[1]):
+        print(f"    {n} without data: {reason}")
+    if not rows:
+        sys.exit(f"{table}: none of the {len(combos)} series came back for {geo!r}; the reasons are above")
     return rows
 
 

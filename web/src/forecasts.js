@@ -2,11 +2,11 @@
 // (pipeline/forecast_pages.py), the map coloured by a forecast, the list of neighbourhoods
 // with their ranges, the forecast-against-actual scatter, and the rung tables.
 import "./style.css";
-import { $, COLORS, escapeHTML } from "./catalogue.js";
+import { $, COLORS, escapeHTML, loadJSON, loadFailed, own } from "./catalogue.js";
 import { initPick, initTip, quantile } from "./charts.js";
 
-export const load = () => fetch(`/forecasts.json?v=${__FORECASTS_VERSION__}`).then((r) => r.json());
-export { $, escapeHTML, initPick, initTip };
+export const load = () => loadJSON(`/forecasts.json?v=${__FORECASTS_VERSION__}`).catch(loadFailed);
+export { $, escapeHTML, initPick, initTip, own };
 
 export const INSIDE = "#2a78d6", OUTSIDE = "#c2410c";
 export const fmtPct = (v, d = 1) => (v == null ? "—" : `${v.toFixed(d)}%`);

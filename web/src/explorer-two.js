@@ -4,7 +4,7 @@
 // spreads side by side. Sections that need a history say so when a measure has none.
 import { $, COLORS, escapeHTML } from "./catalogue.js";
 import { cellStyle, fmtR, pearson, quantile, rColor } from "./charts.js";
-import { BI, biKey, breaks, cls, fitLine, incomeFifths, rangeLabels, scatter } from "./nbtools.js";
+import { BI, biKey, breaks, cls, fitLine, rangeLabels, scatter, tiedGroups } from "./nbtools.js";
 import { INK, S, fmt, fmtAxis, fmtDiff, fmtDiffAxis, histHTML, lc, mapSVG, named, nbhd, nearest, pctOrd, pctRank, rho, sorted, strength, vals, whenOf } from "./explorer-core.js";
 
 let api;
@@ -58,18 +58,22 @@ function renderMap() {
 function renderFifths() {
   const a = A(), b = B(), xs = vals(0), ys = vals(1);
   const both = xs.map((v, i) => (v == null || ys[i] == null ? null : v));
-  const { fifths } = incomeFifths(both, true);
+  // fifths, unless ties get in the way: neighbourhoods with the same figure stay in one group
+  const fifths = tiedGroups(both, 5), n = fifths.length, whole = n === 5;
   const med = fifths.map((g) => quantile(sorted(g.map((i) => ys[i])), 0.5));
   const order = [...med].sort((p, q) => p - q), shade = (v) => COLORS[Math.min(5, order.indexOf(v) + 1)];
-  const names = ["Lowest fifth", "Second", "Middle", "Fourth", "Highest fifth"];
-  const head = fifths.map((g, q) => `<th>${names[q]}<br><span class="small">${fmtAxis(a.d, Math.min(...g.map((i) => xs[i])))}–${fmtAxis(a.d, Math.max(...g.map((i) => xs[i])))}</span></th>`).join("");
+  const names = whole ? ["Lowest fifth", "Second", "Middle", "Fourth", "Highest fifth"] : fifths.map((_, q) => (n === 1 ? "All" : q === 0 ? "Lowest group" : q === n - 1 ? "Highest group" : `Group ${q + 1}`));
+  const span = (g) => { const a = Math.min(...g.map((i) => xs[i])), b = Math.max(...g.map((i) => xs[i])); return a === b ? fmtAxis(A().d, a) : `${fmtAxis(A().d, a)}–${fmtAxis(A().d, b)}`; };
+  const head = fifths.map((g, q) => `<th>${names[q]}<br><span class="small">${span(g)}</span></th>`).join("");
   const row = (label, f) => `<tr><th>${label}</th>${fifths.map((g, q) => f(g, q)).join("")}</tr>`;
   $("t-fifths").innerHTML = `<thead><tr><th>By ${escapeHTML(lc(a.d.short))}</th>${head}</tr></thead><tbody>
     ${row(`Median ${escapeHTML(lc(b.d.short))}`, (g, q) => `<td style="${cellStyle(shade(med[q]))}"><b>${fmt(b.d, med[q])}</b></td>`)}
     ${row("Middle half", (g) => { const s = sorted(g.map((i) => ys[i])); return `<td>${fmtAxis(b.d, quantile(s, 0.25))} to ${fmtAxis(b.d, quantile(s, 0.75))}</td>`; })}
     ${row("Neighbourhoods", (g) => `<td>${g.length}</td>`)}</tbody>`;
   const rising = med.every((v, k) => k === 0 || v >= med[k - 1]), falling = med.every((v, k) => k === 0 || v <= med[k - 1]);
-  $("t-fifths-lede").innerHTML = `The neighbourhoods in fifths by ${escapeHTML(lc(named(a)))}, and the median ${escapeHTML(lc(b.d.label))} (${escapeHTML(whenOf(b))}) in each. From the lowest fifth to the highest it goes from <b>${fmt(b.d, med[0])}</b> to <b>${fmt(b.d, med[4])}</b>${rising ? ", rising at every step" : falling ? ", falling at every step" : ", but not in a straight run: the middle fifths break the pattern"}.`;
+  const tied = whole ? "" : ` Many neighbourhoods share the same figure for ${escapeHTML(lc(a.d.short))} (${fifths.reduce((m, g) => Math.max(m, g.length), 0)} of them in one group), and those can't be put in an order, so they stay together: ${n === 1 ? "one group" : `${n} groups`} of unequal size rather than fifths.`;
+  $("t-fifths-lede").innerHTML = n < 2 ? `The neighbourhoods can't be grouped by ${escapeHTML(lc(named(a)))}: they all share one figure.`
+    : `The neighbourhoods in ${whole ? "fifths" : "groups"} by ${escapeHTML(lc(named(a)))}, and the median ${escapeHTML(lc(b.d.label))} (${escapeHTML(whenOf(b))}) in each. From the lowest ${whole ? "fifth" : "group"} to the highest it goes from <b>${fmt(b.d, med[0])}</b> to <b>${fmt(b.d, med.at(-1))}</b>${n < 3 ? "" : rising ? ", rising at every step" : falling ? ", falling at every step" : `, but not in a straight run: the middle ${whole ? "fifths" : "groups"} break the pattern`}.${tied}`;
 }
 
 // ---- 4. the neighbourhoods furthest from the pattern ------------------------------------------------------
@@ -130,8 +134,10 @@ function renderChange() {
       : "The two measures don't share two points in time, so their changes can't be set side by side.";
     return;
   }
-  if (S.pairFrom == null || S.pairFrom >= ps.length) S.pairFrom = 0;
-  if (S.pairTo == null || S.pairTo >= ps.length) S.pairTo = ps.length - 1;
+  // from the link, so anything: not a whole number in range means the first and last
+  const inRange = (k) => Number.isInteger(k) && k >= 0 && k < ps.length;
+  if (!inRange(S.pairFrom)) S.pairFrom = 0;
+  if (!inRange(S.pairTo)) S.pairTo = ps.length - 1;
   const opts = ps.map((p, k) => `<option value="${k}">${escapeHTML(pairLabel(p))}</option>`).join("");
   $("t-chg-from").innerHTML = opts;
   $("t-chg-to").innerHTML = opts;

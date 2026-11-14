@@ -6,6 +6,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { GLYPH_RANGES, SOURCE, basemapLayers, fontStacks } from "./basemap-style.mjs";
+import { BASEMAP_SOURCE, pruned } from "../web/src/quality.js";
 
 test("the layers draw from the one source, with no icons (there is no sprite)", () => {
   const layers = basemapLayers();
@@ -15,6 +16,15 @@ test("the layers draw from the one source, with no icons (there is no sprite)", 
   assert.ok(layers.every((l) => !l.layout?.["icon-image"]));
   // main.js and y2011.js slip the census colours in under the first label, so there must be one
   assert.ok(layers.some((l) => l.type === "symbol"));
+});
+
+test("low and medium map detail thin these layers: fills and minor lines go, water, major roads and labels stay", () => {
+  assert.equal(BASEMAP_SOURCE, SOURCE);
+  const layers = basemapLayers(), gone = layers.filter(pruned).map((l) => l.id), kept = layers.filter((l) => !pruned(l)).map((l) => l.id);
+  assert.ok(gone.length >= 20, `only ${gone.length} layers pruned`);
+  for (const id of ["landcover", "landuse_park", "buildings", "roads_minor", "roads_minor_casing", "roads_tunnels_major", "roads_major_casing_late"]) assert.ok(gone.includes(id), id);
+  for (const id of ["background", "earth", "water", "roads_major", "roads_highway", "roads_bridges_highway", "roads_labels_major", "places_subplace"]) assert.ok(kept.includes(id), id);
+  assert.ok(layers.filter((l) => l.type === "symbol").every((l) => !pruned(l)));
 });
 
 test("every font stack the layers use has every glyph range on disk", () => {

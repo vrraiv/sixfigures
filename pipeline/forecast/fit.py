@@ -94,7 +94,11 @@ def tune(make, grid, X, y, w, groups):
             p = make(X[tr], y[tr], w[tr], g)(X[te])
             e += (w[te] * np.abs(p - y[te])).sum()
         errs.append(e / w.sum())
-    best = grid[int(np.argmin(errs))]
+    # An error that isn't a number (a fit that blew up) must not win: argmin takes the first NaN.
+    errs = np.asarray(errs, float)
+    if not np.isfinite(errs).any():
+        raise ValueError(f"no grid value of {list(grid)} gave a finite cross-validation error")
+    best = grid[int(np.argmin(np.where(np.isfinite(errs), errs, np.inf)))]
     return best, make(X, y, w, best)
 
 
@@ -131,16 +135,23 @@ def choose(mae: dict, rungs: list) -> str:
     """The decision rule. Walk the rungs in order; a rung replaces the one chosen so far
     if its MAE is lower in every fold both have; past ridge, also only if its mean
     improvement is larger than the improvements' spread (largest less smallest) across
-    those folds. mae is {rung: [MAE by fold]}, NaN where a rung has no fold."""
-    chosen = rungs[0]
+    those folds. mae is {rung: [MAE by fold]}, NaN where a rung has no fold.
+
+    The bar in each fold is the MAE of the last chosen rung that has that fold. A rung
+    with one fold only (a nowcast, which has no reverse fold) can lead, and the folds it
+    lacks keep the bar of the rung it replaced: without that, a later rung would be
+    judged against it on the one fold alone, and a 0.01 edge there would win whatever
+    the rung did in the other."""
+    chosen, bar = rungs[0], list(mae[rungs[0]])
     for r in rungs[1:]:
         if r not in mae:
             continue
-        d = [a - b for a, b in zip(mae[chosen], mae[r]) if not (np.isnan(a) or np.isnan(b))]
+        d = [a - b for a, b in zip(bar, mae[r]) if not (np.isnan(a) or np.isnan(b))]
         if not d or min(d) <= 0:
             continue
         if r in SIMPLE or np.mean(d) > max(d) - min(d):
             chosen = r
+            bar = [a if np.isnan(b) else b for a, b in zip(bar, mae[r])]
     return chosen
 
 
@@ -161,3 +172,11 @@ def self_check():
     assert choose(m, ["persistence", "ridge", "knn"]) == "knn", "knn: gains 0.5, 0.9 > spread 0.4"
     m["knn"] = [8.0, 9.8]
     assert choose(m, ["persistence", "ridge", "knn"]) == "ridge", "knn: gains 1.0, 0.1 < spread 0.9"
+    nan = float("nan")
+    m = {"persistence": [10, 10], "ridge": [9, nan], "trend": [8.99, 25]}
+    assert choose(m, ["persistence", "ridge", "trend"]) == "ridge", "trend: worse in the fold ridge lacks"
+    m["trend"] = [8.99, 9.5]
+    assert choose(m, ["persistence", "ridge", "trend"]) == "trend", "trend: better in both, against each fold's bar"
+    X1, y1, w1 = rng.normal(size=(60, 1)), rng.normal(size=60), np.ones(60)
+    blows_up = lambda X, y, w, g: (lambda Z: np.full(len(Z), nan if g == 0 else 0.0))  # noqa: E731
+    assert tune(blows_up, [0, 1], X1, y1, w1, np.arange(60))[0] == 1, "a NaN error must not be chosen"

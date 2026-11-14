@@ -4,8 +4,8 @@ import { join } from "node:path";
 import { defineConfig } from "vite";
 import { extractTiles } from "./scripts/extract-tiles.mjs";
 import { basemapLayers } from "./scripts/basemap-style.mjs";
-import { brandSvg, heroKey, heroSvg } from "./scripts/city-map.mjs";
-import { pagePath, pageTarget, siteFooter, siteGuide, siteHeader, siteTitle } from "./scripts/site-nav.mjs";
+import { brandSvg, heroKey, heroPick, heroSvg } from "./scripts/city-map.mjs";
+import { pagePath, pageTarget, siteFooter, siteGuide, siteHeader, siteTitle, socialTags } from "./scripts/site-nav.mjs";
 
 // Content hashes of the data files, appended as ?v= so they can be cached as
 // immutable (see web/public/_headers) yet still bust when the data is rebuilt.
@@ -65,17 +65,18 @@ export default defineConfig({
     rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
-  preview: { headers: { "Document-Policy": "js-profiling" } },
+  preview: { headers: { "Document-Policy": "js-profiling", "Content-Security-Policy": readFileSync("web/public/_headers", "utf8").match(/Content-Security-Policy: (.*)/)[1] } },
   // census/index.html preloads the opening view's DA tiles and figures; it needs the tile
   // source and the figures version for that.
   plugins: [{
     // The site header and name, and the footer's disclaimer and links, on every page (scripts/site-nav.mjs);
     // on the landing page, the guide to the header's links and the city map too (scripts/city-map.mjs).
     name: "site-header",
-    transformIndexHtml: (html, ctx) => siteFooter(siteTitle(pageTarget(html))).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path), BRAND))
-      .replace("<!-- site-guide -->", () => siteGuide()).replace("<!-- city-map -->", () => heroSvg()).replace("<!-- city-map-key -->", () => heroKey()),
+    transformIndexHtml: (html, ctx) => socialTags(siteFooter(siteTitle(pageTarget(html))), pagePath(ctx.path)).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path), BRAND))
+      .replace("<!-- site-guide -->", () => siteGuide()).replace("<!-- city-map -->", () => heroSvg()).replace("<!-- city-map-key -->", () => heroKey()).replace("<!-- city-map-pick -->", () => heroPick()),
   }, {
     name: "da-tiles-in-html",
-    transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION)),
+    transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION))
+      .replace("__BREAKS_VERSION__", JSON.stringify(version("web/public/breaks.json"))),
   }],
 });

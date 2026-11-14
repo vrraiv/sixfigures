@@ -10,7 +10,7 @@ import "./style.css";
 import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
 import { cfg, initDetail, detailControls } from "./quality.js";
-import { $, BOUNDS, COLORS, openingCamera, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource, showInView } from "./common.js";
+import { $, BOUNDS, COLORS, openingCamera, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource, showInView, loadJSON, loadFailed, parseAt } from "./common.js";
 
 const YEAR = "2011", SRC = "da11";
 // The NHS (the 2011 long form) asked about 2010 income; its other figures are dated 2011.
@@ -18,7 +18,7 @@ const INCOME_YEAR = "2010";
 const refYear = (m) => (MEASURES[m].dated === "census" ? YEAR : INCOME_YEAR);
 const fromNHS = (m) => breaks.measures[m].source === "nhs";
 const sourceName = (m) => (fromNHS(m) ? "2011 National Household Survey" : "2011 Census");
-const breaks = await fetch(`/breaks_2011.json?v=${__BREAKS_2011_VERSION__}`).then((r) => r.json());
+const breaks = await loadJSON(`/breaks_2011.json?v=${__BREAKS_2011_VERSION__}`).catch(loadFailed);
 // The measures this census has, in the catalogue's order and sections.
 const measures = Object.keys(MEASURES).filter((m) => m in breaks.measures);
 const figures = new Figures(YEAR);
@@ -30,7 +30,7 @@ for (const g of Object.keys(GROUPS)) {
   const opts = measures.filter((m) => MEASURES[m].group === g);
   if (!opts.length) continue;
   const og = document.createElement("optgroup");
-  og.label = { dwellings: "Dwellings", people: "People" }[g] ?? g;
+  og.label = GROUPS[g].label;
   og.innerHTML = opts.map((m) => `<option value="${m}">${escapeHTML(MEASURES[m].long)}</option>`).join("");
   select.append(og);
 }
@@ -39,9 +39,9 @@ const hashParams = new URLSearchParams(location.hash.slice(1));
 initDetail(hashParams);
 if (measures.includes(hashParams.get("m"))) select.value = hashParams.get("m");
 const linkedDA = /^\d{8}$/.test(hashParams.get("da") ?? "") ? hashParams.get("da") : null;
-const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
-const linkedView = linkedAt.length === 3 && linkedAt.every(Number.isFinite);
-const camera = linkedView ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] } : openingCamera($("map"));
+const linkedAt = parseAt(hashParams.get("at")); // null for a position that isn't one: the opening view then
+const linkedView = linkedAt != null;
+const camera = linkedAt ?? openingCamera($("map"));
 if (narrow.matches || $("map").clientHeight < 420) $("legend").open = false;
 const groupOf = (m) => measures.filter((k) => MEASURES[k].group === MEASURES[m].group);
 const propsOf = (dauid) => figures.props(dauid, groupOf(select.value));
@@ -79,14 +79,22 @@ async function paintView() {
   try {
     await figures.load(m);
   } catch {
-    if (token === paintToken) showToast("Couldn't load this measure's figures. Check your connection and try again.");
+    if (token !== paintToken) return;
+    // The legend already names this measure: don't leave the last one's colours under it.
+    for (const dauid of figures.dauids) map.removeFeatureState({ source: SRC, sourceLayer: "da", id: dauid }, "cls");
+    paintFailed = true;
+    showToast("Couldn't load this measure's figures. Check your connection.", 15000, { label: "Try again", run: paintView });
     return;
   }
   if (token !== paintToken) return;
+  paintFailed = false;
   for (const dauid of figures.dauids) {
     map.setFeatureState({ source: SRC, sourceLayer: "da", id: dauid }, { cls: classOf(figures.props(dauid, [m]), m) });
   }
 }
+// A measure whose figures didn't arrive is asked for again when the connection returns.
+let paintFailed = false;
+addEventListener("online", () => paintFailed && paintView());
 
 // ---- legend -----------------------------------------------------------------
 
@@ -273,8 +281,9 @@ function detailsHTML(p) {
     hist: meta.hist[YEAR], value: v, ref: stats.city, fmt: fmtAxis(m), zero: money ? "$0" : "0%", max: money ? Infinity : 100,
     caption: `${d.long} across ${fmtCount(stats.n)} Toronto DAs, ${refYear(m)}. This DA in orange; the line marks the ${money ? `city ${d.stat}` : "city as a whole"} (${fmtVal(m, stats.city)}).`,
   });
-  return `<h2>DA ${escapeHTML(p.dauid)} (2011 boundary)</h2>
-    <p class="place">${escapeHTML(p.nbhd2 ? `Mostly ${p.nbhd}, partly ${p.nbhd2}` : `${p.nbhd} (City neighbourhood ${p.nbhd_id})`)}</p>
+  // headed by the neighbourhood, as on the main map; the DA's number follows
+  return `<h2>${escapeHTML(p.nbhd)}</h2>
+    <p class="place">${escapeHTML(`Dissemination area ${p.dauid} (2011 boundary)${p.nbhd2 ? `, mostly in ${p.nbhd}, partly in ${p.nbhd2}` : ` · City neighbourhood ${p.nbhd_id}`}`)}</p>
     <table class="dt"><thead><tr><th></th><th>${GROUPS[d.group].col}</th><th>Percentile</th></tr></thead><tbody>${rows}</tbody></table>
     ${dist}
     ${lines.map((l) => `<p class="${l.note ? "note" : "cmp"}">${escapeHTML(l.text)}</p>`).join("")}
@@ -289,10 +298,12 @@ async function showDetails(dauid, lngLat) {
   try {
     await figures.load(...groupOf(select.value));
   } catch {
-    if (token === detailsToken) showToast("Couldn't load this DA's figures. Check your connection and try again.");
+    if (token === detailsToken) showToast("Couldn't load this DA's figures. Check your connection.", 15000, { label: "Try again", run: () => showDetails(dauid, lngLat) });
     return;
   }
   if (token !== detailsToken) return;
+  // the measure may have changed meanwhile, to a group whose figures aren't here yet
+  if (!figures.has(...groupOf(select.value))) return showDetails(dauid, lngLat);
   const p = propsOf(dauid);
   if (!p) return;
   const html = detailsHTML(p);
@@ -326,8 +337,16 @@ toast.setAttribute("role", "status");
 toast.hidden = true;
 document.body.append(toast);
 let toastTimer;
-function showToast(text, ms = 4000) {
+// action: { label, run } adds a button (a retry) that runs it and puts the toast away.
+function showToast(text, ms = 4000, action = null) {
   toast.textContent = text;
+  if (action) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = action.label;
+    b.addEventListener("click", () => { toast.hidden = true; action.run(); });
+    toast.append(" ", b);
+  }
   toast.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (toast.hidden = true), ms);
@@ -342,11 +361,22 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// A shared link's DA: outline it and open its details once its tile has loaded.
+// A shared link's DA: outline it and open its details once its tile has loaded. The link may
+// come from a wider screen, with the DA outside this one's view (a phone's opening view shows
+// only the middle of the city): then look for it with the whole city in view, and go to it.
 async function openLinkedDA(dauid) {
+  const find = () => map.querySourceFeatures(SRC, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
   await idle();
-  const parts = map.querySourceFeatures(SRC, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
-  if (!parts.length) return showToast(`The linked DA ${dauid} isn't loaded in this part of the map or at this zoom.`);
+  let parts = find(), moved = false;
+  if (!parts.length) {
+    const known = await figures.load().then((f) => !!f.props(dauid), () => true);
+    if (!known) return showToast(`The linked DA ${dauid} isn't a City of Toronto dissemination area of the 2011 Census.`);
+    map.fitBounds(BOUNDS, { padding: 24, duration: 0 });
+    await idle();
+    parts = find();
+    moved = true;
+  }
+  if (!parts.length) return showToast(`The linked DA ${dauid}'s map data didn't load. Check your connection and reload the page.`);
   // A DA can be split across tiles; centre the popup on all of its pieces.
   const b = [Infinity, Infinity, -Infinity, -Infinity];
   const walk = (c) => {
@@ -354,6 +384,10 @@ async function openLinkedDA(dauid) {
     b[0] = Math.min(b[0], c[0]); b[1] = Math.min(b[1], c[1]); b[2] = Math.max(b[2], c[0]); b[3] = Math.max(b[3], c[1]);
   };
   for (const f of parts) walk(f.geometry.coordinates);
+  if (moved) {
+    map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: narrow.matches ? 40 : 80, maxZoom: 15, duration: 0 });
+    await idle();
+  }
   setSelected(dauid);
   showDetails(dauid, { lng: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 });
 }
@@ -399,15 +433,21 @@ map.once("style.load", () => {
   map.addImage("hatch", pattern("hatch"), { pixelRatio: 2 });
   firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
   addSourceLayers();
+  ready = true;
   applyView();
   detailUI.apply();
 });
 
+// The measure menu answers as soon as the layers are in (style.load), not at MapLibre's `load`,
+// which waits for every tile; a choice made before then is read when the layers go in.
+let ready = false;
+select.addEventListener("change", () => {
+  if (!ready) return;
+  applyView();
+  if (current) showDetails(current.dauid, current.lngLat);
+});
+
 map.on("load", () => {
-  select.addEventListener("change", () => {
-    applyView();
-    if (current) showDetails(current.dauid, current.lngLat);
-  });
   // A click off every DA closes the popup (the bottom sheet has its own ×).
   map.on("click", (e) => {
     if (!map.queryRenderedFeatures(e.point, { layers: HIT }).length) popup.remove();

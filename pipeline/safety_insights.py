@@ -90,16 +90,19 @@ def other_measures(insights: dict, ids: list[int]) -> list[dict]:
                     "values": [r1(v) for v in s.reindex(idx)]})
 
     s = json.loads((WEB / "schools.json").read_text())
-    sc = pd.DataFrame({y: s["by_nbhd"]["inside"]["score"][str(y)] for y in (2023, 2024, 2025)}, index=ids)
-    add("school", "School score (Grade 3 and 6, 2023 to 2025)", "School score", "score",
+    last3 = sorted(s["years"])[-3:]  # the three latest test years in the file
+    sc = pd.DataFrame({y: s["by_nbhd"]["inside"]["score"][str(y)] for y in last3}, index=ids)
+    add("school", f"School score (Grade 3 and 6, {last3[0]} to {last3[-1]})", "School score", "score",
         "EQAO through schools.json: the schools inside the neighbourhood", sc.mean(axis=1))
 
     p = json.loads((WEB / "prices.json").read_text())
-    qs = [k for k, q in enumerate(p["quarters"]) if q.startswith("2025 ")]
-    if len(qs) != 4:
-        sys.exit(f"prices.json has {len(qs)} quarters of 2025")
+    # the latest year with all four quarters reported
+    full = [y for y in sorted({q.split()[0] for q in p["quarters"]}) if sum(q.startswith(f"{y} ") for q in p["quarters"]) == 4]
+    if not full:
+        sys.exit("prices.json has no year with four quarters")
+    qs = [k for k, q in enumerate(p["quarters"]) if q.startswith(f"{full[-1]} ")]
     comm = [pd.Series([c["med"][k] for k in qs], dtype=float).mean() for c in p["communities"]]
-    add("price", "Median sale price, 2025 (TRREB community)", "Sale price", "money",
+    add("price", f"Median sale price, {full[-1]} (TRREB community)", "Sale price", "money",
         "TRREB community reports through prices.json", pd.Series([comm[n["c"]] for n in p["nbhd"]],
                                                                    index=[n["id"] for n in p["nbhd"]]))
 

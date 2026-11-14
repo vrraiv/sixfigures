@@ -200,6 +200,12 @@ SUMMERS = range(2021, 2026)  # June-August of each
 MAX_SCENE_CLOUD = 10  # eo:cloud_cover, %
 MIN_CLEAR = 0.90  # share of Toronto's DA pixels clear in QA_PIXEL
 MIN_DA_CLEAR = 0.5  # share of a DA's pixels clear for its scene mean to count
+# The same for a neighbourhood: a pass counts for it only where at least half of its pixels
+# were read (clear, in DAs that count). The satellite's path clips the city's north-west
+# corner on some passes, and a figure from the sliver inside the path isn't the
+# neighbourhood's: Mount Olive-Silverstone-Jamestown read -0.11 with such a pass among its
+# five and +0.39 from the four that cover it.
+MIN_NBHD_CLEAR = 0.5
 TORONTO_BBOX = [-79.64, 43.58, -79.11, 43.86]
 QA_BAD = 0b11111 | (1 << 7)  # fill, dilated cloud, cirrus, cloud, shadow; water
 ST_SCALE, ST_OFFSET = 0.00341802, 149.0
@@ -574,8 +580,9 @@ def zone_ids(da: gpd.GeoDataFrame, crs, transform, shape) -> np.ndarray:
     return z
 
 
-def lst(da: gpd.GeoDataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
-    """Per-pass sums and counts of clear-pixel LST by DA, and the scene log."""
+def lst(da: gpd.GeoDataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
+    """Per-pass sums and counts of clear-pixel LST by DA, each DA's pixels in the pass's
+    grid (clear or not), and the scene log."""
     import rasterio
     token = get_json(SAS)["token"]
     b = gpd.GeoSeries([da.union_all().envelope], crs=da.crs).buffer(500).to_crs(4326).total_bounds
@@ -584,7 +591,7 @@ def lst(da: gpd.GeoDataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     for item in scenes():
         p = item["properties"]
         passes.setdefault((p["datetime"][:10], p["landsat:wrs_path"]), []).append(item)
-    sums, counts, totals, log = {}, {}, {}, {"used": [], "rejected": []}
+    sums, counts, pixels, totals, log = {}, {}, {}, {}, {"used": [], "rejected": []}
     zones, diffs = {}, []
     for (date, path), items in sorted(passes.items()):
         files = [scene_bands(i, token, b) for i in items]
@@ -626,6 +633,7 @@ def lst(da: gpd.GeoDataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
         keep = cnt >= MIN_DA_CLEAR * np.maximum(allpix, 1)
         sums[date] = np.where(keep, sm, np.nan)
         counts[date] = np.where(keep, cnt, 0)
+        pixels[date] = allpix
         totals[date] = float(sm.sum() / cnt.sum())
         entry["city_mean_c"] = round(totals[date], 2)
         log["used"].append(entry)
@@ -635,26 +643,36 @@ def lst(da: gpd.GeoDataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     d = np.concatenate(diffs) if diffs else np.array([])
     log["own_minus_usgs_c"] = {"pixels": int(len(d)), "mean": round(float(d.mean()), 2), "sd": round(float(d.std()), 2),
                                "p5_p95": [round(float(x), 2) for x in np.percentile(d, [5, 95])]} if len(d) else None
-    s, c = pd.DataFrame(sums, index=da.dauid), pd.DataFrame(counts, index=da.dauid)
+    s, c, a = (pd.DataFrame(x, index=da.dauid) for x in (sums, counts, pixels))
     log["city_means"] = totals
-    return s, c, log
+    return s, c, a, log
 
 
-def lst_summary(s: pd.DataFrame, c: pd.DataFrame, city: dict, key: pd.Series | None = None) -> pd.DataFrame:
+def pooled(s: pd.DataFrame, c: pd.DataFrame, a: pd.DataFrame, key: pd.Series) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Sums and counts by `key` (the DA's neighbourhood), pooling the DAs' pixels; a pass
+    that read less than MIN_NBHD_CLEAR of a neighbourhood's pixels doesn't count for it."""
+    s, c, a = s.groupby(key.values).sum(min_count=1), c.groupby(key.values).sum(), a.groupby(key.values).sum()
+    ok = (c > 0) & (c >= MIN_NBHD_CLEAR * a)
+    return s.where(ok), c.where(ok, 0)
+
+
+def lst_summary(s: pd.DataFrame, c: pd.DataFrame, city: dict, key: pd.Series | None = None,
+                a: pd.DataFrame | None = None) -> pd.DataFrame:
     """Median over scenes of the mean LST and of its difference from the city mean,
-    by DA, or by `key` (the DA's neighbourhood) pooling the DAs' pixels."""
+    by DA, or by `key` (the DA's neighbourhood) pooling the DAs' pixels (`a`: every pixel
+    of each DA in each pass, for the neighbourhood's coverage)."""
     if key is not None:
-        s, c = s.groupby(key.values).sum(min_count=1), c.groupby(key.values).sum()
-        s = s.where(c > 0)
+        s, c = pooled(s, c, a, key)
     mean = s / c.where(c > 0)
     anom = mean - pd.Series(city)
     return pd.DataFrame({"lst_c": mean.median(axis=1), "lst_anom": anom.median(axis=1), "lst_scenes": mean.notna().sum(axis=1)})
 
 
-def lst_by_pass(s: pd.DataFrame, c: pd.DataFrame, city: dict, key: pd.Series) -> pd.DataFrame:
+def lst_by_pass(s: pd.DataFrame, c: pd.DataFrame, city: dict, key: pd.Series, a: pd.DataFrame) -> pd.DataFrame:
     """Each pass's mean LST by `key` (the neighbourhood, pooling its DAs' pixels) and its
-    difference from that pass's city mean, long: key, date, lst_c, lst_anom."""
-    s, c = s.groupby(key.values).sum(min_count=1), c.groupby(key.values).sum()
+    difference from that pass's city mean, long: key, date, lst_c, lst_anom. A pass that
+    covers too little of a neighbourhood (pooled) has no row for it."""
+    s, c = pooled(s, c, a, key)
     mean = s.where(c > 0) / c.where(c > 0)
     anom = mean - pd.Series(city)
     out = pd.concat({"lst_c": mean.stack(), "lst_anom": anom.stack()}, axis=1).round(2)
@@ -726,16 +744,16 @@ def main() -> int:
     can_da = pd.Series(m2 / 1e4, index=da.dauid)
 
     print("land surface temperature")
-    s, c, log = lst(da)
+    s, c, a, log = lst(da)
     manifest["landsat"] = {"source": "Microsoft Planetary Computer STAC, collection landsat-c2-l2, asset lwir11 (ST_B10)",
                            "retrieved": dt.date.fromtimestamp(min(p.stat().st_mtime for p in LANDSAT.glob("*.tif"))).isoformat(),
                            "summers": f"June-August {SUMMERS.start}-{SUMMERS.stop - 1}",
-                           "max_scene_cloud": MAX_SCENE_CLOUD, "min_clear": MIN_CLEAR,
+                           "max_scene_cloud": MAX_SCENE_CLOUD, "min_clear": MIN_CLEAR, "min_nbhd_clear": MIN_NBHD_CLEAR,
                            "own_minus_usgs_c": log["own_minus_usgs_c"],
                            "scenes_used": log["used"], "scenes_rejected": log["rejected"]}
     l_da = lst_summary(s, c, log["city_means"])
-    l_nb = lst_summary(s, c, log["city_means"], nbhd)
-    lst_by_pass(s, c, log["city_means"], nbhd).to_csv(OUT / "lst_by_pass_nbhd.csv", index=False, lineterminator="\n")
+    l_nb = lst_summary(s, c, log["city_means"], nbhd, a)
+    lst_by_pass(s, c, log["city_means"], nbhd, a).to_csv(OUT / "lst_by_pass_nbhd.csv", index=False, lineterminator="\n")
 
     out = by_da.assign(area_ha=da_area)
     out["trees"] = out.trees.fillna(0).astype(int)

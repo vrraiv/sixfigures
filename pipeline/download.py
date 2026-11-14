@@ -308,7 +308,7 @@ def cmhc() -> list:
         dest = scu / f"scu-{y}-{m:02d}.xlsx"
         if (y, m) in CMHC_SCU_GAPS:
             pass
-        elif dest.exists() and zipfile.is_zipfile(dest):
+        elif dest.exists() and intact(dest) and zipfile.is_zipfile(dest):
             have += 1
         else:
             url = CMHC_SCU.format(y=y, month=MONTHS[m - 1], m=m, yy=y % 100)
@@ -364,6 +364,37 @@ def cmhc() -> list:
     return missing
 
 
+# The size of each file fetch() has written, beside the files: a file on disk whose size has
+# changed since (cut short by a full disk, a sync, an interrupted copy) is fetched again rather
+# than trusted on its first bytes. A file from before this record was kept has no entry and is
+# taken as it is.
+def _sizes(folder: Path) -> Path:
+    return folder / ".sizes.json"
+
+
+def record_size(dest: Path) -> None:
+    f = _sizes(dest.parent)
+    try:
+        sizes = json.loads(f.read_text()) if f.exists() else {}
+    except ValueError:
+        sizes = {}
+    sizes[dest.name] = dest.stat().st_size
+    f.write_text(json.dumps(sizes, indent=0, sort_keys=True) + "\n")
+
+
+def intact(dest: Path) -> bool:
+    """False when `dest` is not the size it had when fetch() wrote it."""
+    f = _sizes(dest.parent)
+    try:
+        want = json.loads(f.read_text()).get(dest.name) if f.exists() else None
+    except ValueError:
+        want = None
+    if want is None or want == dest.stat().st_size:
+        return True
+    print(f"  {dest.name} is {dest.stat().st_size:,} bytes, not the {want:,} downloaded: fetching it again")
+    return False
+
+
 def fetch(url: str, dest: Path, magic: bytes, attempts: int = 1, errors: list | None = None, wait: int = 15) -> bool:
     """Stream url to dest only if the body starts with `magic` and all of it arrives: a
     connection dropped partway ends the read early without an error, so the bytes written are
@@ -386,6 +417,7 @@ def fetch(url: str, dest: Path, magic: bytes, attempts: int = 1, errors: list | 
             if declared and declared.isdigit() and int(declared) != got:
                 raise OSError(f"incomplete: {got:,} of {int(declared):,} bytes")
             tmp.replace(dest)
+            record_size(dest)
             return True
         except Exception as e:  # 403 bot challenge, 504 gateway timeout, resets
             print(f"  attempt {i + 1} failed: {e}")
@@ -438,7 +470,7 @@ def toronto_file(name: str, fresh: bool = False) -> tuple[bool, str]:
     """Fetch one of the TORONTO files unless it is on disk (or fresh); (ok, url)."""
     package, resource, magic = TORONTO[name]
     dest = RAW / name
-    if not fresh and dest.exists() and dest.open("rb").read(len(magic)) == magic:
+    if not fresh and dest.exists() and intact(dest) and dest.open("rb").read(len(magic)) == magic:
         print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
         return True, ""
     print(f"fetch   {name}")
@@ -528,7 +560,7 @@ def insideairbnb() -> list:
     failed = []
     for date in json.loads(INSIDEAIRBNB_SNAPSHOTS.read_text())["snapshots"]:
         dest = INSIDEAIRBNB_DIR / f"toronto_listings_{date}.csv.gz"
-        if dest.exists() and dest.open("rb").read(2) == b"\x1f\x8b":
+        if dest.exists() and intact(dest) and dest.open("rb").read(2) == b"\x1f\x8b":
             print(f"ok      insideairbnb/{dest.name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   insideairbnb/{dest.name}")
@@ -552,7 +584,7 @@ def inputs() -> list:
     failed = []
     repo = github_repo()
     for name, (dest, magic) in INPUTS.items():
-        if dest.exists() and dest.open("rb").read(len(magic)) == magic:
+        if dest.exists() and intact(dest) and dest.open("rb").read(len(magic)) == magic:
             print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   {name} (release {INPUTS_RELEASE} of {repo})")
@@ -581,7 +613,7 @@ def main() -> int:
     missing, optional = [], []
     for name, url in {**STATCAN, **STATCAN_OPTIONAL}.items():
         dest = RAW / name
-        if dest.exists() and zipfile.is_zipfile(dest):
+        if dest.exists() and intact(dest) and zipfile.is_zipfile(dest):
             print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   {name}")
@@ -590,7 +622,7 @@ def main() -> int:
     for name, (url, digest, zipped) in BOREALIS.items():
         dest = RAW / name
         # Beyond 20/20 tables start with 02 00 20 00 or 04 00 20 00.
-        if dest.exists() and dest.open("rb").read(4) in (b"\x02\x00\x20\x00", b"\x04\x00\x20\x00"):
+        if dest.exists() and intact(dest) and dest.open("rb").read(4) in (b"\x02\x00\x20\x00", b"\x04\x00\x20\x00"):
             print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   {name}")
@@ -601,7 +633,7 @@ def main() -> int:
     SCHOOLS_DIR.mkdir(exist_ok=True)
     for name, path in SCHOOLS.items():
         dest = SCHOOLS_DIR / name
-        if dest.exists() and zipfile.is_zipfile(dest):
+        if dest.exists() and intact(dest) and zipfile.is_zipfile(dest):
             print(f"ok      schools/{name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   schools/{name}")
@@ -617,7 +649,7 @@ def main() -> int:
             optional.append((name, url))
     for name, url in HEALTH.items():
         dest = RAW / name
-        if dest.exists() and zipfile.is_zipfile(dest):
+        if dest.exists() and intact(dest) and zipfile.is_zipfile(dest):
             print(f"ok      {name} ({dest.stat().st_size:,} bytes)")
             continue
         print(f"fetch   {name}")

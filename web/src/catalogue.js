@@ -43,10 +43,15 @@ export const MEASURES = {
   age0_14: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Aged 0–14", long: "Children aged 0 to 14" },
   age65: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Aged 65+", long: "People aged 65 and over" },
 };
+// label: the group's heading in the measure menu (census/index.html writes the same ones out);
 // col: the details table's value column; noun: what the group's figures are.
 export const GROUPS = {
-  income: { col: "Income", noun: "incomes" }, low: { col: "Share", noun: "shares" }, housing: { col: "Share", noun: "shares" },
-  costs: { col: "Median", noun: "medians" }, dwellings: { col: "Share", noun: "shares" }, people: { col: "Share", noun: "shares" },
+  income: { label: "Income", col: "Income", noun: "incomes" },
+  low: { label: "Low income and transfers", col: "Share", noun: "shares" },
+  housing: { label: "Housing", col: "Share", noun: "shares" },
+  costs: { label: "Housing costs and values", col: "Median", noun: "medians" },
+  dwellings: { label: "Dwellings", col: "Share", noun: "shares" },
+  people: { label: "People", col: "Share", noun: "shares" },
 };
 export const YEARS = {
   2016: { source: "da16", income: "2015", census: "2016 Census", pop: "pop16" },
@@ -84,3 +89,39 @@ export const ordinal = (n) => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 export const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// ---- what a link or a server can get wrong ------------------------------------------------
+// Whether `key` (from a link) names an entry of a catalogue object: "constructor" and
+// "toString" are on every object, and are not measures.
+export const own = (obj, key) => key != null && Object.hasOwn(obj, key);
+// A number from a link, or `fallback` where it isn't one in [lo, hi].
+export const numIn = (text, lo, hi, fallback = null) => {
+  const v = text == null || text === "" ? NaN : Number(text);
+  return Number.isFinite(v) && v >= lo && v <= hi ? v : fallback;
+};
+// A map position from a link's at=<zoom>/<lat>/<lng>, or null where it isn't one on the globe.
+export function parseAt(text) {
+  const [z, lat, lng] = (text ?? "").split("/").map((x) => (x === "" ? NaN : Number(x)));
+  const ok = (text ?? "").split("/").length === 3 && [z, lat, lng].every(Number.isFinite) && z >= 0 && z <= 22 && Math.abs(lat) <= 85 && Math.abs(lng) <= 180;
+  return ok ? { zoom: z, center: [lng, lat] } : null;
+}
+// A data file the page needs: a failed request (offline, a 404 or 500) is an error here,
+// not a parse failure somewhere later.
+export async function loadJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url.split("?")[0]}: HTTP ${r.status}`);
+  return r.json();
+}
+// For the files a page cannot draw without: say so on the page, where a blank map or empty
+// headings would say nothing, and stop. Use as `await loadJSON(url).catch(loadFailed)`.
+export function loadFailed(err) {
+  if (!document.querySelector(".load-error")) {
+    const p = document.createElement("p");
+    p.className = "load-error";
+    p.setAttribute("role", "alert");
+    p.innerHTML = 'This page’s data didn’t load. Check your connection, then <button type="button">reload the page</button>.';
+    p.querySelector("button").addEventListener("click", () => location.reload());
+    (document.querySelector("main") ?? document.body).prepend(p);
+  }
+  throw err;
+}

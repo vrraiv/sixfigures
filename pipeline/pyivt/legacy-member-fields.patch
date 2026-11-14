@@ -1,0 +1,201 @@
+From 076d380f1831993ce152b5f1464cf94a610673f9 Mon Sep 17 00:00:00 2001
+From: vrraiv <vr.raiv@gmail.com>
+Date: Fri, 30 Oct 2026 09:21:28 -0400
+Subject: [PATCH] Read legacy member fields: ordinal reference fields and
+ unsigned integers
+
+Integer-reference fields (0x0304) whose values are member ordinals rather
+than note records, such as _Sort in the 2011 NHS semi-custom profiles,
+are exported as int64 instead of failing the dimension, and unsigned
+integer fields (0x0002, such as _Decimals) are read like signed ones.
+Before this, to_arrow() raised "referenced member text is not a byte
+vector" on these tables and both dimensions had empty metadata labels.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01DHgjttvDLBW4jp1HPRadx8
+---
+ CHANGELOG.md   |   4 ++
+ src/members.rs | 117 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 118 insertions(+), 3 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 637a5aa..9cb36ae 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ ## [Unreleased]
+ 
++### Fixed
++
++- Legacy member fields no longer fail a dimension: integer-reference fields (`0x0304`) whose values are member ordinals rather than note records, such as `_Sort` in 2011 NHS semi-custom profiles, are exported as `int64`, and unsigned integer fields (`0x0002`, such as `_Decimals`) are read like signed ones. Previously `to_arrow()` raised `referenced member text is not a byte vector` and the metadata labels of both dimensions were silently empty.
++
+ ### Added
+ 
+ - `Ivt.to_batches()` and the Arrow C stream protocol export bounded row ranges with shared member dictionaries
+diff --git a/src/members.rs b/src/members.rs
+index 201d1fd..572c8a9 100644
+--- a/src/members.rs
++++ b/src/members.rs
+@@ -233,6 +233,43 @@ fn signed_numbers(record: &[u8]) -> Result<MemberValues, String> {
+     Ok(MemberValues::Int64(values))
+ }
+ 
++/// The raw values of an integer-reference field, for fields whose values do not
++/// point at note records: legacy tables carry sort orders (`_Sort`) with this
++/// type code, holding member ordinals. Zero stays null, as for note references.
++fn reference_ordinals(record: &[u8]) -> Result<MemberValues, String> {
++    if record[0] & 15 != 4 || record[1] != 1 {
++        return Err("member text references are not an integer vector".into());
++    }
++    Ok(MemberValues::Int64(
++        record[4..]
++            .as_chunks::<4>()
++            .0
++            .iter()
++            .map(|scalar| match u32(scalar, 0) {
++                0 => None,
++                v => Some(i64::from(v)),
++            })
++            .collect(),
++    ))
++}
++
++/// Whether every reference in the chunk resolves to a note record, so that
++/// [`referenced_strings`] can read it. A reference outside the directory or to a
++/// record of another shape means the field holds ordinals, not note references.
++fn references_resolve(dir: &Directory<'_>, record: &[u8]) -> bool {
++    record[0] & 15 == 4
++        && record[1] == 1
++        && record[4..].as_chunks::<4>().0.iter().all(|scalar| {
++            let index = u32(scalar, 0) as usize;
++            index == 0
++                || match dir.record(index) {
++                    Ok(None) => true,
++                    Ok(Some(text)) => text.len() >= 5 && text[0] & 15 == 1 && text[1] == 1,
++                    Err(_) => false,
++                }
++        })
++}
++
+ fn referenced_strings(dir: &Directory<'_>, record: &[u8]) -> Result<Vec<Option<String>>, String> {
+     if record[0] & 15 != 4 || record[1] != 1 {
+         return Err("member text references are not an integer vector".into());
+@@ -304,6 +341,44 @@ pub(crate) fn iso_date(days: i64) -> String {
+ 
+ pub type MemberField = (String, Vec<Option<String>>);
+ 
++/// Chunks of one reference field must share a storage type. Chunks of zero
++/// references read as all-null text and as all-null ordinals alike, so an
++/// all-null accumulator adopts the type of the chunk that decides it; a chunk
++/// of all nulls adopts the accumulator's.
++fn reconcile_reference_chunks(values: &mut MemberValues, chunk: &MemberValues) {
++    let all_null = |v: &MemberValues| match v {
++        MemberValues::Utf8(v) => v.iter().all(Option::is_none),
++        MemberValues::Int64(v) => v.iter().all(Option::is_none),
++        _ => false,
++    };
++    match (&*values, chunk) {
++        (MemberValues::Utf8(v), MemberValues::Int64(_)) if all_null(values) => {
++            *values = MemberValues::Int64(vec![None; v.len()]);
++        }
++        (MemberValues::Int64(v), MemberValues::Utf8(_)) if all_null(values) => {
++            *values = MemberValues::Utf8(vec![None; v.len()]);
++        }
++        _ => {}
++    }
++}
++
++/// The counterpart for the incoming chunk, applied by the caller before append.
++impl MemberValues {
++    fn adopt_type_of(self, other: &MemberValues) -> MemberValues {
++        let n = self.len();
++        let all_null = match &self {
++            MemberValues::Utf8(v) => v.iter().all(Option::is_none),
++            MemberValues::Int64(v) => v.iter().all(Option::is_none),
++            _ => false,
++        };
++        match (all_null, &self, other) {
++            (true, MemberValues::Utf8(_), MemberValues::Int64(_)) => MemberValues::Int64(vec![None; n]),
++            (true, MemberValues::Int64(_), MemberValues::Utf8(_)) => MemberValues::Utf8(vec![None; n]),
++            _ => self,
++        }
++    }
++}
++
+ /// Geographic UID attributes identify a role even with a Normal axis kind.
+ pub(crate) fn has_geo_uid_field(data: &[u8], dimension: usize) -> bool {
+     let Ok(dir) = Directory::new(data, dimension) else {
+@@ -389,8 +464,11 @@ pub fn read_typed_members(
+                 0x0140 => fixed_strings(&record).map(MemberValues::Utf8),
+                 0x0180 => time_members(&record),
+                 0x0001 => variable_strings(&record).map(MemberValues::Utf8),
+-                0x0304 => referenced_strings(&dir, &record).map(MemberValues::Utf8),
+-                0x0302 => signed_numbers(&record),
++                0x0304 if references_resolve(&dir, &record) => {
++                    referenced_strings(&dir, &record).map(MemberValues::Utf8)
++                }
++                0x0304 => reference_ordinals(&record),
++                0x0002 | 0x0302 => signed_numbers(&record),
+                 _ => Err(format!("unsupported member field type 0x{kind:04x}")),
+             }
+             .map_err(|e| format!("dimension {dimension}, field {name}: {e}"))?;
+@@ -401,6 +479,12 @@ pub fn read_typed_members(
+                 }
+             }
+             if let Some(ref mut values) = values {
++                let chunk = if kind == 0x0304 {
++                    reconcile_reference_chunks(values, &chunk);
++                    chunk.adopt_type_of(values)
++                } else {
++                    chunk
++                };
+                 values.append(chunk)?;
+             } else {
+                 values = Some(chunk);
+@@ -414,7 +498,7 @@ pub fn read_typed_members(
+             None => match kind {
+                 0x0140 | 0x0001 | 0x0304 => MemberValues::Utf8(vec![None; count]),
+                 0x0180 => MemberValues::Date32(vec![None; count]),
+-                0x0302 => MemberValues::Int64(vec![None; count]),
++                0x0002 | 0x0302 => MemberValues::Int64(vec![None; count]),
+                 _ => return Err(format!("unsupported member field type 0x{kind:04x}")),
+             },
+         };
+@@ -495,6 +579,33 @@ mod tests {
+         assert_eq!(values, [Some(1.25)]);
+     }
+ 
++    #[test]
++    fn reference_fields_without_note_targets_are_ordinals() {
++        let mut record = vec![4, 1, 3, 0];
++        for v in [1u32, 0, 59_408] {
++            record.extend_from_slice(&v.to_le_bytes());
++        }
++        let MemberValues::Int64(values) = reference_ordinals(&record).unwrap() else {
++            panic!()
++        };
++        assert_eq!(values, [Some(1), None, Some(59_408)]);
++        assert!(reference_ordinals(&[1, 1, 0, 0]).is_err());
++    }
++
++    #[test]
++    fn reference_chunks_of_nulls_adopt_the_deciding_type() {
++        let mut acc = MemberValues::Utf8(vec![None, None]);
++        let chunk = MemberValues::Int64(vec![Some(3)]);
++        reconcile_reference_chunks(&mut acc, &chunk);
++        acc.append(chunk.adopt_type_of(&acc)).unwrap();
++        assert!(matches!(&acc, MemberValues::Int64(v) if v == &[None, None, Some(3)]));
++        let mut acc = MemberValues::Utf8(vec![Some("a".into())]);
++        let chunk = MemberValues::Int64(vec![None]);
++        reconcile_reference_chunks(&mut acc, &chunk);
++        acc.append(chunk.adopt_type_of(&acc)).unwrap();
++        assert!(matches!(&acc, MemberValues::Utf8(v) if v == &[Some("a".into()), None]));
++    }
++
+     #[test]
+     fn installed_fixture_members_are_complete_when_available() {
+         let cases = [
+-- 
+2.53.0
+

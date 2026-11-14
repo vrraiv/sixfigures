@@ -5,9 +5,7 @@ import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
 import { cfg, initDetail, detailControls } from "./quality.js";
 import "./style.css";
-import {
-  tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML, showInView,
-} from "./common.js";
+import { tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML, showInView, loadJSON, loadFailed, own, parseAt } from "./common.js";
 
 // Boundary overlays (`make overlays`); null when the file wasn't built.
 const OVERLAY_TILES = TILES.ov;
@@ -23,7 +21,7 @@ const changeBy = $("changeby");
 // find=<address> runs a search on arrival.
 const hashParams = new URLSearchParams(location.hash.slice(1));
 initDetail(hashParams);
-if (hashParams.get("m") in MEASURES) select.value = hashParams.get("m");
+if (own(MEASURES, hashParams.get("m"))) select.value = hashParams.get("m");
 let view = VIEWS.includes(hashParams.get("y")) ? hashParams.get("y") : "2021";
 // The change-basis menu depends on the measure's unit. wantBasis is the last
 // basis asked for, so "real" comes back after a visit to a rate measure.
@@ -50,14 +48,14 @@ changeBy.addEventListener("change", () => (wantBasis = changeBy.value));
 const dauidParam = (k) => (/^\d{8}$/.test(hashParams.get(k) ?? "") ? hashParams.get(k) : null);
 const linkedDA = dauidParam("da");
 const linkedPin = dauidParam("vs");
-const linkedAt = (hashParams.get("at") ?? "").split("/").map(Number);
-const linkedView = linkedAt.length === 3 && linkedAt.every(Number.isFinite);
-const camera = linkedView ? { zoom: linkedAt[0], center: [linkedAt[2], linkedAt[1]] } : openingCamera($("map"));
+const linkedAt = parseAt(hashParams.get("at")); // null for a position that isn't one: the opening view then
+const linkedView = linkedAt != null;
+const camera = linkedAt ?? openingCamera($("map"));
 document.querySelector(`input[name=year][value="${view}"]`).checked = true;
 // closed to start with where it would cover much of the map: a phone, a short window
 if (narrow.matches || $("map").clientHeight < 420) $("legend").open = false;
 
-const breaks = await fetch(`/breaks.json?v=${__BREAKS_VERSION__}`).then((r) => r.json());
+const breaks = await loadJSON(`/breaks.json?v=${__BREAKS_VERSION__}`).catch(loadFailed);
 // 2015 dollars -> 2020 dollars for incomes, 2016 -> 2021 for census-dated figures
 // (annual-average CPI, table 18-10-0005-01; see breaks.json).
 const cpiOf = (m) => (MEASURES[m].dated === "census" ? breaks.cpi.factor_census : breaks.cpi.factor);
@@ -153,14 +151,22 @@ async function paintView() {
   try {
     await f.load(m);
   } catch {
-    if (token === paintToken) showToast("Couldn't load this measure's figures. Check your connection and try again.");
+    if (token !== paintToken) return;
+    // The legend already names this measure: don't leave the last one's colours under it.
+    for (const dauid of f.dauids) map.removeFeatureState({ source: src, sourceLayer: "da", id: dauid }, "cls");
+    paintFailed = true;
+    showToast("Couldn't load this measure's figures. Check your connection.", 15000, { label: "Try again", run: paintView });
     return;
   }
   if (token !== paintToken) return;
+  paintFailed = false;
   for (const dauid of f.dauids) {
     map.setFeatureState({ source: src, sourceLayer: "da", id: dauid }, { cls: classOf(f.props(dauid, [m]), m) });
   }
 }
+// A measure whose figures didn't arrive is asked for again when the connection returns.
+let paintFailed = false;
+addEventListener("online", () => paintFailed && paintView());
 
 
 // ---- legend -----------------------------------------------------------------
@@ -176,7 +182,7 @@ function legendModel() {
     const f = pts ? fmtPts : fmtDiffShort(m);
     const items = DIVERGING.map((color, i) => ({
       color,
-      label: i === 0 ? `Less than ${f(s[0])}` : i === DIVERGING.length - 1 ? `${f(s.at(-1))} or more`
+      label: i === 0 ? `${f(s[0])} or less` : i === DIVERGING.length - 1 ? `${f(s.at(-1))} or more`
         : s[i - 1] < 0 && s[i] > 0 ? `Within ${pts ? `±${s[i]} pts` : money ? `±${fmtMoneyShort(m)(s[i])}` : `±${s[i]} pp`}` : `${f(s[i - 1])} to ${f(s[i])}`,
     }));
     const c = meta.change;
@@ -349,7 +355,7 @@ const OVERLAYS = {
   fsa: { name: "Postal areas (FSA)", labelMinzoom: 10.5 },
 };
 const OVERLAY_FIRST = `ov-${Object.keys(OVERLAYS)[0]}`;
-let overlay = hashParams.get("o") in OVERLAYS ? hashParams.get("o") : "none";
+let overlay = own(OVERLAYS, hashParams.get("o")) ? hashParams.get("o") : "none";
 
 // Added for every kind right after the 2021 DA layers, so the 2016 layers (added
 // later) can be slotted beneath them; a kind missing from the tiles draws nothing.
@@ -509,10 +515,9 @@ async function setView(next) {
     setStatus(`DA ${dauid}'s boundary changed between 2016 and 2021, so it has no direct counterpart. Click a DA to see its figures.`);
     return;
   }
-  await idle();
-  if (view !== next) return; // toggled again while waiting
-  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
-  if (!f) return;
+  // Whether the other census has this DA is in its figures; the tiles only know the ones in view.
+  const there = await figures[toSrc].load().then((f) => !!f.props(dauid), () => false);
+  if (view !== next || !there) return; // toggled again while waiting, or not a DA of that census
   select_(toSrc, [dauid]);
   showDetails(toSrc, dauid, lngLat, note);
 }
@@ -587,10 +592,16 @@ function onClick(e) {
   showDetails(f.source, f.id, e.lngLat);
 }
 
-// DAs have no names; show the City of Toronto neighbourhood that covers most of it.
-function placeLine(p) {
-  return p.nbhd2 ? `Mostly ${p.nbhd}, partly ${p.nbhd2}` : `${p.nbhd} (City neighbourhood ${p.nbhd_id})`;
+// DAs have no names. The details are headed by what a reader knows the place as: the address
+// or intersection they searched for, else the City neighbourhood that covers most of the DA;
+// the DA's number, which is what the census calls it, follows underneath.
+function placeHeading(p, note) {
+  const found = note?.startsWith(FOUND) ? note.slice(FOUND.length) : null;
+  const da = `Dissemination area ${p.dauid}${view === "2016" ? " (2016 boundary)" : ""}`;
+  const where = p.nbhd2 ? `mostly in ${p.nbhd}, partly in ${p.nbhd2}` : `in ${p.nbhd}`;
+  return { heading: found ?? p.nbhd, sub: found ? `${da}, ${where}` : p.nbhd2 ? `${da}, ${where}` : `${da} · City neighbourhood ${p.nbhd_id}`, note: found ? null : note };
 }
+const FOUND = "Search result: ";
 
 /**
  * The figures for one DA in the current view, as plain data: used for the
@@ -648,20 +659,18 @@ function detailsModel(p, note) {
       const pctl = `${fmtPts(p[`pct_${m}`] - p[`p16_${m}`])} in percentile rank`;
       lines.push({
         text: money
-          ? `Since 2016: ${fmtSignedMoney(v - v16)} (from ${fmtMoney(v16)}), ${fmtSignedMoney(Math.round(v - v16 * cpiOf(m)))} after inflation, ${pctl}.`
-          : `Since 2016: ${fmtPP(Math.round((v - v16) * 10) / 10)} (from ${fmtPct(v16)}), ${pctl}.${d.cerb ? " 2020 includes one-off pandemic benefits (CERB)." : ""}`,
+          ? `Since ${refYear(m, "2016")}: ${fmtSignedMoney(v - v16)} (from ${fmtMoney(v16)}), ${fmtSignedMoney(Math.round(v - v16 * cpiOf(m)))} after inflation, ${pctl}.`
+          : `Since ${refYear(m, "2016")}: ${fmtPP(Math.round((v - v16) * 10) / 10)} (from ${fmtPct(v16)}), ${pctl}.${d.cerb ? " 2020 includes one-off pandemic benefits (CERB)." : ""}`,
       });
     }
     if (p.rel !== 1) lines.push({ note: true, text: `This DA's boundary changed between 2016 and 2021, so ${view === "2016" ? "2021" : "2016"} figures can't be compared directly.` });
     lines.push({ text: `Population ${view}: ${fmtCount(p[y.pop])} · Households: ${fmtCount(p.hh)}` });
   }
   return {
-    note,
     compare: compareModel(p),
     pinnedHere: pinned?.dauid === p.dauid,
     dist: distModel(p),
-    heading: `DA ${p.dauid}${view === "2016" ? " (2016 boundary)" : ""}`,
-    sub: placeLine(p),
+    ...placeHeading(p, note),
     columns,
     rows,
     lines,
@@ -761,11 +770,10 @@ async function carryPin(toSrc) {
     showToast(`Unpinned DA ${dauid}: its boundary changed between 2016 and 2021.`, 5000);
     return;
   }
-  await idle();
-  const [f] = map.querySourceFeatures(toSrc, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
+  const there = await figures[toSrc].load().then((f) => !!f.props(dauid), () => false);
   if (sourceOf(view) !== toSrc) return; // toggled back while waiting
-  if (f) setPin({ source: toSrc, dauid });
-  else showToast(`Unpinned DA ${dauid}: it isn't loaded at this zoom. Zoom in and pin it again.`, 5000);
+  if (there) setPin({ source: toSrc, dauid });
+  else showToast(`Unpinned DA ${dauid}: its figures for the other census didn't load. Pin it again.`, 5000);
 }
 
 document.addEventListener("click", (e) => {
@@ -811,10 +819,14 @@ async function showDetails(source, dauid, lngLat, note) {
   try {
     await figures[source].load(...groupOf(select.value));
   } catch {
-    if (token === detailsToken) showToast("Couldn't load this DA's figures. Check your connection and try again.");
+    if (token === detailsToken) showToast("Couldn't load this DA's figures. Check your connection.", 15000, { label: "Try again", run: () => showDetails(source, dauid, lngLat, note) });
     return;
   }
   if (token !== detailsToken) return;
+  // Meanwhile the census may have been switched (this DA belongs to the other boundary set)
+  // or the measure changed to a group whose figures aren't here yet.
+  if (source !== sourceOf(view)) return;
+  if (!figures[source].has(...groupOf(select.value))) return showDetails(source, dauid, lngLat, note);
   const props = propsOf(source, dauid);
   if (!props) return;
   const html = detailsHTML(detailsModel(props, note));
@@ -885,10 +897,11 @@ async function openLinkedDA(dauid) {
 // A shared link's pinned DA (vs=): pin it once its tile has loaded.
 async function pinLinkedDA(dauid) {
   const source = sourceOf(view);
-  await idle();
-  const [f] = map.querySourceFeatures(source, { sourceLayer: "da", filter: ["==", ["get", "dauid"], dauid] });
-  if (f) setPin({ source, dauid });
-  else showToast(`The link's pinned DA ${dauid} isn't loaded in this part of the map or at this zoom, so nothing is pinned.`, 5000);
+  // by the figures, so a pin outside this screen's view (a phone opening a desktop's link) is kept
+  const there = await figures[source].load().then((f) => !!f.props(dauid), () => null);
+  if (sourceOf(view) !== source) return;
+  if (there) setPin({ source, dauid });
+  else showToast(there == null ? `The link's pinned DA ${dauid} couldn't be checked: its figures didn't load.` : `The link's pinned DA ${dauid} isn't a dissemination area of the ${yearOf(view)} Census, so nothing is pinned.`, 5000);
 }
 
 $("sheet-close").addEventListener("click", closeDetails);
@@ -951,23 +964,29 @@ map.once("style.load", () => {
   firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
   addSourceLayers("da");
   addOverlayLayers();
+  // a census picked before the style arrived (the radios work from the start)
+  view = document.querySelector("input[name=year]:checked")?.value ?? view;
+  ready = true;
   applyView();
   detailUI.apply();
 });
 
+// The controls answer as soon as the layers are in (style.load), not at MapLibre's `load`, which
+// waits for every tile: on a slow connection that is long after the page looks ready. A choice
+// made before then is read from the controls when the layers go in.
+let ready = false;
+for (const control of [select, changeBy]) {
+  control.addEventListener("change", () => {
+    if (!ready) return;
+    applyView();
+    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
+  });
+}
+for (const r of document.querySelectorAll("input[name=year]")) {
+  r.addEventListener("change", () => r.checked && ready && setView(r.value));
+}
 
 map.on("load", () => {
-  select.addEventListener("change", () => {
-    applyView();
-    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
-  });
-  changeBy.addEventListener("change", () => {
-    applyView();
-    if (current) showDetails(current.source, current.dauid, current.lngLat, current.note);
-  });
-  for (const r of document.querySelectorAll("input[name=year]")) {
-    r.addEventListener("change", () => r.checked && setView(r.value));
-  }
   // A click off every DA closes the popup (the bottom sheet has its own ×).
   map.on("click", (e) => {
     if (!map.queryRenderedFeatures(e.point, { layers: hitLayers() }).length) popup.remove();
@@ -987,7 +1006,7 @@ const form = $("search");
 const input = $("q");
 const suggestBox = $("suggest");
 const statusBox = $("search-status");
-const HELP = `Type a street address (100 Queen St W), an intersection (Yonge & Bloor) or a DA number.
+const HELP = `Type a street address (100 Queen St W), an intersection (Yonge & Bloor), a neighbourhood (Annex) or a DA number.
   Only official City of Toronto addresses are listed.`;
 let index = null;
 let indexPromise = null;
@@ -1037,6 +1056,7 @@ function select_(source, ids) {
   }
 }
 
+const SHEET_STRIP = 150; // px of map the phone's details sheet leaves above itself at its tallest (style.css .sheet)
 const idle = () => new Promise((resolve) => (map.loaded() && !map.isMoving() ? resolve() : map.once("idle", resolve)));
 
 async function goTo(hit, kind) {
@@ -1063,8 +1083,12 @@ async function goTo(hit, kind) {
   }
   const b = das.reduce((a, d) => [Math.min(a[0], d.bbox[0]), Math.min(a[1], d.bbox[1]), Math.max(a[2], d.bbox[2]), Math.max(a[3], d.bbox[3])],
     [Infinity, Infinity, -Infinity, -Infinity]);
-  map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: narrow.matches ? 40 : 80, maxZoom: 15, duration: 900 });
+  // On a phone one DA's details open in the sheet, which covers the map but for a strip at the
+  // top (style.css .sheet): fit the DA into that strip, so all of it shows above the sheet.
+  const strip = narrow.matches && das.length === 1 ? { top: 20, left: 32, right: 32, bottom: Math.max(20, map.getContainer().clientHeight - SHEET_STRIP + 16) } : null;
+  map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: strip ?? (narrow.matches ? 40 : 80), maxZoom: 15, duration: 900 });
   await idle();
+  if (sourceOf(view) !== source) return; // the census was switched during the flight: these are the other one's DAs
 
   const label = hit.detail ? `${hit.label}, ${hit.detail}` : hit.label;
   if (das.length > 1) {
@@ -1080,7 +1104,7 @@ async function goTo(hit, kind) {
   }
   setStatus("");
   const [lng, lat] = hit.point ?? das[0].point;
-  showDetails(source, das[0].dauid, { lng, lat }, kind === "da" ? null : `Search result: ${label}`);
+  showDetails(source, das[0].dauid, { lng, lat }, kind === "da" ? null : `${FOUND}${label}`);
 }
 
 function renderChoices(res) {
@@ -1102,6 +1126,15 @@ async function runSearch(text) {
     return;
   }
   const res = index.resolve(text);
+  // Not an address or an intersection: a neighbourhood's name? (Danforth is a street and a
+  // neighbourhood; with no house number or cross street, the neighbourhood is what was asked for.)
+  if (res.status === "error" && ["street", "unknown"].includes(res.kind)) {
+    const exact = await nbhdMatches(text, true), hits = exact.length ? exact : await nbhdMatches(text);
+    // a street's name too ("yonge", "riverdale"): say how to find an address on it, and offer the neighbourhoods
+    if (res.kind === "street" && hits.length && !exact.length) return renderNbhdChoices(hits, res.message);
+    if (hits.length === 1) return goToNbhd(hits[0]);
+    if (hits.length > 1) return renderNbhdChoices(hits);
+  }
   if (res.status === "error") {
     setStatus(res.message, "error", res.hint ? `<p class="hint">${escapeHTML(res.hint)}</p>` : "");
   } else if (res.status === "choose") {
@@ -1109,6 +1142,57 @@ async function runSearch(text) {
   } else {
     goTo(res.results[0], res.kind);
   }
+}
+
+// ---- neighbourhoods by name ------------------------------------------------------
+// The City's 158 neighbourhoods, from the figures (each DA names its neighbourhood): the search
+// goes to one by name, with its outline switched on where the boundary overlays are built.
+let nbhdList = null; // [{ id, name }], by name
+async function nbhds() {
+  if (!nbhdList) {
+    const c = (await figures.da.load()).files.common, seen = new Map();
+    c.nbhd_id.forEach((id, k) => seen.set(id, c.nbhd[k]));
+    nbhdList = [...seen].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return nbhdList;
+}
+async function nbhdMatches(text, exactOnly = false) { // exactOnly: a whole name only
+  try {
+    const [list, { matchNames }] = await Promise.all([nbhds(), import("./search.js")]);
+    return matchNames(text, list.map((n) => n.name), 8, exactOnly).map((i) => list[i]);
+  } catch {
+    return []; // the figures didn't load: the address search's own message stands
+  }
+}
+let daBoxes = null; // DAUID -> [w, s, e, n], both censuses' DAs
+async function goToNbhd({ id, name }) {
+  if (!map.getSource("da")) await new Promise((resolve) => map.once("load", resolve));
+  const source = sourceOf(view);
+  let ids;
+  try {
+    const c = (await figures[source].load()).files.common;
+    ids = c.dauid.filter((_, k) => c.nbhd_id[k] === id);
+  } catch {
+    return setStatus("Couldn't load the neighbourhoods. Check your connection and try again.", "error");
+  }
+  daBoxes ??= new Map([...index.y2016.das, ...index.das].map(([dauid, w, s, e, n]) => [dauid, [w, s, e, n]]));
+  const b = ids.map((d) => daBoxes.get(d)).filter(Boolean).reduce((a, d) => [Math.min(a[0], d[0]), Math.min(a[1], d[1]), Math.max(a[2], d[2]), Math.max(a[3], d[3])], [Infinity, Infinity, -Infinity, -Infinity]);
+  if (!Number.isFinite(b[0])) return setStatus(`${name} has no dissemination areas in the ${yearOf(view)} Census.`, "error");
+  clearSelection();
+  closeDetails();
+  const outlined = !$("overlays").hidden && !!document.querySelector("input[name=overlay][value=nbhd]");
+  if (outlined && overlay !== "nbhd") {
+    overlay = "nbhd";
+    document.querySelector("input[name=overlay][value=nbhd]").checked = true;
+    applyOverlay();
+  }
+  map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: narrow.matches ? 30 : 70, duration: 900 });
+  setStatus(`${name}: a City neighbourhood of ${ids.length} dissemination areas${outlined ? ", outlined on the map" : ""}. ${narrow.matches ? "Tap" : "Click"} one to see its figures.`);
+}
+function renderNbhdChoices(hits, street = null) {
+  const items = hits.map((h, i) => `<li><button type="button" data-i="${i}">${escapeHTML(h.name)} <span>neighbourhood</span></button></li>`);
+  setStatus(street ? `For an address: ${street[0].toLowerCase()}${street.slice(1)} Or pick a neighbourhood:` : `${hits.length} neighbourhoods match. Pick one:`, "info", `<ul class="choices">${items.join("")}</ul>`);
+  statusBox.querySelectorAll("button[data-i]").forEach((btn) => btn.addEventListener("click", () => goToNbhd(hits[+btn.dataset.i])));
 }
 
 let active = -1;
@@ -1120,9 +1204,15 @@ function hideSuggest() {
   active = -1;
 }
 
-function showSuggest() {
+async function showSuggest() {
   if (!index) return;
-  const list = index.suggest(input.value);
+  const typed = input.value;
+  let list = index.suggest(typed);
+  // no address starts like this: a neighbourhood's name, once there are three letters of it
+  if (!list.length && !/\d/.test(typed)) {
+    list = (await nbhdMatches(typed)).map((n) => ({ text: n.name, label: n.name, detail: "neighbourhood" }));
+    if (input.value !== typed) return; // more was typed meanwhile
+  }
   if (!list.length) return hideSuggest();
   suggestBox.innerHTML = list.map((s, i) =>
     `<li role="option" id="sg-${i}" aria-selected="false" data-text="${escapeHTML(s.text)}">${escapeHTML(s.label)} <span>${escapeHTML(s.detail ?? "")}</span></li>`).join("");
@@ -1232,8 +1322,16 @@ toast.setAttribute("role", "status");
 toast.hidden = true;
 document.body.append(toast);
 let toastTimer;
-function showToast(text, ms = 5000) {
+// action: { label, run } adds a button (a retry) that runs it and puts the toast away.
+function showToast(text, ms = 5000, action = null) {
   toast.textContent = text;
+  if (action) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = action.label;
+    b.addEventListener("click", () => { toast.hidden = true; action.run(); });
+    toast.append(" ", b);
+  }
   toast.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (toast.hidden = true), ms);
@@ -1348,7 +1446,7 @@ let snap = null; // { region, grabs: {scale: grab}, canvas, blob, url }
 async function render() {
   const scale = +opt("scale").value;
   dlgInfo.textContent = "Rendering…";
-  snap.grabs[scale] ??= await grabMap(map, scale);
+  snap.grabs[scale] ??= await grabMap(map, scale, cfg().ratio);
   const hasDA = !!current;
   for (const n of ["details", "label"]) opt(n).disabled = !hasDA;
   const { canvas, labelHidden } = compose({

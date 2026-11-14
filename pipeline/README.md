@@ -141,9 +141,18 @@ in `measures.NHS_2011`); `census2011.py` joins them to the profile's DAs. pyivt 
 on PyPI cannot read this older table (its `_Sort` and `_Decimals` member fields;
 `to_arrow()` stops with "referenced member text is not a byte vector" and
 `pipeline/nhs_probe.py` reproduces it); the fix is a small patch to pyivt's
-`members.rs`, sent upstream. pyivt is a Rust extension, so on a machine without a
-Rust toolchain build it under WSL and run `nhs2011.py` there (`make PYIVT_PYTHON="wsl -e
-/home/<user>/pyivt/.venv/bin/python" ...`); the script imports only pyivt and pyarrow.
+`members.rs`, kept here as `pipeline/pyivt/legacy-member-fields.patch`. It applies to
+pyivt commit `ea428cc` (v0.0.5 plus 11 commits, 30 October 2026), the version these
+scripts were written against. `make pyivt` (`pipeline/pyivt/build.sh`, in WSL, Linux or
+macOS; needs Rust 1.88 or later from https://rustup.rs) clones pyivt at that commit,
+applies the patch and installs it with pyarrow in `~/pyivt/.venv`; then run
+`nhs2011.py` with that Python (`make PYIVT_PYTHON=~/pyivt/.venv/bin/python ...`, or from
+Windows `PYIVT_PYTHON="wsl -e /home/<user>/pyivt/.venv/bin/python"`); the script imports
+only pyivt and pyarrow. Checked on 13 November 2026 with a fresh build (pyarrow 26.0.1,
+Python 3.14): `nhs2011.py`, `profile2006.py` and `demography_ivt.py` reproduced the four
+files written on 30-31 October byte for byte. pyivt 0.0.6 and later include the fix
+upstream, but changed the export interface these scripts use, so they stay on the pinned
+commit.
 Beyond 20/20 Browser opens the table too; `canivt` 0.5.0 (R) does not read it in
 practice (it takes the geography count for 256, recovers no geography codes, and declines
 the 155.6 M-cell grid). The NHS DA figures follow StatCan's own rule: DAs whose global

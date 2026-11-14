@@ -2,7 +2,8 @@
 // in the 2026 Census, forecast as a ratio to the City's median times a nowcast of the
 // City's, with its range, and the backtests (docs/forecast-spec.md), from forecasts.json.
 import { quantile, seg } from "./charts.js";
-import { $, drawMap, escapeHTML, fmtK, fmtMoney, fmtPts, fmtShare, initTip, load, marksNote, nbFromHash, pickBar, rangeList, rungName, scatter, scatterKey, signed } from "./forecasts.js";
+import { $, drawMap, escapeHTML, fmtK, fmtMoney, fmtPts, fmtShare, initTip, load, marksNote, nbFromHash, own, pickBar, rangeList, rungName, scatter, scatterKey, signed } from "./forecasts.js";
+import { buildToc } from "./nbtools.js";
 
 const D = await load();
 const V = D.value, live = V.live, C = V.city;
@@ -12,7 +13,7 @@ const median = (vs) => quantile([...vs].sort((a, b) => a - b), 0.5);
 const pctChange = (a, b) => (b / a - 1) * 100;
 
 const hash = new URLSearchParams(location.hash.slice(1));
-const state = { r: SHOW[hash.get("r")] ? hash.get("r") : "own_mean", sort: hash.get("s") === "name" ? "name" : "pred", filter: "", nb: nbFromHash(D, hash.get("nb")) };
+const state = { r: own(SHOW, hash.get("r")) ? hash.get("r") : "own_mean", sort: hash.get("s") === "name" ? "name" : "pred", filter: "", nb: nbFromHash(D, hash.get("nb")) };
 const writeHash = () => {
   const h = new URLSearchParams({ r: state.r, s: state.sort });
   if (state.nb != null) h.set("nb", D.nbhd[state.nb].id);
@@ -128,3 +129,4 @@ renderScores();
 renderBacktest();
 renderCity();
 render();
+buildToc();

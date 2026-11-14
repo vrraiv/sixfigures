@@ -8,6 +8,26 @@ import { $, COLORS, DIVERGING, escapeHTML } from "./catalogue.js";
 // shows the tip at the finger and it stays until the next tap elsewhere or a scroll. From the
 // keyboard, a control that carries a tip shows it above itself while it has the focus, and
 // Escape puts it away.
+// A tip is written as text with <b>, <i>, <br> and plain <span>s; the names in it come from the
+// data files. Whatever else arrives (a name with markup in it) is kept as its text only, and no
+// attribute survives, so a tip can show things but never run or load anything.
+const TIP_TAGS = new Set(["B", "I", "BR", "SPAN"]);
+export function tipContent(html) {
+  const t = document.createElement("template");
+  t.innerHTML = html;
+  const clean = (node) => {
+    for (const c of [...node.childNodes]) {
+      if (c.nodeType === 3) continue;
+      if (c.nodeType !== 1) { c.remove(); continue; }
+      clean(c);
+      if (TIP_TAGS.has(c.tagName)) for (const a of [...c.attributes]) c.removeAttribute(a.name);
+      else c.replaceWith(...c.childNodes);
+    }
+  };
+  clean(t.content);
+  return t.content;
+}
+
 export function initTip() {
   const tip = $("tip");
   let held = false; // shown by a touch
@@ -18,7 +38,7 @@ export function initTip() {
     tip.style.transform = `translate(${x}px, ${y}px)`;
   };
   const show = (t, e) => {
-    tip.innerHTML = t.dataset.tip;
+    tip.replaceChildren(tipContent(t.dataset.tip));
     tip.hidden = false;
     place(e);
   };
@@ -168,9 +188,22 @@ export const fmtR = (r) => (r == null ? "—" : `${r < 0 ? "−" : ""}${Math.abs
 // Anything with data-nb (a neighbourhood's index) picks it: the page's map outlines it and
 // the bar beneath shows its figures; a click on the map picks or clears. The map's paths
 // carry data-i; call the returned mark() after each redraw.
-export function initPick(fig, bar, get, set, extra = () => "") {
+// names: the neighbourhoods' names in the map's order. With them, a page that has no finder of
+// its own (#find-nb) gets a menu of the names above the map: a small neighbourhood is hard to
+// hit, and the map's shapes can't be reached from the keyboard at all.
+export function initPick(fig, bar, get, set, extra = () => "", names = null) {
+  let finder = null;
+  if (names && !document.getElementById("find-nb")) {
+    const order = names.map((n, i) => [n, i]).sort((a, b) => a[0].localeCompare(b[0]));
+    const row = Object.assign(document.createElement("div"), { className: "find-row" });
+    row.innerHTML = `<select id="find-nb" class="inline-select" aria-label="Find a neighbourhood"><option value="">Find a neighbourhood…</option>${order.map(([n, i]) => `<option value="${i}">${escapeHTML(n)}</option>`).join("")}</select>`;
+    (fig.closest(".map-wrap") ?? fig).before(row);
+    finder = row.firstElementChild;
+    finder.addEventListener("change", () => pick(finder.value === "" ? null : +finder.value, false));
+  }
   const mark = () => {
     const i = get(), p = i == null ? null : fig.querySelector(`path[data-i="${i}"]`);
+    if (finder) finder.value = i ?? "";
     fig.classList.toggle("has-pick", !!p);
     if (p) {
       p.classList.add("pick");
@@ -179,7 +212,8 @@ export function initPick(fig, bar, get, set, extra = () => "") {
     // a bar with data-empty keeps its place when nothing is picked and says how to pick
     bar.hidden = !p && !bar.dataset.empty;
     bar.classList.toggle("empty", !p);
-    bar.innerHTML = p ? `<span>${p.dataset.tip.replaceAll("<br>", " · ")}</span>${extra(i)}<button type="button" class="nb-clear">Clear</button>` : escapeHTML(bar.dataset.empty ?? "");
+    bar.innerHTML = p ? `<span></span>${extra(i)}<button type="button" class="nb-clear">Clear</button>` : escapeHTML(bar.dataset.empty ?? "");
+    if (p) bar.firstElementChild.append(tipContent(p.dataset.tip.replaceAll("<br>", " · ")));
   };
   const pick = (i, scroll) => {
     fig.querySelector("path.pick")?.classList.remove("pick");
@@ -244,7 +278,12 @@ export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l,
   // every `every`th label, and the last, unless it would crowd the one before
   const xt = labels.map((l, k) => ((k % every === 0 && n - 1 - k >= every * 0.9) || k === n - 1 ? `<span style="left:${x(k)}%">${l}</span>` : "")).join("");
   const zeroLine = lo < 0 ? `<span class="ch-zero" style="bottom:${100 - y(0)}%"></span>` : "";
-  return `<div class="ch-box" style="height:${height}px">${yt}${zeroLine}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>`;
+  // The marks give their figures on hover or a tap; the same figures as a table, for a keyboard,
+  // a screen reader, or anyone who wants the numbers: closed until asked for.
+  const all = [...bars, ...lines];
+  const table = `<details class="ch-data"><summary>Figures as a table</summary><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="txt"></th>${all.map((s) => `<th>${s.name}</th>`).join("")}</tr></thead>
+    <tbody>${labels.map((l, k) => `<tr><th>${tipLabel(l, k)}</th>${all.map((s) => `<td>${s.values[k] == null ? "—" : fmt(s.values[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+  return `<div class="ch-box" style="height:${height}px">${yt}${zeroLine}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>${table}`;
 }
 export const key = (items) => `<ul class="year-key">${items.map(([name, color, kind]) => `<li><span class="${kind === "line" ? "key-line" : "key-sq"}" style="background:${color}"></span>${name}</li>`).join("")}</ul>`;
 

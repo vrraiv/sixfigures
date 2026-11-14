@@ -122,11 +122,24 @@ class Book:
         self.data.setdefault(source, {})[key] = cols
 
 
+MEASURE_LINE = r'^\s+(\w+): \{ group: "(\w+)", unit: "(\w+)",(.*?)short: "([^"]+)", long: "([^"]+)" \},?$'
+
+
 def census(b: Book, insights: dict):
     js = CATALOGUE_JS.read_text()
+    # The measures are defined once, in the page's catalogue, and read here by pattern: a
+    # definition written another way (a second line, a new field after `long`) would be skipped
+    # without a word, so every key in the catalogue's MEASURES block must be one the pattern read.
+    block = js[js.index("export const MEASURES = {"):]
+    block = block[:block.index("\n};")]
+    keys = re.findall(r"^\s+(\w+): \{", block, re.M)
+    read = [m.group(1) for m in re.finditer(MEASURE_LINE, js, re.M)]
+    if not keys or keys != read:
+        sys.exit(f"web/src/catalogue.js: {len(keys)} measures defined, {len(read)} read; "
+                 f"not read: {sorted(set(keys) - set(read))}. Keep each on one line, as the others are.")
     cpi = {int(k): v for k, v in insights["cpi"].items()}
     inc_year = {int(k): int(v) for k, v in insights["income_years"].items()}
-    for m in re.finditer(r'^\s+(\w+): \{ group: "(\w+)", unit: "(\w+)",(.*?)short: "([^"]+)", long: "([^"]+)" \},?$', js, re.M):
+    for m in re.finditer(MEASURE_LINE, js, re.M):
         key, group, unit, rest, short, long = m.groups()
         if key not in insights["measures"]:
             continue

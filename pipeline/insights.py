@@ -99,6 +99,11 @@ PLACEHOLDER_ZERO = {"owner30": "own_cost", "tenant30": "rent", "subsidized": "re
 # check_city(): how far the all-DA aggregate may sit from the published city value
 # before it is reported. Rates in percentage points, dollars as a fraction.
 CITY_TOLERANCE = {"rate": 1.0, "money": 0.03}
+# 2011: the NHS nulls the 266 DAs whose non-response was 50% or more, and they lean to
+# renters, so the DAs that remain sit below the city. With the raw table (13 November 2026)
+# five rates were 1.6 to 2.1 points under the published value (renter, owner30, tenant30,
+# subsidized, crowded) and nothing else was reported; 2.5 leaves room for those only.
+CITY_TOLERANCE_2011 = {"rate": 2.5, "money": 0.03}
 
 
 def wmedian(v: np.ndarray, w: np.ndarray) -> float:
@@ -294,7 +299,7 @@ def check_city(wide: pd.DataFrame, year: str, m: str, city: float, use_groups: b
         return None
     unit = MEASURES[m]["unit"]
     off = abs(got - city) / abs(city) if unit == "money" else abs(got - city)
-    if off <= CITY_TOLERANCE[unit]:
+    if off <= (CITY_TOLERANCE_2011 if year == "2011" else CITY_TOLERANCE)[unit]:
         return None
     return (f"{year} {m}: all DAs together give {got:,.1f}, the published city value is {city:,.1f}"
             f" (check the measure's base in AGG and the DA values)")

@@ -13,8 +13,8 @@ the fourth digit is 1 where the global non-response rate was 50% or more), gnr
 
 Needs pyivt with the legacy member-field fix (the table's _Sort and _Decimals
 fields; pyivt 0.0.5 on PyPI stops with "referenced member text is not a byte
-vector"), and pyarrow. pyivt is a Rust extension: where no wheel fits (Windows
-without a Rust toolchain), run this under WSL, e.g.
+vector"), and pyarrow. `make pyivt` (pipeline/pyivt/build.sh) builds it from a pinned
+commit and the patch kept beside that script; on Windows, do that and run this under WSL, e.g.
     wsl -e ~/pyivt/.venv/bin/python pipeline/nhs2011.py
 Only pyivt and pyarrow are imported, so the pipeline's own environment isn't needed.
 """

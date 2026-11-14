@@ -3,13 +3,14 @@
 // schools.json (pipeline/school_insights.py), with the 2021 Census figures from
 // insights.json. Charts are inline SVG and HTML, as on the Census Insights page.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed } from "./catalogue.js";
 import { cellStyle, fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
+import { buildToc } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
-  fetch(`/schools.json?v=${__SCHOOLS_VERSION__}`).then((r) => r.json()),
-  fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json()),
-]);
+  loadJSON(`/schools.json?v=${__SCHOOLS_VERSION__}`),
+  loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`),
+]).catch(loadFailed);
 const YEARS = D.years.map(String); // test years: 2018, 2019, 2022-2025
 const PRELIM = new Set(D.preliminary.map(String));
 const TESTS = D.tests;
@@ -31,8 +32,9 @@ const METHODS = { nearest: "Nearest schools", inside: "Schools inside" };
 const TYPES = ["Public", "Catholic"];
 const TYPE_COLOR = { Public: "#2a78d6", Catholic: "#c2410c" };
 const RISE = DIVERGING[5], FALL = DIVERGING[1], INK = "#1a1a19";
-// Pairs of test years, averaged for the changes: 2018-19, 2022-23, 2024-25.
-const PERIODS = [0, 2, 4].map((k) => YEARS.slice(k, k + 2));
+// Pairs of test years, averaged for the changes: the first two (2018-19, before the closures)
+// and the last four as two pairs (2022-23 and 2024-25 until the file gains a year).
+const PERIODS = [YEARS.slice(0, 2), YEARS.slice(-4, -2), YEARS.slice(-2)];
 const PAIRS = [[0, 2], [0, 1], [1, 2]];
 const nbhd = D.nbhd, S = D.schools, NS = S.number.length;
 const censusMeasures = Object.keys(CENSUS).filter((m) => census.measures[m]?.values["2021"]);
@@ -225,7 +227,7 @@ const nbRank = (vs) => {
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   writeHash();
-});
+}, undefined, nbhd.map((n) => n.name));
 // A neighbourhood's name, which finds it on the map; a school's finds its neighbourhood.
 const nameLink = (i, n = escapeHTML(nbhd[i].name)) => `<button type="button" class="nm" data-nb="${i}" title="Find ${n} on the map">${n}</button>`;
 function renderMap() {
@@ -480,7 +482,7 @@ function renderCorr() {
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
   }).join("");
-  $("census-lede").innerHTML = `The correlation across the 158 neighbourhoods between their ${y} ${NAMES[m].toLowerCase()} (${METHODS[state.method].toLowerCase()}) and each 2021 Census measure on the Census Insights page. Choose one to see its neighbourhoods.`;
+  $("census-lede").innerHTML = `The correlation across the ${v.filter((x) => x != null).length} neighbourhoods with a figure between their ${y} ${NAMES[m].toLowerCase()} (${METHODS[state.method].toLowerCase()}) and each 2021 Census measure on the Census Insights page. Choose one to see its neighbourhoods.`;
   renderScatter();
 }
 // The explorer's menu: the schools' figures, then the census measures.
@@ -593,3 +595,4 @@ function render() {
   writeHash();
 }
 render();
+buildToc();

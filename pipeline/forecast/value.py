@@ -66,6 +66,12 @@ DEMOGRAPHY = PIPELINE / "demography" / "nbhd.csv"
 NBHD_2006 = PIPELINE / "census" / "nbhd_2006.csv"
 TRREB = PIPELINE / "trreb"
 MIN_SALES = 10  # fewer in a window and a community has no market figure
+# The quarters of TRREB's medians around each census: Q1 to Q3, but Q4 for 2011 (the first
+# report) and Q1 and Q2 for 2026, which is what was published when the live forecast was made
+# (3 November 2026). Pinned, so a later quarter doesn't move a forecast already published.
+WINDOW = {2011: [4], 2026: [1, 2]}
+# The live forecast, frozen like the schools': written once, never rewritten.
+FROZEN = PIPELINE / "model" / "value_2026.csv"
 # The live table (docs/forecast-spec.md): the 2021 Census City median moved by TRREB's
 # May City median, and the range's allowance for the group's shift and the City's error.
 CITY_2021, TRREB_MAY = 900_000, {"2016": 595_000, "2021": 890_000, "2026": 885_000}
@@ -135,7 +141,16 @@ def live(market, L: dict, ids: list, ins: dict, hh: dict) -> None:
                         "value_2021": np.round(CITY_2021 * np.exp(L0)), "persistence": dollars(L0), "own_mean": dollars(own),
                         "own_mean_market": dollars(mkt), "low": dollars(R.min(axis=1) - SPREAD), "high": dollars(R.max(axis=1) + SPREAD),
                         "market_figure": m21 != 0})
-    out.to_csv(OUT / "value_live.csv", index=False)
+    text = out.to_csv(index=False, lineterminator="\n")
+    if not FROZEN.exists():
+        FROZEN.write_text(text, encoding="utf-8", newline="\n")
+        print(f"\nFroze the live forecast in {FROZEN}")
+    elif FROZEN.read_text(encoding="utf-8").replace("\r\n", "\n") != text:
+        was = pd.read_csv(FROZEN)
+        off = (out.own_mean / was.own_mean - 1).abs().max() if len(was) == len(out) else float("nan")
+        print(f"\nWARNING: {FROZEN.name} is a frozen forecast and a refit from today's inputs differs from it "
+              f"(own mean by up to {off:.1%}). It is kept as published; this run's table is in {OUT / 'value_live.csv'}.")
+    out.to_csv(OUT / "value_live.csv", index=False)  # this run's, for comparison; the pages read the frozen file
     print(f"\nLive 2021-2026: City ${city:,.0f}; market slope {slope:+.3f} (alpha {a:.3g}), "
           f"{int(out.market_figure.sum())} neighbourhoods with a market figure; median range width "
           f"{np.median(out.high / out.low - 1):.0%}")
@@ -200,7 +215,7 @@ def main() -> int:
     parent = pd.read_csv(TRREB / "nbhd_map.csv").set_index("nbhd").community.reindex([n["name"] for n in ins["nbhd"]])
 
     def standing(year: int) -> tuple[pd.Series, pd.Series]:
-        w = tc[(tc.year == year) & tc.q.isin([4] if year == 2011 else [1, 2, 3])]
+        w = tc[(tc.year == year) & tc.q.isin(WINDOW.get(year, [1, 2, 3]))]
         has = w[w.med.notna()]
         n = has.groupby("community").sales.sum()
         level = (np.log(has.med) * has.sales).groupby(has.community).sum() / n

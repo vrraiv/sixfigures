@@ -190,6 +190,12 @@ export class SearchIndex {
       .trim();
   }
 
+  // how many official addresses a street has (0 for a name that only appears in intersections)
+  size(id) {
+    const st = this.streets[id];
+    return st ? (st.count ??= st.nums.split(",").length) : 0;
+  }
+
   streetIds(text, { addressOnly = false } = {}) {
     const key = normalize(text);
     const ids = this.byFull.get(key) ?? this.byForm.get(key) ?? [];
@@ -220,6 +226,9 @@ export class SearchIndex {
       }
       return { status: "error", message: `DA ${uid} is not a City of Toronto dissemination area (2016 or 2021).` };
     }
+    if (new RegExp(`^(${POSTAL.source}|[a-z]\\d[a-z])$`, "i").test(text)) {
+      return { status: "error", kind: "postal", message: "Postal codes aren't in the City's address list. Type the street address, an intersection or a neighbourhood's name instead." };
+    }
     const ctx = this.parseContext(text);
     const outside = (o) => ({ status: "error", message: `That looks like an address in ${title(o)}. This map covers the City of Toronto only.` });
     if (ctx.outside) return outside(ctx.outside);
@@ -237,9 +246,11 @@ export class SearchIndex {
     if (/^\d/.test(q)) return this.address(q, muni);
     const ids = this.streetIds(q);
     if (ids.length) {
-      return { status: "error", message: `Add a house number, e.g. "100 ${this.allNames[ids[0]]}", or a cross street, e.g. "${this.allNames[ids[0]]} & …".` };
+      // "yonge" is Yonge St before Yonge Blvd: the street with the most addresses
+      const name = this.allNames[[...ids].sort((a, b) => this.size(b) - this.size(a))[0]];
+      return { status: "error", kind: "street", message: `Add a house number, e.g. "100 ${name}", or a cross street, e.g. "${name} & …".` };
     }
-    return { status: "error", message: "Enter a street address (e.g. 100 Queen St W) or an intersection (e.g. Yonge & Bloor)." };
+    return { status: "error", kind: "unknown", message: "No street address, intersection or neighbourhood matches that. This search knows the City's official addresses (100 Queen St W), intersections (Yonge & Bloor), neighbourhood names and DA numbers; not businesses, landmarks or postal codes." };
   }
 
   address(q, muni) {
@@ -344,12 +355,15 @@ export class SearchIndex {
     if (!m) return [];
     const [, num, prefix] = m;
     const p = normalize(prefix);
-    const out = [];
+    let out = [];
     const seen = new Set();
-    // formKeys is sorted, so matches for a prefix are contiguous.
+    // formKeys is sorted, so matches for a prefix are contiguous. Up to SCAN matching streets are
+    // read, and the ones with the most addresses are offered first: "100 Yonge" is Yonge St
+    // before Yonge Blvd, where the alphabet would put the boulevard on top.
+    const SCAN = 200;
     let lo = 0, hi = this.formKeys.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (this.formKeys[mid] < p) lo = mid + 1; else hi = mid; }
-    for (let i = lo; i < this.formKeys.length && this.formKeys[i].startsWith(p) && out.length < limit; i++) {
+    for (let i = lo; i < this.formKeys.length && this.formKeys[i].startsWith(p) && seen.size < SCAN; i++) {
       for (const id of this.byForm.get(this.formKeys[i])) {
         if (id >= this.streets.length || seen.has(id)) continue;
         seen.add(id);
@@ -358,12 +372,12 @@ export class SearchIndex {
           const key = `${r.num} ${st.name}|${r.muni}`;
           if (r.key === num && (!muni || r.muni === muni) && !seen.has(key)) {
             seen.add(key);
-            out.push({ text: `${r.num} ${st.name}${muni ? ", " + muni : ""}`, label: `${r.num} ${st.name}`, detail: r.muni });
+            out.push({ text: `${r.num} ${st.name}${muni ? ", " + muni : ""}`, label: `${r.num} ${st.name}`, detail: r.muni, size: this.size(id) });
           }
         }
-        if (out.length >= limit) break;
       }
     }
+    out = out.sort((a, b) => b.size - a.size).slice(0, limit).map(({ size, ...s }) => s);
     // Same address in several former municipalities: say which is which.
     const counts = out.reduce((c, s) => c.set(s.label, (c.get(s.label) ?? 0) + 1), new Map());
     for (const s of out) if (counts.get(s.label) > 1) s.text = `${s.label}, ${s.detail}`;
@@ -373,4 +387,19 @@ export class SearchIndex {
 
 function title(s) {
   return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Names (the City's neighbourhoods) matching what was typed: the indices of an exact match if
+// there is one, else of the names with a word that starts with it ("riverdale" finds North and
+// South Riverdale), at most `limit`. Punctuation and case don't count.
+const plain = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+// exactOnly: only a whole name counts (for text that is also a street: "yonge" is the street,
+// not the five neighbourhoods with Yonge in their names; "danforth" is the neighbourhood).
+export function matchNames(query, names, limit = 8, exactOnly = false) {
+  const q = plain(query);
+  if (q.length < 3) return [];
+  const keys = names.map(plain);
+  const exact = keys.flatMap((k, i) => (k === q ? [i] : []));
+  if (exact.length || exactOnly) return exact;
+  return keys.flatMap((k, i) => (` ${k}`.includes(` ${q}`) ? [i] : [])).slice(0, limit);
 }

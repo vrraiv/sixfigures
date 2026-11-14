@@ -1,7 +1,8 @@
 // The School Forecasts page: each neighbourhood's forecast Grade 3 and Grade 6 score with
 // its range, and the backtests (docs/forecast-spec.md), from forecasts.json.
 import { seg } from "./charts.js";
-import { $, drawMap, escapeHTML, fmtPct, fmtPts, fmtShare, initTip, load, marksNote, nbFromHash, pickBar, rangeList, rungName, scatter, scatterKey, signed } from "./forecasts.js";
+import { $, drawMap, escapeHTML, fmtPct, fmtPts, fmtShare, initTip, load, marksNote, nbFromHash, own, pickBar, rangeList, rungName, scatter, scatterKey, signed } from "./forecasts.js";
+import { buildToc } from "./nbtools.js";
 
 const D = await load();
 const GRADES = { g3: "Grade 3", g6: "Grade 6" };
@@ -17,7 +18,7 @@ const schoolYear = (y) => `${y - 1}–${String(y).slice(2)}`;
 const dashYear = (s) => s.replace("-", "–");
 
 const hash = new URLSearchParams(location.hash.slice(1));
-const state = { g: GRADES[hash.get("g")] ? hash.get("g") : "g3", sort: hash.get("s") === "name" ? "name" : "pred", filter: "", nb: nbFromHash(D, hash.get("nb")) };
+const state = { g: own(GRADES, hash.get("g")) ? hash.get("g") : "g3", sort: hash.get("s") === "name" ? "name" : "pred", filter: "", nb: nbFromHash(D, hash.get("nb")) };
 const writeHash = () => {
   const h = new URLSearchParams({ g: state.g, s: state.sort });
   if (state.nb != null) h.set("nb", D.nbhd[state.nb].id);
@@ -41,7 +42,8 @@ function renderForecast() {
   drawMap($("nb-map"), $("map-key"), D, vals, (v) => `${Math.round(v)}%`, tip, `Map of the neighbourhoods by forecast ${name} score, ${L.target}`);
   $("map-lede").innerHTML = `Each neighbourhood's forecast ${name} score for ${L.target} (the ${schoolYear(L.target)} school year): the share of fully participating students at the provincial standard, as the mean of reading, writing and math, `
     + `averaged over its schools with their ${dashYear(L.enrolment)} enrolment. Ridge regression, fitted on every one-year change up to ${L.origin}, forecasts each school; the City's ${L.origin} level carries over. `
-    + `${L.nbhd.length} neighbourhoods have a school with a ${name} score in ${L.origin}; the rest are hatched. Made on 3 November 2026. Classes hold about equal numbers of neighbourhoods.`;
+    + `${L.nbhd.length} neighbourhoods have a school with a ${name} score in ${L.origin}; the rest are hatched. Made on 3 November 2026. Classes hold about equal numbers of neighbourhoods.`
+    + (L.implied_change == null ? "" : ` Taken together the forecasts sit ${Math.abs(L.implied_change).toFixed(1)} points ${L.implied_change >= 0 ? "above" : "below"} the same schools' ${L.origin} scores: the model forecasts where each school stands, not the City's level, and that small ${L.implied_change >= 0 ? "rise" : "fall"} comes from its arithmetic, not from a view that results will ${L.implied_change >= 0 ? "improve" : "decline"}. Read a neighbourhood's forecast against the others' rather than against its own last score.`);
   markPick();
   renderList();
   $("list-lede").innerHTML = `The bar is the 80% range: the forecast ± ${fmtPts(r.more, 1)} points, or ± ${fmtPts(r.one, 1)} where the neighbourhood has one school `
@@ -120,3 +122,4 @@ function render() {
   writeHash();
 }
 render();
+buildToc();

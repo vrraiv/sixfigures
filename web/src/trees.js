@@ -2,15 +2,15 @@
 // summer surface temperature by neighbourhood, from trees.json (pipeline/trees_insights.py),
 // with the outlines and 2021 Census figures from insights.json. No map tiles.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
-import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
+import { BI, INCOME as INCOMES, biKey, breaks, breaksAboutZero, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
-  fetch(`/trees.json?v=${__TREES_VERSION__}`).then((r) => r.json()),
-  fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json()),
-]);
+  loadJSON(`/trees.json?v=${__TREES_VERSION__}`),
+  loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`),
+]).catch(loadFailed);
 const nbhd = census.nbhd, N = nbhd.length, INK = "#1a1a19", NB = D.nbhd;
 const GREENS = ["#e3f1dc", "#bfdfae", "#8fc67c", "#5ea852", "#357f34", "#1b5221"];
 // cool to hot, for surface temperature (classes, not centred on zero)
@@ -58,7 +58,7 @@ const M = {
     more: "Further from 40%", less: "Closer to 40%", bad: true, gap: "x", da: false,
     pool: (idx) => sum(idx.map((i) => NB.gap_ha[i])), poolNote: "the fifth's neighbourhoods' gaps added up" },
   chg: { label: "Canopy change against the city's, 2008 to 2018 (points)", short: "Canopy change", fmt: (v) => `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)} pts`,
-    axis: (v) => `${sign(+v.toFixed(0))}${Math.abs(v).toFixed(0)}`, ramp: GAIN, more: "Gained canopy against the city", less: "Lost canopy against the city", gap: "pts", da: false,
+    axis: (v) => `${sign(+v.toFixed(0))}${Math.abs(v).toFixed(0)}`, ramp: GAIN, about0: true, more: "Gained canopy against the city", less: "Lost canopy against the city", gap: "pts", da: false,
     pool: W(NB.chg, NB.area_ha), poolNote: "weighted by area; tree class in both years" },
 };
 const vals = (m = state.m) => NB[m];
@@ -68,9 +68,12 @@ function fewPasses() {
   const most = Math.max(...NB.scenes);
   const few = nbhd.map((n, i) => ({ name: n.name, n: NB.scenes[i] })).filter((x) => x.n < most);
   if (!few.length) return "";
-  const names = few.map((x) => `${escapeHTML(x.name)} (${x.n})`);
+  // named where two or more passes are missing; the ones a single pass short are counted
+  const short = few.filter((x) => x.n < most - 1).sort((x, y) => x.n - y.n), one = few.length - short.length;
+  const names = [...short.map((x) => `${escapeHTML(x.name)} (${x.n})`), ...(one && short.length ? [`${one} other${one > 1 ? "s" : ""} (${most - 1})`] : [])];
+  if (!short.length) return ` ${one} neighbourhood${one > 1 ? "s are" : " is"} covered by ${most - 1} passes rather than the ${most} behind the others' figures.`;
   const listed = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
-  return ` Fewer passes cover ${listed} than the ${most} behind every other neighbourhood's figure.`;
+  return ` Fewer passes cover ${listed} than the ${most} behind every other neighbourhood's figure: the satellite's path clips the city's corners, and a pass counts only where it covers half of a neighbourhood.`;
 }
 const income = (m = state.inc) => census.measures[m].values["2021"];
 const incomeUp = (m = state.inc) => m !== "lim_at";
@@ -84,7 +87,7 @@ const nbIndex = (id) => {
   return k < 0 ? null : k;
 };
 const state = {
-  m: M[hash.get("m")] ? hash.get("m") : "canopy",
+  m: own(M, hash.get("m")) ? hash.get("m") : "canopy",
   ov: ["measure", "both", "income"].includes(hash.get("ov")) ? hash.get("ov") : "both",
   inc: INCOME.includes(hash.get("inc")) ? hash.get("inc") : "med_hh_tot",
   sx: hash.get("sx"),
@@ -188,7 +191,8 @@ addressFinder($("addr-find"), {
 function renderMap() {
   const def = M[state.m], vs = vals(), inc = income(), order = rankOrder(vs);
   const rank = new Map(order.map((i, k) => [i, k + 1]));
-  const m6 = breaks(vs), inc6 = breaks(inc), m3 = breaks(vs, 3), inc3 = breaks(inc, 3);
+  // a change's classes meet at zero (red below, green from zero up), not at the median neighbourhood
+  const m6 = def.about0 ? breaksAboutZero(vs) : breaks(vs), inc6 = breaks(inc), m3 = breaks(vs, 3), inc3 = breaks(inc, 3);
   const ramp = def.ramp.slice(def.ramp.length - m6.edges.length - 1), blues = COLORS.slice(COLORS.length - inc6.edges.length - 1);
   const biCell = (i) => {
     let ic = cls(inc3.edges, inc[i]);
@@ -222,6 +226,7 @@ function renderMap() {
     $("map-key").innerHTML = rangeLabels(b.edges, b.zero, f).map((l, k) => `<li><span class="key-sq" style="background:${colours[k]}"></span>${escapeHTML(l)}</li>`).join("")
       + (state.ov === "income" && inc.some((v) => v == null) ? `<li><span class="key-sq hatch"></span>No figure</li>` : "");
     $("map-lede").innerHTML = state.ov === "income" ? `${escapeHTML(incName)}, 2021 Census, in sixths of the neighbourhoods. Hover or tap for the tree and heat figures too.`
+      : def.about0 && m6.edges.includes(0) ? `${escapeHTML(def.label)}: the neighbourhoods that fell behind the city in thirds (reds), and those that kept pace or gained in thirds (greens).`
       : `${escapeHTML(def.label)}, in sixths of the neighbourhoods.${def.hot ? fewPasses() : ""}`;
   }
   markPick();
@@ -323,7 +328,7 @@ $("in-nb").addEventListener("change", (e) => {
 new IntersectionObserver(async (entries, obs) => {
   if (!entries.some((e) => e.isIntersecting)) return;
   obs.disconnect();
-  DA = await fetch(`/trees_da.json?v=${__TREES_DA_VERSION__}`).then((r) => r.json());
+  DA = await loadJSON(`/trees_da.json?v=${__TREES_DA_VERSION__}`);
   for (const m of Object.keys(M)) if (M[m].da !== false) daBreaks[m] = breaks(DA.nbhd.flatMap((n) => n[m]));
   renderInside();
 }, { rootMargin: "600px 0px" }).observe($("inside"));

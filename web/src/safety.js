@@ -3,15 +3,15 @@
 // with the neighbourhood outlines and 2021 Census figures from insights.json. No map
 // tiles: the map is the neighbourhoods' SVG outlines, as on the other Insights pages.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, incomeFifths, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
-  fetch(`/safety.json?v=${__SAFETY_VERSION__}`).then((r) => r.json()),
-  fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json()),
-]);
+  loadJSON(`/safety.json?v=${__SAFETY_VERSION__}`),
+  loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`),
+]).catch(loadFailed);
 const nbhd = census.nbhd, N = nbhd.length, LAST = D.last, INK = "#1a1a19";
 // Crime is drawn in a red ramp so it never reads as income (blue).
 const REDS = ["#fbe3df", "#f5b8ae", "#ea8a7d", "#d75e52", "#b03a32", "#74201c"];
@@ -30,7 +30,8 @@ const lcName = (c) => CAT[c].label[0].toLowerCase() + CAT[c].label.slice(1);
 const years = (c) => Object.keys(D.counts[c]).map(Number);
 
 // ---- periods and values ---------------------------------------------------------------
-const WINDOWS = [[2006, 2010], [2011, 2015], [2016, 2020], [2021, 2025]];
+// five-year periods on the census cycle (2006-10, 2011-15, ...), up to the last complete one
+const WINDOWS = Array.from({ length: Math.floor((LAST - 2005) / 5) }, (_, k) => [2006 + 5 * k, 2010 + 5 * k]);
 function periods(c) {
   const ys = years(c);
   const ws = WINDOWS.filter(([a, b]) => ys.includes(a) && ys.includes(b)).map(([a, b]) => [`${a}-${b}`, `${a}–${String(b).slice(2)}`]);
@@ -69,7 +70,7 @@ const nbIndex = (id) => {
   return k < 0 ? null : k;
 };
 const state = {
-  m: CAT[hash.get("m")] ? hash.get("m") : "assault",
+  m: own(CAT, hash.get("m")) ? hash.get("m") : "assault",
   p: hash.get("p"),
   rate: hash.get("r") !== "0",
   ov: ["crime", "both", "income"].includes(hash.get("ov")) ? hash.get("ov") : "both",

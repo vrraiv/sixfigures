@@ -208,6 +208,15 @@ a { color: var(--accent); }
   background: var(--ink); color: #fff; font-size: 13px; box-shadow: var(--shadow);
 }
 .toast a { color: #9ec5f4; }
+.toast button { font: inherit; color: #9ec5f4; background: none; border: 0; padding: 0 0 0 4px; text-decoration: underline; cursor: pointer; }
+
+/* a page whose data didn't load says so (catalogue.js loadFailed) */
+.load-error {
+  margin: 16px auto; max-width: 560px; padding: 10px 14px; border-left: 3px solid #d03b3b; border-radius: 6px;
+  background: #fff; color: var(--ink); font-size: 14px; box-shadow: var(--shadow);
+}
+.load-error button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+.map-wrap > .load-error { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6; margin: 0; width: max-content; max-width: calc(100% - 24px); }
 
 /* snip overlay: dim the map, keep the selected rectangle clear */
 .snip { position: absolute; inset: 0; z-index: 5; cursor: crosshair; touch-action: none; background: rgba(26, 26, 25, 0.35); }
@@ -370,6 +379,29 @@ a { color: var(--accent); }
   body:not(.doc) .site-sub, body:not(.doc) .bar .sub { display: none; }
 }
 @media (max-width: 380px) { .site-more { display: none; } }
+/* A phone held sideways is wide but very short: at full size the site's links and the page's
+   controls took four fifths of it. On the map pages they fold as on a narrow phone (the links
+   behind Menu, the section's pages beside the name) and the controls share one line, so the map
+   has most of the screen. */
+@media (max-height: 480px) and (orientation: landscape) {
+  body.map-page .site { padding: 4px 16px; gap: 2px 14px; }
+  body.map-page .site-title { font-size: 16px; }
+  body.map-page .site-mark { width: 40px; height: 29px; }
+  body.map-page .site-sub, body.map-page .bar .sub { display: none; }
+  body.map-page .site.js .site-menu { display: block; order: 2; padding: 3px 10px; }
+  body.map-page .site.js:not(.open) .site-nav { display: none; }
+  body.map-page .site-nav { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; }
+  body.map-page .site-local { order: 1; flex: 0 1 auto; margin: 0; padding: 0; background: none; border: 0; }
+  body.map-page .site-local .site-label { display: none; }
+  body.map-page .bar { padding: 6px 16px; gap: 8px; flex-wrap: nowrap; }
+  body.map-page .bar h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  body.map-page .search { flex: 1 1 180px; max-width: none; }
+  body.map-page .measure:not(.changeby) { flex: 1 1 160px; min-width: 0; }
+  body.map-page .measure:not(.changeby) select { width: 100%; min-width: 0; }
+  body.map-page .viewctl .changeby select { max-width: 150px; }
+  body.map-page .map-screen { min-height: 300px; }
+  body.map-page .legend { max-height: calc(100% - 24px); overflow: auto; }
+}
 body.with-nav { grid-template-rows: auto auto 1fr auto; }
 /* The map pages (census/, 2011/): the site header, the controls and the map fill the screen
    between them, so the map gets every line the controls leave; the footer is below, a scroll
@@ -665,6 +697,12 @@ body.doc { display: block; height: auto; }
 .ch-hit:hover { background: rgba(26, 26, 25, 0.06); }
 .ch-zero { position: absolute; left: 0; right: 0; height: 1px; background: #9a9a93; }
 .ch-xticks { position: relative; height: 16px; margin: 3px 0 0 44px; font-size: 11px; color: var(--ink-3); }
+/* a chart's figures as a table (charts.js chart), closed until asked for */
+.ch-data { margin: 6px 0 0; font-size: 12px; }
+.ch-data summary { width: max-content; padding: 2px 0; color: var(--ink-3); cursor: pointer; }
+.ch-data summary:hover, .ch-data summary:focus-visible { color: var(--accent); }
+.ch-data .tbl-wrap { max-height: 260px; overflow: auto; margin: 4px 0 0; }
+.ch-data .tbl { font-size: 12px; }
 .ch-xticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
 .conc-box { height: 180px; max-width: 640px; }
 .conc .ch-xticks { max-width: 596px; }
@@ -848,6 +886,13 @@ section[hidden] { display: none; }
 .toc a { padding: 3px 10px; color: var(--ink-2); text-decoration: none; background: #fff; border: 1px solid #d6d6cf; border-radius: 999px; white-space: nowrap; }
 .toc a:hover, .toc a:focus-visible { color: var(--accent); border-color: var(--accent); }
 .toc:empty { display: none; }
+/* back to the contents list from anywhere down the page (nbtools.js buildToc) */
+.toc-top {
+  position: fixed; right: 12px; bottom: 12px; z-index: 6; padding: 8px 12px; font: inherit; font-size: 13px; color: var(--ink);
+  background: var(--panel); border: 1px solid #d6d6cf; border-radius: 999px; box-shadow: var(--shadow); cursor: pointer;
+}
+.toc-top[hidden] { display: none; }
+.toc-top:hover, .toc-top:focus-visible { color: var(--accent); border-color: var(--accent); }
 /* the measure menu sticks only while its own sections are on screen */
 .bar-scope > .ins-section:last-of-type { border-bottom: 1px solid var(--rule); }
 /* the picked-neighbourhood bar when nothing is picked: a hint, in its usual place */
@@ -906,6 +951,15 @@ section[hidden] { display: none; }
   .toc a { padding: 7px 12px; }
   .inline-select { padding: 8px 8px; }
   .seg button { min-height: 36px; }
+  /* a finger needs more than a mouse: sort buttons in table heads, boxes and radios, their labels */
+  .tbl thead th button { min-height: 32px; padding-top: 6px; padding-bottom: 6px; }
+  .nx-themes input, .overlay-opts input, .snap-opts input { width: 22px; height: 22px; }
+  .nx-themes label, .overlay-opts label, .snap-opts label, .toggle { min-height: 32px; display: inline-flex; align-items: center; gap: 6px; }
+  .legend .lg-cls { min-height: 28px; }
+  .ch-data summary { padding: 8px 0; }
+  /* the charts' own labels, a size up */
+  .sc-ytick, .sc-xticks, .ch-xticks, .tr-xticks, .sp-ticks, .dist-axis, .move, .card-delta { font-size: 12px; }
+  .card-years { font-size: 11px; }
 }
 
 /* ---- Forecasts ---- */
@@ -1121,6 +1175,9 @@ body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
 .home-key { display: flex; flex-wrap: wrap; gap: 4px 12px; list-style: none; margin: 0; padding: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .home-key li { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .home-key span { width: 12px; height: 12px; border-radius: 2px; }
+.home-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin-top: 8px; color: var(--ink-2); }
+.home-pick select { font: inherit; padding: 5px 8px; max-width: 100%; color: var(--ink); background: #fff; border: 1px solid #b9b9b2; border-radius: 6px; }
+.home-pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .home-ways, .home-guide, .home-tips { padding: 28px 0 0; border-top: 1px solid var(--rule); margin-top: 4px; }
 .home-ways { margin-top: 0; }

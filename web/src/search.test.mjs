@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { SearchIndex } from "./search.js";
+import { SearchIndex, matchNames } from "./search.js";
 
 const idx = new SearchIndex(JSON.parse(readFileSync(new URL("../public/search.json", import.meta.url))));
 const dauids = (r) => r.results.flatMap((h) => h.das.map((i) => idx.das[i][0]));
@@ -114,6 +114,32 @@ test("DAUID lookup", () => {
   assert.equal(idx.resolve("35204576").status, "match");
   assert.equal(idx.resolve("DA 35204576").status, "match");
   assert.match(idx.resolve("35000001").message ?? "", /.*/);
+});
+
+test("a bare street name and a typeahead prefer the street with the most addresses", () => {
+  assert.match(idx.resolve("yonge").message, /100 Yonge St"/);
+  assert.equal(idx.suggest("100 Yonge")[0].label, "100 Yonge St");
+});
+
+test("postal codes and unknown places say what the search knows", () => {
+  assert.match(idx.resolve("M5V 2T6").message, /Postal codes/);
+  assert.match(idx.resolve("m5v").message, /Postal codes/);
+  assert.match(idx.resolve("CN Tower").message, /not businesses, landmarks/);
+  assert.equal(idx.resolve("CN Tower").kind, "unknown");
+});
+
+test("neighbourhood names: an exact match alone, else the names with a word that starts with it", () => {
+  const names = ["North Riverdale", "South Riverdale", "Annex", "Danforth", "Danforth East York", "L'Amoreaux West", "St Lawrence-East Bayfront-The Islands"];
+  assert.deepEqual(matchNames("annex", names), [2]);
+  assert.deepEqual(matchNames("Danforth", names), [3]); // the exact name, not Danforth East York too
+  assert.deepEqual(matchNames("riverdale", names), [0, 1]);
+  assert.deepEqual(matchNames("lamoreaux", names), []);
+  assert.deepEqual(matchNames("l'amoreaux", names), [5]);
+  assert.deepEqual(matchNames("bayfront", names), [6]);
+  assert.deepEqual(matchNames("riverdale", names, 8, true), []); // a whole name only
+  assert.deepEqual(matchNames("danforth", names, 8, true), [3]);
+  assert.deepEqual(matchNames("an", names), []); // too short to mean anything
+  assert.deepEqual(matchNames("verdale", names), []); // the start of a word, not its middle
 });
 
 test("typeahead offers only official addresses", () => {

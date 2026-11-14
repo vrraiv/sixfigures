@@ -1,17 +1,18 @@
 // Shared by the Data Explorer's views (explorer.js and explorer-one/-two/-three.js): the
 // catalogue, loading a source's data, formatting by unit, the current selection, and the
 // small statistics and chart pieces more than one view uses.
-import { COLORS, escapeHTML, ordinal } from "./catalogue.js";
+import { COLORS, escapeHTML, ordinal, loadJSON, loadFailed } from "./catalogue.js";
 import { quantile, spearman } from "./charts.js";
 import { nbMap } from "./nbtools.js";
 
 export const V = __EXPLORER_VERSION__;
-export const C = await fetch(`/explorer/catalogue.json?v=${V}`).then((r) => r.json());
+export const C = await loadJSON(`/explorer/catalogue.json?v=${V}`).catch(loadFailed);
 export const nbhd = C.nbhd, N = nbhd.length, ORANGE = "#c2410c", INK = "#1a1a19";
 export const DEF = Object.fromEntries(C.measures.map((m) => [m.id, m]));
 export const SRC = Object.fromEntries(C.sources.map((s) => [s.key, s]));
 const cache = {};
-export const load = (src) => (cache[src] ??= fetch(`/explorer/${src}.json?v=${V}`).then((r) => r.json()));
+// a failed load isn't kept: the next call asks again
+export const load = (src) => (cache[src] ??= loadJSON(`/explorer/${src}.json?v=${V}`).catch((err) => { delete cache[src]; throw err; }));
 export const columns = async (id) => (await load(DEF[id].source))[id.split(".")[1]];
 export const loadAll = async () => Object.fromEntries(await Promise.all(C.sources.map((s) => load(s.key).then((data) => [s.key, data]))));
 

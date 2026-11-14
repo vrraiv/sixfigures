@@ -16,8 +16,8 @@
     <section class="bar" aria-label="This page">
       <h1>Toronto income and housing <span class="sub">by dissemination area, 2016 and 2021 censuses</span></h1>
       <form id="search" class="search" role="search" autocomplete="off">
-        <label for="q" class="visually-hidden">Find a Toronto address, intersection or DA</label>
-        <input id="q" type="search" placeholder="Address or intersection, e.g. 100 Queen St W"
+        <label for="q" class="visually-hidden">Find a Toronto address, intersection, neighbourhood or DA</label>
+        <input id="q" type="search" placeholder="Address, intersection or neighbourhood"
                role="combobox" aria-autocomplete="list" aria-controls="suggest" aria-expanded="false"
                aria-describedby="search-status" enterkeyhint="search" spellcheck="false" />
         <button type="submit">Find</button>
@@ -94,13 +94,14 @@
         // the app script and the basemap style (vite.config.js fills in the tile
         // source and the figures version). The tiles: works out the opening view
         // and the tiles in it.
-        (function (t, fv) {
+        (function (t, fv, bv) {
           var link = function (href) {
             var l = document.createElement("link");
             l.rel = "preload"; l.as = "fetch"; l.crossOrigin = "anonymous"; l.href = href;
             document.head.appendChild(l);
           };
           var h = location.hash, m = /[#&]m=([a-z0-9_]+)/.exec(h), y = /[#&]y=2016(&|$)/.test(h) ? "2016" : "2021";
+          link("/breaks.json?v=" + bv); // the classes and city figures: main.js waits for it before anything else
           link("/data/figures/" + y + "/common.json?v=" + fv);
           link("/data/figures/" + y + "/" + (m ? m[1] : "med_hh_tot") + ".json?v=" + fv);
           var el = document.getElementById("map");
@@ -123,7 +124,7 @@
               link("/" + t.tiles.replace("{z}", z).replace("{x}", x).replace("{y}", y));
             }
           }
-        })(__DA_TILES__, __FIGURES_VERSION__);
+        })(__DA_TILES__, __FIGURES_VERSION__, __BREAKS_VERSION__);
       </script>
       <div class="crosshair" aria-hidden="true"></div>
       <div id="pinchip" class="pinchip" hidden></div>

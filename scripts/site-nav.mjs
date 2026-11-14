@@ -93,6 +93,32 @@ export const pageTarget = (html) => (html.includes('<section class="bar"')
 // The page's own title, then the site's.
 export const siteTitle = (html) => html.replace(/<title>([^<]*)<\/title>/, (_, t) => `<title>${t.includes(SITE.title) ? t : `${t} · ${SITE.title}`}</title>`);
 
+// ---- what a shared link shows: the page's address, title and description, and the site's card ----
+// A link pasted into a message or a post is drawn from these: without them it is a bare address.
+// The canonical address is the page's own, without the choices a link keeps after "#".
+export const ORIGIN = "https://sixfigures.vikramrai.com";
+export const CARD = { src: "/social-card.png", width: 1200, height: 630, alt: "Toronto's 158 neighbourhoods, shaded by median household income" };
+const attr = (s) => s.replace(/&(?!amp;|lt;|gt;|quot;|#)/g, "&amp;").replace(/"/g, "&quot;");
+export function socialTags(html, path) {
+  const title = html.match(/<title>([^<]*)<\/title>/)?.[1], desc = html.match(/<meta name="description" content="([^"]*)"/)?.[1];
+  if (!title || !desc) throw new Error(`${path}: a page needs a <title> and a meta description`);
+  const url = `${ORIGIN}${path}`;
+  const tags = [
+    `<link rel="canonical" href="${url}" />`,
+    `<meta property="og:site_name" content="${SITE.title}" />`,
+    `<meta property="og:type" content="website" />`,
+    `<meta property="og:url" content="${url}" />`,
+    `<meta property="og:title" content="${attr(title)}" />`,
+    `<meta property="og:description" content="${desc}" />`,
+    `<meta property="og:image" content="${ORIGIN}${CARD.src}" />`,
+    `<meta property="og:image:width" content="${CARD.width}" />`,
+    `<meta property="og:image:height" content="${CARD.height}" />`,
+    `<meta property="og:image:alt" content="${attr(CARD.alt)}" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+  ];
+  return html.replace("</head>", `  ${tags.join("\n    ")}\n  </head>`);
+}
+
 // ---- the footer: a disclaimer above each page's own sources, the author's links below ----
 export const DISCLAIMER = "Any views expressed, or errors within, are those of the author and the author alone.";
 // Simple Icons' marks (CC0), 24 x 24

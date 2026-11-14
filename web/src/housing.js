@@ -4,13 +4,14 @@
 // (pipeline/housing_insights.py), with the 2021 Census figures from insights.json.
 // Charts are inline SVG and HTML, as on the other Insights pages.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, key, pearson, quantile, rColor, seg, spark, spearman } from "./charts.js";
+import { buildToc } from "./nbtools.js";
 
 const [D, census] = await Promise.all([
-  fetch(`/housing.json?v=${__HOUSING_VERSION__}`).then((r) => r.json()),
-  fetch(`/insights.json?v=${__INSIGHTS_VERSION__}`).then((r) => r.json()),
-]);
+  loadJSON(`/housing.json?v=${__HOUSING_VERSION__}`),
+  loadJSON(`/insights.json?v=${__INSIGHTS_VERSION__}`),
+]).catch(loadFailed);
 const nbhd = D.nbhd, N = nbhd.length, INK = "#1a1a19";
 const RISE = DIVERGING[5], FALL = DIVERGING[1], LIGHT = COLORS[1], MID = COLORS[3], DARK = COLORS[5];
 const ORANGE = "#c2410c";
@@ -20,14 +21,17 @@ const fmtN = (v) => (v == null ? "—" : Math.round(v).toLocaleString("en-CA"));
 const fmtMoney = (v) => (v == null ? "—" : `$${Math.round(v).toLocaleString("en-CA")}`);
 const fmtPct1 = (v) => (v == null ? "—" : `${v.toFixed(1)}%`);
 const fmtChangePct = (a, b) => (a == null || b == null || !a ? "—" : `${sign(+((b / a - 1) * 100).toFixed(1))}${Math.abs((b / a - 1) * 100).toFixed(1)}%`);
-const LAST = 2025; // the last complete year in every source
+// The last complete year in every source: the year before the earliest one the file marks as
+// still filling in (housing_insights.py's `partial`), or the permits' last year if none is.
+const LAST = Math.min(...Object.values(D.partial ?? {}).filter((y) => y != null), D.permits.city.year.at(-1) + 1) - 1;
 const partial = (y) => +y > LAST;
 const yLabel = (y) => (partial(y) ? `${y} to date` : `${y}`);
 
 // ---- neighbourhood measures --------------------------------------------------------
 // Flows are summed over a period; levels are averaged; the rest are one figure.
 // Counts can be shown per 1,000 households at the census nearest the period's start.
-const WINDOWS = [[2001, 2005], [2006, 2010], [2011, 2015], [2016, 2020], [2021, 2025]];
+// five-year periods on the census cycle (2001-05, 2006-10, ...), up to the last complete one
+const WINDOWS = Array.from({ length: Math.floor((LAST - 2000) / 5) }, (_, k) => [2001 + 5 * k, 2005 + 5 * k]);
 const hhCensus = (a) => (a < 2014 ? "2011" : a < 2019 ? "2016" : "2021");
 const yearly = (block, key) => (y) => block[key][String(y)];
 const M = {
@@ -64,7 +68,7 @@ const nbIndex = (id) => {
   return k < 0 ? null : k;
 };
 const state = {
-  m: M[hash.get("m")] ? hash.get("m") : "created",
+  m: own(M, hash.get("m")) ? hash.get("m") : "created",
   p: hash.get("p"),
   rate: hash.get("r") !== "0",
   lag: ["0", "1", "2", "3"].includes(hash.get("lag")) ? hash.get("lag") : "1",
@@ -256,7 +260,7 @@ function breaks(vs) {
 const markPick = initPick($("nb-map"), $("map-pick"), () => state.nb, (i) => {
   state.nb = i;
   writeHash();
-});
+}, undefined, nbhd.map((n) => n.name));
 function renderMap() {
   const { vs, base } = values(), { edges: b, zero } = breaks(vs), order = rankOrder(vs);
   const rank = new Map(order.map((i, k) => [i, k + 1]));
@@ -294,15 +298,18 @@ function renderRanks() {
   }
   $("rank-body").hidden = false;
   const max = Math.max(...order.map((i) => Math.abs(vs[i])));
+  // A year isn't an amount: bars from zero would all be full (1928 and 2022 differ by 5%). They
+  // run from the earliest year to the latest instead, with a stub for the earliest.
+  const isYear = M[state.m].unit === "year", lo = Math.min(...order.map((i) => vs[i])), hi = Math.max(...order.map((i) => vs[i]));
   const row = (i) => {
-    const v = vs[i], w = (Math.abs(v) / max) * 100;
+    const v = vs[i], w = isYear ? 3 + ((v - lo) / (hi - lo || 1)) * 97 : (Math.abs(v) / max) * 100;
     return `<li><span class="rk">${order.indexOf(i) + 1}</span><button type="button" class="nm" data-nb="${i}" title="Find ${escapeHTML(nbhd[i].name)} on the map">${escapeHTML(nbhd[i].name)}</button>
       <span class="barcell" data-tip="${escapeHTML(`${nbhd[i].name}<br><b>${fmtV(v)}</b>`)}"><span class="bar-fill" style="width:${w.toFixed(1)}%${v < 0 ? `;background:${FALL}` : ""}"></span></span>
       <span class="vl">${fmtV(v)}</span><span class="move"></span></li>`;
   };
   $("rank-top").innerHTML = order.slice(0, 10).map(row).join("");
   $("rank-bottom").innerHTML = order.slice(-10).reverse().map(row).join("");
-  $("rank-lede").innerHTML = `${describe(base)}: ${order.length} neighbourhoods${order.length < N ? ` (${N - order.length} without a figure)` : ""}. Pick a name to find it on the map.`;
+  $("rank-lede").innerHTML = `${describe(base)}: ${order.length} neighbourhoods${order.length < N ? ` (${N - order.length} without a figure)` : ""}.${isYear ? ` The bars run from the earliest year (${lo}) to the latest (${hi}).` : ""} Pick a name to find it on the map.`;
   // concentration: the share of the City's total in the neighbourhoods with the most
   const raw = values(state.m, state.p, false).vs;
   const conc = $("conc");
@@ -407,7 +414,8 @@ function renderCorr() {
   const c = state.sx, xs = census.measures[c].values["2021"];
   const idx = nbhd.map((_, i) => i).filter((i) => xs[i] != null && vs[i] != null);
   const sx = idx.map((i) => xs[i]).sort((a, b) => a - b), sy = idx.map((i) => vs[i]).sort((a, b) => a - b);
-  const xa = sx[0], xb = quantile(sx, 0.99), ya = Math.min(0, sy[0]), yb = quantile(sy, 0.98);
+  // a year's axis starts at the earliest year, not at zero
+  const xa = sx[0], xb = quantile(sx, 0.99), ya = M[m].unit === "year" ? sy[0] : Math.min(0, sy[0]), yb = M[m].unit === "year" ? sy.at(-1) : quantile(sy, 0.98);
   const px = (v) => Math.min(100, Math.max(0, ((v - xa) / (xb - xa || 1)) * 100)), py = (v) => Math.min(100, Math.max(0, ((v - ya) / (yb - ya || 1)) * 100));
   const fx = (v) => (isMoney(c) ? `$${Math.round(v / 1000)}k` : `${Math.round(v)}%`);
   const fxl = (v) => (isMoney(c) ? fmtMoney(v) : fmtPct1(v));
@@ -463,3 +471,4 @@ renderCards();
 renderYears();
 renderContext();
 render();
+buildToc();

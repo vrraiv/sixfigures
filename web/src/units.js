@@ -24,4 +24,4 @@ export const fmtDiff = (d, v) => {
 };
 export const fmtDiffAxis = (d, v) => (d.unit === "money" && Math.abs(v) >= 1000 ? `${sign(Math.round(v))}$${+(Math.abs(v) / 1000).toFixed(Math.abs(v) < 10000 ? 1 : 0)}k` : fmtDiff(d, v));
 // a label inside a sentence: lower-case its first letter unless it is a name
-export const lc = (s) => (/^[A-Z][a-z]/.test(s) && !/^(Grade|Gr |Norway|John|Olivia|Ana|Airbnb|CMHC)/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
+export const lc = (s) => (/^[A-Z][a-z]/.test(s) && !/^(Grade|Gr |Norway|John|Olivia|Ana|Tory|Chow|Bail|Airbnb|CMHC|Shannon)/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);

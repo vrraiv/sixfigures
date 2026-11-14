@@ -20,6 +20,14 @@ export function breaks(vs, n = 6) {
   }
   return { edges: uniq(Array.from({ length: n - 1 }, (_, k) => quantile(s, (k + 1) / n))), zero: false };
 }
+// Six classes for a measure that is a change: three below zero and three from zero up, each
+// side in thirds of its own neighbourhoods, so the ramp's two hues meet at no change and not
+// at the median neighbourhood. Falls back to breaks() where a side has too few to split.
+export function breaksAboutZero(vs) {
+  const s = vs.filter((v) => v != null).sort((a, b) => a - b), neg = s.filter((v) => v < 0), pos = s.filter((v) => v >= 0);
+  const edges = [quantile(neg, 1 / 3), quantile(neg, 2 / 3), 0, quantile(pos, 1 / 3), quantile(pos, 2 / 3)];
+  return neg.length < 3 || pos.length < 3 || edges.some((e, k) => k && e <= edges[k - 1]) ? breaks(vs) : { edges, zero: false };
+}
 export const cls = (edges, v) => edges.filter((e) => v >= e).length;
 export const rankOrder = (vs) => vs.map((v, i) => [v, i]).filter(([v]) => v != null).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
 export function rangeLabels(edges, zero, f) {
@@ -37,13 +45,32 @@ export function biKey({ xName, xRanges, xArrow, yName, yRanges, yArrow }) {
 }
 
 
-// The contents list at the top of a long page: a link to each visible section that has an id.
-export function buildToc(nav) {
-  const secs = [...document.querySelectorAll("main section[id]")].filter((s) => !s.hidden && !s.closest("[hidden]"));
+// The contents list at the top of a long page: a link to each visible section with a heading.
+// With no nav given, the page's #toc, made at the top of <main> where the page has none. A
+// section without an id gets one from its heading's. Once the list has scrolled away, a
+// "Contents" button at the corner of the screen comes back to it: these pages run to many
+// screens on a phone, and the list is the only way around them.
+export function buildToc(nav = document.getElementById("toc")) {
+  const main = document.querySelector("main");
+  const secs = [...main.querySelectorAll("section")].filter((s) => s.querySelector("h2") && !s.hidden && !s.closest("[hidden]"));
+  if (!nav) {
+    if (secs.length < 3) return;
+    nav = Object.assign(document.createElement("nav"), { className: "toc", id: "toc" });
+    nav.setAttribute("aria-label", "On this page");
+    main.prepend(nav);
+  }
+  for (const s of secs) if (!s.id) s.id = `sec-${(s.getAttribute("aria-labelledby") ?? s.querySelector("h2").id ?? "").replace(/-h$/, "") || secs.indexOf(s)}`;
   nav.innerHTML = `<span class="toc-label">On this page</span>${secs.map((s) => `<a href="#${s.id}">${escapeHTML(s.dataset.toc ?? s.querySelector("h2").textContent)}</a>`).join("")}`;
   // the address holds the page's choices after "#", so jump by script and leave it alone
   if (nav.dataset.wired) return; // built again when the sections on show change
   nav.dataset.wired = "1";
+  const top = Object.assign(document.createElement("button"), { type: "button", className: "toc-top", textContent: "↑ Contents", hidden: true });
+  document.body.append(top);
+  top.addEventListener("click", () => {
+    nav.scrollIntoView({ behavior: "smooth", block: "center" });
+    nav.querySelector("a")?.focus({ preventScroll: true });
+  });
+  if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => { top.hidden = e.isIntersecting || e.boundingClientRect.top >= 0; }).observe(nav);
   nav.addEventListener("click", (e) => {
     const a = e.target.closest("a");
     if (!a) return;
@@ -81,6 +108,27 @@ export function incomeFifths(inc, up) {
   const idx = inc.map((_, i) => i).filter((i) => inc[i] != null);
   idx.sort((a, b) => (up ? inc[a] - inc[b] : inc[b] - inc[a]));
   return { idx, fifths: [0, 1, 2, 3, 4].map((q) => idx.slice(Math.round((q * idx.length) / 5), Math.round(((q + 1) * idx.length) / 5))) };
+}
+
+// The neighbourhoods with a figure in up to n groups of about equal numbers, lowest first, that
+// never split a tie: neighbourhoods with the same value are one group's, since an order among
+// them would be arbitrary. Each cut falls at the nearest end of a run of equal values, so a
+// measure with many zeros (cyclists killed or injured: most neighbourhoods have none) gives
+// fewer, larger groups rather than "fifths" that are all zero.
+export function tiedGroups(vs, n = 5) {
+  const idx = vs.map((_, i) => i).filter((i) => vs[i] != null).sort((a, b) => vs[a] - vs[b]);
+  const cuts = new Set();
+  for (let q = 1; q < n; q++) {
+    const k = Math.round((q * idx.length) / n);
+    if (k <= 0 || k >= idx.length) continue;
+    let lo = k, hi = k; // the run of values equal to the one before the cut is idx[lo..hi)
+    while (lo > 0 && vs[idx[lo - 1]] === vs[idx[k - 1]]) lo--;
+    while (hi < idx.length && vs[idx[hi]] === vs[idx[k - 1]]) hi++;
+    const at = vs[idx[k]] !== vs[idx[k - 1]] ? k : k - lo <= hi - k && lo > 0 ? lo : hi;
+    if (at > 0 && at < idx.length) cuts.add(at);
+  }
+  const edges = [0, ...[...cuts].sort((a, b) => a - b), idx.length];
+  return edges.slice(1).map((e, k) => idx.slice(edges[k], e));
 }
 
 // Ordinary least squares of ys on xs over the pairs where both are known.
