@@ -1,7 +1,7 @@
 // The site header, written into every page at build time (vite.config.js replaces the
 // <!-- site-header --> comment), so the fifteen pages share one definition:
 //
-//   [map] Six Figures                 TOPICS  Census · Schools · Housing · Sale prices · Safety · Trees     Home · About
+//   [map] Six Figures                 TOPICS  Census · Schools · Housing · Sale prices · Safety · Trees · Getting around     Home · About
 //         Toronto, mapped by its data TOOLS   Data Explorer · Neighbourhood Explorer · Forecasts
 //   [Census:  2021 · 2016 map · 2011 map · Insights]     <- only inside a section with pages of its own
 //
@@ -26,6 +26,7 @@ export const ROWS = [
     { href: "/insights/prices/", label: "Sale prices", blurb: "Home sales and median sale prices by quarter, for the city and each neighbourhood, set against the census." },
     { href: "/insights/safety/", label: "Safety", blurb: "Crime, shootings, homicides and road injuries in each neighbourhood, year by year." },
     { href: "/insights/trees/", label: "Trees", blurb: "Tree canopy, street trees and summer ground temperature: where the shade is, and where it isn't." },
+    { href: "/insights/transport/", label: "Getting around", blurb: "Bike Share trips by neighbourhood and station, ride-hail trips, subway delays and bicycle counts, month by month." },
   ] },
   { label: "Tools", lede: "Across subjects: put any of the site's measures side by side, or start from one neighbourhood.", links: [
     { href: "/insights/explorer/", label: "Data Explorer", blurb: "Choose up to three measures from anywhere on the site and see how they line up across the city and over time." },

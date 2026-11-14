@@ -17,8 +17,14 @@ name: Data refresh
 on:
   schedule:
     - cron: "23 10 12,26 3,6,10,12 *"
+    # Getting around, every month: Bike Share's trips for the month before arrive about the 10th.
+    - cron: "23 11 18 * *"
   workflow_dispatch:
     inputs:
+      transport:
+        description: "Getting around: Bike Share, ride-hail, subway delays, bicycle counters"
+        type: boolean
+        default: false
       prices:
         description: "Sale prices: TRREB's new quarters"
         type: boolean
@@ -71,16 +77,21 @@ jobs:
         id: parts
         env:
           EVENT: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+          TRANSPORT: ${{ inputs.transport }}
           PRICES: ${{ inputs.prices }}
           RENTALS: ${{ inputs.rentals }}
           SAFETY: ${{ inputs.safety }}
           HOUSING: ${{ inputs.housing }}
         run: |
-          if [ "$EVENT" = schedule ]; then
+          if [ "$EVENT" = schedule ] && [ "$CRON" = "23 11 18 * *" ]; then
+            parts="transport"
+          elif [ "$EVENT" = schedule ]; then
             parts="prices rentals"
             if [ "$(date -u +%m)" = 03 ]; then parts="$parts safety housing"; fi
           else
             parts=""
+            if [ "$TRANSPORT" = true ]; then parts="$parts transport"; fi
             if [ "$PRICES" = true ]; then parts="$parts prices"; fi
             if [ "$RENTALS" = true ]; then parts="$parts rentals"; fi
             if [ "$SAFETY" = true ]; then parts="$parts safety"; fi

@@ -99,3 +99,24 @@ test("breaks.json carries the CPI that pipeline/cpi.json holds", () => {
   const cpi = json("pipeline/cpi.json");
   for (const [k, v] of Object.entries(cpi)) assert.deepEqual(breaks.cpi[k], v, `cpi.${k}`);
 });
+
+test("Getting around: whole months in order, and no neighbourhood with more trips than the city", () => {
+  const t = json(`${PUBLIC}/transport.json`);
+  const next = (m) => (m.endsWith("-12") ? `${+m.slice(0, 4) + 1}-01` : `${m.slice(0, 5)}${String(+m.slice(5) + 1).padStart(2, "0")}`);
+  for (const [name, months] of [["bike", t.bike.months], ["ridehail", t.ridehail.months], ["subway", t.subway.months], ["counters", t.counters.months], ["nb", t.nb.months]]) {
+    months.slice(1).forEach((m, k) => assert.equal(m, next(months[k]), `${name}: ${m} follows ${months[k]}`));
+  }
+  assert.equal(t.nbhd.length, 158);
+  t.nb.months.forEach((m, k) => {
+    const city = t.bike.trips[t.bike.months.indexOf(m)];
+    for (const rows of [t.nb.starts, t.nb.ends]) {
+      assert.equal(rows[k].length, 158, `${m}: a figure for every neighbourhood`);
+      const sum = rows[k].reduce((a, v) => a + v, 0);
+      assert.ok(sum <= city, `${m}: the neighbourhoods' ${sum} trips are within the city's ${city}`);
+      assert.ok(sum >= 0.95 * city, `${m}: ${((sum / city) * 100).toFixed(1)}% of trips are at a station with a place`);
+    }
+  });
+  t.bike.months.forEach((m, k) => {
+    if (t.bike.member[k] != null) assert.equal(t.bike.member[k] + t.bike.casual[k], t.bike.trips[k], `${m}: members and casual riders add to the trips`);
+  });
+});
