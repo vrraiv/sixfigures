@@ -1,3 +1,12 @@
+# Every response. The site is its own files and nothing else: no script, style, font, image or
+# request from anywhere but here (the pages' own inline scripts and styles are allowed; they
+# are written at build time). vite.config.js sends the same policy from `vite preview`.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+
 /tiles/*
   Cache-Control: public, max-age=31536000, immutable
 

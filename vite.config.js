@@ -65,7 +65,7 @@ export default defineConfig({
     rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
-  preview: { headers: { "Document-Policy": "js-profiling" } },
+  preview: { headers: { "Document-Policy": "js-profiling", "Content-Security-Policy": readFileSync("web/public/_headers", "utf8").match(/Content-Security-Policy: (.*)/)[1] } },
   // census/index.html preloads the opening view's DA tiles and figures; it needs the tile
   // source and the figures version for that.
   plugins: [{

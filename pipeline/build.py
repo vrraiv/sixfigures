@@ -46,6 +46,7 @@ METRIC_CRS = 2952  # NAD83(CSRS) / MTM zone 10, the City of Toronto's projection
 TORONTO_CSD = "3520005"
 TORONTO_CD = "3520"
 EXPECTED_DAS = 3700
+POP_TOLERANCE = 0.001  # the DAs' populations against the city's: they have matched exactly
 
 TARGETS = targets(CHARS_2021)  # (CHARACTERISTIC_ID, CHARACTERISTIC_NAME) -> key
 N_CLASSES = 6
@@ -227,6 +228,9 @@ def main():
 
     pop_da, pop_city = gdf.pop21.sum(), city["pop21"]
     print(f"population: sum of DAs {pop_da:,.0f} vs CSD {pop_city:,.0f}")
+    # the DAs are the city: a sum far from its count means DAs missing or matched to the wrong rows
+    if abs(pop_da - pop_city) > POP_TOLERANCE * pop_city:
+        sys.exit(f"DA populations sum to {pop_da:,.0f}, more than {POP_TOLERANCE:.1%} from the city's {pop_city:,.0f}; stopping")
     for m in MEASURES:
         # share of DAs with an equal or lower value (ties take the max rank)
         gdf[f"pct_{m}"] = (gdf[m].rank(method="max", pct=True) * 100).round().clip(lower=1)

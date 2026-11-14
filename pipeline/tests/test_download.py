@@ -71,6 +71,17 @@ class Fetch(Server):
         self.assertTrue(quiet(download.fetch, f"{self.base}/whole", dest, b"%PDF"))
         self.assertEqual(dest.read_bytes(), BODY)
 
+    def test_a_file_that_changed_size_on_disk_is_not_trusted(self):
+        dest, other = self.dir / "a.pdf", self.dir / "older.pdf"
+        quiet(download.fetch, f"{self.base}/whole", dest, b"%PDF")
+        self.assertTrue(download.intact(dest))
+        dest.write_bytes(BODY[:100])  # cut short after the download: still starts with %PDF
+        self.assertFalse(quiet(download.intact, dest))
+        other.write_bytes(BODY[:100])  # on disk from before sizes were recorded: taken as it is
+        self.assertTrue(download.intact(other))
+        quiet(download.fetch, f"{self.base}/whole", dest, b"%PDF")  # fetched again, it is whole
+        self.assertTrue(download.intact(dest))
+
     def test_a_file_cut_short_is_not_kept(self):
         dest, errors = self.dir / "a.pdf", []
         self.assertFalse(quiet(download.fetch, f"{self.base}/cut-short", dest, b"%PDF", errors=errors))

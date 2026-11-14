@@ -12,6 +12,9 @@ import { join, relative } from "node:path";
 
 const MB = 1024 * 1024;
 const ZOOM_LIMIT = 2 * MB;
+// The census map's first load before the street map's own tiles and fonts (2.24 MB in November
+// 2026): room for a measure or a library update, not for a second copy of something.
+const FIRST_LIMIT = 2.75 * MB;
 const FILE_LIMIT = 25 * MB; // Workers static assets: largest single file
 const COUNT_LIMIT = 20000; // Workers Free: files per deployed version
 
@@ -46,6 +49,7 @@ console.log(`2021 tiles: heaviest zoom (z${heavy}) ${mb(heavyBytes)} MB of ${mb(
 
 const errors = [];
 if (!heavyBytes) errors.push("web/dist/tiles/da-* is missing.");
+if (first > FIRST_LIMIT) errors.push(`The census map's first load (${mb(first)} MB) exceeds the ${mb(FIRST_LIMIT)} MB budget.`);
 if (heavyBytes > ZOOM_LIMIT) errors.push(`The 2021 tiles at zoom ${heavy} exceed the ${mb(ZOOM_LIMIT)} MB budget.`);
 for (const f of files.filter((f) => f.size > FILE_LIMIT)) errors.push(`${f.path} (${mb(f.size)} MB) exceeds Cloudflare's 25 MB per-file limit.`);
 if (files.length > COUNT_LIMIT) errors.push(`${files.length} files exceed the Workers Free limit of ${COUNT_LIMIT}.`);

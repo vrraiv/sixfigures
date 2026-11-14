@@ -80,10 +80,12 @@ from-extracts:
 	$(PYTHON) pipeline/explorer_data.py
 	$(PYTHON) pipeline/affinity.py
 
-data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS) $(INSIGHTS)
+data: $(PMTILES) $(PMTILES16) $(PMTILES11) $(SEARCH) $(OVERLAYS) $(INSIGHTS) web/public/explorer/catalogue.json web/public/neighbourhoods.json
 
+# The exact versions that built the committed data (pipeline/requirements.lock: pip freeze on the
+# PC); requirements.txt lists the direct dependencies with their lower bounds.
 deps:
-	$(PYTHON) -m pip install -r pipeline/requirements.txt
+	$(PYTHON) -m pip install -r pipeline/requirements.lock
 
 download:
 	$(PYTHON) pipeline/download.py
@@ -347,6 +349,15 @@ trees-page:
 .PHONY: explorer
 explorer:
 	$(PYTHON) pipeline/explorer_data.py
+
+# The same two files as targets, so that `make data` doesn't leave them behind the neighbourhood
+# figures it has just rebuilt (`make explorer` and `make neighbourhoods` run them regardless).
+EXPLORER       := web/public/explorer/catalogue.json
+NEIGHBOURHOODS := web/public/neighbourhoods.json
+$(EXPLORER): $(INSIGHTS) web/public/safety.json web/public/schools.json web/public/prices.json web/public/housing.json              web/public/trees.json pipeline/elections/by_nbhd.csv pipeline/rentals/by_nbhd.csv web/src/catalogue.js              pipeline/explorer_data.py
+	$(PYTHON) pipeline/explorer_data.py
+$(NEIGHBOURHOODS): $(EXPLORER) pipeline/affinity.py
+	$(PYTHON) pipeline/affinity.py
 
 # The Neighbourhood Explorer's neighbourhoods.json: percentile ranks by theme and the kinds of
 # neighbourhood, from the Data Explorer's files. Run after `make explorer`.

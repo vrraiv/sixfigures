@@ -8,6 +8,26 @@ import { $, COLORS, DIVERGING, escapeHTML } from "./catalogue.js";
 // shows the tip at the finger and it stays until the next tap elsewhere or a scroll. From the
 // keyboard, a control that carries a tip shows it above itself while it has the focus, and
 // Escape puts it away.
+// A tip is written as text with <b>, <i>, <br> and plain <span>s; the names in it come from the
+// data files. Whatever else arrives (a name with markup in it) is kept as its text only, and no
+// attribute survives, so a tip can show things but never run or load anything.
+const TIP_TAGS = new Set(["B", "I", "BR", "SPAN"]);
+export function tipContent(html) {
+  const t = document.createElement("template");
+  t.innerHTML = html;
+  const clean = (node) => {
+    for (const c of [...node.childNodes]) {
+      if (c.nodeType === 3) continue;
+      if (c.nodeType !== 1) { c.remove(); continue; }
+      clean(c);
+      if (TIP_TAGS.has(c.tagName)) for (const a of [...c.attributes]) c.removeAttribute(a.name);
+      else c.replaceWith(...c.childNodes);
+    }
+  };
+  clean(t.content);
+  return t.content;
+}
+
 export function initTip() {
   const tip = $("tip");
   let held = false; // shown by a touch
@@ -18,7 +38,7 @@ export function initTip() {
     tip.style.transform = `translate(${x}px, ${y}px)`;
   };
   const show = (t, e) => {
-    tip.innerHTML = t.dataset.tip;
+    tip.replaceChildren(tipContent(t.dataset.tip));
     tip.hidden = false;
     place(e);
   };
@@ -192,7 +212,8 @@ export function initPick(fig, bar, get, set, extra = () => "", names = null) {
     // a bar with data-empty keeps its place when nothing is picked and says how to pick
     bar.hidden = !p && !bar.dataset.empty;
     bar.classList.toggle("empty", !p);
-    bar.innerHTML = p ? `<span>${p.dataset.tip.replaceAll("<br>", " · ")}</span>${extra(i)}<button type="button" class="nb-clear">Clear</button>` : escapeHTML(bar.dataset.empty ?? "");
+    bar.innerHTML = p ? `<span></span>${extra(i)}<button type="button" class="nb-clear">Clear</button>` : escapeHTML(bar.dataset.empty ?? "");
+    if (p) bar.firstElementChild.append(tipContent(p.dataset.tip.replaceAll("<br>", " · ")));
   };
   const pick = (i, scroll) => {
     fig.querySelector("path.pick")?.classList.remove("pick");
