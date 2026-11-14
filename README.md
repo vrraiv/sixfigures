@@ -1,6 +1,6 @@
 # Six Figures
 
-*Toronto, mapped by its data.* Live site at http://sixfigures.vikramrai.com/.
+*Toronto, mapped by its data.* Live site at https://sixfigures.vikramrai.com/.
 
 ## About
 
@@ -51,7 +51,7 @@ to read the maps, where each topic's data comes from, and what to keep in mind.
 The census map, `/census/`, is an interactive choropleth of income, low income and housing
 across the City of Toronto's dissemination areas (DAs) in the 2016 and 2021 censuses, and
 the change between them. Hover for values, click for detail, or search for a Toronto
-address or intersection to jump to its DA. Around it are pages on schools, housing, sale
+address, intersection or neighbourhood to jump there. Around it are pages on schools, housing, sale
 prices, safety and trees by neighbourhood, two explorers that work across all of them,
 and forecasts. (The map was at `/` until the landing page took that address; the landing
 page sends old map links, such as `/#m=rent&y=2021`, on to `/census/`.)
@@ -67,7 +67,9 @@ at build time (`vite.config.js`); a page holds only a `<!-- site-header -->` com
 a new page is added to the header there (`npm test` checks every built page is in it).
 The landing page's cards are written from the same list, so a link added to a row needs a
 `blurb` there. The header's map and the landing page's are drawn at build time from
-`insights.json` (`scripts/city-map.mjs`).
+`insights.json` (`scripts/city-map.mjs`). The same file writes each page's canonical
+address and the title, description and image a shared link shows (`socialTags`; the image
+is `web/public/social-card.png`, from `scripts/make-icons.mjs`).
 
 A second page, `/2011/`, shows 2011 on its own DA boundaries (3,685 DAs), coloured on
 the same classes as the main map, with the main map's measures: dwelling types and ages
@@ -158,11 +160,15 @@ one colour scale and lists the neighbourhoods in the hottest sixth on nearly eve
 (`pipeline/trees_insights.py`, from `pipeline/trees.py`).
 
 On the Safety, Trees and Explorer pages a neighbourhood can be picked on any map, chart or list, or
-found by name in a menu, and is then marked everywhere on the page; Safety and Trees open with a
-contents list, and the Trees measure menu stays pinned only over the sections it drives. Tooltips
-work by touch on every Insights page: a tap shows the figures and the next tap elsewhere hides them.
+found by name in a menu, and is then marked everywhere on the page. Every Insights, Explorer and
+Forecasts page opens with a contents list, and once it has scrolled away a "↑ Contents" button
+at the corner of the screen comes back to it; the Trees measure menu stays pinned only over the
+sections it drives. Tooltips work by touch on every Insights page: a tap shows the figures and the
+next tap elsewhere hides them. Under each line and bar chart, "Figures as a table" opens the
+chart's numbers as a table, for screen readers and for copying. A page whose data fails to load
+says so and offers to try again.
 
-The Data Explorer, `/insights/explorer/`, offers every neighbourhood measure on the site in one menu: 67 measures from the census,
+The Data Explorer, `/insights/explorer/`, offers every neighbourhood measure on the site in one menu: 68 measures from the census,
 safety, schools, sale prices, housing, trees and heat, elections and short-term rentals. Up to
 three can be chosen, each with its own period, and the page shows the view that suits the number:
 - **One:** the map with a period slider (one colour scale for all periods), the spread, the
@@ -225,7 +231,11 @@ every theme but Voting weighted equally; they cut a continuum (silhouette about 
 neighbourhood also carries its next nearest kind. The link holds every choice. Its data is
 `web/public/neighbourhoods.json` (`pipeline/affinity.py`, `make neighbourhoods`, run after
 `make explorer`), where the choice of method is recorded; the code is
-`web/src/neighbourhoods.js`, which works the affinity out in the browser.
+`web/src/neighbourhoods.js`, which works the affinity out in the browser. The kinds' names
+are written by hand (`NAMES` in `pipeline/affinity.py`), one for the neighbourhood at each
+kind's centre. Because the kinds are weak, new data can regroup them; a kind whose centre has
+no name yet is named after the measures it stands highest on (as in "Higher on ...") until
+one is added, so check the names in a data refresh's pull request.
 
 Forecasts are an exercise in how far public data can be pushed, not advice, and each
 forecast page opens by saying so. Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
@@ -239,7 +249,11 @@ and lists each neighbourhood's forecast median value of owned dwellings in the 2
 Census with its range, and tabulates every rung's errors, the range's coverage on 2016
 to 2021, and the TRREB figures behind the City's nowcast. Their data is
 `web/public/forecasts.json` (`pipeline/forecast_pages.py`, from `make forecast`); the
-method and every run's results are in `docs/forecast-spec.md`.
+method and every run's results are in `docs/forecast-spec.md`. A published forecast is
+frozen (`pipeline/model/`): `make forecast` reproduces it and warns if it can't, and never
+replaces it. The two school forecasts published so far imply a small rise in the City's
+level that the model doesn't forecast, and the page says so; school forecasts from the 2027
+to 2028 one on are centred, so that together they imply no change.
 
 ### Measures
 
@@ -333,15 +347,20 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
 ### Search and place names
 
 - **Search** accepts a street address (`100 Queen St W`, `1203-100 Queen St W`,
-  `978 1/2 Kingston Rd`), an intersection (`Yonge & Bloor`, `King St W and Spadina Ave`)
-  or a DA number. It works offline against the City of Toronto's official address points
+  `978 1/2 Kingston Rd`), an intersection (`Yonge & Bloor`, `King St W and Spadina Ave`),
+  a City neighbourhood's name or a DA number. It works offline against the City of Toronto's official address points
   and intersection file, pre-assigned to DAs in the pipeline. No geocoding service is
   called. Only exact official addresses resolve:
   - an address in more than one former municipality (e.g. `1 Byng Ave`) asks which one;
   - a number that isn't on the street suggests the nearest listed numbers;
   - an address naming another municipality (`…, Mississauga`) is refused;
   - most intersections lie on DA boundaries (DAs are bounded by streets), so all DAs
-    meeting there are outlined and you pick one.
+    meeting there are outlined and you pick one;
+  - a neighbourhood's full name (`Rustic`) zooms to it and outlines it; part of a name
+    lists the neighbourhoods it could be, and a word that is also a street (`Yonge`)
+    lists them under the hint to add a number or a cross street;
+  - a postal code is refused with a line on what to type instead: the City's address
+    list has none.
   The index (`search.json`, ~4.7 MB, ~1.1 MB compressed) loads the first time the search
   box is used.
 - **Snapshot.** The camera button (under the zoom buttons) works like a snipping tool:
@@ -375,7 +394,7 @@ Cloudflare's cache answers HTTP Range requests with the whole file, so serving t
 .pmtiles directly would make every visitor download all of them. Instead
 `scripts/extract-tiles.mjs` (run by `vite.config.js` on every dev start and build)
 unpacks each archive into gzipped z/x/y files under `web/public/tiles/<name>-<hash>/`
-(about 555 files, plus empty ones for squares with no data inside the bounds,
+(about 1,900 files, 937 of them the street map, plus empty ones for squares with no data inside the bounds,
 which would otherwise 404; not committed), and MapLibre fetches only the tiles in view: about
 130 KB (two z10 tiles) for the opening whole-city view on a desktop. The tiles carry only
 each DA's number; `web/src/figures.js` fetches the figures of the measure on show (about
@@ -398,7 +417,9 @@ them `Content-Encoding: gzip`. The archives are left out of the deploy
 ```
 pipeline/            Python + Makefile: raw downloads -> GeoJSON -> PMTiles, search index
 web/                 Vite app (index.html, src/, public/ with tiles, breaks, search, _headers)
-scripts/             tile extraction; build-time size check (2021 tiles, Cloudflare limits)
+scripts/             the header and share tags, tile extraction, the size check, the site's tests
+docs/                data catalogue and update schedule; the forecasts' specification
+.github/workflows/   tests on every pull request (ci.yml); the scheduled data refresh
 wrangler.jsonc       Worker config: serves ./web/dist as static assets
 ```
 
@@ -409,9 +430,15 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 15 MB in ~970 files; first load about 2 MB before compression)
-npm test           # search lookups, wheel zoom bounds, figures loader
+npm run build      # -> web/dist (about 43 MB in ~2,070 files; the census map's first load about 2.25 MB before the street map)
+npm test           # search, wheel zoom, figures loader, header and share tags, basemap style, the committed figures
 ```
+
+The build stops if the census map's first load passes 2.75 MB or the deploy passes
+Cloudflare's limits (`scripts/check-size.mjs`). `npm test` includes checks on the committed
+data itself (`scripts/data-invariants.test.mjs`). `make test` runs these and the pipeline's
+own tests (`pipeline/tests/`), and both run on every pull request
+(`.github/workflows/ci.yml`).
 
 ### Rebuild the data
 
@@ -421,17 +448,24 @@ it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update sche
 releases).
 The quarterly run and the yearly police and housing refreshes are automated: the Data
 refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that
-schedule and opens a pull request with what changed, for review before merging.
+schedule and opens a pull request with what changed, for review before merging. It runs as two
+jobs: one that downloads and rebuilds with read-only access to the repository, and a second
+that only applies the first's patch and opens the pull request. A source that can't be read
+in full (a TRREB report with a row that doesn't parse, a download cut short) fails the run
+instead of publishing part of it.
 
 The derived `web/public/*.pmtiles` (including `overlays.pmtiles` and `basemap.pmtiles`), `breaks.json`,
 `search.json`, `data/figures/` and `data/*.csv` are
 committed, so this is only needed to change the pipeline. From WSL, Linux or macOS,
-with Python 3.11+ and tippecanoe installed:
+with Python 3.14 and tippecanoe installed (`make deps` installs the exact versions that
+built the committed data, from `pipeline/requirements.lock`, a freeze under Python 3.14;
+`pipeline/requirements.txt` has the direct dependencies and their lower bounds):
 
 ```sh
 python3 -m venv ~/.venvs/toronto-dash && . ~/.venvs/toronto-dash/bin/activate
 make deps
-make data          # download -> build.py -> tippecanoe -> search_index.py, overlays
+make data          # download -> build.py -> tippecanoe -> search_index.py, overlays, insights, both Explorers
+make test          # the pipeline's tests, then npm test
 make cpi           # refetch the CPI from StatCan's Web Data Service, then make breaks
 make breaks        # redo breaks.json histograms/CPI and the CSVs from pipeline/out
 make overlays      # boundary overlays -> web/public/overlays.pmtiles
@@ -439,7 +473,10 @@ make overlays      # boundary overlays -> web/public/overlays.pmtiles
 
 Without the raw files, `make from-extracts` rebuilds the neighbourhood figures and the two
 Explorers' data from Toronto's rows of the census profiles, which are kept in
-`pipeline/extracts/`: it runs on any checkout, with Python alone.
+`pipeline/extracts/`: it runs on any checkout, with Python alone. Some of those extracts
+(the 2011 National Household Survey, the 2006 profile) come out of Beyond 20/20 tables
+that need a patched pyivt to read; the patch is kept in `pipeline/pyivt/`, and `make pyivt`
+builds it at a pinned commit (WSL, Linux or macOS, with Rust).
 
 StatCan's site blocks scripted downloads with a bot challenge. If `make download`
 reports that, fetch the files it prints in a browser into `pipeline/raw/`. The City of
@@ -460,8 +497,11 @@ Manual deploy from a machine logged in with `npx wrangler login`:
 npm run deploy     # vite build && wrangler deploy
 ```
 
-`web/public/_headers` gives `tiles/*`, `search.json` and hashed assets a one-year
-immutable cache and `index.html` no-cache. The tile directories are named after the
+`web/public/_headers` sends every response a Content-Security-Policy that allows the
+site's own files and nothing else (no third-party script, style, font or request), with
+`nosniff`, a referrer policy and no framing; `vite preview` sends the same policy. It gives
+`tiles/*`, `search.json` and hashed assets a one-year immutable cache and `index.html`
+no-cache. The tile directories are named after the
 archive's content hash and the page requests `search.json` with `?v=<content hash>`,
 so a data rebuild still reaches visitors.
 
