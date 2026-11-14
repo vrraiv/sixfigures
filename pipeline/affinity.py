@@ -100,13 +100,19 @@ NOT_TYPED = {"voting"}  # left out of the types: a kind of place shouldn't be de
 
 # A type's name and one-line description, by the neighbourhood nearest its centre.
 NAMES = {
-    "Dorset Park": ("Family apartment suburbs", "Lower incomes, crowded housing and many children, much of it in apartment buildings."),
-    "Lawrence Park South": ("Affluent house neighbourhoods", "The highest incomes, home values and school results, and the least crime."),
-    "Cliffcrest": ("Older house neighbourhoods", "Pre-1960 detached houses and middling-to-higher incomes; few condos, towers or recent immigrants."),
+    # the centres as of the 14 November 2026 refresh (2026 Q3 sale prices)
+    "Stonegate-Queensway": ("Established house neighbourhoods", "Higher household incomes in older detached houses on streets with large trees; little low income, crowding or recent immigration."),
+    "York University Heights": ("Fast-building apartment areas", "The most construction and proposals, with more crime and crowding; little tree cover and lower individual incomes."),
+    "Brookhaven-Amesbury": ("Family apartment suburbs", "Lower incomes, crowded housing and many children, much of it in apartment buildings."),
+    "Cliffcrest": ("Modest house suburbs", "Detached houses and lower rents, fewer degrees and few condos; more auto theft and gun violence than the other house neighbourhoods."),
+    "High Park North": ("Affluent neighbourhoods", "The highest home values, incomes and school results, and the least violent crime."),
     "Harbourfront-CityPlace": ("New condo districts", "Recent towers, young adults and constant turnover; few children or seniors."),
-    "Briar Hill-Belgravia": ("Fast-building apartment areas", "The most construction and proposals; movers, lower incomes and lower home prices; few children."),
     "Trinity-Bellwoods": ("Inner-city neighbourhoods", "Dense older streets near downtown: short-term rentals, few children, few detached houses."),
     "Agincourt North": ("Ageing north-east suburbs", "More seniors and income from transfers, modest individual incomes, and almost no new building."),
+    # earlier centres, kept so a kind whose centre moves back has its name
+    "Dorset Park": ("Family apartment suburbs", "Lower incomes, crowded housing and many children, much of it in apartment buildings."),
+    "Lawrence Park South": ("Affluent house neighbourhoods", "The highest incomes, home values and school results, and the least crime."),
+    "Briar Hill-Belgravia": ("Fast-building apartment areas", "The most construction and proposals; movers, lower incomes and lower home prices; few children."),
     "Centennial Scarborough": ("Settled house suburbs", "Detached houses, long-time owners and more seniors; few renters or movers."),
 }
 
