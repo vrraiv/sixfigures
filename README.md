@@ -490,8 +490,8 @@ own tests (`pipeline/tests/`), and both run on every pull request
 
 Every dataset, its publisher's update cadence, what the site holds now and how to refresh
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
-(a monthly run for Getting around, a quarterly run for TRREB, Inside Airbnb and the City's tree
-points, two annual
+(a monthly run for Getting around, a quarterly run for TRREB, Inside Airbnb and the City's street
+trees and tree points, two annual
 runs, and the 2026 Census releases).
 The monthly and quarterly runs and the yearly police and housing refreshes are automated: the Data
 refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that

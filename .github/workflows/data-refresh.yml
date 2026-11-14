@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       trees:
-        description: "Trees: the City's tree points from the air"
+        description: "Trees: the City's street-tree inventory and tree points"
         type: boolean
         default: false
       transport:

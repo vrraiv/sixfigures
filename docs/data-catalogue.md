@@ -121,7 +121,7 @@ so a quarterly upstream change needs no quarterly refresh. `crime.py`'s five-yea
 
 | Data | Upstream | On the site | Used by | Refresh with |
 |---|---|---|---|---|
-| Street Tree Data (City) | irregular (last 4 June 2026) | that copy | Trees, the explorers | delete `toronto_street_trees_4326.csv`; `make trees` |
+| Street Tree Data (City) | irregular, a few times a year (last 4 June 2026) | that copy: 688,335 trees | Trees, the explorers | **automated** (quarterly). By hand: `make street-trees`, which redoes the street-tree figures and leaves canopy and heat alone; then `make trees-page` |
 | Topographic Mapping, physical location of trees: a point and height for each tree found in aerial LiDAR (City) | **quarterly** file; its contents are one extraction dated January and May 2021 | 1,249,150 trees | Trees (how tall, and whose) | **automated** (quarterly). By hand: delete `toronto_topo_trees.zip`; `make tree-points`, `make trees-page` |
 | 2018 Tree Canopy Study land cover (City) | one-off; no newer study published | 2018 | Trees, the explorers | static until a new study |
 | 2008 tree cover by neighbourhood (Wellbeing Toronto) | never | 2008 | Trees (canopy change) | static |
@@ -200,8 +200,11 @@ latest scrape. A run before TRREB posts finds nothing new for prices, and the ne
 picks the quarter up; a run with nothing new at all opens no pull request. What it does
 (`make refresh-quarterly` by hand):
 
-0. The City's tree points: fetch the file and recount it (`tree_points.py`). It has held
-   the same 2021 extraction since it was first read, so this is a watch for a new one.
+0. Trees: fetch the City's street-tree inventory and redo the street-tree figures alone
+   (`trees.py --street-trees`; canopy and heat aren't touched), and fetch its tree points
+   and recount them (`tree_points.py`; the same 2021 extraction since it was first read,
+   so that half is a watch for a new one). A changed inventory rebuilds the Trees page and
+   the two explorers.
 1. TRREB: fetch the new quarter's three reports and add them to `community.csv`
    (`download.py --trreb`, `trreb.py --new`).
 2. Inside Airbnb: add any newer scrape and rebuild the rental layer; the City's
@@ -233,7 +236,7 @@ it) or a check in one of the scripts (a change in a publisher's format, to fix b
 | **March**, with the quarterly run (automated) | Safety: all five police files, `crime.py`, the Safety and Trees pages (`make refresh-safety`) | the Neighbourhood Crime Rates file for the past year is posted in February |
 | **March**, with the quarterly run (automated) | Housing: permits, the City's housing files, CMHC, the StatCan series, the Housing page (`make refresh-housing`) | closes the past year's permits and starts; the Rental Market Survey and population estimates are out by then |
 | **October** | Schools: EQAO's results by hand, Ontario's school file if a new one is posted, `make schools`, `make school-insights`, `make eqao` | EQAO publishes in late September or October |
-| **October** | Trees: street trees, the new summer's Landsat passes, `make trees`, `make trees-page` | the summer's scenes are in by then |
+| **October** | Trees: the new summer's Landsat passes, `make trees`, `make trees-page` (street trees are in the quarterly run) | the summer's scenes are in by then |
 | **October** | Search: address points and intersections, `make search` | yearly is enough for new addresses |
 | **October** | Check the neighbourhood and ward packages are unchanged | |
 

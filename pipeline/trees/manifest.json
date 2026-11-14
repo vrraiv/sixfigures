@@ -5,7 +5,7 @@
     "street_trees": {
       "name": "toronto_street_trees_4326.csv",
       "bytes": 145151487,
-      "retrieved": "2026-11-11"
+      "retrieved": "2026-11-14"
     },
     "canopy_2018": {
       "name": "toronto_tree_canopy_2018.zip",
@@ -635,5 +635,6 @@
       ],
       "da_scenes_median": 11.0
     }
-  }
+  },
+  "street_trees_updated": "2026-11-14"
 }
