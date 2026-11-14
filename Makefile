@@ -344,6 +344,16 @@ canopy-change:
 trees-page:
 	$(PYTHON) pipeline/trees_insights.py
 
+# The kinds of neighbourhood are locked in pipeline/kinds/ (kinds.py). `make kinds` reports how
+# they hold on today's figures and writes nothing; `make kinds-recut` cuts them again, after the
+# next census is fully out, and empties their names for writing anew.
+.PHONY: kinds kinds-recut
+kinds:
+	$(PYTHON) pipeline/kinds.py
+
+kinds-recut:
+	$(PYTHON) pipeline/kinds.py --recut
+
 # Getting around. `make bikeshare` fetches Bike Share's trip files (a year each, 1.8 GB in all;
 # a year already in pipeline/raw is kept, so delete the current year's to refresh it) and counts
 # them by station and month into pipeline/bikeshare/. `make transport` does the same for the
@@ -384,7 +394,7 @@ EXPLORER       := web/public/explorer/catalogue.json
 NEIGHBOURHOODS := web/public/neighbourhoods.json
 $(EXPLORER): $(INSIGHTS) web/public/safety.json web/public/schools.json web/public/prices.json web/public/housing.json              web/public/trees.json pipeline/elections/by_nbhd.csv pipeline/rentals/by_nbhd.csv web/src/catalogue.js              pipeline/explorer_data.py
 	$(PYTHON) pipeline/explorer_data.py
-$(NEIGHBOURHOODS): $(EXPLORER) pipeline/affinity.py
+$(NEIGHBOURHOODS): $(EXPLORER) pipeline/affinity.py pipeline/kinds/kinds.csv pipeline/kinds/names.json
 	$(PYTHON) pipeline/affinity.py
 
 # The Neighbourhood Explorer's neighbourhoods.json: percentile ranks by theme and the kinds of

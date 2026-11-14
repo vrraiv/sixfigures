@@ -1,0 +1,110 @@
+{
+  "1": {
+    "name": "Fast-building apartment areas",
+    "blurb": "The most construction and proposals, with crowded housing and more auto theft; lower individual incomes and few street trees. It takes in suburban corridors and downtown's older tower neighbourhoods alike.",
+    "most_attached": [
+      "L'Amoreaux West",
+      "Tam O'Shanter-Sullivan",
+      "York University Heights",
+      "Yorkdale-Glen Park",
+      "Etobicoke City Centre",
+      "Etobicoke West Mall"
+    ]
+  },
+  "2": {
+    "name": "Affluent house neighbourhoods",
+    "blurb": "The highest home values, incomes and school results, and the least low income and violent crime.",
+    "most_attached": [
+      "Mount Pleasant East",
+      "Casa Loma",
+      "Yonge-St.Clair",
+      "Rosedale-Moore Park",
+      "Yonge-Eglinton",
+      "Forest Hill South"
+    ]
+  },
+  "3": {
+    "name": "Modest house suburbs",
+    "blurb": "Detached houses and lower rents, fewer degrees and few condos; more auto theft and gun violence than the other house neighbourhoods.",
+    "most_attached": [
+      "Maple Leaf",
+      "Bendale South",
+      "Bathurst Manor",
+      "Thistletown-Beaumond Heights",
+      "Rexdale-Kipling",
+      "Willowridge-Martingrove-Richview"
+    ]
+  },
+  "4": {
+    "name": "Family apartment suburbs",
+    "blurb": "Lower incomes, crowded housing and many children, much of it in apartment buildings.",
+    "most_attached": [
+      "Mount Olive-Silverstone-Jamestown",
+      "Black Creek",
+      "Brookhaven-Amesbury",
+      "Rustic",
+      "Kennedy Park",
+      "Mount Dennis"
+    ]
+  },
+  "5": {
+    "name": "New condo districts",
+    "blurb": "Recent towers, young adults and constant turnover; few children, seniors or detached houses.",
+    "most_attached": [
+      "Humber Bay Shores",
+      "Yonge-Bay Corridor",
+      "North Toronto",
+      "Church-Wellesley",
+      "Bay-Cloverhill",
+      "Fort York-Liberty Village"
+    ]
+  },
+  "6": {
+    "name": "Older family streets",
+    "blurb": "Houses built before 1960 on streets with large trees, and children in them; few condos or recent immigrants. Mostly the east end, along the Danforth.",
+    "most_attached": [
+      "Woodbine Corridor",
+      "Blake-Jones",
+      "Greenwood-Coxwell",
+      "Danforth East York",
+      "Danforth",
+      "Woodbine-Lumsden"
+    ]
+  },
+  "7": {
+    "name": "Inner-city neighbourhoods",
+    "blurb": "Dense older streets near downtown: short-term rentals, few children, few detached houses.",
+    "most_attached": [
+      "University",
+      "Palmerston-Little Italy",
+      "Trinity-Bellwoods",
+      "Dufferin Grove",
+      "Little Portugal",
+      "Junction Area"
+    ]
+  },
+  "8": {
+    "name": "Settled house suburbs",
+    "blurb": "Detached houses, long-time owners and more seniors at the city's edges; few renters, movers or low incomes.",
+    "most_attached": [
+      "Eringate-Centennial-West Deane",
+      "West Rouge",
+      "Highland Creek",
+      "Centennial Scarborough",
+      "Guildwood",
+      "Morningside Heights"
+    ]
+  },
+  "9": {
+    "name": "Ageing north-east suburbs",
+    "blurb": "More seniors and income from transfers, modest individual incomes, and almost no new building.",
+    "most_attached": [
+      "Hillcrest Village",
+      "Steeles",
+      "Agincourt South-Malvern West",
+      "Agincourt North",
+      "East L'Amoreaux",
+      "Milliken"
+    ]
+  }
+}

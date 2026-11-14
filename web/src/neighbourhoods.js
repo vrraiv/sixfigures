@@ -22,7 +22,7 @@ const M = Object.fromEntries(D.measures.map((m) => [m.id, m]));
 const THEME = Object.fromEntries(D.themes.map((t) => [t.key, t]));
 const BLUE = "#2a78d6", ORANGE = "#c2410c";
 // one colour per kind of neighbourhood (Okabe and Ito's set, grey for black), biggest kind first
-const KIND = ["#0072b2", "#e69f00", "#009e73", "#cc79a7", "#56b4e9", "#d55e00", "#f0e442", "#8a8a84"];
+const KIND = ["#0072b2", "#e69f00", "#009e73", "#cc79a7", "#56b4e9", "#d55e00", "#f0e442", "#8a8a84", "#5e3c99"];
 const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 const EDGES = [50, 60, 70, 80, 90], RANGES = ["under 50", "50 to 59", "60 to 69", "70 to 79", "80 to 89", "90 or more"];
 const shade = (a) => COLORS[EDGES.filter((e) => Math.round(a) >= e).length];
@@ -299,16 +299,19 @@ function renderTime() {
 function renderKinds() {
   const i = S.nb;
   $("kinds-lede").innerHTML = `${i == null ? "" : `<b>${nameOf(i)}</b> is one of ${kindOf(i).n} <b>${escapeHTML(lower(kindOf(i).name))}</b>; the kind it is next nearest to is the ${escapeHTML(lower(D.types[D.next[i]].name))}. `}
-    The 158 neighbourhoods sort into ${WORDS[D.types.length]} kinds by what they are like on every theme but voting. Pick a kind to light it up on the map, or a neighbourhood on the map to explore it.`;
+    The 158 neighbourhoods sort into ${WORDS[D.types.length]} kinds by what they are like on every theme but voting. The kinds are fixed until the next census is out, so new figures don't move a neighbourhood from one to another. Pick a kind to light it up on the map, or a neighbourhood on the map to explore it.`;
   const fig = $("kinds-map");
   fig.innerHTML = nbMap(nbhd, D.map, (j) => KIND[D.type[j]],
     (j) => `<b>${nameOf(j)}</b><br>${escapeHTML(kindOf(j).name)}<br>Next nearest: ${escapeHTML(lower(D.types[D.next[j]].name))}`,
     "Toronto's neighbourhoods by kind", (j) => `${j === i ? "pick" : ""}${S.kind != null && D.type[j] !== S.kind ? " dim" : ""}`);
   for (const p of fig.querySelectorAll("path.pick")) p.parentNode.append(p);
   const list = (ids) => ids.map((id) => escapeHTML(lc(M[id].short))).join(", ");
+  const firm = D.types.filter((t) => !t.loose).map((t) => Math.round(t.together * 100));
+  const othersHold = `${Math.min(...firm)}% to ${Math.max(...firm)}%`;
   $("kinds-cards").innerHTML = D.types.map((t, k) => `<div class="nx-card${i != null && D.type[i] === k ? " mine" : ""}">
       <button type="button" class="nx-card-h" data-kind="${k}" aria-pressed="${S.kind === k}"><i class="nx-sw" style="background:${KIND[k]}"></i><span>${escapeHTML(t.name)}</span><span class="nx-n">${t.n}</span></button>
       <p>${escapeHTML(t.blurb)}</p>
+      ${t.loose ? `<p class="small"><b>A looser kind:</b> its neighbourhoods were grouped together in ${Math.round(t.together * 100)}% of the trial runs, against ${othersHold} for the other kinds.</p>` : ""}
       <p class="small"><b>Higher on</b> ${list(t.high)}. <b>Lower on</b> ${list(t.low)}.</p>
       <p class="small">Nearest its centre: <button type="button" class="nx-link" data-pick="${nbhd.findIndex((n) => n.name === t.medoid)}">${escapeHTML(t.medoid)}</button></p></div>`).join("");
 }
@@ -381,6 +384,11 @@ function render() {
   $("about").innerHTML = `${has ? "" : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
     Each of ${D.measures.length} measures becomes a percentile rank among the ${N} neighbourhoods. Two neighbourhoods' gap on a theme is the average difference in their ranks on its measures,
     and their <b>affinity</b> is 100 less the average gap over the themes counted: 100 would be the same standing on everything, and two neighbourhoods taken at random average about ${show(cityMean)}.`;
+  // the kinds in plain words, for a reader who has just arrived: the method is at the foot of the page
+  const eg = D.types.filter((t) => !t.loose).slice(1, 4).map((t) => escapeHTML(lower(t.name)));
+  $("about-kinds").innerHTML = `The neighbourhoods also fall into ${WORDS[D.types.length]} <a href="#kinds"><b>kinds</b></a>, such as ${eg.slice(0, -1).join(", ")} or ${eg.at(-1)}. `
+    + `They come from the figures, not from anyone's map of the city: the neighbourhoods were sorted into groups ${D.typing.reruns} times, each time with a different piece of the data held back, and the ones that kept landing together make a kind. `
+    + "The kinds are then left alone until the next census is out, so a neighbourhood's kind doesn't shift every time a figure is updated.";
   if (has) { renderAlike(); renderThemes(); renderSide(); renderTime(); }
   renderKinds();
   renderSpace();
@@ -429,7 +437,14 @@ document.addEventListener("click", (e) => {
   else if ($("kinds-map").contains(t) || $("space-fig").contains(t)) { setNb(+t.dataset.i); jump("measure-bar"); }
 });
 
-$("kinds-note").textContent = `The kinds are a convenient way to cut a continuum, not sharply separate groups, so each neighbourhood also carries the kind it is next nearest to. They come from Ward's hierarchical clustering of the percentile ranks, every theme but voting counting equally (a kind of place shouldn't be defined by how it votes); the silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`;
+const held = D.types.map((t) => `${lower(t.name)} ${Math.round(t.together * 100)}%`).join(", ");
+$("kinds-method").textContent = `The kinds of neighbourhood. The neighbourhoods are a continuum, not separate groups, so one clustering of them changes with the figures it is given. `
+  + `The kinds are therefore made from ${D.typing.reruns} runs of the same clustering (Ward's hierarchical method on the percentile ranks, every theme but Voting weighted equally, a missing figure at the median, eight groups), `
+  + "each with something left out: one measure in turn, one theme in turn, or the latest period of one source or of all (the census at 2016 for 2021). "
+  + `Two neighbourhoods' agreement is the share of runs that put them in the same group, and the kinds are average-linkage clusters of that agreement, cut at ${D.types.length}: the most that leaves no kind under four neighbourhoods. `
+  + `How often two members of a kind shared a group, over the runs: ${held}. `
+  + `The kinds were fixed on ${D.typing.cut} and will be made again once ${D.typing.recut_after.replace(/ \(.*\)$/, "")}; until then new figures change what a kind is like (the measures it is higher and lower on, the neighbourhood nearest its centre) and each neighbourhood's next nearest kind, not which neighbourhoods are in a kind or what it is called. `
+  + `Voting is left out because a kind of place shouldn't be defined by how it votes. On the current figures the kinds' silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`;
 $("method-note").textContent = `Built ${D.built}. ${D.measures.length} measures in ${D.themes.length} themes, each at its latest period, from the Data Explorer's figures. `
   + "Percentile ranks are among the 158 neighbourhoods, ties sharing the middle. A theme's gap is averaged over the measures both neighbourhoods have a figure for (a few have no school results), and the overall gap over the themes counted, so a theme with many measures counts no more than one with few.";
 
