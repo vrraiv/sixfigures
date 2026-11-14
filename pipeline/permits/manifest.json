@@ -1,9 +1,9 @@
 {
- "retrieved": "2026-11-13",
+ "retrieved": "2026-11-14",
  "files": {
-  "toronto_permits_active.csv": 66838152,
+  "toronto_permits_active.csv": 66835944,
   "toronto_permits_cleared_2000_2016.csv": 155623064,
-  "toronto_permits_cleared_2017.csv": 152975549
+  "toronto_permits_cleared_2017.csv": 152977531
  },
  "excluded": {
   "26 256637 BLD": "100,000 units on a change of use from a cafe to an arcade",

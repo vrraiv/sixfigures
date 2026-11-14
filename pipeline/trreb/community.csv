@@ -2330,6 +2330,59 @@ year,q,district,name,sales,vol,avg,med,community
 2025,3,C15,Henry Farm,51,31739536.0,622344.0,520000.0,Henry Farm
 2025,3,C15,Hillcrest Village,31,33626299.0,1084719.0,930000.0,Hillcrest Village
 2025,3,C15,Pleasant View,22,20694700.0,940668.0,1007300.0,Pleasant View
+2026,3,C01,Bay Street Corridor,133,88056873.0,662082.0,532000.0,Bay Street Corridor
+2026,3,C01,Dufferin Grove,15,15186000.0,1012400.0,1017500.0,Dufferin Grove
+2026,3,C01,Kensington-Chinatown,49,34826230.0,710739.0,615000.0,Kensington-Chinatown
+2026,3,C01,Little Portugal,37,33704500.0,910932.0,742000.0,Little Portugal
+2026,3,C01,Niagara,129,89994608.0,697633.0,610000.0,Niagara
+2026,3,C01,Palmerston-Little Italy,23,39678074.0,1725134.0,1351075.0,Palmerston-Little Italy
+2026,3,C01,Trinity-Bellwoods,29,38084227.0,1313249.0,1220000.0,Trinity-Bellwoods
+2026,3,C01,University,17,25924300.0,1524959.0,1419000.0,University
+2026,3,C01,Waterfront Communities C1,315,221523012.0,703248.0,606500.0,Waterfront Communities-The Island
+2026,3,C02,Annex,88,132971125.0,1511036.0,897500.0,Annex
+2026,3,C02,Casa Loma,23,56855000.0,2471957.0,2300000.0,Casa Loma
+2026,3,C02,Wychwood,17,21123500.0,1242559.0,1370000.0,Wychwood
+2026,3,C02,Yonge-St. Clair,46,81295021.0,1767283.0,1729500.0,Yonge-St.Clair
+2026,3,C03,Forest Hill South,31,115055036.0,3711453.0,2220000.0,Forest Hill South
+2026,3,C03,Humewood-Cedarvale,21,34285000.0,1632619.0,1618000.0,Humewood-Cedarvale
+2026,3,C03,Oakwood Village,39,42677866.0,1094304.0,1100000.0,Oakwood Village
+2026,3,C03,Yonge-Eglinton,23,30460496.0,1324369.0,1407500.0,Yonge-Eglinton
+2026,3,C04,Bedford Park-Nortown,56,135769915.0,2424463.0,2525000.0,Bedford Park-Nortown
+2026,3,C04,Englemount-Lawrence,37,38194994.0,1032297.0,725000.0,Englemount-Lawrence
+2026,3,C04,Forest Hill North,7,18326906.0,2618129.0,2310000.0,Forest Hill North
+2026,3,C04,Lawrence Park North,32,59066361.0,1845824.0,1691500.0,Lawrence Park North
+2026,3,C04,Lawrence Park South,28,67746000.0,2419500.0,1918750.0,Lawrence Park South
+2026,3,C06,Bathurst Manor,22,22936998.0,1042591.0,1107500.0,Bathurst Manor
+2026,3,C06,Clanton Park,49,40923466.0,835173.0,524000.0,Clanton Park
+2026,3,C07,Lansing-Westgate,38,44636330.0,1174640.0,791500.0,Lansing-Westgate
+2026,3,C07,Newtonbrook West,49,46951492.0,958194.0,828000.0,Newtonbrook West
+2026,3,C07,Westminster-Branson,31,24560000.0,792258.0,647000.0,Westminster-Branson
+2026,3,C07,Willowdale West,68,70522957.0,1037102.0,705000.0,Willowdale West
+2026,3,C08,Cabbagetown-South St. James Town,28,23803000.0,850107.0,606500.0,Cabbagetown-South St.James Town
+2026,3,C08,Church-Yonge Corridor,171,110056145.0,643603.0,575000.0,Church-Yonge Corridor
+2026,3,C08,Moss Park,73,48596119.0,665700.0,555000.0,Moss Park
+2026,3,C08,North St. James Town,17,9604800.0,564988.0,510000.0,North St.James Town
+2026,3,C08,Regent Park,32,21642490.0,676328.0,628500.0,Regent Park
+2026,3,C08,Waterfront Communities C8,117,87302332.0,746174.0,605000.0,Waterfront Communities-The Island
+2026,3,C09,Rosedale-Moore Park,59,153657377.0,2604362.0,1350000.0,Rosedale-Moore Park
+2026,3,C10,Mount Pleasant East,53,79425688.0,1498598.0,1450000.0,Mount Pleasant East
+2026,3,C10,Mount Pleasant West,101,75620496.0,748718.0,628000.0,Mount Pleasant West
+2026,3,C11,Flemingdon Park,30,15151000.0,505033.0,440000.0,Flemingdon Park
+2026,3,C11,Leaside,42,79240000.0,1886667.0,1687500.0,Leaside-Bennington
+2026,3,C11,Thorncliffe Park,11,5317000.0,483364.0,410000.0,Thorncliffe Park
+2026,3,C12,Bridle Path-Sunnybrook-York Mills,23,81283518.0,3534066.0,2600000.0,Bridle Path-Sunnybrook-York Mills
+2026,3,C12,St. Andrew-Windfields,37,90756667.0,2452883.0,2200000.0,St.Andrew-Windfields
+2026,3,C13,Banbury-Don Mills,90,99501428.0,1105571.0,780000.0,Banbury-Don Mills
+2026,3,C13,Parkwoods-Donalda,34,34596500.0,1017544.0,896500.0,Parkwoods-Donalda
+2026,3,C13,Victoria Village,24,18947800.0,789492.0,765000.0,Victoria Village
+2026,3,C14,Newtonbrook East,38,43107999.0,1134421.0,1191500.0,Newtonbrook East
+2026,3,C14,Willowdale East,193,169513020.0,878306.0,615000.0,Willowdale East
+2026,3,C15,Bayview Village,111,102996627.0,927898.0,628000.0,Bayview Village
+2026,3,C15,Bayview Woods-Steeles,28,34815068.0,1243395.0,1111500.0,Bayview Woods-Steeles
+2026,3,C15,Don Valley Village,54,46433400.0,859878.0,820000.0,Don Valley Village
+2026,3,C15,Henry Farm,34,19773888.0,581585.0,443750.0,Henry Farm
+2026,3,C15,Hillcrest Village,43,37912289.0,881681.0,830000.0,Hillcrest Village
+2026,3,C15,Pleasant View,27,23149750.0,857398.0,825000.0,Pleasant View
 2011,4,C01,Dufferin Grove,32,14621653.0,456927.0,375000.0,Dufferin Grove
 2011,4,C01,Palmerston-Little Italy,32,24846708.0,776460.0,716000.0,Palmerston-Little Italy
 2011,4,C01,University,8,5379352.0,672419.0,724400.0,University
@@ -4929,6 +4982,47 @@ year,q,district,name,sales,vol,avg,med,community
 2025,3,E10,West Hill,54,40974400.0,758785.0,790000.0,West Hill
 2025,3,E11,Malvern,74,48684399.0,657897.0,657500.0,Malvern
 2025,3,E11,Rouge E11,49,47626088.0,971961.0,1025000.0,Rouge
+2026,3,E01,Blake-Jones,9,8792000.0,976889.0,1000000.0,Blake-Jones
+2026,3,E01,Greenwood-Coxwell,40,44198221.0,1104956.0,1072500.0,Greenwood-Coxwell
+2026,3,E01,North Riverdale,19,30354605.0,1597611.0,1540000.0,North Riverdale
+2026,3,E01,South Riverdale,87,86991367.0,999901.0,850000.0,South Riverdale
+2026,3,E02,East End-Danforth,38,41963100.0,1104292.0,1090000.0,East End-Danforth
+2026,3,E02,The Beaches,58,88103300.0,1519022.0,1370000.0,The Beaches
+2026,3,E02,Woodbine Corridor,19,21545605.0,1133979.0,1090005.0,Woodbine Corridor
+2026,3,E03,Broadview North,12,13906000.0,1158833.0,1180000.0,Broadview North
+2026,3,E03,Crescent Town,13,9236000.0,710462.0,900000.0,Taylor-Massey
+2026,3,E03,Danforth,18,20635000.0,1146389.0,1057500.0,Danforth
+2026,3,E03,Danforth Village-East York,48,52465250.0,1093026.0,1072250.0,Danforth East York
+2026,3,E03,East York,28,35593000.0,1271179.0,1166000.0,Old East York
+2026,3,E03,O'Connor-Parkview,28,29894908.0,1067675.0,1042250.0,O'Connor-Parkview
+2026,3,E03,Playter Estates-Danforth,5,7962000.0,1592400.0,1512000.0,Playter Estates-Danforth
+2026,3,E03,Woodbine-Lumsden,20,20170504.0,1008525.0,975052.0,Woodbine-Lumsden
+2026,3,E04,Clairlea-Birchmount,42,34026000.0,810143.0,830000.0,Clairlea-Birchmount
+2026,3,E04,Dorset Park,44,28021200.0,636845.0,715300.0,Dorset Park
+2026,3,E04,Ionview,13,10233000.0,787154.0,800000.0,Ionview
+2026,3,E04,Kennedy Park,25,17706885.0,708275.0,760000.0,Kennedy Park
+2026,3,E04,Wexford-Maryvale,39,34036200.0,872723.0,855000.0,Wexford/Maryvale
+2026,3,E05,L'Amoreaux,67,55748089.0,832061.0,738000.0,L'Amoreaux
+2026,3,E05,Steeles,45,37840888.0,840909.0,850000.0,Steeles
+2026,3,E05,Tam O'Shanter-Sullivan,51,40707368.0,798184.0,695880.0,Tam O'Shanter-Sullivan
+2026,3,E06,Birchcliffe-Cliffside,59,57391799.0,972742.0,860000.0,Birchcliffe-Cliffside
+2026,3,E06,Oakridge,9,6496248.0,721805.0,726000.0,Oakridge
+2026,3,E07,Agincourt North,38,29551632.0,777675.0,789000.0,Agincourt North
+2026,3,E07,Agincourt South-Malvern West,55,34755567.0,631919.0,510000.0,Agincourt South-Malvern West
+2026,3,E07,Milliken,44,34226700.0,777880.0,791750.0,Milliken
+2026,3,E08,Cliffcrest,32,30922288.0,966322.0,827500.0,Cliffcrest
+2026,3,E08,Eglinton East,16,9543000.0,596438.0,517500.0,Eglinton East
+2026,3,E08,Guildwood,23,19384500.0,842804.0,805000.0,Guildwood
+2026,3,E08,Scarborough Village,31,24110600.0,777761.0,490000.0,Scarborough Village
+2026,3,E09,Bendale,64,42450772.0,663293.0,642500.0,Bendale
+2026,3,E09,Morningside,27,19854000.0,735333.0,786000.0,Morningside
+2026,3,E09,Woburn,67,48921181.0,730167.0,780000.0,Woburn
+2026,3,E10,Centennial Scarborough,33,34025970.0,1031090.0,1015000.0,Centennial Scarborough
+2026,3,E10,Highland Creek,19,21460111.0,1129480.0,1120000.0,Highland Creek
+2026,3,E10,Rouge E10,12,12790000.0,1065833.0,1012500.0,Rouge
+2026,3,E10,West Hill,58,41744511.0,719733.0,725000.0,West Hill
+2026,3,E11,Malvern,67,42247050.0,630553.0,670000.0,Malvern
+2026,3,E11,Rouge E11,34,30840000.0,907059.0,905000.0,Rouge
 2011,4,E01,North Riverdale,32,24815800.0,775494.0,711000.0,North Riverdale
 2011,4,E01,Blake-Jones,15,8278233.0,551882.0,506000.0,Blake-Jones
 2011,4,E01,Greenwood-Coxwell,48,23913900.0,498206.0,477000.0,Greenwood-Coxwell
@@ -7695,6 +7789,55 @@ year,q,district,name,sales,vol,avg,med,community
 2025,3,W10,Rexdale-Kipling,13,12402000.0,954000.0,955000.0,Rexdale-Kipling
 2025,3,W10,Thistletown-Beaumonde Heights,14,13425000.0,958929.0,957750.0,Thistletown-Beaumond Heights
 2025,3,W10,West Humber-Clairville,44,35243000.0,800977.0,817500.0,West Humber-Clairville
+2026,3,W01,High Park-Swansea,51,55666200.0,1091494.0,749000.0,High Park-Swansea
+2026,3,W01,Roncesvalles,29,36342920.0,1253204.0,1228000.0,Roncesvalles
+2026,3,W01,South Parkdale,18,12924500.0,718028.0,622750.0,South Parkdale
+2026,3,W02,Dovercourt-Wallace Emerson-Junction,70,65053672.0,929338.0,938500.0,Dovercourt-Wallace Emerson-Junction
+2026,3,W02,High Park North,33,41466300.0,1256555.0,1300000.0,High Park North
+2026,3,W02,Junction Area,25,29061000.0,1162440.0,1035000.0,Junction Area
+2026,3,W02,Lambton Baby Point,14,21489775.0,1534984.0,1540000.0,Lambton Baby Point
+2026,3,W02,Runnymede-Bloor West Village,15,22859100.0,1523940.0,1500000.0,Runnymede-Bloor West Village
+2026,3,W03,Caledonia-Fairbank,18,16674000.0,926333.0,812500.0,Caledonia-Fairbank
+2026,3,W03,Corso Italia-Davenport,23,24654516.0,1071935.0,1065000.0,Corso Italia-Davenport
+2026,3,W03,Keelesdale-Eglinton West,15,11976050.0,798403.0,780000.0,Keelesdale-Eglinton West
+2026,3,W03,Rockcliffe-Smythe,44,33880950.0,770022.0,766500.0,Rockcliffe-Smythe
+2026,3,W03,Weston-Pellam Park,21,19319698.0,919986.0,920000.0,Weston-Pelham Park
+2026,3,W04,Beechborough-Greenbrook,9,6529900.0,725544.0,675000.0,Beechborough-Greenbrook
+2026,3,W04,Briar Hill-Belgravia,15,11080000.0,738667.0,773500.0,Briar Hill-Belgravia
+2026,3,W04,Brookhaven-Amesbury,19,14497499.0,763026.0,845000.0,Brookhaven-Amesbury
+2026,3,W04,Humberlea-Pelmo Park W4,3,2574000.0,858000.0,849000.0,Pelmo Park-Humberlea
+2026,3,W04,Maple Leaf,12,13833000.0,1152750.0,1135500.0,Maple Leaf
+2026,3,W04,Mount Dennis,13,8708400.0,669877.0,690000.0,Mount Dennis
+2026,3,W04,Rustic,11,11703000.0,1063909.0,985000.0,Rustic
+2026,3,W04,Weston,34,22380700.0,658256.0,658500.0,Weston
+2026,3,W04,Yorkdale-Glen Park,38,27203500.0,715882.0,587500.0,Yorkdale-Glen Park
+2026,3,W05,Black Creek,19,12591075.0,662688.0,780000.0,Black Creek
+2026,3,W05,Downsview-Roding-CFB,69,51990500.0,753486.0,800000.0,Downsview-Roding-CFB
+2026,3,W05,Glenfield-Jane Heights,33,25463000.0,771606.0,810000.0,Glenfield-Jane Heights
+2026,3,W05,Humber Summit,20,15493000.0,774650.0,815000.0,Humber Summit
+2026,3,W05,Humberlea-Pelmo Park W5,12,8817500.0,734792.0,790000.0,Pelmo Park-Humberlea
+2026,3,W05,Humbermede,16,11782086.0,736380.0,683500.0,Humbermede
+2026,3,W05,York University Heights,39,29956000.0,768103.0,825000.0,York University Heights
+2026,3,W06,Alderwood,28,34467200.0,1230971.0,1107500.0,Alderwood
+2026,3,W06,Long Branch,26,27826900.0,1070265.0,947000.0,Long Branch
+2026,3,W06,Mimico,169,136078497.0,805198.0,695000.0,Mimico
+2026,3,W06,New Toronto,21,21598521.0,1028501.0,850000.0,New Toronto
+2026,3,W07,Stonegate-Queensway,48,69548234.0,1448922.0,1233750.0,Stonegate-Queensway
+2026,3,W08,Edenbridge-Humber Valley,24,44922388.0,1871766.0,1825000.0,Edenbridge-Humber Valley
+2026,3,W08,Eringate-Centennial-West Deane,36,37617180.0,1044922.0,1050000.0,Eringate-Centennial-West Deane
+2026,3,W08,Etobicoke West Mall,24,16753800.0,698075.0,521500.0,Etobicoke West Mall
+2026,3,W08,Islington-City Centre West,151,139271270.0,922326.0,580000.0,Islington-City Centre West
+2026,3,W08,Kingsway South,35,75713600.0,2163246.0,2200000.0,Kingsway South
+2026,3,W08,Markland Wood,34,31023500.0,912456.0,716000.0,Markland Wood
+2026,3,W08,Princess-Rosethorn,23,38422653.0,1670550.0,1395000.0,Princess-Rosethorn
+2026,3,W09,Humber Heights,13,10302000.0,792462.0,870000.0,Humber Heights-Westmount
+2026,3,W09,Kingsview Village-The Westway,32,24252500.0,757891.0,770000.0,Kingsview Village-The Westway
+2026,3,W09,Willowridge-Martingrove-Richview,27,29692500.0,1099722.0,1070000.0,Willowridge-Martingrove-Richview
+2026,3,W10,Elms-Old Rexdale,20,13688150.0,684408.0,760000.0,Elms-Old Rexdale
+2026,3,W10,Mount Olive-Silverstone-Jamestown,29,19709000.0,679621.0,640000.0,Mount Olive-Silverstone-Jamestown
+2026,3,W10,Rexdale-Kipling,18,14858300.0,825461.0,832500.0,Rexdale-Kipling
+2026,3,W10,Thistletown-Beaumonde Heights,15,13843500.0,922900.0,885000.0,Thistletown-Beaumond Heights
+2026,3,W10,West Humber-Clairville,42,29234001.0,696048.0,761250.0,West Humber-Clairville
 2011,4,W01,High Park-Swansea,87,44563800.0,512228.0,390000.0,High Park-Swansea
 2011,4,W01,Roncesvalles,38,22350775.0,588178.0,592500.0,Roncesvalles
 2011,4,W01,South Parkdale,23,11134300.0,484100.0,395000.0,South Parkdale
