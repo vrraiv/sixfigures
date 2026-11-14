@@ -2,8 +2,10 @@
 # Run from WSL/Linux/macOS (tippecanoe has no native Windows build).
 PYTHON ?= python3
 # pipeline/nhs2011.py needs pyivt (a Rust extension, with the legacy member-field
-# fix; see pipeline/README.md). Point this at a Python that has it, e.g. a WSL venv:
-#   make PYIVT_PYTHON="wsl -e /home/me/pyivt/.venv/bin/python" pipeline/extracts/toronto_nhs_2011.csv
+# fix; see pipeline/README.md). `make pyivt` builds it, in WSL, Linux or macOS, from the
+# pinned commit and the patch in pipeline/pyivt/. Point this at the Python it prints:
+#   make PYIVT_PYTHON=$$HOME/pyivt/.venv/bin/python pipeline/extracts/toronto_nhs_2011.csv
+# (from Windows: PYIVT_PYTHON="wsl -e /home/me/pyivt/.venv/bin/python")
 # Its output is kept in the repository (pipeline/extracts), so that is needed only to add a
 # characteristic to it.
 PYIVT_PYTHON ?= $(PYTHON)
@@ -48,7 +50,12 @@ PERMITRAW := $(RAW)/toronto_permits_cleared_2000_2016.csv $(RAW)/toronto_permits
              $(RAW)/toronto_permits_active.csv
 PERMITS   := pipeline/permits/by_nbhd.csv
 
-.PHONY: data download tiles search overlays basemap deps clean cpi breaks permits test extracts from-extracts
+.PHONY: data download tiles search overlays basemap deps clean cpi breaks permits test extracts from-extracts pyivt
+
+# The patched pyivt that nhs2011.py, profile2006.py and demography_ivt.py need, in ~/pyivt/.venv
+# (pipeline/pyivt/build.sh; needs a Rust toolchain).
+pyivt:
+	bash pipeline/pyivt/build.sh
 
 # The pipeline's own tests (clean-up rules, neighbourhood aggregation) and the site's, which
 # include the checks on the committed figures (scripts/data-invariants.test.mjs).

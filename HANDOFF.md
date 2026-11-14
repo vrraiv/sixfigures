@@ -45,10 +45,10 @@ Toronto's rows of the census profiles, which the scripts cache and which are now
    says which script writes it. If one is over 50 MB, stop and say so before committing
    (the estimate is 35 MB for all seven together).
 4. `git add pipeline/extracts && git commit` and push.
-5. Save the pyivt fix beside them, so the two Beyond 20/20 extracts can be reproduced: in the
-   patched pyivt checkout, `git diff > <repo>/pipeline/patches/pyivt-members.patch`, and note at
-   the top of `pipeline/README.md`'s NHS section which pyivt version or commit it applies to.
-   The rebuild doesn't need it; it is there so the patch isn't only on one machine.
+5. Done 13 November: the pyivt fix is `pipeline/pyivt/legacy-member-fields.patch`, and
+   `make pyivt` builds the patched pyivt from a pinned commit (`pipeline/README.md`'s NHS
+   section). A fresh build reproduced both Beyond 20/20 extracts byte for byte. The rebuild
+   doesn't need it.
 
 **Then on any machine, including a cloud session:**
 
@@ -155,8 +155,9 @@ pyarrow issue"; the text was not captured.
   environment matching the PC.
 - `make` must be GNU Make 4.3 or later (the Makefile uses `&:` grouped targets). Stock macOS
   make is 3.81.
-- `nhs2011.py` and `profile2006.py` need a patched `pyivt` (see `pipeline/README.md`); it is
-  neither pinned nor vendored. If the cached extracts in `pipeline/out/` exist, they are reused.
+- `nhs2011.py` and `profile2006.py` need a patched `pyivt`: `make pyivt` builds it from a
+  pinned commit and the patch in `pipeline/pyivt/`. If the cached extracts in `pipeline/out/`
+  exist, they are reused.
 
 ---
 

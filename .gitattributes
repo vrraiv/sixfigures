@@ -1,0 +1,5 @@
+# These are read by git apply and bash under WSL: keep their line endings as committed.
+*.patch -text
+*.sh text eol=lf
+# Kept byte for byte as the scripts wrote them (some are CRLF, some LF).
+pipeline/extracts/*.csv -text
