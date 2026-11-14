@@ -5,7 +5,8 @@
 Gathers every neighbourhood measure the site has into one shape, so the Explorer
 page can set any of them beside any other. No downloads: it reads the committed
 outputs of the other scripts (insights.json, safety.json, schools.json,
-prices.json, housing.json, trees.json, pipeline/elections and pipeline/rentals).
+prices.json, housing.json, trees.json, transport.json, pipeline/elections and
+pipeline/rentals).
 
   catalogue.json   the neighbourhoods (id, name, SVG outline) and map box as in
                    insights.json, so the page needs no other file to draw them;
@@ -46,6 +47,13 @@ How each source is shaped for comparison:
              and surface heat against the city's (trees.json): single figures.
              The page's points short of 40% canopy and absolute temperature
              restate canopy and heat, so they are left out
+  transport  Bike Share trips started at the neighbourhood's stations per 1,000
+             residents of 2021, by complete year from 2019, and its docks today (0
+             where it has no station, which is a fact about it, not a gap); from the
+             TTC's schedule, a typical weekday's departures per 1,000 residents and
+             the share of residents within 400 m of a stop served every 10 minutes
+             all day or 800 m of a subway or LRT station, one period for each
+             schedule the site has kept (transport.json)
   elections  mayoral turnout (2022 and the 2023 by-election) and the leading
              candidates' shares of the vote (pipeline/elections/by_nbhd.csv)
   rentals    Inside Airbnb listings per 1,000 households by scrape: all,
@@ -72,6 +80,7 @@ SOURCES = [
     ("prices", "Sale prices", "TRREB community reports; several neighbourhoods share a community"),
     ("housing", "Housing", "City permits and applications, CMHC's Rental Market Survey, the apartment registry"),
     ("trees", "Trees and heat", "2018 canopy study, the City's street trees, Landsat summer surface temperature"),
+    ("transport", "Getting around", "Bike Share Toronto's trips by station; the TTC's schedule (not its ridership, which isn't published)"),
     ("elections", "Elections", "City of Toronto mayoral election results, apportioned from voting subdivisions"),
     ("rentals", "Short-term rentals", "Inside Airbnb scrapes; listing points are shifted up to 150 m"),
 ]
@@ -264,6 +273,40 @@ def trees(b: Book):
         b.add("trees", key, label, short, unit, [when], [yr], "snapshot", [t[key]], note=note, digits=2)
 
 
+def transport(b: Book):
+    t = json.loads((WEB / "transport.json").read_text())
+    pop = pd.Series(t["pop"], dtype=float)
+    months = t["nb"]["months"]
+    starts = pd.DataFrame(t["nb"]["starts"], index=months)
+    years = [y for y in sorted({int(m[:4]) for m in months}) if sum(m.startswith(str(y)) for m in months) == 12]
+    b.add("transport", "bike_trips", "Bike Share trips started per 1,000 residents", "Bike Share trips", "rate", years, years, "year",
+          [starts[starts.index.str.startswith(str(y))].sum() / pop * 1000 for y in years], group="Bike Share",
+          note="Trips starting at the stations inside the neighbourhood, over residents at the 2021 Census; 0 where it has no station. "
+               "A new station raises a neighbourhood's trips as surely as more riding does, and trips per resident are highest "
+               "where people visit more than live.")
+    listed = pd.Timestamp(t["nb"]["listed"])
+    b.add("transport", "bike_docks", "Bike Share docks per 1,000 residents", "Bike Share docks", "rate", ["today"],
+          [listed.year + (listed.dayofyear - 1) / 365], "snapshot", [pd.Series(t["nb"]["docks"], dtype=float) / pop * 1000], group="Bike Share",
+          note=f"Bike Share's station list of {t['nb']['listed']}; 0 where the neighbourhood has no station.", digits=2)
+    ttc = t["ttc"]
+    feeds = ttc["feeds"]
+    when = [pd.Timestamp(f).year + (pd.Timestamp(f).dayofyear - 1) / 365 for f in feeds]
+    kept = "The TTC's schedule, not its ridership (which isn't published by route or stop). One period for each schedule the site has kept, named by its first day."
+
+    def all_modes(nb):
+        return sum(pd.Series(nb["weekday"][m], dtype=float) for m in ("bus", "streetcar", "subway"))
+
+    b.add("transport", "ttc_departures", "TTC departures on a weekday per 1,000 residents", "TTC departures", "rate", feeds, when, "scrape",
+          [all_modes(nb) / pop * 1000 for nb in ttc["nb"]], group="TTC",
+          note="A bus, streetcar or train leaving a stop in the neighbourhood on a typical weekday: a route through it counts at every stop. " + kept)
+    b.add("transport", "ttc_frequent", "Residents within 400 m of a stop served every 10 minutes all day", "Near frequent transit", "pct", feeds,
+          when, "scrape", [nb["frequent"] for nb in ttc["nb"]], group="TTC",
+          note="Six departures or more in every hour from 7 am to 7 pm on a weekday, at one stop; by dissemination area centre, as the crow flies. " + kept)
+    b.add("transport", "ttc_rapid", "Residents within 800 m of a subway or LRT station", "Near a subway or LRT", "pct", feeds, when, "scrape",
+          [nb["rapid"] for nb in ttc["nb"]], group="TTC",
+          note="Subway stations and the stops of Lines 5 and 6; by dissemination area centre, as the crow flies. " + kept)
+
+
 def elections(b: Book):
     e = pd.read_csv(HERE / "elections" / "by_nbhd.csv")
     e["election"] = e.election.astype(str)
@@ -305,6 +348,7 @@ def main() -> int:
     prices(b)
     housing(b)
     trees(b)
+    transport(b)
     elections(b)
     rentals(b)
     OUT.mkdir(exist_ok=True)

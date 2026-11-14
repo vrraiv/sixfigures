@@ -392,7 +392,7 @@ explorer:
 # figures it has just rebuilt (`make explorer` and `make neighbourhoods` run them regardless).
 EXPLORER       := web/public/explorer/catalogue.json
 NEIGHBOURHOODS := web/public/neighbourhoods.json
-$(EXPLORER): $(INSIGHTS) web/public/safety.json web/public/schools.json web/public/prices.json web/public/housing.json              web/public/trees.json pipeline/elections/by_nbhd.csv pipeline/rentals/by_nbhd.csv web/src/catalogue.js              pipeline/explorer_data.py
+$(EXPLORER): $(INSIGHTS) web/public/safety.json web/public/schools.json web/public/prices.json web/public/housing.json              web/public/trees.json web/public/transport.json pipeline/elections/by_nbhd.csv pipeline/rentals/by_nbhd.csv web/src/catalogue.js              pipeline/explorer_data.py
 	$(PYTHON) pipeline/explorer_data.py
 $(NEIGHBOURHOODS): $(EXPLORER) pipeline/affinity.py pipeline/kinds/kinds.csv pipeline/kinds/names.json
 	$(PYTHON) pipeline/affinity.py
