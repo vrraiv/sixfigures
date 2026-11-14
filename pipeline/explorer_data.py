@@ -48,8 +48,11 @@ How each source is shaped for comparison:
              The page's points short of 40% canopy and absolute temperature
              restate canopy and heat, so they are left out
   transport  Bike Share trips started at the neighbourhood's stations per 1,000
-             residents of 2021, by complete year from 2019, and its docks today (0
-             where it has no station, which is a fact about it, not a gap); from the
+             residents of 2021, by complete year from 2019, and its docks today. A
+             neighbourhood with no station in the year (58 had one in 2019, 140 in
+             2025) has no figure, not 0: a 0 is true, but with 77 of them in 2021 the
+             median of a group of neighbourhoods said whether most had a station, not
+             how much the bikes were used; from the
              TTC's schedule, a typical weekday's departures per 1,000 residents and
              the share of residents within 400 m of a stop served every 10 minutes
              all day or 800 m of a subway or LRT station, one period for each
@@ -111,8 +114,10 @@ class Book:
     def __init__(self, ids):
         self.ids, self.rows, self.data = ids, [], {}
 
-    def add(self, source, key, label, short, unit, periods, t, kind, values, group="", note="", digits=1):
-        """values: one sequence of len(ids) per period."""
+    def add(self, source, key, label, short, unit, periods, t, kind, values, group="", note="", digits=1, min_known=100):
+        """values: one sequence of len(ids) per period. A period with a figure for fewer than
+        min_known neighbourhoods stops the run: lower it only for a measure that is about a
+        service some neighbourhoods don't have."""
         if len(periods) != len(values) or len(periods) != len(t):
             sys.exit(f"{source}.{key}: {len(periods)} periods, {len(values)} columns")
         cols = []
@@ -123,7 +128,7 @@ class Book:
             cols.append([None if x is None or pd.isna(x) else (int(round(float(x))) if digits == 0 else round(float(x), digits))
                          for x in v])
         known = [sum(x is not None for x in c) for c in cols]
-        if min(known) < 100:
+        if min(known) < min_known:
             sys.exit(f"{source}.{key}: a period has only {min(known)} neighbourhoods")
         self.rows.append({"id": f"{source}.{key}", "source": source, "group": group, "label": label, "short": short,
                           "unit": unit, "periods": [str(p) for p in periods], "t": [round(float(x), 2) for x in t],
@@ -279,15 +284,20 @@ def transport(b: Book):
     months = t["nb"]["months"]
     starts = pd.DataFrame(t["nb"]["starts"], index=months)
     years = [y for y in sorted({int(m[:4]) for m in months}) if sum(m.startswith(str(y)) for m in months) == 12]
+    by_year = [starts[starts.index.str.startswith(str(y))].sum() for y in years]
+    served = [int((s > 0).sum()) for s in by_year]
+    # no trip started in the year: no station then, and no figure (see the docstring)
     b.add("transport", "bike_trips", "Bike Share trips started per 1,000 residents", "Bike Share trips", "rate", years, years, "year",
-          [starts[starts.index.str.startswith(str(y))].sum() / pop * 1000 for y in years], group="Bike Share",
-          note="Trips starting at the stations inside the neighbourhood, over residents at the 2021 Census; 0 where it has no station. "
-               "A new station raises a neighbourhood's trips as surely as more riding does, and trips per resident are highest "
-               "where people visit more than live.")
+          [(s / pop * 1000).where(s > 0) for s in by_year], group="Bike Share", min_known=50,
+          note="Trips starting at the stations inside the neighbourhood, over residents at the 2021 Census. Only neighbourhoods with a "
+               f"station that year have a figure: {served[0]} in {years[0]}, {served[-1]} in {years[-1]}. So the figures compare the "
+               "neighbourhoods Bike Share reaches, and a change over the years is partly the network growing into quieter places. "
+               "Trips per resident are highest where people visit more than live.")
     listed = pd.Timestamp(t["nb"]["listed"])
+    docks = pd.Series(t["nb"]["docks"], dtype=float)
     b.add("transport", "bike_docks", "Bike Share docks per 1,000 residents", "Bike Share docks", "rate", ["today"],
-          [listed.year + (listed.dayofyear - 1) / 365], "snapshot", [pd.Series(t["nb"]["docks"], dtype=float) / pop * 1000], group="Bike Share",
-          note=f"Bike Share's station list of {t['nb']['listed']}; 0 where the neighbourhood has no station.", digits=2)
+          [listed.year + (listed.dayofyear - 1) / 365], "snapshot", [(docks / pop * 1000).where(docks > 0)], group="Bike Share",
+          note=f"Bike Share's station list of {t['nb']['listed']}; no figure where the neighbourhood has no station.", digits=2)
     ttc = t["ttc"]
     feeds = ttc["feeds"]
     when = [pd.Timestamp(f).year + (pd.Timestamp(f).dayofyear - 1) / 365 for f in feeds]
