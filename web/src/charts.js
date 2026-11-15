@@ -7,7 +7,8 @@ import { $, COLORS, DIVERGING, escapeHTML } from "./catalogue.js";
 // With a mouse the tip follows the pointer and goes when it leaves. A touch has no hover: a tap
 // shows the tip at the finger and it stays until the next tap elsewhere or a scroll. From the
 // keyboard, a control that carries a tip shows it above itself while it has the focus, and
-// Escape puts it away.
+// Escape puts it away. A control whose tap does something else (data-tip-touch="no": a list item
+// that picks a measure and scrolls to its chart) shows its tip to a mouse and the keyboard only.
 // A tip is written as text with <b>, <i>, <br> and plain <span>s; the names in it come from the
 // data files. Whatever else arrives (a name with markup in it) is kept as its text only, and no
 // attribute survives, so a tip can show things but never run or load anything.
@@ -54,7 +55,7 @@ export function initTip() {
   });
   document.addEventListener("pointerup", (e) => {
     if (e.pointerType !== "touch") { held = false; return; }
-    const t = e.target.closest?.("[data-tip]");
+    const t = e.target.closest?.("[data-tip]:not([data-tip-touch=no])");
     held = !!t;
     if (t) show(t, e);
     else tip.hidden = true;

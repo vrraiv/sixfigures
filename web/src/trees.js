@@ -2,7 +2,7 @@
 // summer surface temperature by neighbourhood, from trees.json (pipeline/trees_insights.py),
 // with the outlines and 2021 Census figures from insights.json. No map tiles.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, defTip, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, defNote, defTip, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, breaksAboutZero, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
@@ -306,7 +306,8 @@ function renderCorr() {
     xLabel: `${escapeHTML(x.label)}${x.year ? `, ${x.year}` : ""}`, yLabel: escapeHTML(def.label),
     tip: (i) => `${nbhd[i].name}<br>${x.short}: <b>${fmtU(x.unit, x.values[i])}</b><br>${def.short}: <b>${def.fmt(vs[i])}</b>` });
   $("scatter").innerHTML = s.html;
-  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(spearman(vs, x.values)?.r)}</b> across ${s.n} neighbourhoods. Each dot is a neighbourhood; the axes end at the 98th percentile.`;
+  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(spearman(vs, x.values)?.r)}</b> across ${s.n} neighbourhoods. Each dot is a neighbourhood; the axes end at the 98th percentile.`
+    + (state.sx.startsWith("c:") ? defNote([state.sx.slice(2)]) : "");
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-x]");

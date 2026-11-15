@@ -53,8 +53,10 @@ Work through all of these. The last three sections are the ones that get forgott
   link and its `blurb`, which is also the landing page's card), and the About page's lists
   of topics and sources.
 - Say on the page what the data can't show, and credit the source in the page's footer.
-- Where the page lists census measures, give each name its definition with `defTip(m)` or
-  `defined(m, html)` from `web/src/catalogue.js`. A new census measure needs a line in `DEFS`
+- Where the page lists census measures, give each name its definition from `web/src/catalogue.js`:
+  `defTip(m)` on a list item whose tap picks the measure (a tooltip for a mouse and the keyboard
+  only), with `defNote([m])` in the chart's caption so a phone shows it too; `defined(m, html)`
+  elsewhere. A new census measure needs a line in `DEFS`
   there too (`explorer_data.py` stops without one).
 - To put a label inside a sentence, use `lc` (`web/src/catalogue.js`, or `web/src/units.js`
   for the Explorers' labels): it lowers the first letter only and leaves a leading

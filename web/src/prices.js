@@ -3,7 +3,7 @@
 // census figures from insights.json. TRREB's communities are the City's neighbourhoods
 // of before 2022; a neighbourhood split in 2022 shows its community's figures.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, defTip, defined, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, defNote, defTip, defined, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -266,7 +266,8 @@ function renderCorr() {
     <div class="sc-xticks">${q.map((f) => `<span style="left:${f * 100}%">${fx(xa + f * (xb - xa))}${f === 1 && xb < sx.at(-1) ? "+" : ""}</span>`).join("")}</div>
     <div class="sc-x">${defined(c, escapeHTML(CENSUS[c].long))}, 2021 Census</div>`;
   const r = spearman(vs, xs);
-  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(r?.r)}</b> across ${idx.length} neighbourhoods. Each dot is a neighbourhood; the axes end at the 99th and 98th percentiles.`;
+  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(r?.r)}</b> across ${idx.length} neighbourhoods. Each dot is a neighbourhood; the axes end at the 99th and 98th percentiles.`
+    + defNote([c]);
 }
 $("census-list").addEventListener("click", (e) => {
   const b = e.target.closest("[data-x]");

@@ -3,7 +3,7 @@
 // schools.json (pipeline/school_insights.py), with the 2021 Census figures from
 // insights.json. Charts are inline SVG and HTML, as on the Census Insights page.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, defTip, defined, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, defNote, defTip, defined, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed } from "./catalogue.js";
 import { cellStyle, fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -538,7 +538,8 @@ function renderScatter() {
     <div class="sc-xticks">${xt}</div>
     <div class="sc-x">${escapeHTML(xlabel)}${schools ? `, ${y}` : ""}</div>`;
   const v = pearson(xs, ys, 3);
-  $("scatter-caption").innerHTML = `${yLabel(y)}: correlation <b>${fmtR(v?.r)}</b> across ${idx.length} ${schools ? "schools" : "neighbourhoods"}. Each dot is ${schools ? "a school" : "a neighbourhood"}.`;
+  $("scatter-caption").innerHTML = `${yLabel(y)}: correlation <b>${fmtR(v?.r)}</b> across ${idx.length} ${schools ? "schools" : "neighbourhoods"}. Each dot is ${schools ? "a school" : "a neighbourhood"}.`
+    + (schools ? "" : defNote([k]));
   $("scatter-key").innerHTML = schools ? TYPES.map((g) => `<li><span class="key-dot" style="background:${TYPE_COLOR[g]}"></span>${g}</li>`).join("") : "";
 }
 

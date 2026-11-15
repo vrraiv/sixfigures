@@ -3,7 +3,7 @@
 // with the neighbourhood outlines and 2021 Census figures from insights.json. No map
 // tiles: the map is the neighbourhoods' SVG outlines, as on the other Insights pages.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, defTip, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, defNote, defTip, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, incomeFifths, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
@@ -314,7 +314,8 @@ function renderCorr() {
     tip: (i) => `${nbhd[i].name}<br>${x.short}: <b>${fmtU(x.unit, x.values[i])}</b><br>${CAT[state.m].short}: <b>${fmtRate(vs[i])}</b>` });
   $("scatter").innerHTML = s.html;
   const r = spearman(vs, x.values);
-  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(r?.r)}</b> across ${s.n} neighbourhoods. Each dot is a neighbourhood; the axes end at the 98th percentile.`;
+  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(r?.r)}</b> across ${s.n} neighbourhoods. Each dot is a neighbourhood; the axes end at the 98th percentile.`
+    + (state.sx.startsWith("c:") ? defNote([state.sx.slice(2)]) : "");
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-x]");

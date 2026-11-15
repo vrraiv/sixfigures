@@ -3,7 +3,7 @@
 // from insights.json. Bike Share's trips are by station, so they can be mapped: a neighbourhood's
 // trips are those of the stations inside it.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, defTip, defined, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, defNote, defTip, defined, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 import { lc } from "./units.js";
@@ -410,7 +410,8 @@ function renderCorr() {
       ${idx.map((i) => `<span class="sc-dot" style="left:${px(xs[i]).toFixed(2)}%;bottom:${py(vs[i]).toFixed(2)}%" data-tip="${escapeHTML(`${nbhd[i].name}<br>${CENSUS[c].short}: <b>${fxl(xs[i])}</b><br>${M[state.m].label}: <b>${fmtV(vs[i])}</b>`)}"></span>`).join("")}</div>
     <div class="sc-xticks">${q.map((f) => `<span style="left:${f * 100}%">${fx(xa + f * (xb - xa))}${f === 1 && xb < sx.at(-1) ? "+" : ""}</span>`).join("")}</div>
     <div class="sc-x">${defined(c, escapeHTML(CENSUS[c].long))}, 2021 Census</div>`;
-  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(spearman(vs, xs)?.r)}</b> across ${idx.length} neighbourhoods. Each dot is a neighbourhood; the axes end at the 99th and 98th percentiles.`;
+  $("scatter-caption").innerHTML = `Spearman <b>${fmtR(spearman(vs, xs)?.r)}</b> across ${idx.length} neighbourhoods. Each dot is a neighbourhood; the axes end at the 99th and 98th percentiles.`
+    + defNote([c]);
 }
 $("census-list").addEventListener("click", (e) => {
   const b = e.target.closest("[data-x]");

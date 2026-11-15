@@ -75,12 +75,18 @@ export const DEFS = {
   age0_14: "The share of residents aged 14 or younger.",
   age65: "The share of residents aged 65 or older.",
 };
-// A measure's definition as a tooltip (charts.js initTip): defTip(m) is the data-tip attribute,
-// for a control that names the measure; defined(m, html) wraps a name in a span that carries it.
-// An unknown key gives nothing, so callers needn't check.
+// A measure's definition, three ways (an unknown key gives nothing, so callers needn't check):
+//   defTip(m)      the data-tip attribute (charts.js initTip) for a list item that picks the
+//                  measure. A tap on it picks and scrolls, so the tip is for a mouse and the
+//                  keyboard only (data-tip-touch="no"); on a phone the definition is in the
+//                  chart's caption instead, from defNote.
+//   defined(m, h)  a name wrapped in a span that shows the tip on hover and on a tap alike
+//   defNote(ms)    the definitions as a line of text, for the caption of a chart of those measures
 const tipOf = (m) => `<b>${escapeHTML(MEASURES[m].long)}</b><br>${escapeHTML(DEFS[m])}`;
-export const defTip = (m) => (DEFS[m] ? ` data-tip="${escapeHTML(tipOf(m))}"` : "");
-export const defined = (m, html) => (DEFS[m] ? `<span class="def"${defTip(m)}>${html}</span>` : html);
+export const defTip = (m) => (DEFS[m] ? ` data-tip="${escapeHTML(tipOf(m))}" data-tip-touch="no"` : "");
+export const defined = (m, html) => (DEFS[m] ? `<span class="def" data-tip="${escapeHTML(tipOf(m))}">${html}</span>` : html);
+export const defNote = (ms) => ms.filter((m) => DEFS[m]).map((m) => `<span class="def-note"><b>${escapeHTML(MEASURES[m].long)}:</b> ${escapeHTML(lcFirst(DEFS[m]))}</span>`).join("");
+const lcFirst = (s) => s[0].toLowerCase() + s.slice(1);
 // label: the group's heading in the measure menu (census/index.html writes the same ones out);
 // col: the details table's value column; noun: what the group's figures are.
 export const GROUPS = {

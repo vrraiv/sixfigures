@@ -2,7 +2,7 @@
 // of the 158 neighbourhoods, and the biggest changes between censuses. Charts are
 // inline SVG and HTML; the figures come from insights.json (pipeline/insights.py).
 import "./style.css";
-import { $, COLORS, DIVERGING, GROUPS, MEASURES, defTip, defined, escapeHTML, fmtMoney, fmtPct, isMoney, lc, ordinal, loadJSON, loadFailed } from "./catalogue.js";
+import { $, COLORS, DIVERGING, GROUPS, MEASURES, defNote, defTip, defined, escapeHTML, fmtMoney, fmtPct, isMoney, lc, ordinal, loadJSON, loadFailed } from "./catalogue.js";
 import { R_EDGES, fmtR, initPick, initTip, quantile, rColor, seg, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -547,7 +547,8 @@ function renderScatter() {
     <div class="sc-x">${defined(a, escapeHTML(MEASURES[a].long))}, ${refYear(a, y)}</div>`;
   const stat = a === b ? "the same measure on both axes; pick two different ones" : v ? `correlation <b>${fmtR(v.r)}</b> across ${v.n} neighbourhoods` : "too few neighbourhoods with both";
   $("scatter-caption").innerHTML = `${y} census: ${stat}. `
-    + `Each dot is a neighbourhood${y === "2006" ? "" : "; open one on the map"}. Pick any two measures, or choose a cell above.`;
+    + `Each dot is a neighbourhood${y === "2006" ? "" : "; open one on the map"}. Pick any two measures, or choose a cell above.`
+    + defNote([a, b]);
 }
 
 // ---- 6. relationships that changed -------------------------------------------------------
