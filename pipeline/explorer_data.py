@@ -151,6 +151,12 @@ def census(b: Book, insights: dict):
     if not keys or keys != read:
         sys.exit(f"web/src/catalogue.js: {len(keys)} measures defined, {len(read)} read; "
                  f"not read: {sorted(set(keys) - set(read))}. Keep each on one line, as the others are.")
+    # the plain-words definitions beside them (DEFS), which lead each census measure's note
+    dblock = js[js.index("export const DEFS = {"):]
+    dblock = dblock[:dblock.index("\n};")]
+    defs = {k: v.replace('\\"', '"') for k, v in re.findall(r'^\s+(\w+): "((?:[^"\\]|\\.)*)",?$', dblock, re.M)}
+    if set(defs) != set(keys):
+        sys.exit(f"web/src/catalogue.js: DEFS and MEASURES differ: {sorted(set(defs) ^ set(keys))}")
     cpi = {int(k): v for k, v in insights["cpi"].items()}
     inc_year = {int(k): int(v) for k, v in insights["income_years"].items()}
     for m in re.finditer(MEASURE_LINE, js, re.M):
@@ -173,6 +179,7 @@ def census(b: Book, insights: dict):
                 "" if dated else " Incomes are for the year before each census.")
         if "cerb: true" in rest:
             note += " 2021's figure (2020 incomes) is moved by pandemic benefits."
+        note = f"{defs[key]} {note}"
         b.add("census", key, long, CENSUS_SHORT.get(key, short), "money" if unit == "money" else "pct", years, years, "census", cols,
               group=CENSUS_GROUPS[group], note=note.strip(), digits=0 if unit == "money" else 1)
 

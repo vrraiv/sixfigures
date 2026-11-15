@@ -17,8 +17,8 @@ export const DIVERGING = ["#8f1c1c", "#d9403f", "#f2a39b", "#f0efec", "#9ec5f4",
 export const MEASURES = {
   med_hh_tot: { group: "income", unit: "money", stat: "median", short: "Household, total", long: "Median total household income" },
   med_hh_at: { group: "income", unit: "money", stat: "median", short: "Household, after tax", long: "Median after-tax household income" },
-  med_ind_tot: { group: "income", unit: "money", stat: "median", short: "Individual, total", long: "Median total income of recipients (15+)" },
-  med_ind_at: { group: "income", unit: "money", stat: "median", short: "Individual, after tax", long: "Median after-tax income of recipients (15+)" },
+  med_ind_tot: { group: "income", unit: "money", stat: "median", short: "Individual, total", long: "Median total income of people 15+ with income" },
+  med_ind_at: { group: "income", unit: "money", stat: "median", short: "Individual, after tax", long: "Median after-tax income of people 15+ with income" },
   avg_hh_tot: { group: "income", unit: "money", stat: "average", short: "Household, average", long: "Average total household income" },
   lim_at: { group: "low", unit: "rate", stat: "rate", cerb: true, short: "Low-income rate", long: "People in low income (LIM-AT)" },
   transfers: { group: "low", unit: "rate", stat: "share", cerb: true, short: "Income from transfers", long: "Share of income from government transfers" },
@@ -43,6 +43,50 @@ export const MEASURES = {
   age0_14: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Aged 0–14", long: "Children aged 0 to 14" },
   age65: { group: "people", unit: "rate", stat: "share", dated: "census", short: "Aged 65+", long: "People aged 65 and over" },
 };
+// What each measure is, in plain words, from Statistics Canada's Census Dictionary (2021) and
+// the profile's notes: shown on hover beside a measure's name and in the Explorers' notes.
+// One line each, as `key: "text",` (pipeline/explorer_data.py reads them by pattern).
+export const DEFS = {
+  med_hh_tot: "The middle income of the neighbourhood's households: half have more, half less. Total income is before tax, from every source (work, investments, pensions, government transfers), for everyone in the household, in the year before the census.",
+  med_hh_at: "The middle household income after income taxes are taken off: half of households have more, half less. For everyone in the household, in the year before the census.",
+  med_ind_tot: "The middle income of the people aged 15 and over who had any income in the year before the census: half had more, half less. People with no income are left out (the census calls those with income \"recipients\"). Before tax, from every source.",
+  med_ind_at: "The middle after-tax income of the people aged 15 and over who had any income in the year before the census: half had more, half less. People with no income are left out (the census calls those with income \"recipients\").",
+  avg_hh_tot: "All household income added up and divided by the number of households: before tax, from every source. The highest incomes pull an average up much more than they move a median.",
+  lim_at: "The share of people living in a household whose after-tax income, adjusted for its size, is under half the national median: Statistics Canada's Low-income measure, after tax (LIM-AT).",
+  transfers: "The share of all the income received that came from governments: public pensions (CPP, OAS), Employment Insurance, child benefits, social assistance and, in 2020, pandemic benefits such as CERB.",
+  renter: "The share of households that rent their home, including those in subsidized housing. The rest own it, with or without a mortgage.",
+  shelter30: "The share of owner and tenant households with income that spend 30% or more of it, before tax, on shelter: rent or mortgage payments, property taxes, condominium fees and utilities.",
+  owner30: "The share of owner households with income that spend 30% or more of it, before tax, on shelter: mortgage payments, property taxes, condominium fees and utilities.",
+  tenant30: "The share of tenant households with income that spend 30% or more of it, before tax, on shelter: rent and any utilities paid separately.",
+  subsidized: "The share of renting households whose rent is lowered by government: social housing, rent geared to income, rent supplements and housing allowances.",
+  value: "The middle of what owners think their home would sell for: half think more, half less. Owners' own estimates, not sale prices.",
+  own_cost: "What owner households pay a month for shelter: mortgage, property taxes, condominium fees and utilities. The middle figure: half pay more, half less.",
+  rent: "What renting households pay a month for shelter: rent and any utilities paid separately. The middle figure: half pay more, half less.",
+  detached: "The share of homes that are a single house standing alone, not joined to any other dwelling.",
+  apt5: "The share of homes that are apartments in buildings of five storeys or more.",
+  condo: "The share of homes that are part of a registered condominium, whether owned or rented, and whatever the building.",
+  built_new: "The share of homes in buildings put up in the five years before the census (2016 to 2021 for the 2021 Census).",
+  built_old: "The share of homes in buildings put up in 1960 or before.",
+  crowded: "The share of households without enough bedrooms for who lives there, by the National Occupancy Standard: a bedroom for each couple, each other adult, and each pair of children (two of the same sex, or two under five).",
+  degree: "The share of people aged 25 to 64 whose highest qualification is a bachelor's degree or above: bachelor's, professional degrees such as medicine and law, master's and doctorates.",
+  moved1: "The share of people aged 1 and over who lived at another address a year before the census.",
+  moved5: "The share of people aged 5 and over who lived at another address five years before the census.",
+  imm_recent: "The share of residents who first became permanent residents of Canada in the five years before the census (2016 to 2021 for the 2021 Census).",
+  age0_14: "The share of residents aged 14 or younger.",
+  age65: "The share of residents aged 65 or older.",
+};
+// A measure's definition, three ways (an unknown key gives nothing, so callers needn't check):
+//   defTip(m)      the data-tip attribute (charts.js initTip) for a list item that picks the
+//                  measure. A tap on it picks and scrolls, so the tip is for a mouse and the
+//                  keyboard only (data-tip-touch="no"); on a phone the definition is in the
+//                  chart's caption instead, from defNote.
+//   defined(m, h)  a name wrapped in a span that shows the tip on hover and on a tap alike
+//   defNote(ms)    the definitions as a line of text, for the caption of a chart of those measures
+const tipOf = (m) => `<b>${escapeHTML(MEASURES[m].long)}</b><br>${escapeHTML(DEFS[m])}`;
+export const defTip = (m) => (DEFS[m] ? ` data-tip="${escapeHTML(tipOf(m))}" data-tip-touch="no"` : "");
+export const defined = (m, html) => (DEFS[m] ? `<span class="def" data-tip="${escapeHTML(tipOf(m))}">${html}</span>` : html);
+export const defNote = (ms) => ms.filter((m) => DEFS[m]).map((m) => `<span class="def-note"><b>${escapeHTML(MEASURES[m].long)}:</b> ${escapeHTML(lcFirst(DEFS[m]))}</span>`).join("");
+const lcFirst = (s) => s[0].toLowerCase() + s.slice(1);
 // label: the group's heading in the measure menu (census/index.html writes the same ones out);
 // col: the details table's value column; noun: what the group's figures are.
 export const GROUPS = {

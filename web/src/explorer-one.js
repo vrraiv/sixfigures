@@ -1,6 +1,6 @@
 // The Data Explorer's one-measure view: map, spread, ranking, trend, biggest changes,
 // stability, and the measures it goes with.
-import { $, COLORS, DIVERGING, escapeHTML, ordinal } from "./catalogue.js";
+import { defTip, $, COLORS, DIVERGING, escapeHTML, ordinal } from "./catalogue.js";
 import { fmtR, quantile, rColor, spearman } from "./charts.js";
 import { breaks, cls, rangeLabels, rankOrder } from "./nbtools.js";
 import { C, DEF, N, ORANGE, S, SRC, fmt, fmtAxis, fmtDiff, histHTML, known, lc, loadAll, mapSVG, nbhd, nearest, sorted, whenOf } from "./explorer-core.js";
@@ -135,7 +135,7 @@ async function renderRelated() {
     const k = nearest(m, t), r = spearman(vs, data[m.source][m.id.split(".")[1]][k]);
     return r && { m, k, r: r.r, n: r.n };
   }).filter(Boolean).sort((x, y) => Math.abs(y.r) - Math.abs(x.r));
-  const item = ({ m, k, r, n }) => `<li><button type="button" data-m="${m.id}" title="Set ${escapeHTML(m.label)} beside this measure">
+  const item = ({ m, k, r, n }) => `<li><button type="button" data-m="${m.id}"${m.source === "census" ? defTip(m.id.split(".")[1]) : ` title="Set ${escapeHTML(m.label)} beside this measure"`}>
       <span class="cl-name">${escapeHTML(m.label)}<span class="ex-src">${escapeHTML(SRC[m.source].label)} · ${escapeHTML(m.periods[k])}${n < N ? ` · ${n} neighbourhoods` : ""}</span></span>
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - Math.abs(r) * 50}%`};width:${Math.abs(r) * 50}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
