@@ -262,8 +262,8 @@ and closest pairs. It also shows:
   furthest from;
 - **A map of likeness:** every neighbourhood placed on the two axes that separate them most
   (the first two principal components of the percentiles, about 46% of the variance), coloured
-  by kind or by affinity with the picked neighbourhood. It is a picture, not the measure: the
-  lists come from the gaps.
+  by kind, by how firmly each belongs to its kind, or by affinity with the picked neighbourhood.
+  It is a picture, not the measure: the lists come from the gaps.
 
 The kinds cut a continuum (silhouette about 0.1), so each neighbourhood also carries its next
 nearest kind, and one clustering of them changes with the figures it is given: a new quarter of
@@ -277,7 +277,13 @@ neighbourhoods' agreement is the share of reruns that put them in the same group
 are average-linkage clusters of that agreement, cut at nine: the most that leaves no kind under
 four neighbourhoods. The page says this in plain words near its top and in full at its foot. Seven of the nine hold together in about 80% of reruns or more; two (the fast-building
 apartment areas and the modest house suburbs) hold in 66% and 73%, and the page says they are
-looser. Their names are written by hand in `pipeline/kinds/names.json`. A data refresh changes
+looser. The same holds one neighbourhood at a time: `pipeline/kinds/grouped.csv` (part of the
+lock) has, for each, the share of reruns in which it was grouped with the members of every kind.
+With its own kind that is 90% or more for 38 neighbourhoods and under 60% for 10 (Cabbagetown-South
+St. James Town, New Toronto and Mimico-Queensway are lowest, at 42%). The map of kinds and the
+map of likeness can be switched to "How firmly", which fades each neighbourhood's colour by
+that share, and a picked neighbourhood gets a bar for each kind it was grouped with. The bars
+needn't add to 100%: a run makes eight groups, so some kinds always share one. Their names are written by hand in `pipeline/kinds/names.json`. A data refresh changes
 what a kind is like (its highest and lowest measures, its centre), never its members or name.
 They are to be cut again once the 2026 Census is fully released (`make kinds-recut`); `make kinds`
 reports how the locked kinds hold on current figures. The link holds every choice. The page's

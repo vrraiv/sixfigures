@@ -12,6 +12,12 @@ in pipeline/kinds/ until the next census is fully out:
   kinds.csv      nbhd_id, nbhd, kind (1 to K, largest first), attached: the share of the
                  reruns, on average, in which the neighbourhood is grouped with each other
                  member of its kind
+  grouped.csv    nbhd_id, nbhd, with_1 to with_K: the share of the reruns, on average, in
+                 which the neighbourhood is grouped with each member of every kind (itself
+                 left out). with_<its own kind> is `attached`. The shares don't add to
+                 one: each rerun cuts EACH_K groups, fewer than the kinds, so some kinds
+                 always share a group. The page draws it as "how often it was grouped
+                 with each kind" and fades its map of kinds by `attached`
   names.json     each kind's name and one-line description, written by hand; a recut
                  empties them (and lists each kind's most attached members, to name it by)
   manifest.json  when the kinds were cut and from which Explorer build, the reruns, and for
@@ -47,6 +53,12 @@ When to recut: after the 2026 Census is fully released (its last release is sche
 for K - 2 to K + 3, change K if the reasons above no longer hold, and write the names.
 Without --recut this script only reports: if the locked kinds stop holding on new data
 (their `together` falls well below the manifest's), that is worth knowing before the census.
+
+grouped.csv was added on 15 November 2026, the day after the cut, on the same build of the
+Explorer's figures. Should it ever be missing, a run without --recut writes it again, but only
+while today's reruns still give the lock's own `attached` to three decimals; once the figures
+have moved it stops and says so, since the table belongs to the cut and can't be had from
+later data.
 """
 import json
 import sys
@@ -120,6 +132,21 @@ def hold(co: np.ndarray, kind: np.ndarray) -> tuple[dict, np.ndarray]:
     return together, attached
 
 
+def grouped(co: np.ndarray, kind: np.ndarray) -> np.ndarray:
+    """[neighbourhood, kind - 1]: its mean agreement with that kind's members, itself left out."""
+    out = np.zeros((len(kind), int(kind.max())))
+    for c in range(1, out.shape[1] + 1):
+        mem = (kind == c).astype(float)
+        n = mem.sum() - mem  # the kind's members other than the neighbourhood itself
+        out[:, c - 1] = np.where(n > 0, (co @ mem - mem) / np.maximum(n, 1), 1.0)
+    return out
+
+
+def write_grouped(path: Path, co, kind, ids, names) -> None:
+    g = np.round(grouped(co, kind), 3)
+    pd.DataFrame({"nbhd_id": ids, "nbhd": names, **{f"with_{c + 1}": g[:, c] for c in range(g.shape[1])}}).to_csv(path, index=False, lineterminator="\n")
+
+
 def table(co, kind, names, label=None) -> None:
     together, attached = hold(co, kind)
     for c in sorted(set(kind)):
@@ -133,10 +160,11 @@ def main() -> int:
     recut = "--recut" in sys.argv[1:]
     ids, names, runs, built = reruns()
     co = agreement(runs)
-    kinds_csv, names_json, manifest = OUT / "kinds.csv", OUT / "names.json", OUT / "manifest.json"
+    kinds_csv, names_json, manifest, grouped_csv = OUT / "kinds.csv", OUT / "names.json", OUT / "manifest.json", OUT / "grouped.csv"
     print(f"{len(runs)} reruns on the Explorer's figures built {built}")
     if kinds_csv.exists() and not recut:
-        lock = pd.read_csv(kinds_csv).set_index("nbhd_id").kind.reindex(ids)
+        locked = pd.read_csv(kinds_csv).set_index("nbhd_id").reindex(ids)
+        lock = locked.kind
         if lock.isna().any():
             sys.exit(f"{int(lock.isna().sum())} neighbourhoods have no kind in {kinds_csv}")
         was = json.loads(manifest.read_text())
@@ -146,6 +174,15 @@ def main() -> int:
         now, _ = hold(co, lock.to_numpy().astype(int))
         slipped = [f"{label[c]} ({was['kinds'][str(c)]['together']:.0%} to {v:.0%})" for c, v in now.items() if v < was["kinds"][str(c)]["together"] - 0.15]
         print("Holding as when they were cut." if not slipped else "Holding less well than when cut: " + "; ".join(slipped))
+        if not grouped_csv.exists():
+            _, attached = hold(co, lock.to_numpy().astype(int))
+            off = float(np.abs(np.round(attached, 3) - locked.attached.to_numpy()).max())
+            if off > 0.0005:
+                sys.exit(f"{grouped_csv} is missing and can't be made again: the figures have moved since the cut "
+                         f"(`attached` differs from {kinds_csv} by up to {off:.3f}). Restore it from git.")
+            write_grouped(grouped_csv, co, lock.to_numpy().astype(int), ids, names)
+            print(f"Wrote {grouped_csv}: today's reruns give the lock's own `attached`, so the table is the cut's.")
+            return 0
         print(f"Nothing written. To cut them again (after {was['recut_after']}): python pipeline/kinds.py --recut")
         return 0
 
@@ -161,6 +198,7 @@ def main() -> int:
     table(co, kind, names)
     OUT.mkdir(exist_ok=True)
     pd.DataFrame({"nbhd_id": ids, "nbhd": names, "kind": kind, "attached": np.round(attached, 3)}).to_csv(kinds_csv, index=False, lineterminator="\n")
+    write_grouped(grouped_csv, co, kind, ids, names)
     manifest.write_text(json.dumps({
         "cut": pd.Timestamp.today().date().isoformat(), "explorer_built": built, "reruns": len(runs),
         "method": f"average-linkage clusters of how often two neighbourhoods share a group over the reruns (each Ward's method, {EACH_K} groups), cut at {K}",

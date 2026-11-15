@@ -33,6 +33,14 @@ const poss = (i) => `${nameOf(i)}${nbhd[i].name.endsWith("s") ? "’" : "’s"}`
 const kindOf = (i) => D.types[D.type[i]];
 // the themes the kinds aren't made from, as words: "voting and getting around"
 const untyped = D.themes.filter((t) => !t.typed).map((t) => lower(t.label)).join(" and ");
+// How firmly a neighbourhood belongs to its kind: how often, over the runs the kinds were cut from, it
+// was grouped with the other members (D.grouped holds that for every kind). The maps fade a kind's
+// colour toward grey in four steps, so a soft edge reads as "not clearly any kind".
+const FIRM = D.type.map((k, i) => D.grouped[i][k]);
+const STEPS = [[90, 1, "90% of runs or more"], [75, 0.68, "75 to 89%"], [60, 0.42, "60 to 74%"], [0, 0.2, "under 60%"]];
+const fade = (hex, w) => `#${[1, 3, 5].map((k, c) => Math.round(parseInt(hex.slice(k, k + 2), 16) * w + [0xee, 0xee, 0xea][c] * (1 - w)).toString(16).padStart(2, "0")).join("")}`;
+const firmFill = (j) => fade(KIND[D.type[j]], STEPS.find(([min]) => FIRM[j] >= min)[1]);
+const firmKey = () => STEPS.map(([, w, label]) => `<li><span class="key-sq" style="background:${fade("#3c3c38", w)}"></span>${label}</li>`).join("");
 const dot = (i) => `<i class="nx-kind" style="background:${KIND[D.type[i]]}"></i>`;
 
 // ---- the gaps --------------------------------------------------------------------------------------
@@ -53,7 +61,7 @@ for (const t of D.themes) {
 // until one is picked), what likeness is measured on (all the themes counted, one theme or one
 // measure), the themes not counted, the full table's sort column and the kind lit on the map.
 // colour: what the likeness map's dots show, the kind or the affinity with the picked neighbourhood.
-const S = { nb: null, vs: null, auto: true, by: "all", off: new Set(), sort: "all", kind: null, colour: "kind" };
+const S = { nb: null, vs: null, auto: true, by: "all", off: new Set(), sort: "all", kind: null, colour: "kind", kmap: "kind" };
 const active = () => D.themes.filter((t) => !S.off.has(t.key));
 let overall = new Float32Array(N * N), cityMean = 0, typical = [];
 
@@ -146,7 +154,8 @@ function writeHash() {
   if (S.nb != null && S.vs != null && !S.auto) h.set("vs", nbhd[S.vs].id);
   if (S.by !== "all") h.set("by", S.by);
   if (S.off.size) h.set("off", [...S.off].join("."));
-  if (S.nb != null && S.colour !== "kind") h.set("c", S.colour);
+  if (S.colour === "firm" || (S.nb != null && S.colour === "aff")) h.set("c", S.colour);
+  if (S.kmap === "firm") h.set("k", "firm");
   history.replaceState(null, "", `${location.pathname}${h.size ? `#${h}` : ""}`);
 }
 
@@ -299,17 +308,38 @@ function renderTime() {
 
 // ---- kinds of neighbourhood ------------------------------------------------------------------------------
 function renderKinds() {
-  const i = S.nb;
-  $("kinds-lede").innerHTML = `${i == null ? "" : `<b>${nameOf(i)}</b> is one of ${kindOf(i).n} <b>${escapeHTML(lower(kindOf(i).name))}</b>; the kind it is next nearest to is the ${escapeHTML(lower(D.types[D.next[i]].name))}. `}
-    The 158 neighbourhoods sort into ${WORDS[D.types.length]} kinds by what they are like on every theme but ${untyped}. The kinds are fixed until the next census is out, so new figures don't move a neighbourhood from one to another. Pick a kind to light it up on the map, or a neighbourhood on the map to explore it.`;
+  const i = S.nb, firm = S.kmap === "firm", runs = D.typing.reruns;
+  seg($("kinds-colour"), [["kind", "Kind"], ["firm", "How firmly"]], S.kmap, (c) => { S.kmap = c; renderKinds(); writeHash(); });
+  // the picked neighbourhood: how often the runs grouped it with its own kind, and with any other it sat near
+  let mine = "";
+  if (i != null) {
+    const g = D.grouped[i], k = D.type[i], others = g.map((p, c) => [p, c]).filter(([, c]) => c !== k).sort((x, y) => y[0] - x[0]);
+    const [p2, k2] = others[0];
+    mine = `<b>${nameOf(i)}</b> is one of ${kindOf(i).n} <b>${escapeHTML(lower(kindOf(i).name))}</b>. Over the ${runs} trial runs the kinds were made from, it was grouped with the others of its kind ${g[k]}% of the time${p2 >= 25 ? `, and with the ${escapeHTML(lower(D.types[k2].name))} ${p2}%` : ""}. `;
+    const shown = [[g[k], k], ...others.filter(([p]) => p >= 5)], rest = D.types.length - shown.length;
+    $("kinds-mine-h").textContent = `How often ${nbhd[i].name} was grouped with each kind`;
+    $("kinds-mine-list").innerHTML = shown.map(([p, c]) => `<li${c === k ? ' class="sel"' : ""}><button type="button" class="nm nx-nm" data-kind="${c}" aria-pressed="${S.kind === c}">${`<i class="nx-kind" style="background:${KIND[c]}"></i>`}${escapeHTML(D.types[c].name)}${c === k ? ' <span class="nx-n">its kind</span>' : ""}</button>
+      <span class="barcell"><span class="bar-fill" style="width:${p}%;background:${KIND[c]}"></span></span><span class="vl">${p}%</span></li>`).join("");
+    $("kinds-mine-note").textContent = `Each bar is the share of the ${runs} runs, on average, in which ${nbhd[i].name} shared a group with a neighbourhood of that kind. `
+      + `The bars needn't add to 100%: a run made eight groups, fewer than the kinds, so some kinds always shared one.${rest ? ` It was grouped with the other ${rest === 1 ? "kind" : `${WORDS[rest]} kinds`} under 5% of the time.` : ""}`;
+  }
+  $("kinds-mine").hidden = i == null;
+  const count = (min, max = 101) => FIRM.filter((f) => f >= min && f < max).length;
+  $("kinds-lede").innerHTML = `${mine}
+    The 158 neighbourhoods sort into ${WORDS[D.types.length]} kinds by what they are like on every theme but ${untyped}. The kinds are fixed until the next census is out, so new figures don't move a neighbourhood from one to another.
+    ${firm ? "" : "They are firm at the centre and soft at the edges: choose <b>How firmly</b> to see which neighbourhoods clearly belong to their kind and which could as well be another. "}Pick a kind to light it up on the map, or a neighbourhood on the map to explore it.`;
   const fig = $("kinds-map");
-  fig.innerHTML = nbMap(nbhd, D.map, (j) => KIND[D.type[j]],
-    (j) => `<b>${nameOf(j)}</b><br>${escapeHTML(kindOf(j).name)}<br>Next nearest: ${escapeHTML(lower(D.types[D.next[j]].name))}`,
-    "Toronto's neighbourhoods by kind", (j) => `${j === i ? "pick" : ""}${S.kind != null && D.type[j] !== S.kind ? " dim" : ""}`);
+  fig.innerHTML = nbMap(nbhd, D.map, (j) => (firm ? firmFill(j) : KIND[D.type[j]]),
+    (j) => `<b>${nameOf(j)}</b><br>${escapeHTML(kindOf(j).name)}<br>${firm ? `Grouped with its kind in <b>${FIRM[j]}%</b> of the trial runs` : `Next nearest: ${escapeHTML(lower(D.types[D.next[j]].name))}`}`,
+    firm ? "Toronto's neighbourhoods by kind, paler where they belong to it less firmly" : "Toronto's neighbourhoods by kind", (j) => `${j === i ? "pick" : ""}${S.kind != null && D.type[j] !== S.kind ? " dim" : ""}`);
   for (const p of fig.querySelectorAll("path.pick")) p.parentNode.append(p);
+  $("kinds-key").hidden = $("kinds-firm-note").hidden = !firm;
+  $("kinds-key").innerHTML = firm ? firmKey() : "";
+  $("kinds-firm-note").textContent = `Each neighbourhood keeps its kind's colour, paler the less often the ${runs} trial runs grouped it with the others of its kind. `
+    + `${count(90)} of the 158 were with their kind in 90% of runs or more and ${count(75, 90)} in 75 to 89%; ${count(60, 75)} in 60 to 74%, and ${count(0, 60)} in fewer. The pale ones sit between kinds: pick one to see which.`;
   const list = (ids) => ids.map((id) => escapeHTML(lc(M[id].short))).join(", ");
-  const firm = D.types.filter((t) => !t.loose).map((t) => Math.round(t.together * 100));
-  const othersHold = `${Math.min(...firm)}% to ${Math.max(...firm)}%`;
+  const tight = D.types.filter((t) => !t.loose).map((t) => Math.round(t.together * 100));
+  const othersHold = `${Math.min(...tight)}% to ${Math.max(...tight)}%`;
   $("kinds-cards").innerHTML = D.types.map((t, k) => `<div class="nx-card${i != null && D.type[i] === k ? " mine" : ""}">
       <button type="button" class="nx-card-h" data-kind="${k}" aria-pressed="${S.kind === k}"><i class="nx-sw" style="background:${KIND[k]}"></i><span>${escapeHTML(t.name)}</span><span class="nx-n">${t.n}</span></button>
       <p>${escapeHTML(t.blurb)}</p>
@@ -327,14 +357,13 @@ const SP = (() => {
   return { w: 1000, h: (y1 - y0) * k, x: (p) => (p[0] - x0) * k, y: (p) => (y1 - p[1]) * k };
 })();
 function renderSpace() {
-  const i = S.nb, v = i == null ? null : S.vs, byAff = i != null && S.colour === "aff", a = byAff ? row(S.by, i) : null;
+  const i = S.nb, v = i == null ? null : S.vs, byAff = i != null && S.colour === "aff", firm = S.colour === "firm", a = byAff ? row(S.by, i) : null;
   const ends = (ids) => ids.map((id) => escapeHTML(lc(M[id].short))).join(", ");
-  $("space-colour").hidden = i == null;
-  if (i != null) seg($("space-colour"), [["kind", "Kind"], ["aff", `Affinity with ${nameOf(i)}`]], byAff ? "aff" : "kind", (c) => { S.colour = c; renderSpace(); writeHash(); });
+  seg($("space-colour"), [["kind", "Kind"], ["firm", "How firmly"], ...(i == null ? [] : [["aff", `Affinity with ${nameOf(i)}`]])], byAff ? "aff" : firm ? "firm" : "kind", (c) => { S.colour = c; renderSpace(); writeHash(); });
   $("space-lede").innerHTML = `Every neighbourhood placed by what it is like, not where it is: the closer two dots, the more alike the neighbourhoods. The captions at the ends of each axis name the measures that rise most in that direction, and the faint lines cross at the average neighbourhood.
     ${i == null ? "" : `<b>${nameOf(i)}</b> and <b>${nameOf(v)}</b> are labelled. `}Pick a dot to explore that neighbourhood.`;
-  const fill = (j) => (byAff ? (j === i ? ORANGE : a[j] == null ? "#e7e7e2" : shade(a[j])) : KIND[D.type[j]]);
-  const tip = (j) => `<b>${nameOf(j)}</b><br>${escapeHTML(kindOf(j).name)}${i == null || j === i ? "" : `<br>Affinity with ${nameOf(i)} ${basisShort()}: <b>${show(aff(S.by, i, j))}</b>`}`;
+  const fill = (j) => (byAff ? (j === i ? ORANGE : a[j] == null ? "#e7e7e2" : shade(a[j])) : firm ? firmFill(j) : KIND[D.type[j]]);
+  const tip = (j) => `<b>${nameOf(j)}</b><br>${escapeHTML(kindOf(j).name)}${firm ? `<br>Grouped with its kind in <b>${FIRM[j]}%</b> of the trial runs` : ""}${i == null || j === i ? "" : `<br>Affinity with ${nameOf(i)} ${basisShort()}: <b>${show(aff(S.by, i, j))}</b>`}`;
   const order = nbhd.map((_, j) => j).filter((j) => j !== i && j !== v);
   if (v != null) order.push(v);
   if (i != null) order.push(i); // drawn last, on top
@@ -347,8 +376,9 @@ function renderSpace() {
     <p class="nx-ax">↓ Higher on ${ends(ay.low)}</p>
     <div class="nx-ax-x"><span>← Higher on ${ends(ax.low)}</span><span>Higher on ${ends(ax.high)} →</span></div>`;
   $("space-key").innerHTML = byAff ? `${RANGES.map((r, c) => `<li><span class="key-sq" style="background:${COLORS[c]}"></span>${r}</li>`).join("")}<li><span class="key-sq" style="background:${ORANGE}"></span>${nameOf(i)}</li>`
-    : D.types.map((t, k) => `<li><span class="key-sq" style="background:${KIND[k]}"></span>${escapeHTML(t.name)}</li>`).join("");
-  $("space-note").textContent = `Two directions cannot hold everything. These carry ${Math.round((ax.share + ay.share) * 100)}% of the differences between neighbourhoods on every theme but ${untyped} (${Math.round(ax.share * 100)}% left to right, ${Math.round(ay.share * 100)}% bottom to top), `
+    : D.types.map((t, k) => `<li><span class="key-sq" style="background:${KIND[k]}"></span>${escapeHTML(t.name)}</li>`).join("") + (firm ? `<li class="key-break">Grouped with its own kind in</li>${firmKey()}` : "");
+  $("space-note").textContent = `${firm ? "The paler a dot, the less often the trial runs grouped that neighbourhood with the others of its kind: the pale ones lie where kinds meet. " : ""}`
+    + `Two directions cannot hold everything. These carry ${Math.round((ax.share + ay.share) * 100)}% of the differences between neighbourhoods on every theme but ${untyped} (${Math.round(ax.share * 100)}% left to right, ${Math.round(ay.share * 100)}% bottom to top), `
     + `and distance in the picture tracks the gap between two neighbourhoods with a correlation of ${D.fit.toFixed(2)}. For close calls, trust the lists over the picture.`;
 }
 
@@ -449,6 +479,7 @@ $("kinds-method").textContent = `The kinds of neighbourhood. The neighbourhoods 
   + "each with something left out: one measure in turn, one theme in turn, or the latest period of one source or of all (the census at 2016 for 2021). "
   + `Two neighbourhoods' agreement is the share of runs that put them in the same group, and the kinds are average-linkage clusters of that agreement, cut at ${D.types.length}: the most that leaves no kind under four neighbourhoods. `
   + `How often two members of a kind shared a group, over the runs: ${held}. `
+  + "How firmly one neighbourhood belongs to its kind is the same measure for it alone: the share of runs, on average, in which it shared a group with each other member. "
   + `The kinds were fixed on ${D.typing.cut} and will be made again once ${D.typing.recut_after.replace(/ \(.*\)$/, "")}; until then new figures change what a kind is like (the measures it is higher and lower on, the neighbourhood nearest its centre) and each neighbourhood's next nearest kind, not which neighbourhoods are in a kind or what it is called. `
   + `Voting is left out because a kind of place shouldn't be defined by how it votes${D.themes.some((t) => t.key === "transport" && !t.typed) ? "; Getting around because the kinds were fixed before that theme was added, and it will count when they are made again" : ""}. On the current figures the kinds' silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`;
 $("method-note").textContent = `Built ${D.built}. ${D.measures.length} measures in ${D.themes.length} themes, each at its latest period, from the Data Explorer's figures. `
@@ -460,7 +491,8 @@ S.vs = S.nb == null ? null : nbIndex(hash.get("vs"));
 S.auto = S.vs == null;
 for (const key of (hash.get("off") ?? "").split(".")) if (own(THEME, key)) S.off.add(key);
 if (S.off.size >= D.themes.length) S.off.clear();
-if (hash.get("c") === "aff") S.colour = "aff";
+if (["aff", "firm"].includes(hash.get("c"))) S.colour = hash.get("c");
+if (hash.get("k") === "firm") S.kmap = "firm";
 const by = hash.get("by");
 if (own(THEME, by) || own(M, by)) S.by = by;
 recompute();

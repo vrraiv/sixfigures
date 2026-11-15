@@ -1021,6 +1021,17 @@ section[hidden] { display: none; }
 .nx-list.with-val li { grid-template-columns: 22px minmax(0, 1.5fr) minmax(56px, auto) minmax(40px, 1fr) 30px; }
 .nx-list li.sel, .nx-pairs li.sel { background: #eef4fc; }
 .nx-list .bar-fill { border-radius: 0 3px 3px 0; }
+/* how often the picked neighbourhood was grouped with each kind */
+#kinds-mine .sub-h { margin: 14px 0 4px; }
+.nx-grouped { max-width: 560px; }
+.nx-grouped li { grid-template-columns: minmax(0, 1.6fr) minmax(50px, 1fr) 40px; }
+.nx-grouped li.sel { background: #eef4fc; }
+.nx-grouped .bar-fill { border-radius: 0 3px 3px 0; }
+.nx-grouped .nx-nm[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 3px; }
+#kinds-key { margin-bottom: 6px; }
+.corr-key[hidden] { display: none; }
+#kinds-key::before { content: "Grouped with its own kind in"; }
+.corr-key .key-break { flex-basis: 100%; }
 .nb-map path.nx-me { stroke: var(--ink); stroke-width: 2.5; }
 .nb-map path.dim { opacity: 0.18; }
 .nx-jump { white-space: nowrap; }
