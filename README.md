@@ -307,7 +307,7 @@ The measure menu has six sections:
 
 | Section | Measures | Unit |
 |---|---|---|
-| Income | Median household income, total and after tax; median individual income (recipients 15+), total and after tax; average household income | dollars, income years 2015 and 2020 |
+| Income | Median household income, total and after tax; median income of people aged 15+ with income ("recipients"), total and after tax; average household income | dollars, income years 2015 and 2020 |
 | Low income and transfers | People in low income (LIM-AT prevalence); share of total income from government transfers | percent, income years 2015 and 2020 |
 | Housing | Renter households (share of private households); households spending 30% or more of income on shelter costs (owners and tenants with income); owner households and tenant households spending 30% or more; tenant households in subsidized housing | percent, 2016 and 2021 Census |
 | Housing costs and values | Median value of owned dwellings; median monthly shelter costs of owners; of renters | dollars, 2016 and 2021 Census |

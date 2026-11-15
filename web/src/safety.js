@@ -3,7 +3,7 @@
 // with the neighbourhood outlines and 2021 Census figures from insights.json. No map
 // tiles: the map is the neighbourhoods' SVG outlines, as on the other Insights pages.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, defTip, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, key, rColor, seg, spark, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, buildToc, cls, fillFinder, incomeFifths, rangeLabels, rankOrder, scatter as nbScatter } from "./nbtools.js";
@@ -294,7 +294,7 @@ const fmtU = (u, v, short) => (v == null ? "—" : u === "money" ? (short ? `$${
   : u === "degC" ? `${sign(+v.toFixed(1))}${Math.abs(v).toFixed(1)}°C` : u === "score" ? v.toFixed(short ? 0 : 1) : v.toFixed(short ? 0 : 1));
 function corrItem(k, v) {
   const r = v.r, w = Math.abs(r) * 50, x = corrX(k);
-  return `<li><button type="button" data-x="${k}" class="${state.sx === k ? "pick" : ""}">
+  return `<li><button type="button"${k.startsWith("c:") ? defTip(k.slice(2)) : ""} data-x="${k}" class="${state.sx === k ? "pick" : ""}">
       <span class="cl-name">${escapeHTML(x.label)}</span>
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;

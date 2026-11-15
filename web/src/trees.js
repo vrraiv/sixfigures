@@ -2,7 +2,7 @@
 // summer surface temperature by neighbourhood, from trees.json (pipeline/trees_insights.py),
 // with the outlines and 2021 Census figures from insights.json. No map tiles.
 import "./style.css";
-import { $, COLORS, MEASURES as CENSUS, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, MEASURES as CENSUS, defTip, escapeHTML, isMoney, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { cellStyle, chart, fmtR, initPick, initTip, pearson, rColor, seg, spearman } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { BI, INCOME as INCOMES, biKey, breaks, breaksAboutZero, buildToc, cls, fillFinder, fitLine, incomeFifths, rangeLabels, rankOrder, scatter } from "./nbtools.js";
@@ -288,7 +288,7 @@ const corrX = (k) => {
 const fmtU = (u, v, short) => (v == null ? "—" : u === "money" ? (short ? `$${Math.round(v / 1000)}k` : fmtMoney(v)) : u === "pct" ? `${v.toFixed(short ? 0 : 1)}%` : v.toFixed(short ? 0 : 1));
 function corrItem(k, v) {
   const r = v.r, w = Math.abs(r) * 50, x = corrX(k);
-  return `<li><button type="button" data-x="${k}" class="${state.sx === k ? "pick" : ""}">
+  return `<li><button type="button"${k.startsWith("c:") ? defTip(k.slice(2)) : ""} data-x="${k}" class="${state.sx === k ? "pick" : ""}">
       <span class="cl-name">${escapeHTML(x.label)}</span>
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;

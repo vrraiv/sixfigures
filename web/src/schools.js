@@ -3,7 +3,7 @@
 // schools.json (pipeline/school_insights.py), with the 2021 Census figures from
 // insights.json. Charts are inline SVG and HTML, as on the Census Insights page.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, defTip, defined, escapeHTML, fmtCount, isMoney, ordinal, sign, loadJSON, loadFailed } from "./catalogue.js";
 import { cellStyle, fmtR, initPick, initTip, pearson, quantile, rColor, seg } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -477,7 +477,7 @@ function renderCorr() {
   const rs = censusMeasures.map((c) => ({ c, v: pearson(v, census.measures[c].values["2021"]) })).filter((r) => r.v).sort((a, b) => b.v.r - a.v.r);
   $("census-list").innerHTML = rs.map(({ c, v: { r } }) => {
     const w = Math.abs(r) * 50;
-    return `<li><button type="button" data-x="c:${c}" class="${state.sx === `c:${c}` ? "pick" : ""}">
+    return `<li><button type="button"${defTip(c)} data-x="c:${c}" class="${state.sx === `c:${c}` ? "pick" : ""}">
       <span class="cl-name">${escapeHTML(CENSUS[c].long)}</span>
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;

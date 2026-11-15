@@ -2,7 +2,7 @@
 // of the 158 neighbourhoods, and the biggest changes between censuses. Charts are
 // inline SVG and HTML; the figures come from insights.json (pipeline/insights.py).
 import "./style.css";
-import { $, COLORS, DIVERGING, GROUPS, MEASURES, escapeHTML, fmtMoney, fmtPct, isMoney, lc, ordinal, loadJSON, loadFailed } from "./catalogue.js";
+import { $, COLORS, DIVERGING, GROUPS, MEASURES, defTip, defined, escapeHTML, fmtMoney, fmtPct, isMoney, lc, ordinal, loadJSON, loadFailed } from "./catalogue.js";
 import { R_EDGES, fmtR, initPick, initTip, quantile, rColor, seg, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -443,8 +443,8 @@ function renderCorr() {
   // the grid (wide screens): the measures with figures in that census
   const ms = measures.filter((b) => has(b, y));
   $("corr-grid").style.gridTemplateColumns = `150px repeat(${ms.length}, minmax(14px, 1fr))`;
-  const head = `<span class="cg-corner"></span>` + ms.map((b) => `<span class="cg-col${b === m ? " sel" : ""}"><span>${escapeHTML(shortName(b))}</span></span>`).join("");
-  const body = ms.map((a) => `<span class="cg-row${a === m ? " sel" : ""}">${escapeHTML(shortName(a))}</span>` + ms.map((b) => {
+  const head = `<span class="cg-corner"></span>` + ms.map((b) => `<span class="cg-col${b === m ? " sel" : ""}"${defTip(b)}><span>${escapeHTML(shortName(b))}</span></span>`).join("");
+  const body = ms.map((a) => `<span class="cg-row${a === m ? " sel" : ""}"${defTip(a)}>${escapeHTML(shortName(a))}</span>` + ms.map((b) => {
     if (a === b) return `<span class="cg-cell cg-self"></span>`; // not "diag": that is the overlay's class
     const v = c[a][b];
     if (!v) return `<span class="cg-cell none" data-tip="${escapeHTML(`${shortName(a)} and ${shortName(b)}, ${y}: too few neighbourhoods with both`)}"></span>`;
@@ -456,7 +456,7 @@ function renderCorr() {
   const others = measures.filter((b) => b !== m && c[m][b]).sort((p, q) => c[m][q].r - c[m][p].r);
   $("corr-list").innerHTML = others.map((b) => {
     const r = c[m][b].r, w = Math.abs(r) * 50;
-    return `<li><button type="button" data-a="${m}" data-b="${b}" class="${b === state.sy && m === state.sx ? "pick" : ""}">
+    return `<li><button type="button"${defTip(b)} data-a="${m}" data-b="${b}" class="${b === state.sy && m === state.sx ? "pick" : ""}">
       <span class="cl-name">${escapeHTML(shortName(b))}</span>
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? `left:50%` : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
@@ -541,10 +541,10 @@ function renderScatter() {
   const grid = q.slice(1, -1).map((f) => `<span class="sc-gx" style="left:${f * 100}%"></span><span class="sc-gy" style="bottom:${f * 100}%"></span>`).join("");
   const yt = q.map((f) => `<span class="sc-ytick" style="bottom:${f * 100}%">${fmtShort(b, ya + f * (yb - ya))}${f === 1 ? "+" : ""}</span>`).join("");
   const xt = q.map((f) => `<span style="left:${f * 100}%">${fmtShort(a, xa + f * (xb - xa))}${f === 1 ? "+" : ""}</span>`).join("");
-  $("scatter").innerHTML = `<div class="sc-y">${escapeHTML(MEASURES[b].long)}, ${refYear(b, y)}</div>
+  $("scatter").innerHTML = `<div class="sc-y">${defined(b, escapeHTML(MEASURES[b].long))}, ${refYear(b, y)}</div>
     <div class="sc-box">${grid}${yt}${dots}</div>
     <div class="sc-xticks">${xt}</div>
-    <div class="sc-x">${escapeHTML(MEASURES[a].long)}, ${refYear(a, y)}</div>`;
+    <div class="sc-x">${defined(a, escapeHTML(MEASURES[a].long))}, ${refYear(a, y)}</div>`;
   const stat = a === b ? "the same measure on both axes; pick two different ones" : v ? `correlation <b>${fmtR(v.r)}</b> across ${v.n} neighbourhoods` : "too few neighbourhoods with both";
   $("scatter-caption").innerHTML = `${y} census: ${stat}. `
     + `Each dot is a neighbourhood${y === "2006" ? "" : "; open one on the map"}. Pick any two measures, or choose a cell above.`;

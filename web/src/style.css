@@ -541,6 +541,9 @@ body.doc { display: block; height: auto; }
 .corr-list button { grid-template-columns: minmax(0, 1.2fr) minmax(90px, 1fr) 44px; }
 .corr-list button.pick, .corr-list button:hover, .shift-list button:hover { background: #f7faff; }
 .cl-name, .sh-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a measure's name that shows its definition on hover or tap (catalogue.js defined()) */
+.def { text-decoration: underline dotted #9a9a94; text-underline-offset: 3px; cursor: help; }
+[data-tip] .cl-name { text-decoration: underline dotted #b5b5ae; text-underline-offset: 3px; }
 .cl-bar, .sh-strip { position: relative; height: 14px; }
 .cl-zero, .sh-zero { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #c9c9c3; }
 .cl-fill { position: absolute; top: 2px; bottom: 2px; border-radius: 2px; }

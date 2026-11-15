@@ -3,7 +3,7 @@
 // census figures from insights.json. TRREB's communities are the City's neighbourhoods
 // of before 2022; a neighbourhood split in 2022 shows its community's figures.
 import "./style.css";
-import { $, COLORS, DIVERGING, MEASURES as CENSUS, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
+import { $, COLORS, DIVERGING, MEASURES as CENSUS, defTip, defined, escapeHTML, isMoney, lc, ordinal, sign, loadJSON, loadFailed, own } from "./catalogue.js";
 import { chart, fmtR, initPick, initTip, key, quantile, rColor, seg, spark, spearman } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
@@ -245,7 +245,7 @@ function renderCorr() {
   if (!state.sx || !censusMeasures.includes(state.sx)) state.sx = [...rs].sort((a, b) => Math.abs(b.v.r) - Math.abs(a.v.r))[0]?.c;
   $("census-list").innerHTML = rs.map(({ c, v: { r } }) => {
     const w = Math.abs(r) * 50;
-    return `<li><button type="button" data-x="${c}" class="${state.sx === c ? "pick" : ""}">
+    return `<li><button type="button"${defTip(c)} data-x="${c}" class="${state.sx === c ? "pick" : ""}">
       <span class="cl-name">${escapeHTML(CENSUS[c].long)}</span>
       <span class="cl-bar"><span class="cl-zero"></span><span class="cl-fill" style="${r >= 0 ? "left:50%" : `left:${50 - w}%`};width:${w}%;background:${rColor(r)}"></span></span>
       <span class="cl-val">${fmtR(r)}</span></button></li>`;
@@ -264,7 +264,7 @@ function renderCorr() {
       ${q.map((f) => `<span class="sc-ytick" style="bottom:${f * 100}%">${fmtV(ya + f * (yb - ya))}${f === 1 && yb < sy.at(-1) ? "+" : ""}</span>`).join("")}
       ${idx.map((i) => `<span class="sc-dot" style="left:${px(xs[i]).toFixed(2)}%;bottom:${py(vs[i]).toFixed(2)}%" data-tip="${escapeHTML(`${nbhd[i].name}<br>${CENSUS[c].short}: <b>${fxl(xs[i])}</b><br>${M[state.m].label}: <b>${fmtV(vs[i])}</b>`)}"></span>`).join("")}</div>
     <div class="sc-xticks">${q.map((f) => `<span style="left:${f * 100}%">${fx(xa + f * (xb - xa))}${f === 1 && xb < sx.at(-1) ? "+" : ""}</span>`).join("")}</div>
-    <div class="sc-x">${escapeHTML(CENSUS[c].long)}, 2021 Census</div>`;
+    <div class="sc-x">${defined(c, escapeHTML(CENSUS[c].long))}, 2021 Census</div>`;
   const r = spearman(vs, xs);
   $("scatter-caption").innerHTML = `Spearman <b>${fmtR(r?.r)}</b> across ${idx.length} neighbourhoods. Each dot is a neighbourhood; the axes end at the 99th and 98th percentiles.`;
 }
