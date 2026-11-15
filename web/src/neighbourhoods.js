@@ -381,6 +381,10 @@ function render() {
   $("by").value = S.by;
   $("by").hidden = $("by").previousElementSibling.hidden = !has;
   for (const box of $("themes").querySelectorAll("input")) box.checked = !S.off.has(box.value);
+  // the checkboxes sit by the first thing they change: the picked neighbourhood's map, or else the city's typical ones
+  (has ? $("alike-lede") : $("typ-lede")).after($("themes-box"));
+  $("themes-note").textContent = `Untick a theme to leave it out of the overall affinity${has ? ", which shades this map and orders the lists below" : " below"}${S.by === "all" ? "" : " (it counts when likeness is on all the themes counted)"}. `
+    + "It doesn't move a neighbourhood to another kind: the kinds and the map of likeness are fixed.";
   const shown = !$("picked").hidden;
   $("picked").hidden = !has;
   $("about").innerHTML = `${has ? "" : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}

@@ -246,7 +246,9 @@ straddles a boundary (13 of them) is reported as mostly in one and partly in the
 and picking a name in the answer picks that neighbourhood on the page.
 
 Any theme can be unticked (Voting is the obvious one), and likeness can be measured on one theme
-or one measure alone. The page has the map shaded by affinity with the ten most and least alike
+or one measure alone. The theme checkboxes sit just above the map of affinity (above Typical and
+distinctive until a neighbourhood is picked), with a note that they change the affinity scores
+but not the kinds or the map of likeness, which are fixed. The page has the map shaded by affinity with the ten most and least alike
 (and every neighbourhood in a sortable table, theme by theme), the closest and furthest matches
 on each theme, a side-by-side of the picked neighbourhood and any other on every measure, the
 nine kinds of neighbourhood on a map, and the most typical and most distinctive neighbourhoods

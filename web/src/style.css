@@ -1007,6 +1007,7 @@ section[hidden] { display: none; }
 .nx-bar .nx-by-label { margin-left: 8px; }
 .nx-bar [hidden] { display: none; }
 .nx-themes { margin: 12px 0 0; }
+.nx-themes-note { margin: 2px 0 12px; }
 .nx-themes label[data-tip] { cursor: pointer; }
 .nx-n { font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .nx-about { margin: 10px 0 0; max-width: 86ch; }
