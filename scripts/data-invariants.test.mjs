@@ -139,3 +139,15 @@ test("Trees: the tree points' shares are shares, and the owner groups add to the
   assert.equal(byGroup, t.air.points, "the height bands by owner add to the points kept");
   assert.equal(t.nbhd.air_points.reduce((a, v) => a + v, 0), t.air.points, "the neighbourhoods' points add to the city's");
 });
+
+test("Neighbourhood Explorer: every neighbourhood has a share of runs with each kind, highest with its own", () => {
+  const n = json(`${PUBLIC}/neighbourhoods.json`);
+  assert.equal(n.grouped.length, n.nbhd.length);
+  const bad = [];
+  n.grouped.forEach((g, i) => {
+    const ok = g.length === n.types.length && g.every((v) => Number.isInteger(v) && v >= 0 && v <= 100);
+    // the kinds are clusters of that agreement, so a neighbourhood sits with its own kind most often
+    if (!ok || g[n.type[i]] !== Math.max(...g)) bad.push(n.nbhd[i].name);
+  });
+  assert.deepEqual(bad, [], list(bad));
+});

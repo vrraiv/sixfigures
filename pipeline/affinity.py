@@ -20,6 +20,10 @@ writes what the page needs to compare any neighbourhood with every other:
                neighbourhoods are highest and lowest on, how many there are and
                the one nearest its centre (medoid)
   type, next   each neighbourhood's type and the type it is next nearest to
+  grouped      for each neighbourhood, how often the reruns the kinds were cut from
+               grouped it with the members of each kind, as whole percentages in the
+               types' order (pipeline/kinds/grouped.csv). The figure for its own kind
+               is how firmly it belongs: the page fades its map of kinds by it
   typing       how the types were made, and how distinct they are (silhouette)
   axes, xy     the likeness map: each neighbourhood's place on the first two
                principal components of the percentiles the types are made from,
@@ -145,13 +149,19 @@ def main() -> int:
     use = [m for m in measures if theme_of[m] not in NOT_TYPED]
     w = pd.Series({m: 1 / sum(theme_of[x] == theme_of[m] for x in use) for m in use})
     V = ((P[use].fillna(50) - 50) * np.sqrt(w)).to_numpy()
-    for f in ("kinds.csv", "names.json", "manifest.json"):
+    for f in ("kinds.csv", "grouped.csv", "names.json", "manifest.json"):
         if not (KINDS / f).exists():
             sys.exit(f"{KINDS / f} is missing: the kinds are committed; python pipeline/kinds.py --recut makes them anew")
     lock = pd.read_csv(KINDS / "kinds.csv").set_index("nbhd_id").kind.reindex([x["id"] for x in cat["nbhd"]])
     if lock.isna().any():
         sys.exit(f"{int(lock.isna().sum())} neighbourhoods have no kind in {KINDS / 'kinds.csv'}")
     lab = lock.to_numpy().astype(int)
+    with_kind = pd.read_csv(KINDS / "grouped.csv").set_index("nbhd_id").reindex([x["id"] for x in cat["nbhd"]])
+    with_cols = [f"with_{c}" for c in sorted(set(lab))]
+    if list(with_kind.columns[1:]) != with_cols or with_kind[with_cols].isna().any().any():
+        sys.exit(f"{KINDS / 'grouped.csv'} doesn't hold every neighbourhood against the {len(with_cols)} kinds of {KINDS / 'kinds.csv'}")
+    if np.abs(with_kind[with_cols].to_numpy()[np.arange(n), lab - 1] - pd.read_csv(KINDS / "kinds.csv").set_index("nbhd_id").attached.reindex(with_kind.index).to_numpy()).max() > 0.0005:
+        sys.exit(f"{KINDS / 'grouped.csv'} and {KINDS / 'kinds.csv'} disagree on how attached a neighbourhood is to its own kind: they are not from the same cut")
     kind_names = json.loads((KINDS / "names.json").read_text(encoding="utf-8"))
     cut = json.loads((KINDS / "manifest.json").read_text())
     D = np.sqrt(((V[:, None, :] - V[None, :, :]) ** 2).sum(-1))
@@ -240,6 +250,7 @@ def main() -> int:
                       "values": [None if pd.isna(v) else v for v in X[m].tolist()],
                       "pct": [None if pd.isna(v) else round(float(v), 1) for v in P[m].tolist()]} for m in measures],
         "types": types, "type": type_ix.tolist(), "next": nxt.tolist(),
+        "grouped": np.rint(with_kind[with_cols].to_numpy() * 100).astype(int).tolist(),
         "typing": {"k": len(order), "method": cut["method"], "cut": cut["cut"], "reruns": cut["reruns"], "recut_after": cut["recut_after"],
                    "silhouette": round(float(np.mean(sil)), 3)},
         "axes": axes, "xy": np.round(xy, 1).tolist(), "fit": round(fit, 2),

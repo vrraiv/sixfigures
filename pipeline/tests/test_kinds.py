@@ -39,6 +39,13 @@ class TheLock(unittest.TestCase):
         for k, v in self.manifest["kinds"].items():
             self.assertEqual(v["n"], int((self.lock.kind == int(k)).sum()))
 
+    def test_the_table_of_runs_with_each_kind_is_from_the_same_cut(self):
+        g = pd.read_csv(LOCK / "grouped.csv")
+        self.assertEqual(list(g.nbhd_id), list(self.lock.nbhd_id))
+        self.assertEqual(list(g.columns[2:]), [f"with_{k}" for k in range(1, kinds.K + 1)])
+        own = g[[f"with_{k}" for k in range(1, kinds.K + 1)]].to_numpy()[np.arange(len(g)), self.lock.kind - 1]
+        self.assertTrue(np.allclose(own, self.lock.attached, atol=0.0005))  # with its own kind: `attached`
+
     def test_the_page_carries_the_lock(self):
         page = json.loads((WEB / "neighbourhoods.json").read_text())
         by_id = self.lock.set_index("nbhd_id").kind
@@ -62,6 +69,17 @@ class Cutting(unittest.TestCase):
         _, attached = kinds.hold(co, np.array([1, 1, 1, 2, 2]))
         self.assertEqual(attached[0], 0.75)  # with the second always, the third half the time
         self.assertEqual(attached[2], 0.5)
+
+    def test_grouped_is_the_mean_agreement_with_each_kinds_members_itself_left_out(self):
+        runs = {"x": np.array([1, 1, 1, 2, 2]), "y": np.array([1, 1, 2, 2, 2])}
+        kind = np.array([1, 1, 1, 2, 2])
+        co = kinds.agreement(runs)
+        g = kinds.grouped(co, kind)
+        _, attached = kinds.hold(co, kind)
+        self.assertTrue(np.allclose(g[np.arange(5), kind - 1], attached))
+        self.assertEqual(g[2, 1], 0.5)  # the third, with the two of the other kind: half the runs
+        self.assertEqual(g[0, 1], 0.0)
+        self.assertEqual(g[3, 0], 1 / 6)  # the fourth: with the third in one run of two, never with the others
 
 
 if __name__ == "__main__":

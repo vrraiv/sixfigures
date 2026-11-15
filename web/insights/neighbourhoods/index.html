@@ -91,9 +91,20 @@
 
       <!-- ===== about the city ===== -->
       <section class="ins-section" id="kinds" data-toc="Kinds of neighbourhood" aria-labelledby="kinds-h">
-        <div class="ins-head"><h2 id="kinds-h">Kinds of neighbourhood</h2></div>
+        <div class="ins-head">
+          <h2 id="kinds-h">Kinds of neighbourhood</h2>
+          <div class="seg" id="kinds-colour" role="group" aria-label="Colour by"></div>
+        </div>
         <p class="ins-lede" id="kinds-lede"></p>
+        <!-- the picked neighbourhood: how often the trial runs grouped it with each kind -->
+        <div id="kinds-mine" hidden>
+          <h3 class="sub-h" id="kinds-mine-h"></h3>
+          <ol class="rank-list nx-grouped" id="kinds-mine-list"></ol>
+          <p class="tbl-note" id="kinds-mine-note"></p>
+        </div>
         <figure class="nb-map" id="kinds-map"></figure>
+        <ul class="corr-key" id="kinds-key" hidden></ul>
+        <p class="tbl-note" id="kinds-firm-note" hidden></p>
         <div class="nx-kinds" id="kinds-cards"></div>
         <p class="tbl-note">How the kinds are made is set out <a href="#kinds-method">at the foot of the page</a>.</p>
       </section>
@@ -101,7 +112,7 @@
       <section class="ins-section" id="space" data-toc="Likeness map" aria-labelledby="space-h">
         <div class="ins-head">
           <h2 id="space-h">A map of likeness</h2>
-          <div class="seg" id="space-colour" role="group" aria-label="Colour by" hidden></div>
+          <div class="seg" id="space-colour" role="group" aria-label="Colour by"></div>
         </div>
         <p class="ins-lede" id="space-lede"></p>
         <figure class="nx-space" id="space-fig"></figure>
