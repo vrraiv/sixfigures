@@ -1,14 +1,14 @@
 """The age, immigration and (2011) dwelling counts demography.py needs from the two Beyond 20/20
 tables: pipeline/out/demography_2006.csv and pipeline/out/demography_nhs2011.csv.
 
-    wsl -e ~/pyivt/.venv/bin/python pipeline/demography_ivt.py
+    python pipeline/demography_ivt.py
 
 Streams the 2006 DA profile (94-581-XCB2006002.IVT) and the 2011 NHS DA table
 (NHSprofile_Can_PR_CD_CSD_DA.IVT) as profile2006.py and nhs2011.py do, and keeps,
 for Toronto's DAs and the City row, the characteristics below (each checked by its
 label). Rows: geo_code, level, then one column per key; a suppressed cell is empty.
 2011 also keeps dq, whose fourth digit marks a global non-response rate of 50% or
-more. Needs pyivt with the legacy member-field fix (see nhs2011.py) and pyarrow.
+more. Needs pyivt (see nhs2011.py; `make pyivt`) and pyarrow.
 """
 import csv
 import re
@@ -16,7 +16,6 @@ import sys
 import time
 from pathlib import Path
 
-import pyarrow as pa
 import pyarrow.compute as pc
 import pyivt
 
@@ -78,46 +77,56 @@ def write(path, rows, keys, extra=()):
     print(f"  wrote {path} ({len(rows):,} rows)")
 
 
+def cells(t, select):
+    """The selected cells as (geography, characteristic, value) columns, all of them or stop."""
+    a = t.to_arrow(select=select)
+    want = 1
+    for v in select.values():
+        want *= 1 if isinstance(v, int) else len(v)
+    if a.num_rows != want:
+        sys.exit(f"pyivt returned {a.num_rows:,} cells, not {want:,}")
+    return a
+
+
 def y2006():
     t = pyivt.open(HERE / "raw" / "94-581-XCB2006002.IVT")
-    m = t.metadata
-    by_id = check(m.dimensions[1].members.en, CHARS_2006)
+    dims = t.metadata.dimensions
+    by_id = check(dims[1].members.en, CHARS_2006)
     keep = {}
-    for i, g in enumerate(m.dimensions[2].members.en, 1):
+    for i, g in enumerate(dims[2].members.en, 1):
         if (d := DA_LABEL_2006.match(g or "")) and d.group(2) == TORONTO_CSD:
             keep[i] = (d.group(1), "DA")
         elif CSD_LABEL_2006.match(g or ""):
             keep[i] = (TORONTO_CSD, "CSD")
-    char_col, geo_col = t.layout.slugs[1], t.layout.slugs[2]
+    values_dim, char_dim, geo_dim = (d.slug for d in dims)
     rows, t0 = {}, time.time()
-    for b in t.to_batches(batch_size=1_000_000, max_memory_bytes=4 << 30):
-        mask = pc.and_(pc.is_in(b.column(geo_col), pa.array(list(keep), pa.int32())),
-                       pc.is_in(b.column(char_col), pa.array(list(by_id), pa.int32())))
-        if not pc.any(mask).as_py():
-            continue
-        s = b.filter(mask)
-        for g, c, v in zip(s.column(geo_col).to_pylist(), s.column(char_col).to_pylist(), s.column("value").to_pylist()):
-            code, level = keep[g]
-            rows.setdefault(code, {"geo_code": code, "level": level})[by_id[c]] = "" if v is None else v
-    print(f"2006: {len(rows):,} geographies in {time.time() - t0:.0f} s")
+    a = cells(t, {values_dim: 1, char_dim: list(by_id), geo_dim: list(keep)})
+    for g, c, v in zip(a[geo_dim].to_pylist(), a[char_dim].to_pylist(), a["value"].to_pylist()):
+        code, level = keep[g]
+        rows.setdefault(code, {"geo_code": code, "level": level})[by_id[c]] = "" if v is None else v
+    print(f"2006: {len(rows):,} geographies in {time.time() - t0:.1f} s")
     write(OUT / "demography_2006.csv", rows, list(CHARS_2006))
 
 
 def y2011():
     t = pyivt.open(HERE / "raw" / "NHSprofile_Can_PR_CD_CSD_DA.IVT")
-    by_id = check(t.metadata.dimensions[1].members.en, NHS_2011)
+    dims = t.metadata.dimensions
+    by_id = check(dims[1].members.en, NHS_2011)
+    geo_dim, char_dim = (d.slug for d in dims)
+    members = t.to_member_table()
+    chars = members.filter(pc.equal(members["dimension"], char_dim))
+    sex = dict(zip(chars["code"].to_pylist(), chars["Sex"].to_pylist()))
+    if other := sorted(cid for cid in by_id if sex[cid].strip() != "Total"):
+        sys.exit(f"characteristics {other} are not for both sexes")
+    geo = members.filter(pc.equal(members["dimension"], geo_dim))
+    geo = geo.filter(pc.starts_with(geo["native_Code"], "3520"))
+    info = {c: {"geo_code": g, "level": lvl.strip(), "dq": dq}
+            for c, g, lvl, dq in zip(*(geo[f].to_pylist() for f in ("code", "native_Code", "Level_Niveau", "DQ_QD")))}
     rows, t0 = {}, time.time()
-    for b in t.to_batches(batch_size=1_000_000, max_memory_bytes=4 << 30):
-        code = pc.cast(b.column("geography_code"), pa.string())
-        keep = pc.and_(pc.starts_with(code, "3520"), pc.equal(pc.cast(b.column("2011_nhs_sex"), pa.string()), "Total"))
-        keep = pc.and_(keep, pc.is_in(b.column("2011_nhs"), pa.array(list(by_id), pa.int32())))
-        if not pc.any(keep).as_py():
-            continue
-        s = b.filter(keep)
-        cols = [pc.cast(s.column(c), pa.string()).to_pylist() for c in ("geography_code", "geography_level_niveau", "geography_dq_qd")]
-        for g, lvl, dq, cid, v, sym in zip(*cols, s.column("2011_nhs").to_pylist(), s.column("value").to_pylist(), s.column("symbol").to_pylist()):
-            rows.setdefault(g, {"geo_code": g, "level": lvl.strip(), "dq": dq})[by_id[cid]] = "" if sym else v
-    print(f"2011 NHS: {len(rows):,} geographies in {time.time() - t0:.0f} s")
+    a = cells(t, {geo_dim: list(info), char_dim: list(by_id)})
+    for g, cid, v in zip(a[geo_dim].to_pylist(), a[char_dim].to_pylist(), a["value"].to_pylist()):
+        rows.setdefault(info[g]["geo_code"], dict(info[g]))[by_id[cid]] = "" if v is None else v
+    print(f"2011 NHS: {len(rows):,} geographies in {time.time() - t0:.1f} s")
     write(OUT / "demography_nhs2011.csv", rows, list(NHS_2011), extra=("dq",))
 
 

@@ -11,19 +11,17 @@ row per geography: geo_code, level, dq (StatCan's five-digit data-quality flag;
 the fourth digit is 1 where the global non-response rate was 50% or more), gnr
 (that rate, %), then one column per measure key; a suppressed cell (x) is empty.
 
-Needs pyivt with the legacy member-field fix (the table's _Sort and _Decimals
-fields; pyivt 0.0.5 on PyPI stops with "referenced member text is not a byte
-vector"), and pyarrow. `make pyivt` (pipeline/pyivt/build.sh) builds it from a pinned
-commit and the patch kept beside that script; on Windows, do that and run this under WSL, e.g.
-    wsl -e ~/pyivt/.venv/bin/python pipeline/nhs2011.py
-Only pyivt and pyarrow are imported, so the pipeline's own environment isn't needed.
+Needs pyivt 0.0.11, the version checked (0.0.5 can't read the table's _Sort and
+_Decimals member fields) and pyarrow: `make pyivt` installs the pinned version. The
+geographies' codes, levels and quality fields come from pyivt's member table; only
+the cells kept are exported. Only pyivt and pyarrow are imported, so the
+pipeline's own environment isn't needed.
 """
 import csv
 import sys
 import time
 from pathlib import Path
 
-import pyarrow as pa
 import pyarrow.compute as pc
 import pyivt
 
@@ -39,13 +37,12 @@ EXPECTED = (59408, 2620)
 
 def main() -> int:
     t = pyivt.open(IVT)
-    m = t.metadata
-    counts = tuple(t.layout.counts)
+    dims = t.metadata.dimensions
+    counts = tuple(d.items for d in dims)
     if counts != EXPECTED:
         sys.exit(f"{IVT.name}: {counts} geographies x characteristics, expected {EXPECTED}")
-    labels = m.dimensions[1].members.en
-    if labels is None:
-        sys.exit("pyivt returned no characteristic labels: it needs the legacy member-field fix (see the docstring)")
+    geo_dim, char_dim = (d.slug for d in dims)
+    labels = dims[1].members.en
     # Characteristic IDs are the member ordinals; check each one's label.
     for key, (cid, name) in NHS_2011.items():
         found = labels[cid - 1].strip()
@@ -55,30 +52,33 @@ def main() -> int:
     # Income groups for insights.py's interpolated neighbourhood medians, as b<ID>.
     for ids, _ in INCOME_GROUPS["2011"].values():
         by_id.update({cid: f"b{cid}" for cid in ids})
+
+    # The members' fields: each characteristic's sex, each geography's code, level and quality.
+    members = t.to_member_table()
+    chars = members.filter(pc.equal(members["dimension"], char_dim))
+    sex = dict(zip(chars["code"].to_pylist(), chars["Sex"].to_pylist()))
+    if other := sorted(cid for cid in by_id if sex[cid].strip() != SEX):
+        sys.exit(f"characteristics {other[:5]} are not for sex {SEX!r}; check measures.NHS_2011")
+    geo = members.filter(pc.equal(members["dimension"], geo_dim))
+    geo = geo.filter(pc.starts_with(geo["native_Code"], TORONTO_CD))
+    info = {c: {"geo_code": g, "level": lvl.strip(), "dq": dq, "gnr": gnr}
+            for c, g, lvl, dq, gnr in zip(*(geo[f].to_pylist() for f in ("code", "native_Code", "Level_Niveau", "DQ_QD", "GNR %_TGN %")))}
     print(f"{IVT.name}: {counts[0]:,} geographies x {counts[1]:,} characteristics; keeping {len(by_id)} for CD {TORONTO_CD}")
 
-    t0, rows, geos = time.time(), 0, {}
-    # pyivt's conservative estimate for this table is ~1.6 GB whatever the batch size.
-    for b in t.to_batches(batch_size=1_000_000, max_memory_bytes=4 << 30):
-        rows += b.num_rows
-        code = pc.cast(b.column("geography_code"), pa.string())
-        keep = pc.and_(pc.starts_with(code, TORONTO_CD), pc.equal(pc.cast(b.column("2011_nhs_sex"), pa.string()), SEX))
-        keep = pc.and_(keep, pc.is_in(b.column("2011_nhs"), pa.array(list(by_id), pa.int32())))
-        if not pc.any(keep).as_py():
-            continue
-        sub = b.filter(keep)
-        cols = {c: pc.cast(sub.column(c), pa.string()).to_pylist() for c in ("geography_code", "geography_level_niveau", "geography_dq_qd", "geography_gnr_tgn")}
-        for g, lvl, dq, gnr, cid, v, sym in zip(*cols.values(), sub.column("2011_nhs").to_pylist(), sub.column("value").to_pylist(), sub.column("symbol").to_pylist()):
-            row = geos.setdefault(g, {"geo_code": g, "level": lvl.strip(), "dq": dq, "gnr": gnr})
-            row[by_id[cid]] = "" if sym else v
-    print(f"  streamed {rows:,} cells in {time.time() - t0:.0f} s; {len(geos):,} geographies kept")
+    t0 = time.time()
+    cells = t.to_arrow(select={geo_dim: list(info), char_dim: list(by_id)})
+    if cells.num_rows != len(info) * len(by_id):
+        sys.exit(f"pyivt returned {cells.num_rows:,} cells, not {len(info):,} geographies x {len(by_id)} characteristics")
+    geos = {}
+    # A missing value (a suppressed cell, x) comes back as null: no figure.
+    for g, cid, v in zip(cells[geo_dim].to_pylist(), cells[char_dim].to_pylist(), cells["value"].to_pylist()):
+        row = geos.setdefault(info[g]["geo_code"], dict(info[g]))
+        row[by_id[cid]] = "" if v is None else v
+    print(f"  read {cells.num_rows:,} cells in {time.time() - t0:.1f} s; {len(geos):,} geographies kept")
     levels = {}
     for r in geos.values():
         levels[r["level"]] = levels.get(r["level"], 0) + 1
     print(f"  by level: {levels}")
-    missing = [g for g, r in geos.items() if len(r) != 4 + len(by_id)]
-    if missing:
-        sys.exit(f"{len(missing)} geographies lack some characteristics, e.g. {missing[:3]}")
 
     OUT.parent.mkdir(exist_ok=True)
     fields = ["geo_code", "level", "dq", "gnr", *by_id.values()]

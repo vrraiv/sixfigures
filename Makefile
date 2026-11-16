@@ -1,14 +1,9 @@
 # Rebuild everything from raw downloads:  make data
 # Run from WSL/Linux/macOS (tippecanoe has no native Windows build).
 PYTHON ?= python3
-# pipeline/nhs2011.py needs pyivt (a Rust extension, with the legacy member-field
-# fix; see pipeline/README.md). `make pyivt` builds it, in WSL, Linux or macOS, from the
-# pinned commit and the patch in pipeline/pyivt/. Point this at the Python it prints:
-#   make PYIVT_PYTHON=$$HOME/pyivt/.venv/bin/python pipeline/extracts/toronto_nhs_2011.csv
-# (from Windows: PYIVT_PYTHON="wsl -e /home/me/pyivt/.venv/bin/python")
-# Its output is kept in the repository (pipeline/extracts), so that is needed only to add a
-# characteristic to it.
-PYIVT_PYTHON ?= $(PYTHON)
+# pipeline/nhs2011.py and profile2006.py need pyivt and pyarrow (`make pyivt`, which has
+# wheels for Windows too). Their output is kept in the repository (pipeline/extracts), so
+# that is needed only to add a characteristic to it.
 
 RAW       := pipeline/raw
 GEOJSON   := pipeline/out/toronto_da.geojson
@@ -52,10 +47,10 @@ PERMITS   := pipeline/permits/by_nbhd.csv
 
 .PHONY: data download tiles search overlays basemap deps clean cpi breaks permits test extracts from-extracts pyivt
 
-# The patched pyivt that nhs2011.py, profile2006.py and demography_ivt.py need, in ~/pyivt/.venv
-# (pipeline/pyivt/build.sh; needs a Rust toolchain).
+# The pyivt that nhs2011.py, profile2006.py and demography_ivt.py need (pinned: its export
+# interface changes between releases).
 pyivt:
-	bash pipeline/pyivt/build.sh
+	$(PYTHON) -m pip install -r pipeline/requirements-ivt.txt
 
 # The pipeline's own tests (clean-up rules, neighbourhood aggregation) and the site's, which
 # include the checks on the committed figures (scripts/data-invariants.test.mjs).
@@ -100,14 +95,14 @@ $(RAW)/2016_92-156_DALand_ADsup_csv.zip $(NHSIVT11) $(PERMITRAW):
 # One still in pipeline/out/ from before they were kept here is copied across.
 $(NHS11): $(if $(wildcard $(NHS11) pipeline/out/$(notdir $(NHS11))),,$(NHSIVT11))
 	@if [ -f pipeline/out/$(@F) ]; then mkdir -p $(@D) && cp -p pipeline/out/$(@F) $@ && echo "copied pipeline/out/$(@F) to $@"; \
-	else $(PYIVT_PYTHON) pipeline/nhs2011.py; fi
+	else $(PYTHON) pipeline/nhs2011.py; fi
 
 $(PROFILEIVT06):
 	$(PYTHON) pipeline/download.py
 
 $(PROFILE06): $(if $(wildcard $(PROFILE06) pipeline/out/$(notdir $(PROFILE06))),,$(PROFILEIVT06))
 	@if [ -f pipeline/out/$(@F) ]; then mkdir -p $(@D) && cp -p pipeline/out/$(@F) $@ && echo "copied pipeline/out/$(@F) to $@"; \
-	else $(PYIVT_PYTHON) pipeline/profile2006.py; fi
+	else $(PYTHON) pipeline/profile2006.py; fi
 
 $(PROFILE11): $(RAW)/98-316-XWE2011001-1501.zip
 	unzip -o -q $< '*-ONT.csv' -d $(RAW)
@@ -271,8 +266,7 @@ cmhc: $(GEOM)
 
 # Age groups and period of immigration by neighbourhood (a model input):
 # pipeline/demography/nbhd.csv. The 2006 and 2011 NHS counts come from the Beyond 20/20
-# tables via pyivt, as for nhs2011.py: run `$(PYIVT_PYTHON) pipeline/demography_ivt.py`
-# first (under WSL where pyivt has no Windows wheel).
+# tables via pyivt, as for nhs2011.py: run `$(PYTHON) pipeline/demography_ivt.py` first.
 .PHONY: demography
 
 demography:

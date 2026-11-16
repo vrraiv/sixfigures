@@ -13,10 +13,7 @@ flags), then one column per key; a suppressed cell is empty.
 This stops at extraction; census2006.py places the 2006 DAs in the City's
 neighbourhoods and derives the measures.
 
-pyivt needs the legacy member-field fix (see nhs2011.py); run it where that
-build is installed, e.g. under WSL:
-    wsl -e ~/pyivt/.venv/bin/python pipeline/profile2006.py
-Only pyivt and pyarrow are imported (measures.py doesn't import pandas at run time).
+Needs pyivt (see nhs2011.py; `make pyivt`). Only pyivt and pyarrow are imported (measures.py doesn't import pandas at run time).
 """
 import csv
 import re
@@ -24,8 +21,6 @@ import sys
 import time
 from pathlib import Path
 
-import pyarrow as pa
-import pyarrow.compute as pc
 import pyivt
 
 from measures import CHARS_2006, INCOME_GROUPS_2006
@@ -44,14 +39,12 @@ PUBLISHED_POP_2006 = 2_503_281  # Toronto (C), 2006 Census population count
 
 def main() -> int:
     t = pyivt.open(IVT)
-    counts = tuple(t.layout.counts)
+    dims = t.metadata.dimensions
+    counts = tuple(d.items for d in dims)
     if counts != EXPECTED:
         sys.exit(f"{IVT.name}: dimensions {counts}, expected {EXPECTED}")
-    m = t.metadata
-    chars = m.dimensions[1].members.en
-    geos = m.dimensions[2].members.en
-    if chars is None or geos is None:
-        sys.exit("pyivt returned no member labels: it needs the legacy member-field fix (see nhs2011.py)")
+    chars = dims[1].members.en
+    geos = dims[2].members.en
     wanted = {**{k: (cid, name) for k, (cid, name) in CHARS_2006.items()},
               **{f"b{cid}": (cid, None) for ids, _ in INCOME_GROUPS_2006.values() for cid in ids}}
     for key, (cid, name) in wanted.items():
@@ -71,31 +64,19 @@ def main() -> int:
           f"Toronto: {sum(1 for v in keep.values() if v[1] == 'DA'):,} DAs and {sum(1 for v in keep.values() if v[1] == 'CSD')} CSD row; "
           f"{len(by_id)} characteristics kept")
 
-    slugs = t.layout.slugs  # ["values", "profile_of_diss", "geography"]
-    char_col, geo_col = slugs[1], slugs[2]
-    t0, cells, rows, statuses = time.time(), 0, {}, {}
-    geo_ids = pa.array(list(keep), pa.int32())
-    char_ids = pa.array(list(by_id), pa.int32())
-    for b in t.to_batches(batch_size=1_000_000, max_memory_bytes=4 << 30):
-        cells += b.num_rows
-        mask = pc.and_(pc.is_in(b.column(geo_col), geo_ids), pc.is_in(b.column(char_col), char_ids))
-        if not pc.any(mask).as_py():
-            continue
-        s = b.filter(mask)
-        for g, c, v, sym, st in zip(s.column(geo_col).to_pylist(), s.column(char_col).to_pylist(),
-                                    s.column("value").to_pylist(), s.column("symbol").to_pylist(),
-                                    s.column("status").to_pylist()):
-            code, level, label = keep[g]
-            row = rows.setdefault(code, {"geo_code": code, "level": level, "label": label})
-            # A status (suppressed, not applicable) leaves value null: no figure.
-            row[by_id[c]] = "" if v is None else v
-            if v is None:
-                statuses[(by_id[c], sym or st or "")] = statuses.get((by_id[c], sym or st or ""), 0) + 1
-    print(f"  streamed {cells:,} cells in {time.time() - t0:.0f} s; {len(rows):,} geographies")
-    by_status = {}
-    for (k, s_), n in statuses.items():
-        by_status[s_] = by_status.get(s_, 0) + n
-    print(f"  cells without a figure, by status: {by_status}")
+    values_dim, char_dim, geo_dim = (d.slug for d in dims)  # values, profile_of_diss, geography
+    t0 = time.time()
+    cells = t.to_arrow(select={values_dim: 1, char_dim: list(by_id), geo_dim: list(keep)})
+    if cells.num_rows != len(keep) * len(by_id):
+        sys.exit(f"pyivt returned {cells.num_rows:,} cells, not {len(keep):,} geographies x {len(by_id)} characteristics")
+    rows, blank = {}, 0
+    for g, c, v in zip(cells[geo_dim].to_pylist(), cells[char_dim].to_pylist(), cells["value"].to_pylist()):
+        code, level, label = keep[g]
+        row = rows.setdefault(code, {"geo_code": code, "level": level, "label": label})
+        # A missing value (suppressed, not applicable) comes back as null: no figure.
+        row[by_id[c]] = "" if v is None else v
+        blank += v is None
+    print(f"  read {cells.num_rows:,} cells in {time.time() - t0:.1f} s; {len(rows):,} geographies; {blank:,} without a figure")
     incomplete = [g for g, r in rows.items() if len(r) != 3 + len(by_id)]
     if incomplete:
         sys.exit(f"{len(incomplete)} geographies lack some characteristics, e.g. {incomplete[:3]}")
