@@ -530,8 +530,7 @@ Without the raw files, `make from-extracts` rebuilds the neighbourhood figures a
 Explorers' data from Toronto's rows of the census profiles, which are kept in
 `pipeline/extracts/`: it runs on any checkout, with Python alone. Some of those extracts
 (the 2011 National Household Survey, the 2006 profile) come out of Beyond 20/20 tables
-that need a patched pyivt to read; the patch is kept in `pipeline/pyivt/`, and `make pyivt`
-builds it at a pinned commit (WSL, Linux or macOS, with Rust).
+that need pyivt to read: `make pyivt` installs the pinned version.
 
 StatCan's site blocks scripted downloads with a bot challenge. If `make download`
 reports that, fetch the files it prints in a browser into `pipeline/raw/`. The City of

@@ -1,0 +1,7 @@
+# For the three scripts that read the Beyond 20/20 tables (nhs2011.py, profile2006.py,
+# demography_ivt.py): make pyivt. Not in requirements.lock, since their outputs are committed
+# or optional and the workflows never run them. pyivt 0.0.11 reproduced the committed
+# extracts byte for byte (16 November 2026); its export interface changes between releases,
+# so move it only after checking that the extracts come out the same.
+pyivt==0.0.11
+pyarrow>=14

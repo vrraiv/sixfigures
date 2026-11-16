@@ -271,8 +271,8 @@ source allows). Every script prints its own checks, as the census scripts do.
 3. **City housing stock and pipeline** (`pipeline/city_layers.py`): apartment
    registration, affordable and social housing, rental demolition and
    replacement, development applications; same address matching.
-4. **2006 Census** (done: `pipeline/profile2006.py` reads the IVT with the
-   patched pyivt; `pipeline/census2006.py` places the DAs with the 2006
+4. **2006 Census** (done: `pipeline/profile2006.py` reads the IVT with
+   pyivt; `pipeline/census2006.py` places the DAs with the 2006
    boundaries and aggregates the measures to neighbourhoods as `insights.py`
    does for 2011-2021).
 5. **CMHC** (done: `make cmhc` fetches new editions and rebuilds

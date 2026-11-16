@@ -97,7 +97,7 @@ characteristic: the script that reads it stops and names the raw file to put in 
 table in the Data Liberation Initiative's 2006 Profile Series deposit on Borealis
 (doi:10.5683/SP3/RFXZIF, file 27195, 237,696,851 B, MD5 cba104748aa71c675022b64f2b309e51,
 checked by `download.py`). `pipeline/profile2006.py` reads it with pyivt (as for the
-NHS, under WSL) and writes Toronto's CSD row and 3,556 DAs to
+NHS) and writes Toronto's CSD row and 3,556 DAs to
 `pipeline/extracts/toronto_profile_2006.csv`: the characteristics in `measures.CHARS_2006`
 and the income groups in `measures.INCOME_GROUPS_2006`. Its Toronto population is the
 published 2,503,281, and DA sums of the 100% counts are within 0.04-0.7% of the city.
@@ -138,21 +138,17 @@ dictionaries and footnotes at the end survive) and no reader opens it.
 `pipeline/nhs2011.py` streams the table with `pyivt` and writes Toronto's rows
 (`pipeline/extracts/toronto_nhs_2011.csv`: the CD, the CSD and 3,665 DAs, the characteristics
 in `measures.NHS_2011`); `census2011.py` joins them to the profile's DAs. pyivt 0.0.5
-on PyPI cannot read this older table (its `_Sort` and `_Decimals` member fields;
-`to_arrow()` stops with "referenced member text is not a byte vector" and
-`pipeline/nhs_probe.py` reproduces it); the fix is a small patch to pyivt's
-`members.rs`, kept here as `pipeline/pyivt/legacy-member-fields.patch`. It applies to
-pyivt commit `ea428cc` (v0.0.5 plus 11 commits, 30 October 2026), the version these
-scripts were written against. `make pyivt` (`pipeline/pyivt/build.sh`, in WSL, Linux or
-macOS; needs Rust 1.88 or later from https://rustup.rs) clones pyivt at that commit,
-applies the patch and installs it with pyarrow in `~/pyivt/.venv`; then run
-`nhs2011.py` with that Python (`make PYIVT_PYTHON=~/pyivt/.venv/bin/python ...`, or from
-Windows `PYIVT_PYTHON="wsl -e /home/<user>/pyivt/.venv/bin/python"`); the script imports
-only pyivt and pyarrow. Checked on 13 November 2026 with a fresh build (pyarrow 26.0.1,
-Python 3.14): `nhs2011.py`, `profile2006.py` and `demography_ivt.py` reproduced the four
-files written on 30-31 October byte for byte. pyivt 0.0.6 and later include the fix
-upstream, but changed the export interface these scripts use, so they stay on the pinned
-commit.
+could not read this older table (its `_Sort` and `_Decimals` member fields; `to_arrow()`
+stopped with "referenced member text is not a byte vector"); 0.0.11 reads it.
+`make pyivt` installs the pinned pyivt 0.0.11 and pyarrow from
+`pipeline/requirements-ivt.txt` (wheels for Windows, Linux and macOS; no WSL needed). The
+scripts take the geographies' codes, levels and data-quality fields from pyivt's member
+table and export only the cells they keep, so each runs in about a second; a missing value
+(a suppressed cell) comes back as null and is written empty. Checked on 16 November 2026
+(pyarrow 26.0.1, Python 3.12 under WSL and 3.14 on Windows): `nhs2011.py`,
+`profile2006.py` and `demography_ivt.py` reproduced the four files written on 30-31
+October byte for byte. pyivt's export interface has changed between releases, so check
+that the extracts come out the same before moving the pin.
 Beyond 20/20 Browser opens the table too; `canivt` 0.5.0 (R) does not read it in
 practice (it takes the geography count for 256, recovers no geography codes, and declines
 the 155.6 M-cell grid). The NHS DA figures follow StatCan's own rule: DAs whose global
@@ -372,8 +368,8 @@ scores and predictions go to `pipeline/out/model/`. `schools.py --holdout` score
 period of immigration (2006 to 2021), and dwellings by structure type, bedrooms and
 condition and owners with a mortgage (2011 to 2021), and the owner-weighted average
 value of dwellings (2006 to 2021, with the City's in manifest.json), by neighbourhood,
-for the dwelling-value model's demographic, dwelling and previous-change rungs. Run `pipeline/demography_ivt.py` first, with pyivt (under
-WSL, as for `nhs2011.py`), for the 2006 and 2011 NHS counts. It checks itself against
+for the dwelling-value model's demographic, dwelling and previous-change rungs. Run `pipeline/demography_ivt.py` first, with pyivt (as for
+`nhs2011.py`), for the 2006 and 2011 NHS counts. It checks itself against
 insights.json's age and recent-immigrant shares.
 
 `make trreb` runs `pipeline/trreb.py`, which reads TRREB's quarterly Community Housing
