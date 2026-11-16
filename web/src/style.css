@@ -1123,6 +1123,10 @@ section[hidden] { display: none; }
 }
 
 /* ---- the forecasts' standing note ---- */
+/* the Neighbourhood Explorer's method: optional reading, set apart from the page's findings */
+.nx-method-box { max-width: 86ch; padding: 4px 16px 6px; font-size: 13px; line-height: 1.55; color: var(--ink-2); background: #f3f5f9; border-left: 3px solid var(--navy); border-radius: 0 4px 4px 0; }
+.nx-method-box h3 { margin: 12px 0 2px; font-size: 13px; font-weight: 650; color: var(--ink); }
+.nx-method-box p { margin: 0 0 8px; }
 .fc-exercise { margin: 14px 0 0; padding: 8px 12px; max-width: 86ch; font-size: 13px; color: var(--ink-2); background: #f3f5f9; border-left: 3px solid var(--navy); border-radius: 0 4px 4px 0; }
 /* the forecasts in plain words, where they are first named */
 .fc-defs { max-width: 82ch; margin: 16px 0 6px; font-size: 13px; color: var(--ink-2); }

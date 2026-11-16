@@ -420,7 +420,7 @@ function render() {
   $("about").innerHTML = `${has ? "" : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
     Each of ${D.measures.length} measures becomes a percentile rank among the ${N} neighbourhoods. Two neighbourhoods' gap on a theme is the average difference in their ranks on its measures,
     and their <b>affinity</b> is 100 less the average gap over the themes counted: 100 would be the same standing on everything, and two neighbourhoods taken at random average about ${show(cityMean)}.`;
-  // the kinds in plain words, for a reader who has just arrived: the method is at the foot of the page
+  // the kinds in plain words, for a reader who has just arrived: the method is under How it works
   const eg = D.types.filter((t) => !t.loose).slice(1, 4).map((t) => escapeHTML(lower(t.name)));
   $("about-kinds").innerHTML = `The neighbourhoods also fall into ${WORDS[D.types.length]} <a href="#kinds"><b>kinds</b></a>, such as ${eg.slice(0, -1).join(", ")} or ${eg.at(-1)}. `
     + `They come from the figures, not from anyone's map of the city: the neighbourhoods were sorted into groups ${D.typing.reruns} times, each time with a different piece of the data held back, and the ones that kept landing together make a kind. `
@@ -473,17 +473,22 @@ document.addEventListener("click", (e) => {
   else if ($("kinds-map").contains(t) || $("space-fig").contains(t)) { setNb(+t.dataset.i); jump("measure-bar"); }
 });
 
-const held = D.types.map((t) => `${lower(t.name)} ${Math.round(t.together * 100)}%`).join(", ");
-$("kinds-method").textContent = `The kinds of neighbourhood. The neighbourhoods are a continuum, not separate groups, so one clustering of them changes with the figures it is given. `
+const held = D.types.map((t) => `${escapeHTML(lower(t.name))} ${Math.round(t.together * 100)}%`).join(", ");
+const paras = (list) => list.map((t) => `<p>${t}</p>`).join("");
+$("method-note").innerHTML = paras([
+  `Built ${D.built}. ${D.measures.length} measures in ${D.themes.length} themes, each at its latest period, from the Data Explorer's figures.`,
+  "Percentile ranks are among the 158 neighbourhoods, ties sharing the middle. A theme's gap is averaged over the measures both neighbourhoods have a figure for (a few have no school results), and the overall gap over the themes counted, so a theme with many measures counts no more than one with few.",
+]);
+$("kinds-method").innerHTML = paras([
+  "The neighbourhoods are a continuum, not separate groups, so one clustering of them changes with the figures it is given. "
   + `The kinds are therefore made from ${D.typing.reruns} runs of the same clustering (Ward's hierarchical method on the percentile ranks, every theme but ${untyped} weighted equally, a missing figure at the median, eight groups), `
-  + "each with something left out: one measure in turn, one theme in turn, or the latest period of one source or of all (the census at 2016 for 2021). "
-  + `Two neighbourhoods' agreement is the share of runs that put them in the same group, and the kinds are average-linkage clusters of that agreement, cut at ${D.types.length}: the most that leaves no kind under four neighbourhoods. `
+  + "each with something left out: one measure in turn, one theme in turn, or the latest period of one source or of all (the census at 2016 for 2021).",
+  `Two neighbourhoods' agreement is the share of runs that put them in the same group, and the kinds are average-linkage clusters of that agreement, cut at ${D.types.length}: the most that leaves no kind under four neighbourhoods. `
   + `How often two members of a kind shared a group, over the runs: ${held}. `
-  + "How firmly one neighbourhood belongs to its kind is the same measure for it alone: the share of runs, on average, in which it shared a group with each other member. "
-  + `The kinds were fixed on ${D.typing.cut} and will be made again once ${D.typing.recut_after.replace(/ \(.*\)$/, "")}; until then new figures change what a kind is like (the measures it is higher and lower on, the neighbourhood nearest its centre) and each neighbourhood's next nearest kind, not which neighbourhoods are in a kind or what it is called. `
-  + `Voting is left out because a kind of place shouldn't be defined by how it votes${D.themes.some((t) => t.key === "transport" && !t.typed) ? "; Getting around because the kinds were fixed before that theme was added, and it will count when they are made again" : ""}. On the current figures the kinds' silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`;
-$("method-note").textContent = `Built ${D.built}. ${D.measures.length} measures in ${D.themes.length} themes, each at its latest period, from the Data Explorer's figures. `
-  + "Percentile ranks are among the 158 neighbourhoods, ties sharing the middle. A theme's gap is averaged over the measures both neighbourhoods have a figure for (a few have no school results), and the overall gap over the themes counted, so a theme with many measures counts no more than one with few.";
+  + "How firmly one neighbourhood belongs to its kind is the same measure for it alone: the share of runs, on average, in which it shared a group with each other member.",
+  `The kinds were fixed on ${D.typing.cut} and will be made again once ${escapeHTML(D.typing.recut_after.replace(/ \(.*\)$/, ""))}; until then new figures change what a kind is like (the measures it is higher and lower on, the neighbourhood nearest its centre) and each neighbourhood's next nearest kind, not which neighbourhoods are in a kind or what it is called.`,
+  `Voting is left out because a kind of place shouldn't be defined by how it votes${D.themes.some((t) => t.key === "transport" && !t.typed) ? "; Getting around because the kinds were fixed before that theme was added, and it will count when they are made again" : ""}. On the current figures the kinds' silhouette is ${D.typing.silhouette.toFixed(2)}, where 1 would be cleanly separate groups and 0 none at all.`,
+]);
 
 initTip();
 S.nb = nbIndex(hash.get("nb"));
