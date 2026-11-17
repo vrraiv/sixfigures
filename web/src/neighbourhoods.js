@@ -406,7 +406,7 @@ function render() {
     + "It doesn't move a neighbourhood to another kind: the kinds and the map of likeness are fixed.";
   const shown = !$("picked").hidden;
   $("picked").hidden = !has;
-  $("about").innerHTML = `${has ? `<a href="${nbPage(nbhd[S.nb].name)}"><b>${nameOf(S.nb)}’s page</b></a> has all its figures in one place. ` : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
+  $("about").innerHTML = `${has ? `<a href="${nbPage(nbhd[S.nb].name)}"><b>${poss(S.nb)} page</b></a> has all its figures in one place. ` : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
     Each of ${D.measures.length} measures becomes a percentile rank among the ${N} neighbourhoods. Two neighbourhoods' gap on a theme is the average difference in their ranks on its measures,
     and their <b>affinity</b> is 100 less the average gap over the themes counted: 100 would be the same standing on everything, and two neighbourhoods taken at random average about ${show(cityMean)}.`;
   // the kinds in plain words, for a reader who has just arrived: the method is under How it works

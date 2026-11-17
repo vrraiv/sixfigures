@@ -515,7 +515,7 @@ Requires Node 22.12+.
 ```sh
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # -> web/dist (about 43 MB in ~2,070 files; the census map's first load about 2.25 MB before the street map)
+npm run build      # -> web/dist (about 54 MB in ~2,240 files; the census map's first load about 2.25 MB before the street map)
 npm test           # search, wheel zoom, figures loader, header and share tags, basemap style, the committed figures
 ```
 

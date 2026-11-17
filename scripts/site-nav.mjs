@@ -1,5 +1,5 @@
 // The site header, written into every page at build time (vite.config.js replaces the
-// <!-- site-header --> comment), so the fifteen pages share one definition:
+// <!-- site-header --> comment), so every page shares one definition:
 //
 //   [map] Six Figures                 TOPICS  Census · Schools · Housing · Sale prices · Safety · Trees · Getting around     Home · About
 //         Toronto, mapped by its data TOOLS   Data Explorer · Neighbourhood Explorer · Forecasts

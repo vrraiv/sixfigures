@@ -77,7 +77,9 @@ const FOOT = `
   </body>
 </html>
 `;
-const period = (p) => (p === "today" ? "current" : p);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// "today" -> "current", "2026-09-16" -> "Sep 2026"
+const period = (p) => (p === "today" ? "current" : /^\d{4}-\d{2}-\d{2}$/.test(p) ? `${MONTHS[+p.slice(5, 7) - 1]} ${p.slice(0, 4)}` : p);
 // a measure's name; its definition is in the list at the foot of the page, and web/src/nbpage.js
 // shows it on hover too (written once, not beside every use)
 const named = (CAT, id, label) => (CAT[id]?.note ? `<span class="def" data-def="${id}">${esc(label)}</span>` : esc(label));
@@ -168,7 +170,7 @@ export function nbhdPage(X, i) {
 ${themes}
       <section class="ins-section" id="since" aria-labelledby="since-h">
         <div class="ins-head"><h2 id="since-h">Since 2006</h2></div>
-        <p class="ins-lede">The census measures that go back to 2006, at each census. Dollar figures are in 2020 dollars (Toronto CPI); incomes are for the year before each census.</p>
+        <p class="ins-lede">The census measures that go back to 2006, at each census. So that a trend is real change, incomes are in 2020 dollars and home values, rents and owners' costs in 2021 dollars (Toronto CPI); incomes are for the year before each census.</p>
         <div class="tbl-wrap"><table class="tbl nbp-tbl"><thead><tr><th scope="col">Measure</th>${years.map((y) => `<th scope="col">${y}</th>`).join("")}</tr></thead><tbody>${histRows}</tbody></table></div>
       </section>
 
