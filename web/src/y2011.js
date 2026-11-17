@@ -9,7 +9,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./style.css";
 import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
-import { cfg, initDetail, detailControls } from "./quality.js";
+import { cfg, initDetail, detailControls, styleFor } from "./quality.js";
 import { $, BOUNDS, COLORS, openingCamera, GROUPS, MEASURES, STYLE, TILES, distHTML, escapeHTML, fmtAxis, fmtCount, fmtMoney, fmtPct, fmtVal, isMoney, narrow, ordinal, pattern, tileSource, showInView, loadJSON, loadFailed, parseAt } from "./common.js";
 
 const YEAR = "2011", SRC = "da11";
@@ -48,7 +48,7 @@ const propsOf = (dauid) => figures.props(dauid, groupOf(select.value));
 
 const map = new maplibregl.Map({
   container: "map",
-  style: STYLE,
+  style: styleFor(STYLE),
   ...camera,
   attributionControl: { compact: true },
   dragRotate: false,
