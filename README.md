@@ -29,6 +29,8 @@ measure can be mapped, ranked and set against any other. On the site you can:
 - **Find a neighbourhood's closest matches** in the Neighbourhood Explorer: which
   neighbourhoods are most and least alike, theme by theme, how that has changed since
   2006, and which of nine kinds of neighbourhood each one is.
+- **Look up one neighbourhood**: each of the 158 has its own page of figures, `/n/<name>/`,
+  listed A–Z at `/n/`.
 - **See where the numbers might go** in the Forecasts, an experiment in predicting school
   results and home values that publishes its own errors.
 
@@ -62,6 +64,7 @@ of links, and Home and About. **Topics** has the pages about one subject (Census
 Housing, Sale prices, Safety, Trees, Getting around); **Tools** the pages that work across subjects (Data
 Explorer, Neighbourhood Explorer, Forecasts). A section with pages of its own shows them
 in a third row: Census has the 2021 · 2016 map, the 2011 map and Census Insights;
+the Neighbourhood Explorer has Compare and A–Z (the neighbourhood pages count as A–Z's);
 Forecasts has Method, Schools and Dwelling value. On phones the links fold behind a Menu
 button. The header is defined once, in `scripts/site-nav.mjs`, and written into each page
 at build time (`vite.config.js`); a page holds only a `<!-- site-header -->` comment, and
@@ -240,6 +243,23 @@ People, New building, Safety, Schools, Trees and heat, Getting around, Voting):
   their overall gap the mean of the theme gaps, so a theme with ten measures counts no more
   than one with four;
 - affinity is 100 less the gap. Two neighbourhoods taken at random average about 67.
+
+The arithmetic is `web/src/affinity.js`, shared with the build's neighbourhood pages.
+
+**The neighbourhood pages**, `/n/<slug>/` (the City's name in plain lower-case words:
+`/n/south-riverdale/`, `/n/oconnor-parkview/`), and their index, `/n/`, are plain HTML that
+`scripts/nbhd-pages.mjs` writes into `web/n/` on every build (git ignores the folder) from
+the files the Explorers read: `neighbourhoods.json` (each measure's latest figure, the
+themes and kinds), `explorer/catalogue.json` (definitions), `explorer/census.json` (the census
+measures since 2006) and `insights.json` (the point the census-map link opens on). Each page
+has a locator map, six figures at a glance, every measure of the ten themes with its period
+and its rank among the neighbourhoods that have a figure (highest first; none where there is
+no figure), the census measures at each census since 2006, its five closest matches and
+three least alike on all ten themes (the same as the Explorer's), its kind, and links into
+the census map and both Explorers, which open on it. They exist so that a search for a
+neighbourhood finds its figures without running a script; the sitemap lists them, the header's
+A–Z links the index, and the landing page's map and menu open them. The pages add about 11 MB
+(158 × ~70 kB, ~18 kB compressed each) to the deploy.
 
 On the Neighbourhood Explorer, Safety, Trees and the Data Explorer, a small box finds the
 neighbourhood an address or intersection is in (`web/src/addressfinder.js`), for readers

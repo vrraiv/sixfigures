@@ -15,6 +15,8 @@ import { cellStyle, chart, initTip, seg } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
 import { buildToc, nbMap } from "./nbtools.js";
 import { fmt, lc } from "./units.js";
+import { overallGaps, themeGaps } from "./affinity.js";
+import { nbPage } from "./text.js";
 
 const D = await loadJSON(`/neighbourhoods.json?v=${__NEIGHBOURHOODS_VERSION__}`).catch(loadFailed);
 const nbhd = D.nbhd, N = nbhd.length;
@@ -46,16 +48,8 @@ const dot = (i) => `<i class="nx-kind" style="background:${KIND[D.type[i]]}"></i
 // ---- the gaps --------------------------------------------------------------------------------------
 // G[theme][i * N + j]: the two neighbourhoods' gap on the theme, NaN where they share no measure
 // of it (schools: a few neighbourhoods have no results).
-const G = {};
-for (const t of D.themes) {
-  const g = new Float32Array(N * N), cols = t.measures.map((id) => M[id].pct);
-  for (let i = 0; i < N; i++) for (let j = i; j < N; j++) {
-    let s = 0, n = 0;
-    for (const p of cols) if (p[i] != null && p[j] != null) { s += Math.abs(p[i] - p[j]); n++; }
-    g[i * N + j] = g[j * N + i] = n ? s / n : NaN;
-  }
-  G[t.key] = g;
-}
+// (affinity.js, shared with the neighbourhood pages the build writes)
+const G = themeGaps(D);
 
 // The page's choices: the neighbourhood it is about, the one beside it (auto: its closest match
 // until one is picked), what likeness is measured on (all the themes counted, one theme or one
@@ -105,12 +99,7 @@ function historyGaps() { // not history(): that is the browser's
 
 function recompute() {
   histAll = null;
-  const gs = active().map((t) => G[t.key]);
-  for (let k = 0; k < N * N; k++) {
-    let s = 0, n = 0;
-    for (const g of gs) if (!Number.isNaN(g[k])) { s += g[k]; n++; }
-    overall[k] = n ? s / n : NaN;
-  }
+  overallGaps(active().map((t) => G[t.key]), overall);
   // null where a neighbourhood has no figure on any theme counted (no school results, with only Schools counted)
   typical = nbhd.map((_, i) => {
     let s = 0, n = 0;
@@ -417,7 +406,7 @@ function render() {
     + "It doesn't move a neighbourhood to another kind: the kinds and the map of likeness are fixed.";
   const shown = !$("picked").hidden;
   $("picked").hidden = !has;
-  $("about").innerHTML = `${has ? "" : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
+  $("about").innerHTML = `${has ? `<a href="${nbPage(nbhd[S.nb].name)}"><b>${nameOf(S.nb)}’s page</b></a> has all its figures in one place. ` : "<b>Choose a neighbourhood</b> above, or on the map of kinds below, to see which others are most and least like it. "}
     Each of ${D.measures.length} measures becomes a percentile rank among the ${N} neighbourhoods. Two neighbourhoods' gap on a theme is the average difference in their ranks on its measures,
     and their <b>affinity</b> is 100 less the average gap over the themes counted: 100 would be the same standing on everything, and two neighbourhoods taken at random average about ${show(cityMean)}.`;
   // the kinds in plain words, for a reader who has just arrived: the method is under How it works

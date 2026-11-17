@@ -30,7 +30,11 @@ export const ROWS = [
   ] },
   { label: "Tools", lede: "Across subjects: put any of the site's measures side by side, or start from one neighbourhood.", links: [
     { href: "/insights/explorer/", label: "Data Explorer", blurb: "Choose up to three measures from anywhere on the site and see how they line up across the city and over time." },
-    { href: "/insights/neighbourhoods/", label: "Neighbourhood Explorer", blurb: "Pick a neighbourhood and find the ones most and least like it, theme by theme, and how that has changed since 2006." },
+    { href: "/insights/neighbourhoods/", label: "Neighbourhood Explorer", blurb: "Pick a neighbourhood and find the ones most and least like it, theme by theme, and how that has changed since 2006. Or open any neighbourhood's own page of figures.", pages: [
+      { href: "/insights/neighbourhoods/", label: "Compare", blurb: "the most and least alike, theme by theme, and the kinds of neighbourhood" },
+      // `under`: also the current link on the pages below it, /n/<slug>/ (scripts/nbhd-pages.mjs)
+      { href: "/n/", label: "A–Z", under: true, blurb: "a page of figures for each of the 158 neighbourhoods" },
+    ] },
     { href: "/forecasts/", label: "Forecasts", blurb: "An experiment in predicting school results and home values, published with its ranges and its own errors.", pages: [
       { href: "/forecasts/", label: "Method", blurb: "how the forecasts are made and tested" },
       { href: "/forecasts/schools/", label: "Schools", blurb: "Grade 3 and 6 results for 2026–27" },
@@ -49,8 +53,10 @@ const tops = () => [...ROWS.flatMap((r) => r.links), ...META];
 export const pagePath = (p) => p.replace(/index\.html$/, "").replace(/([^/])$/, "$1/");
 // every address the header links to
 export const allPages = () => tops().flatMap((l) => (l.pages ? l.pages.map((p) => p.href) : [l.href]));
+// whether a header link is the one for `path`: its own address, or one below it for an `under` link
+const isFor = (p, path) => p.href === path || (p.under && path.startsWith(p.href));
 // the top link a page belongs to
-export const sectionOf = (path) => tops().find((l) => (l.pages ? l.pages.some((p) => p.href === path) : l.href === path)) ?? null;
+export const sectionOf = (path) => tops().find((l) => (l.pages ? l.pages.some((p) => isFor(p, path)) : l.href === path)) ?? null;
 
 // `more` is the part of a label dropped on the narrowest phones
 const link = ({ href, label, more }, current) => `<a href="${href}"${current ? ' aria-current="page"' : ""}>${label}${more ? `<span class="site-more">${more}</span>` : ""}</a>`;
@@ -61,7 +67,7 @@ export function siteHeader(path, mark = "/brand-map.svg") {
   const rows = ROWS.map((r) => `
         <div class="site-row"><span class="site-label">${r.label}</span>${r.links.map((l) => link(l, l === here)).join("")}</div>`).join("");
   const local = here?.pages ? `
-      <nav class="site-local" aria-label="${here.label}"><span class="site-label">${here.label}</span>${here.pages.map((p) => link(p, p.href === path)).join("")}</nav>` : "";
+      <nav class="site-local" aria-label="${here.label}"><span class="site-label">${here.label}</span>${here.pages.map((p) => link(p, isFor(p, path))).join("")}</nav>` : "";
   return `<header class="site">
       <a class="skip" href="#page">Skip to the page</a>
       <a class="site-brand" href="/"><img class="site-mark" src="${mark}" width="58" height="42" alt="" /><span class="site-name"><span class="site-title">${SITE.title}</span><span class="site-sub">${SITE.sub}</span></span></a>
@@ -125,9 +131,10 @@ export function socialTags(html, path) {
 // ---- for search engines: every page's address, and where to find that list ----
 // Written into the build (vite.config.js) from the header's list, so a new page is listed once it
 // is in the header. No dates: a page's figures change with its data, not with its file.
-export const sitemap = () => `<?xml version="1.0" encoding="UTF-8"?>
+// `more`: the pages outside the header (the neighbourhood pages).
+export const sitemap = (more = []) => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...new Set(allPages())].map((p) => `  <url><loc>${ORIGIN}${p}</loc></url>`).join("\n")}
+${[...new Set([...allPages(), ...more])].map((p) => `  <url><loc>${ORIGIN}${p}</loc></url>`).join("\n")}
 </urlset>
 `;
 export const robots = () => `User-agent: *

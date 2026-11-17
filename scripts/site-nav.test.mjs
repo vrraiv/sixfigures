@@ -5,14 +5,20 @@ import { test } from "node:test";
 import { CARD, DATASETS, DISCLAIMER, META, ORIGIN, ROWS, SOCIAL, allPages, pagePath, pageTarget, robots, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle, sitemap, socialTags } from "./site-nav.mjs";
 
 const inputs = [...readFileSync("vite.config.js", "utf8").matchAll(/"(web\/[^"]*index\.html)"/g)].map((m) => pagePath(m[1].replace(/^web/, "")));
+// The neighbourhood pages (scripts/nbhd-pages.mjs) are written by the build, not committed: here they
+// are made in memory. `pages`: every page, the 158 included; `inputs`: those named in vite.config.js.
+const { indexPage, nbhdData, nbhdPage, nbhdPaths } = await import("./nbhd-pages.mjs");
+const X = nbhdData(), NB = nbhdPaths();
+const page = (p) => (p === "/n/" ? indexPage(X) : NB.includes(p) ? nbhdPage(X, NB.indexOf(p)) : readFileSync(`web${p}index.html`, "utf8"));
+const pages = [...inputs, ...NB];
 
 test("every page vite builds is in the header, and every header link is a page", () => {
   assert.deepEqual([...new Set(allPages())].sort(), [...inputs].sort());
-  for (const p of allPages()) assert.ok(existsSync(`web${p}index.html`), p);
+  for (const p of allPages()) assert.ok(page(p), p);
 });
 
 test("each page marks exactly one top link, and its own entry in a section's row", () => {
-  for (const p of inputs) {
+  for (const p of pages) {
     const html = siteHeader(p), nav = html.slice(html.indexOf('class="site-nav"'), html.indexOf("</nav>"));
     assert.equal((nav.match(/aria-current="page"/g) ?? []).length, 1, p);
     const section = sectionOf(p);
@@ -22,8 +28,8 @@ test("each page marks exactly one top link, and its own entry in a section's row
 });
 
 test("every page carries the placeholder and no header of its own", () => {
-  for (const p of inputs) {
-    const html = readFileSync(`web${p}index.html`, "utf8");
+  for (const p of pages) {
+    const html = page(p);
     assert.equal((html.match(/<!-- site-header -->/g) ?? []).length, 1, p);
     assert.ok(!/class="(wordmark|ins-nav|themes)"/.test(html), p);
   }
@@ -54,8 +60,8 @@ test("a section's first page is its top link", () => {
 });
 
 test("every page gets its own address, title and description for a shared link, and the card is there", () => {
-  for (const p of inputs) {
-    const html = socialTags(siteTitle(readFileSync(`web${p}index.html`, "utf8")), p);
+  for (const p of pages) {
+    const html = socialTags(siteTitle(page(p)), p);
     assert.ok(html.includes(`<link rel="canonical" href="${ORIGIN}${p}" />`), p);
     assert.ok(html.includes(`<meta property="og:url" content="${ORIGIN}${p}" />`), p);
     const title = html.match(/<meta property="og:title" content="([^"]*)"/)[1], desc = html.match(/<meta property="og:description" content="([^"]*)"/)[1];
@@ -74,7 +80,7 @@ test("the landing page's map is a picture for the eye and a menu for everyone el
   assert.ok(svg.includes('aria-hidden="true"') && !svg.includes('role="img"'));
   assert.equal((svg.match(/<a href=/g) ?? []).length, 158);
   assert.equal((svg.match(/tabindex="-1"/g) ?? []).length, 158);
-  assert.equal((pick.match(/<option value="\/census\//g) ?? []).length, 158);
+  assert.equal((pick.match(/<option value="\/n\/[a-z0-9-]+\/"/g) ?? []).length, 158);
   assert.equal((readFileSync("web/index.html", "utf8").match(/<!-- city-map-pick -->/g) ?? []).length, 1);
 });
 
@@ -85,8 +91,8 @@ test("the site's name is added to a title once", () => {
 
 test("every page's footer opens with the disclaimer and closes with the three links", () => {
   assert.deepEqual(SOCIAL.map((s) => s.name), ["LinkedIn", "GitHub", "X"]);
-  for (const p of inputs) {
-    const f = siteFooter(readFileSync(`web${p}index.html`, "utf8")), foot = f.slice(f.indexOf('<footer class="foot">'), f.indexOf("</footer>"));
+  for (const p of pages) {
+    const f = siteFooter(page(p)), foot = f.slice(f.indexOf('<footer class="foot">'), f.indexOf("</footer>"));
     assert.ok(foot.startsWith(`<footer class="foot">\n      <p class="disclaimer">${DISCLAIMER}</p>`), p);
     assert.equal((f.match(/class="disclaimer"/g) ?? []).length, 1, p);
     assert.equal((f.match(/class="social"/g) ?? []).length, 1, p);
@@ -96,11 +102,11 @@ test("every page's footer opens with the disclaimer and closes with the three li
 });
 
 test("the header starts with a skip link, and every page has the place it lands", () => {
-  for (const p of inputs) {
+  for (const p of pages) {
     const header = siteHeader(p);
     // the first link in the header, so the first thing the Tab key reaches
     assert.equal(header.match(/<a [^>]*>/)[0], '<a class="skip" href="#page">', p);
-    const html = pageTarget(readFileSync(`web${p}index.html`, "utf8"));
+    const html = pageTarget(page(p));
     assert.equal((html.match(/id="page"/g) ?? []).length, 1, p);
     assert.match(html, /<(section|main) id="page" tabindex="-1"/, p);
     // the page's title is at or after the landing place, never skipped
@@ -109,8 +115,8 @@ test("the header starts with a skip link, and every page has the place it lands"
 });
 
 test("a page has one banner: its own title and controls are a named region, not a second header", () => {
-  for (const p of inputs) {
-    const html = readFileSync(`web${p}index.html`, "utf8");
+  for (const p of pages) {
+    const html = page(p);
     assert.ok(!/<header\b/.test(html), p);
     if (html.includes('class="bar"')) assert.match(html, /<section class="bar" aria-label="[^"]+">/, p);
   }
@@ -123,7 +129,7 @@ test("the sitemap lists every page once, at its full address, and robots.txt poi
 });
 
 test("structured data: the landing page names the site; each dataset's page and files exist", () => {
-  const ld = (p) => [...socialTags(readFileSync(`web${p}index.html`, "utf8"), p).matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+  const ld = (p) => [...socialTags(page(p), p).matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
   assert.equal(ld("/")[0]["@type"], "WebSite");
   for (const [p, d] of Object.entries(DATASETS)) {
     assert.ok(inputs.includes(p), p);
@@ -136,8 +142,8 @@ test("structured data: the landing page names the site; each dataset's page and 
 });
 
 test("meta descriptions fit in a search result (160 characters)", () => {
-  for (const p of inputs) {
-    const d = readFileSync(`web${p}index.html`, "utf8").match(/<meta name="description" content="([^"]*)"/)[1];
+  for (const p of pages) {
+    const d = page(p).match(/<meta name="description" content="([^"]*)"/)[1];
     assert.ok(d.length <= 160, `${p}: ${d.length}`);
   }
 });

@@ -1,6 +1,7 @@
 // Formatting a figure by its unit, shared by the Data Explorer and the Neighbourhood Explorer.
 // A measure definition d carries d.unit: money, pct, rate, score, degC, temp, index or pts.
-import { sign } from "./catalogue.js";
+// No DOM: the build's neighbourhood pages (scripts/nbhd-pages.mjs) format with it too.
+import { sign } from "./text.js";
 
 const num = (v, d) => v.toLocaleString("en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
 const F = {
