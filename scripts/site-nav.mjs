@@ -106,6 +106,7 @@ export function socialTags(html, path) {
   const url = `${ORIGIN}${path}`;
   const tags = [
     `<link rel="canonical" href="${url}" />`,
+    `<meta name="author" content="${AUTHOR.name}" />`,
     `<meta property="og:site_name" content="${SITE.title}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:url" content="${url}" />`,
@@ -149,14 +150,16 @@ export const DATASETS = {
     keywords: ["Toronto", "census", "National Household Survey", "dissemination area", "household income", "housing", "neighbourhoods"],
     files: [["2011 DAs", "/data/toronto_da_income_2011.csv"]] },
 };
+export const AUTHOR = { name: "Vikram Rai", about: "/about/#who" };
+const author = () => ({ "@type": "Person", name: AUTHOR.name, url: `${ORIGIN}${AUTHOR.about}`, sameAs: SOCIAL.map((s) => s.href) });
 export function structuredData(path, desc) {
-  if (path === "/") return [{ "@context": "https://schema.org", "@type": "WebSite", name: SITE.title, url: `${ORIGIN}/`, description: desc, inLanguage: "en-CA" }];
+  if (path === "/") return [{ "@context": "https://schema.org", "@type": "WebSite", name: SITE.title, url: `${ORIGIN}/`, description: desc, inLanguage: "en-CA", author: author() }];
   const d = DATASETS[path];
   if (!d) return [];
   return [{
     "@context": "https://schema.org", "@type": "Dataset", name: d.name, description: desc, url: `${ORIGIN}${path}`,
     keywords: d.keywords, temporalCoverage: d.temporalCoverage, spatialCoverage: TORONTO, isAccessibleForFree: true,
-    isBasedOn: STATCAN, includedInDataCatalog: { "@type": "DataCatalog", name: SITE.title, url: `${ORIGIN}/` },
+    isBasedOn: STATCAN, creator: author(), includedInDataCatalog: { "@type": "DataCatalog", name: SITE.title, url: `${ORIGIN}/` },
     distribution: d.files.map(([name, href]) => ({ "@type": "DataDownload", name: `${name} (CSV)`, encodingFormat: "text/csv", contentUrl: `${ORIGIN}${href}` })),
   }];
 }
