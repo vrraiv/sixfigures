@@ -106,6 +106,7 @@ export function socialTags(html, path) {
   const url = `${ORIGIN}${path}`;
   const tags = [
     `<link rel="canonical" href="${url}" />`,
+    `<meta name="author" content="${AUTHOR.name}" />`,
     `<meta property="og:site_name" content="${SITE.title}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:url" content="${url}" />`,
@@ -116,6 +117,7 @@ export function socialTags(html, path) {
     `<meta property="og:image:height" content="${CARD.height}" />`,
     `<meta property="og:image:alt" content="${attr(CARD.alt)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
+    ...structuredData(path, desc).map((d) => `<script type="application/ld+json">${JSON.stringify(d).replace(/</g, "\\u003c")}</script>`),
   ];
   return html.replace("</head>", `  ${tags.join("\n    ")}\n  </head>`);
 }
@@ -133,6 +135,34 @@ Allow: /
 
 Sitemap: ${ORIGIN}/sitemap.xml
 `;
+
+// ---- what a search engine reads about a page (schema.org, as JSON-LD) ----
+// The landing page names the site; the two census maps, whose footers offer their figures as
+// CSV, describe that data as a Dataset (for Google Dataset Search). Other pages show data but
+// offer no file of it, so they claim nothing.
+const TORONTO = { "@type": "Place", name: "Toronto, Ontario, Canada", geo: { "@type": "GeoShape", box: "43.58 -79.64 43.86 -79.11" } };
+const STATCAN = "https://www12.statcan.gc.ca/census-recensement/index-eng.cfm"; // the Census of Population
+export const DATASETS = {
+  "/census/": { name: "Toronto income and housing by dissemination area, 2016 and 2021 Censuses", temporalCoverage: "2015/2021",
+    keywords: ["Toronto", "census", "dissemination area", "household income", "low income", "housing costs", "renters", "neighbourhoods"],
+    files: [["2021 DAs, with 2016 figures and change", "/data/toronto_da_income_2021.csv"], ["2016 DAs", "/data/toronto_da_income_2016.csv"]] },
+  "/2011/": { name: "Toronto income and housing by dissemination area, 2011 Census and National Household Survey", temporalCoverage: "2010/2011",
+    keywords: ["Toronto", "census", "National Household Survey", "dissemination area", "household income", "housing", "neighbourhoods"],
+    files: [["2011 DAs", "/data/toronto_da_income_2011.csv"]] },
+};
+export const AUTHOR = { name: "Vikram Rai", about: "/about/#who" };
+const author = () => ({ "@type": "Person", name: AUTHOR.name, url: `${ORIGIN}${AUTHOR.about}`, sameAs: SOCIAL.map((s) => s.href) });
+export function structuredData(path, desc) {
+  if (path === "/") return [{ "@context": "https://schema.org", "@type": "WebSite", name: SITE.title, url: `${ORIGIN}/`, description: desc, inLanguage: "en-CA", author: author() }];
+  const d = DATASETS[path];
+  if (!d) return [];
+  return [{
+    "@context": "https://schema.org", "@type": "Dataset", name: d.name, description: desc, url: `${ORIGIN}${path}`,
+    keywords: d.keywords, temporalCoverage: d.temporalCoverage, spatialCoverage: TORONTO, isAccessibleForFree: true,
+    isBasedOn: STATCAN, creator: author(), includedInDataCatalog: { "@type": "DataCatalog", name: SITE.title, url: `${ORIGIN}/` },
+    distribution: d.files.map(([name, href]) => ({ "@type": "DataDownload", name: `${name} (CSV)`, encodingFormat: "text/csv", contentUrl: `${ORIGIN}${href}` })),
+  }];
+}
 
 // ---- the footer: a disclaimer above each page's own sources, the author's links below ----
 export const DISCLAIMER = "Any views expressed, or errors within, are those of the author and the author alone.";
