@@ -6,7 +6,10 @@
 // Keys: p starts a 20 s profile of the main thread (needs the Document-Policy:
 // js-profiling header, see web/public/_headers); b hides or shows the basemap;
 // d hides or shows the DA layers. Drag the map with one hidden to feel which
-// side costs the time.
+// side costs the time. l hides the DA layers one at a time (each press moves to
+// the next, and after the last shows them all), to find which of them costs it;
+// h stops the hover state (the pale or outlined DA under the pointer); r draws
+// the map at the screen's own sharpness instead of the detail level's.
 
 import { BASEMAP_SOURCE, detail } from "./quality.js";
 
@@ -232,7 +235,7 @@ export function diagnostics(map) {
     ];
   }
 
-  // ---- keys: p profile, b basemap, d DA layers ---------------------------------
+  // ---- keys: p profile, b basemap, d DA layers, l one DA layer, h hover, r sharpness
   const hidden = { basemap: false, da: false };
   const layersOf = (which) => map.getStyle().layers.filter((l) => (which === "da" ? ["da", "da16", "da11", "ov"].includes(l.source) : l.source === BASEMAP_SOURCE));
   const saved = {};
@@ -247,11 +250,42 @@ export function diagnostics(map) {
       }
     }
   }
+  // l: the DA layers on show when it is first pressed, hidden one at a time
+  let solo = null; // { ids, i }
+  function nextLayer() {
+    if (!solo) {
+      const ids = layersOf("da").map((l) => l.id).filter((id) => map.getLayoutProperty(id, "visibility") !== "none");
+      solo = { ids, i: -1 };
+    } else if (solo.i >= 0) map.setLayoutProperty(solo.ids[solo.i], "visibility", "visible");
+    solo.i++;
+    if (solo.i >= solo.ids.length) { solo = null; return; }
+    map.setLayoutProperty(solo.ids[solo.i], "visibility", "none");
+  }
+  // h: drop hover-only state changes, so moving the pointer changes nothing on the map
+  let noHover = false;
+  const setFeatureState = map.setFeatureState.bind(map);
+  map.setFeatureState = (f, state) => {
+    if (noHover && Object.keys(state).every((k) => k === "hover")) return map;
+    return setFeatureState(f, state);
+  };
+  function toggleHover() {
+    noHover = !noHover;
+    if (noHover) for (const s of ["da", "da16", "da11"]) if (map.getSource(s)) map.removeFeatureState({ source: s, sourceLayer: "da" }, "hover");
+  }
+  // r: the screen's own pixel ratio, or back to the level's
+  let sharp = null; // the ratio to go back to
+  function toggleSharp() {
+    if (sharp == null) { sharp = map.getPixelRatio(); map.setPixelRatio(devicePixelRatio); }
+    else { map.setPixelRatio(sharp); sharp = null; }
+  }
   window.addEventListener("keydown", (e) => {
     if (e.target !== document.body && e.target !== map.getCanvas()) return;
     if (e.key === "p") startProfile();
     else if (e.key === "b") toggle("basemap");
     else if (e.key === "d") toggle("da");
+    else if (e.key === "l") nextLayer();
+    else if (e.key === "h") toggleHover();
+    else if (e.key === "r") toggleSharp();
   });
 
   function render() {
@@ -268,7 +302,9 @@ export function diagnostics(map) {
     const tail = wheels.slice(-8).map((w) => `${w.mode === 1 ? "line" : w.mode === 2 ? "page" : "px"} ${w.dy}${w.ctrl ? " ctrl" : ""}`).join(", ");
     const gaps = wheels.slice(-8).map((w, i, a) => (i ? Math.round(w.t - a[i - 1].t) : 0)).slice(1).join("/");
     const at = (k) => (marks[k] ? since(marks[k]) : "…");
-    const state = [hidden.basemap && "basemap hidden", hidden.da && "DA layers hidden"].filter(Boolean).join(", ");
+    const state = [hidden.basemap && "basemap hidden", hidden.da && "DA layers hidden",
+      solo && solo.i >= 0 && `hiding ${solo.ids[solo.i]} (${solo.i + 1} of ${solo.ids.length})`,
+      noHover && "hover off", sharp != null && "full sharpness"].filter(Boolean).join(", ");
     box.textContent = [
       `renderer: ${renderer}`,
       `cpu threads: ${navigator.hardwareConcurrency ?? "?"} · cpu index: ${cpuIndex} · dpr: ${devicePixelRatio} · ${innerWidth}×${innerHeight} of ${screen.width}×${screen.height} · link: ${link}`,
@@ -284,7 +320,7 @@ export function diagnostics(map) {
       `last wheel deltas: ${tail || "—"}`,
       `gaps between them (ms): ${gaps || "—"}`,
       profiler ? `profile: recording, ${Math.max(0, (profileEnds - now) / 1000).toFixed(0)} s left — drag and zoom now` : profileLines.join("\n"),
-      `keys: p profile · b basemap · d DA layers${state ? ` · ${state}` : ""}`,
+      `keys: p profile · b basemap · d DA layers · l one DA layer · h hover · r sharpness${state ? ` · ${state}` : ""}`,
       navigator.userAgent,
     ].join("\n");
   }
