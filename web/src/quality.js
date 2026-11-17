@@ -9,8 +9,11 @@
 //
 // The level comes from q=auto|full|medium|low in the URL hash, the footer's
 // "Map detail" buttons, or (auto) a measurement after the map's first idle.
-// A chosen level is kept; a measured one is kept a week, and the auto button
-// measures again at once. detailControls wires all of that to a map and its
+// With nothing chosen or kept, the map opens at medium (low where the browser
+// reports a software graphics driver), so a slow machine never has to load
+// and draw full detail before it is measured; a fast one steps up to full once
+// measured. A chosen level is kept; a measured one is kept a week, and the auto
+// button measures again at once, at the level on show. detailControls wires all of that to a map and its
 // page; the page supplies what its own layers need on a change of level.
 
 export const LEVELS = {
@@ -52,8 +55,29 @@ export function initDetail(hashParams) {
   }
   const [, level, at] = /^auto:(\w+)@(\d+)$/.exec(v ?? "") ?? [];
   if (isLevel(level) && Date.now() - Number(at) < MEASURED_FOR) detail.level = level; // measured on an earlier visit
-  else detail.source = ""; // nothing kept: measured after the first idle
+  else {
+    detail.level = softwareGL() ? "low" : "medium"; // nothing kept: start cheap, measured after the first idle
+    detail.source = "";
+  }
   return detail;
+}
+
+// A WebGL renderer that draws on the processor: Chrome and Edge with graphics
+// acceleration off (SwiftShader), Windows' fallback (Basic Render Driver, WARP)
+// and Mesa's (llvmpipe, softpipe). Firefox may mask the name: then no answer,
+// and the measurement decides.
+export const isSoftware = (renderer) => /swiftshader|llvmpipe|softpipe|basic render|\bwarp\b|software/i.test(renderer ?? "");
+function softwareGL() {
+  try {
+    const gl = document.createElement("canvas").getContext("webgl");
+    if (!gl) return false;
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
+    gl.getExtension("WEBGL_lose_context")?.loseContext(); // free it: the map makes its own
+    return isSoftware(renderer);
+  } catch {
+    return false;
+  }
 }
 
 export function remember(level, mode) {
@@ -121,9 +145,14 @@ export const THROTTLED_MS = 70; // a rest interval over this is a throttled tab,
 
 // The level a measurement calls for, from how much longer a repainted frame
 // takes than the display's own interval: null when it could not be measured.
-export function levelFor(m) {
+// The thresholds are for frames at full detail; a frame timed at medium or low
+// is scaled up by what those levels cost against full (SwiftShader on four
+// cores: 91 ms at full, about 32 at medium and 27 at low). Without the scaling,
+// low's frames, timed against full's thresholds, called for medium.
+export const COST = { full: 1, medium: 0.35, low: 0.3 };
+export function levelFor(m, at = "full") {
   if (m.repaint == null) return null;
-  const extra = m.repaint - m.rest;
+  const extra = (m.repaint - m.rest) / COST[at];
   return extra > 90 ? "low" : extra > 30 ? "medium" : "full";
 }
 
@@ -150,10 +179,11 @@ export function detailControls(map, { apply }) {
     const { level, mode, source, measured } = detail;
     if (mode === "chosen") return `${level[0].toUpperCase()}${level.slice(1)} detail, chosen here. Auto measures this device instead.`;
     if (source === "measuring") return "Auto: measuring how fast this device draws the map…";
-    if (source === "throttled") return "Auto: could not measure (the tab was in the background, or the map never held still); full detail for now. If the map feels slow, choose medium or low.";
+    if (source === "") return `Auto: ${level} detail to start, until this device is measured.`;
+    if (source === "throttled") return `Auto: could not measure (the tab was in the background, or the map never held still); ${level} detail for now. ${level === "full" ? "If the map feels slow, choose medium or low." : "On a fast machine, choose full."}`;
     if (source === "kept" && level !== "full") return `Auto: ${level} detail, as measured on an earlier visit. This device draws the map slowly.`;
     if (level === "full") return "Auto: full detail. Medium and low are for machines that draw the map slowly.";
-    const ms = measured?.repaint ? ` (about ${Math.round(measured.repaint)} ms a frame at full detail)` : "";
+    const ms = measured?.repaint ? ` (about ${Math.round(measured.repaint)} ms a frame at ${measured.at} detail)` : "";
     return `Auto switched to ${level} detail: this device draws the map slowly${ms}.`;
   }
 
@@ -174,7 +204,7 @@ export function detailControls(map, { apply }) {
     forget();
     detail.mode = "auto";
     detail.source = "measuring";
-    detail.level = "full"; // measured at full detail, whatever was on
+    let at = detail.level; // measured at the level on show, and scaled to full's (levelFor)
     applyDetail();
     // A hidden or covered tab gets no frames to time; a covered one may not
     // say so, so a throttled reading gets a second try before it stands.
@@ -182,8 +212,17 @@ export function detailControls(map, { apply }) {
       if (document.hidden) await new Promise((r) => document.addEventListener("visibilitychange", r, { once: true }));
       const measured = await calibrate(map);
       if (run !== autoRun) return; // a level was chosen meanwhile: it stands
-      detail.measured = measured;
-      const level = levelFor(detail.measured);
+      detail.measured = { ...measured, at };
+      const level = levelFor(measured, at);
+      // Full from a cheaper level's frames is only a guess: full follows the
+      // screen's pixel ratio and medium and low don't, so on a 2x or 3x screen
+      // full draws four to nine times their pixels. Time full itself before it stands.
+      if (level === "full" && at !== "full") {
+        at = detail.level = "full";
+        applyDetail();
+        attempt = -1;
+        continue;
+      }
       if (level) {
         setDetail(level, "auto", "measured");
         return;
