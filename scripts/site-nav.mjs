@@ -120,6 +120,20 @@ export function socialTags(html, path) {
   return html.replace("</head>", `  ${tags.join("\n    ")}\n  </head>`);
 }
 
+// ---- for search engines: every page's address, and where to find that list ----
+// Written into the build (vite.config.js) from the header's list, so a new page is listed once it
+// is in the header. No dates: a page's figures change with its data, not with its file.
+export const sitemap = () => `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${[...new Set(allPages())].map((p) => `  <url><loc>${ORIGIN}${p}</loc></url>`).join("\n")}
+</urlset>
+`;
+export const robots = () => `User-agent: *
+Allow: /
+
+Sitemap: ${ORIGIN}/sitemap.xml
+`;
+
 // ---- the footer: a disclaimer above each page's own sources, the author's links below ----
 export const DISCLAIMER = "Any views expressed, or errors within, are those of the author and the author alone.";
 // Simple Icons' marks (CC0), 24 x 24

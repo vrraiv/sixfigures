@@ -5,7 +5,7 @@ import { defineConfig } from "vite";
 import { extractTiles } from "./scripts/extract-tiles.mjs";
 import { basemapLayers } from "./scripts/basemap-style.mjs";
 import { brandSvg, heroKey, heroPick, heroSvg } from "./scripts/city-map.mjs";
-import { pagePath, pageTarget, siteFooter, siteGuide, siteHeader, siteTitle, socialTags } from "./scripts/site-nav.mjs";
+import { pagePath, pageTarget, robots, siteFooter, siteGuide, siteHeader, siteTitle, sitemap, socialTags } from "./scripts/site-nav.mjs";
 
 // Content hashes of the data files, appended as ?v= so they can be cached as
 // immutable (see web/public/_headers) yet still bust when the data is rebuilt.
@@ -75,6 +75,13 @@ export default defineConfig({
     name: "site-header",
     transformIndexHtml: (html, ctx) => socialTags(siteFooter(siteTitle(pageTarget(html))), pagePath(ctx.path)).replace("<!-- site-header -->", siteHeader(pagePath(ctx.path), BRAND))
       .replace("<!-- site-guide -->", () => siteGuide()).replace("<!-- city-map -->", () => heroSvg()).replace("<!-- city-map-key -->", () => heroKey()).replace("<!-- city-map-pick -->", () => heroPick()),
+  }, {
+    // sitemap.xml and robots.txt, from the header's list of pages (scripts/site-nav.mjs).
+    name: "sitemap",
+    generateBundle() {
+      this.emitFile({ type: "asset", fileName: "sitemap.xml", source: sitemap() });
+      this.emitFile({ type: "asset", fileName: "robots.txt", source: robots() });
+    },
   }, {
     name: "da-tiles-in-html",
     transformIndexHtml: (html) => html.replace("__DA_TILES__", JSON.stringify(TILES.da)).replace("__DA11_TILES__", JSON.stringify(TILES.da11)).replace("__FIGURES_VERSION__", JSON.stringify(FIGURES_VERSION))

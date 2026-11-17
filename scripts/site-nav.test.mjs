@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { CARD, DISCLAIMER, META, ORIGIN, ROWS, SOCIAL, allPages, pagePath, pageTarget, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle, socialTags } from "./site-nav.mjs";
+import { CARD, DISCLAIMER, META, ORIGIN, ROWS, SOCIAL, allPages, pagePath, pageTarget, robots, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle, sitemap, socialTags } from "./site-nav.mjs";
 
 const inputs = [...readFileSync("vite.config.js", "utf8").matchAll(/"(web\/[^"]*index\.html)"/g)].map((m) => pagePath(m[1].replace(/^web/, "")));
 
@@ -114,4 +114,10 @@ test("a page has one banner: its own title and controls are a named region, not 
     assert.ok(!/<header\b/.test(html), p);
     if (html.includes('class="bar"')) assert.match(html, /<section class="bar" aria-label="[^"]+">/, p);
   }
+});
+
+test("the sitemap lists every page once, at its full address, and robots.txt points to it", () => {
+  const locs = [...sitemap().matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+  assert.deepEqual(locs.sort(), inputs.map((p) => `${ORIGIN}${p}`).sort());
+  assert.ok(robots().includes(`Sitemap: ${ORIGIN}/sitemap.xml`));
 });
