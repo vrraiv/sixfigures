@@ -38,3 +38,23 @@ test("a frame timed at medium or low is scaled to full's cost", () => {
   assert.equal(levelFor({ rest: 16.7, repaint: 87 }), "medium");
   assert.equal(levelFor({ rest: 16.7, repaint: 87 }, "low"), "low");
 });
+
+test("the style a map opens with carries its level's thinning, and full is the style as written", async () => {
+  const { basemapLayers } = await import("../../scripts/basemap-style.mjs");
+  const { detail, styleFor, pruned } = await import("./quality.js");
+  const style = { version: 8, sources: {}, layers: basemapLayers() };
+  const byId = (s) => Object.fromEntries(s.layers.map((l) => [l.id, l]));
+  detail.level = "low";
+  const low = byId(styleFor(style));
+  for (const l of style.layers.filter(pruned)) assert.equal(low[l.id].layout?.visibility, "none", l.id);
+  assert.equal(low.roads_major.minzoom, 12);
+  assert.equal(low.roads_link.minzoom, 12);
+  assert.ok(!low.roads_highway.minzoom, "highways at every zoom");
+  assert.equal(low.water.layout?.visibility, undefined);
+  detail.level = "medium";
+  const medium = byId(styleFor(style));
+  assert.equal(medium.buildings.layout?.visibility, "none");
+  assert.ok(!medium.roads_major.minzoom, "major roads at every zoom at medium");
+  detail.level = "full";
+  assert.deepEqual(styleFor(style).layers, style.layers);
+});

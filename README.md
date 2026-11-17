@@ -367,16 +367,19 @@ name). A rate's change is in percentage points (pp), not restated for inflation.
 - **Map detail** for machines that draw the map in software (a browser with graphics
   acceleration switched off by policy, an old integrated chip). Medium and low draw on a
   canvas at 0.8 or 0.67 pixels per CSS pixel, a basemap without the fills and minor roads
-  that show least under the DA colours, DA outlines from z12 only, the hovered DA paled rather
+  that show least under the DA colours (low also leaves the major roads to z12 and over, keeping
+  the highways), DA outlines from z12 only (z13 at low), the hovered DA paled rather
   than outlined, and a filtered copy of the tiles that outlines only the open, found and
   pinned DAs. Under SwiftShader on four cores a frame went
-  from 91 ms at full to about 32 at medium and 27 at low. Chosen by `q=auto|full|medium|low`
+  from 91 ms at full to about 32 at medium; on two cores, low's later roads and
+  outlines took low's frame at z12 from about 87 ms to 57, and at the opening view from 62 to 45.
+  A map opens with its level's layers already thinned. Chosen by `q=auto|full|medium|low`
   in the hash or the footer's "Map detail" buttons. A first visit opens at medium, or at low
   where the browser reports a software graphics driver (SwiftShader, Microsoft's Basic Render
   Driver, llvmpipe), so a slow machine never loads full detail first; auto then measures the
   first frames after load, at rest and then repainting, at the level on show, scales the
   difference to full detail's cost (a medium frame costs about 0.35 of a full one, a low one
-  0.3), and takes medium when that runs over 30 ms past the display's interval, low over
+  0.2), and takes medium when that runs over 30 ms past the display's interval, low over
   90 ms. A verdict of full from a cheaper level is then checked at full itself, since full
   follows the screen's pixel ratio and the others don't. A chosen level is kept, a measured one for a week; the line beside
   the buttons says which is on and why.

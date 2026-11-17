@@ -2,10 +2,11 @@
 // graphics acceleration switched off by policy, or an old integrated chip.
 // There every frame costs pixels × passes plus vertices, so the lower levels
 // draw on a smaller canvas, drop the basemap layers that show least under the
-// DA fills, start the DA outlines at z12, and draw the highlight outline only
-// for a selected or pinned DA. Under SwiftShader pinned to four cores a frame
-// went from 91 ms at full to about 31 at medium and 27 at low; on the laptop
-// that prompted this, from about 300 ms.
+// DA fills, start the DA outlines at z12 (low: z13, and the major roads at
+// z12), and draw the highlight outline only for a selected or pinned DA. Under
+// SwiftShader pinned to four cores a frame went from 91 ms at full to about 31
+// at medium; on the laptop that prompted this, from about 300 ms. See LEVELS
+// for low's own figures.
 //
 // The level comes from q=auto|full|medium|low in the URL hash, the footer's
 // "Map detail" buttons, or (auto) a measurement after the map's first idle.
@@ -17,10 +18,15 @@
 // page; the page supplies what its own layers need on a change of level.
 
 export const LEVELS = {
-  full: { ratio: null, prune: false, lineMinzoom: 0, outline: true },
-  medium: { ratio: 0.8, prune: true, lineMinzoom: 12, outline: false },
-  low: { ratio: 0.67, prune: true, lineMinzoom: 12, outline: false },
+  full: { ratio: null, prune: false, lineMinzoom: 0, roadsFrom: 0, outline: true },
+  medium: { ratio: 0.8, prune: true, lineMinzoom: 12, roadsFrom: 0, outline: false },
+  low: { ratio: 0.67, prune: true, lineMinzoom: 13, roadsFrom: 12, outline: false },
 };
+// lineMinzoom: the zoom the DA outlines start at. roadsFrom: the zoom the major
+// roads and their links start at (the highways stay at every zoom). Measured at
+// low under SwiftShader on two cores, a frame at z12 went from about 89 ms to
+// 57 without the outlines, and at z9.5 to z11 the major roads cost 13 to 17 ms,
+// where they barely show under the DA colours.
 // outline: the highlight layer that outlines every DA on hover (a pass over all
 // of them each frame); without it the hovered DA pales instead.
 export const detail = { level: "full", mode: "auto", source: "", measured: null };
@@ -97,10 +103,38 @@ const PRUNE = new Set(["landcover", "buildings", "roads_other", "roads_minor", "
   "roads_bridges_other", "roads_bridges_minor"]);
 export const pruned = (l) => l.source === BASEMAP_SOURCE && l.type !== "symbol" && (PRUNE.has(l.id) || /^landuse_|^roads_tunnels_|_casing/.test(l.id));
 
-export function applyBasemap(map, thin) {
+const LATE_ROADS = /^roads_(major|link|bridges_major|bridges_link)$/;
+const lateRoad = (l) => l.source === BASEMAP_SOURCE && LATE_ROADS.test(l.id);
+const ZOOMS = new Map(); // each late road's own zoom range, from the style as written
+const roadZooms = (l, c) => {
+  if (!ZOOMS.has(l.id)) ZOOMS.set(l.id, [l.minzoom ?? 0, l.maxzoom ?? 24]);
+  const [min, max] = ZOOMS.get(l.id);
+  return [Math.max(min, c.roadsFrom), max];
+};
+
+export function applyBasemap(map, c) {
   for (const l of map.getStyle().layers) {
-    if (pruned(l)) map.setLayoutProperty(l.id, "visibility", thin ? "none" : "visible");
+    if (pruned(l)) map.setLayoutProperty(l.id, "visibility", c.prune ? "none" : "visible");
+    if (lateRoad(l)) map.setLayerZoomRange(l.id, ...roadZooms(l, c));
   }
+}
+
+// The style a map opens with: the level's thinning already in it, so the first
+// tiles are laid out with the layers it hides already hidden rather than hidden
+// once the style has loaded. (Measured locally, the time to the first idle
+// barely moved.) Called after initDetail, before the map exists.
+export function styleFor(style) {
+  const c = cfg();
+  return {
+    ...style,
+    layers: style.layers.map((l) => {
+      if (lateRoad(l) && c.roadsFrom > (l.minzoom ?? 0)) {
+        const [minzoom, maxzoom] = roadZooms(l, c);
+        return { ...l, minzoom, maxzoom };
+      }
+      return c.prune && pruned(l) ? { ...l, layout: { ...l.layout, visibility: "none" } } : l;
+    }),
+  };
 }
 
 // The median interval between frames, first with the map at rest (the display's
@@ -147,9 +181,13 @@ export const THROTTLED_MS = 70; // a rest interval over this is a throttled tab,
 // takes than the display's own interval: null when it could not be measured.
 // The thresholds are for frames at full detail; a frame timed at medium or low
 // is scaled up by what those levels cost against full (SwiftShader on four
-// cores: 91 ms at full, about 32 at medium and 27 at low). Without the scaling,
-// low's frames, timed against full's thresholds, called for medium.
-export const COST = { full: 1, medium: 0.35, low: 0.3 };
+// cores: 91 ms at full, about 32 at medium; on two cores, at the opening view,
+// about 183 ms past the display's interval at full and 33 at low). Without the
+// scaling, low's frames, timed against full's thresholds, called for medium.
+// Low's factor is from the opening view; from z13 in, where low draws what it
+// did before, its frames cost more against full, so a first visit that opens
+// deep in leans to low: the safe side.
+export const COST = { full: 1, medium: 0.35, low: 0.2 };
 export function levelFor(m, at = "full") {
   if (m.repaint == null) return null;
   const extra = (m.repaint - m.rest) / COST[at];
@@ -166,7 +204,7 @@ export function detailControls(map, { apply }) {
   function applyDetail() {
     const c = cfg();
     map.setPixelRatio(c.ratio ?? undefined); // undefined: follow the device, so the map stays sharp after a browser zoom
-    applyBasemap(map, c.prune);
+    applyBasemap(map, c);
     apply(c);
     for (const b of buttons) {
       b.setAttribute("aria-pressed", String(detail.mode === "auto" ? b.value === "auto" : b.value === detail.level));

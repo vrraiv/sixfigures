@@ -3,7 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { compose, grabMap, toBlob } from "./snapshot.js";
 import { wheelZoom } from "./wheel.js";
 import { Figures, classIndex } from "./figures.js";
-import { cfg, initDetail, detailControls } from "./quality.js";
+import { cfg, initDetail, detailControls, styleFor } from "./quality.js";
 import "./style.css";
 import { tileSource, TILES, STYLE, BOUNDS, openingCamera, COLORS, DIVERGING, MEASURES, GROUPS, YEARS, VIEWS, refYear, lc, narrow, $, fmtMoney, fmtCount, fmtK, sign, fmtSignedMoney, fmtSignedK, fmtPts, fmtPct, fmtPctShort, fmtPP, fmtPPShort, isMoney, fmtVal, fmtMoneyShort, fmtAxis, fmtDiff, fmtDiffShort, ordinal, escapeHTML, pattern, distHTML, showInView, loadJSON, loadFailed, own, parseAt } from "./common.js";
 
@@ -84,7 +84,7 @@ const propsOf = (source, dauid) => figures[source].props(dauid, groupOf(select.v
 
 const map = new maplibregl.Map({
   container: "map",
-  style: STYLE,
+  style: styleFor(STYLE),
   ...camera,
   attributionControl: { compact: true },
   // North stays up: no compass to put it back, and a right-button or two-finger
