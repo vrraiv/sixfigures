@@ -6,6 +6,7 @@ import "./style.css";
 import { $, escapeHTML, own } from "./catalogue.js";
 import { initTip } from "./charts.js";
 import { addressFinder } from "./addressfinder.js";
+import { nbPage } from "./text.js";
 import { buildToc, fillFinder } from "./nbtools.js";
 import { C, DEF, S, SRC, columns, fmt, nbhd, nearest, pctOrd, pctRank, vals, whenOf } from "./explorer-core.js";
 import { initOne, renderOne, suggestion } from "./explorer-one.js";
@@ -150,7 +151,7 @@ function markPicks() {
   bar.innerHTML = `<b>${escapeHTML(nbhd[S.nb].name)}</b>${S.cur.map((m, k) => {
     const v = vals(k)[S.nb], p = pctRank(vals(k))[S.nb];
     return `<span>${escapeHTML(m.d.short)}, ${escapeHTML(m.d.periods[m.p])}: <b>${fmt(m.d, v)}</b>${p == null ? "" : ` (${pctOrd(p)} percentile)`}</span>`;
-  }).join("")}<button type="button" class="nb-clear">Clear</button>`;
+  }).join("")}<a href="${nbPage(nbhd[S.nb].name)}">All its figures</a><button type="button" class="nb-clear">Clear</button>`;
 }
 
 fillFinder($("find-nb"), nbhd.map((n) => n.name));

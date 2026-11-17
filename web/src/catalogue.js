@@ -1,6 +1,8 @@
 // The measure catalogue, colours and formatting: everything the pages share
 // that doesn't need the map library (common.js re-exports it for the map pages;
 // the Insights page imports it directly).
+import { escapeHTML, sign } from "./text.js";
+export { escapeHTML, ordinal, sign } from "./text.js";
 
 // One-hue blue ramp, light -> dark (validated: monotone lightness, single hue).
 export const COLORS = ["#cde2fb", "#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#0d366b"];
@@ -114,7 +116,6 @@ export const $ = (id) => document.getElementById(id);
 export const fmtMoney = (v) => (v == null ? "—" : `$${v.toLocaleString("en-CA")}`);
 export const fmtCount = (v) => (v == null ? "—" : v.toLocaleString("en-CA"));
 export const fmtK = (v) => `$${(v / 1000).toLocaleString("en-CA", { maximumFractionDigits: 1 })}k`;
-export const sign = (v) => (v > 0 ? "+" : v < 0 ? "−" : "±");
 export const fmtSignedMoney = (v) => (v == null ? "—" : `${sign(v)}$${Math.abs(v).toLocaleString("en-CA")}`);
 export const fmtSignedK = (v) => `${sign(v)}${fmtK(Math.abs(v))}`;
 export const fmtPts = (v) => (v == null ? "—" : `${sign(v)}${Math.abs(v)} pts`);
@@ -131,11 +132,6 @@ export const fmtMoneyShort = (m) => (MEASURES[m].monthly ? fmtMoney : fmtK);
 export const fmtAxis = (m) => (isMoney(m) ? fmtMoneyShort(m) : fmtPctShort);
 export const fmtDiff = (m, v) => (isMoney(m) ? fmtSignedMoney(v) : fmtPP(v));
 export const fmtDiffShort = (m) => (isMoney(m) ? (MEASURES[m].monthly ? fmtSignedMoney : fmtSignedK) : fmtPPShort);
-export const ordinal = (n) => {
-  const s = ["th", "st", "nd", "rd"], v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-};
-export const escapeHTML = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 // ---- what a link or a server can get wrong ------------------------------------------------
 // Whether `key` (from a link) names an entry of a catalogue object: "constructor" and

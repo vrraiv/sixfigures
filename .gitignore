@@ -84,3 +84,6 @@ web/public/tiles/
 web/public/brand-map.svg
 # the live forecasts pipeline/forecast/ freezes before their outcomes are known
 !pipeline/model/*.csv
+
+# the neighbourhood pages, written by every build from web/public (scripts/nbhd-pages.mjs)
+web/n/

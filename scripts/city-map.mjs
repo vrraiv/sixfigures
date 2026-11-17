@@ -4,10 +4,11 @@
 //   brandSvg()  the mark beside the site's name in every page's header, a file of its own
 //               (vite.config.js writes web/public/brand-map.svg) so pages share one cached copy
 //   iconSvg()   the browser-tab icon (scripts/make-icons.mjs writes the committed files)
-//   heroSvg()   the landing page's map, inline, each neighbourhood a link to the census map there
+//   heroSvg()   the landing page's map, inline, each neighbourhood a link to its own page (/n/<slug>/)
 //
 // Six classes with the same number of neighbourhoods in each, lightest for the lowest incomes.
 import { readFileSync } from "node:fs";
+import { nbPage } from "../web/src/text.js";
 
 // web/src/catalogue.js COLORS: one hue, light to dark
 const COLORS = ["#cde2fb", "#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#0d366b"];
@@ -52,7 +53,7 @@ export function iconSvg(m = cityMap(), { bg = "#ffffff", colors = COLORS, pad = 
 `;
 }
 
-// Where a neighbourhood's link lands: the census map, on this measure, with neighbourhood outlines.
+// A neighbourhood on the census map, on this measure, with neighbourhood outlines (the neighbourhood pages link there).
 export const mapHref = (n) => `/census/#m=${MEASURE}&amp;y=${YEAR}&amp;at=13/${n.at[0]}/${n.at[1]}&amp;o=nbhd`;
 
 // The map is a picture with 158 links in it, for a mouse or a finger. An image can't hold
@@ -60,13 +61,13 @@ export const mapHref = (n) => `/census/#m=${MEASURE}&amp;y=${YEAR}&amp;at=13/${n
 // picture is hidden from both (its caption says what it shows) and heroPick() offers the same
 // links as a menu of the neighbourhoods' names.
 export function heroSvg(m = cityMap()) {
-  const shapes = m.nbhd.map((n) => `<a href="${mapHref(n)}" tabindex="-1"><path fill="${fill(n)}" d="${n.path}"><title>${esc(n.name)}: ${n.value == null ? "no figure" : money(n.value)}</title></path></a>`).join("");
+  const shapes = m.nbhd.map((n) => `<a href="${nbPage(n.name)}" tabindex="-1"><path fill="${fill(n)}" d="${n.path}"><title>${esc(n.name)}: ${n.value == null ? "no figure" : money(n.value)}</title></path></a>`).join("");
   return `<svg class="home-map" viewBox="-4 -4 ${m.width + 8} ${m.height + 8}" aria-hidden="true" focusable="false">${shapes}</svg>`;
 }
 
 // The map's links as a menu, by name (web/src/home.js goes to the one chosen).
 export function heroPick(m = cityMap()) {
-  const opts = [...m.nbhd].sort((a, b) => a.name.localeCompare(b.name)).map((n) => `<option value="${mapHref(n)}">${esc(n.name)}${n.value == null ? "" : ` (${money(n.value)})`}</option>`).join("");
+  const opts = [...m.nbhd].sort((a, b) => a.name.localeCompare(b.name)).map((n) => `<option value="${nbPage(n.name)}">${esc(n.name)}${n.value == null ? "" : ` (${money(n.value)})`}</option>`).join("");
   return `<label class="home-pick">Or choose a neighbourhood <select id="home-nb"><option value="">Neighbourhood…</option>${opts}</select></label>`;
 }
 

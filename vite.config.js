@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import { extractTiles } from "./scripts/extract-tiles.mjs";
 import { basemapLayers } from "./scripts/basemap-style.mjs";
 import { brandSvg, heroKey, heroPick, heroSvg } from "./scripts/city-map.mjs";
+import { nbhdPaths, writeNbhdPages } from "./scripts/nbhd-pages.mjs";
 import { pagePath, pageTarget, robots, siteFooter, siteGuide, siteHeader, siteTitle, sitemap, socialTags } from "./scripts/site-nav.mjs";
 
 // Content hashes of the data files, appended as ?v= so they can be cached as
@@ -36,6 +37,9 @@ const TILES = {
 writeFileSync("web/public/brand-map.svg", brandSvg());
 const BRAND = `/brand-map.svg?v=${version("web/public/brand-map.svg")}`;
 
+// A page for each neighbourhood and an index of them (/n/), written into web/n/ from the Explorers' files.
+const NBHD_PAGES = writeNbhdPages();
+
 export default defineConfig({
   root: "web",
   define: {
@@ -60,10 +64,12 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Sixteen pages (each also listed in scripts/site-nav.mjs): / (the landing page) and /about/, /census/ (2016 and 2021), /2011/,
+    // Seventeen pages (each also listed in scripts/site-nav.mjs): / (the landing page) and /about/, /census/ (2016 and 2021), /2011/,
     // the Insights pages /insights/ (census), /insights/schools/, /insights/housing/, /insights/prices/, /insights/safety/, /insights/trees/, /insights/transport/,
-    // /insights/explorer/ and /insights/neighbourhoods/, and the Forecasts pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
-    rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", transport: "web/insights/transport/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html" } },
+    // /insights/explorer/ and /insights/neighbourhoods/ with its index of neighbourhoods /n/, and the Forecasts pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
+    rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", transport: "web/insights/transport/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html", nbindex: "web/n/index.html",
+      // and the 158 neighbourhood pages, /n/<slug>/ (scripts/nbhd-pages.mjs)
+      ...NBHD_PAGES } },
   },
   // As web/public/_headers does in production, for the #diag profiler.
   preview: { headers: { "Document-Policy": "js-profiling", "Content-Security-Policy": readFileSync("web/public/_headers", "utf8").match(/Content-Security-Policy: (.*)/)[1] } },
@@ -79,7 +85,7 @@ export default defineConfig({
     // sitemap.xml and robots.txt, from the header's list of pages (scripts/site-nav.mjs).
     name: "sitemap",
     generateBundle() {
-      this.emitFile({ type: "asset", fileName: "sitemap.xml", source: sitemap() });
+      this.emitFile({ type: "asset", fileName: "sitemap.xml", source: sitemap(nbhdPaths()) });
       this.emitFile({ type: "asset", fileName: "robots.txt", source: robots() });
     },
   }, {
