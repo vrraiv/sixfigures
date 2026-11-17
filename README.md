@@ -71,7 +71,9 @@ The landing page's cards are written from the same list, so a link added to a ro
 `insights.json` (`scripts/city-map.mjs`). The same file writes each page's canonical
 address and the title, description and image a shared link shows (`socialTags`; the image
 is `web/public/social-card.png`, from `scripts/make-icons.mjs`). For search engines it
-also writes the build's `sitemap.xml`, every page in the header, and a `robots.txt` that points to it.
+also writes the build's `sitemap.xml`, every page in the header, and a `robots.txt` that points to it,
+and each page's schema.org JSON-LD (`structuredData`): the site on the landing page, and a `Dataset`
+with its CSVs on the two census maps (`DATASETS`). `npm test` holds meta descriptions to 160 characters.
 
 A second page, `/2011/`, shows 2011 on its own DA boundaries (3,685 DAs), coloured on
 the same classes as the main map, with the main map's measures: dwelling types and ages

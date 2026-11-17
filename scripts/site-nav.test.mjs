@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { CARD, DISCLAIMER, META, ORIGIN, ROWS, SOCIAL, allPages, pagePath, pageTarget, robots, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle, sitemap, socialTags } from "./site-nav.mjs";
+import { CARD, DATASETS, DISCLAIMER, META, ORIGIN, ROWS, SOCIAL, allPages, pagePath, pageTarget, robots, sectionOf, siteFooter, siteGuide, siteHeader, siteTitle, sitemap, socialTags } from "./site-nav.mjs";
 
 const inputs = [...readFileSync("vite.config.js", "utf8").matchAll(/"(web\/[^"]*index\.html)"/g)].map((m) => pagePath(m[1].replace(/^web/, "")));
 
@@ -120,4 +120,24 @@ test("the sitemap lists every page once, at its full address, and robots.txt poi
   const locs = [...sitemap().matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
   assert.deepEqual(locs.sort(), inputs.map((p) => `${ORIGIN}${p}`).sort());
   assert.ok(robots().includes(`Sitemap: ${ORIGIN}/sitemap.xml`));
+});
+
+test("structured data: the landing page names the site; each dataset's page and files exist", () => {
+  const ld = (p) => [...socialTags(readFileSync(`web${p}index.html`, "utf8"), p).matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+  assert.equal(ld("/")[0]["@type"], "WebSite");
+  for (const [p, d] of Object.entries(DATASETS)) {
+    assert.ok(inputs.includes(p), p);
+    const [ds] = ld(p);
+    assert.equal(ds["@type"], "Dataset");
+    assert.ok(ds.description.length >= 50, p);
+    for (const [, href] of d.files) assert.ok(existsSync(`web/public${href}`), href);
+  }
+  for (const p of inputs.filter((p) => p !== "/" && !DATASETS[p])) assert.deepEqual(ld(p), [], p);
+});
+
+test("meta descriptions fit in a search result (160 characters)", () => {
+  for (const p of inputs) {
+    const d = readFileSync(`web${p}index.html`, "utf8").match(/<meta name="description" content="([^"]*)"/)[1];
+    assert.ok(d.length <= 160, `${p}: ${d.length}`);
+  }
 });
