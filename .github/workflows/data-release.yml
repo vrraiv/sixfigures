@@ -50,6 +50,7 @@ jobs:
             | awk -F/ '$1 == "pipeline" && NF > 2 && $2 != "tests" && $2 != "raw" { print $2 }' | sort -u)
           out="$RUNNER_TEMP/assets"; mkdir -p "$out"
           for d in $dirs; do
+            [ -n "$(git ls-files "pipeline/$d")" ] || continue  # a folder the refresh removed
             git ls-files -z "pipeline/$d" | xargs -0 zip -q -X "$out/$d.zip"
             echo "$d.zip: $(unzip -Z1 "$out/$d.zip" | wc -l) files"
           done
