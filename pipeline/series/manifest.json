@@ -1,5 +1,5 @@
 {
-  "retrieved": "2026-11-14",
+  "retrieved": "2026-11-18",
   "tables": {
     "17-10-0155": {
       "title": "Population estimates, July 1, by census subdivision, 2021 boundaries",
@@ -71,8 +71,30 @@
       "title": "Building permits, by type of structure and type of work",
       "about": "Building permits, Toronto CMA (City-level permits come from the City's data)",
       "geography": "Toronto, Ontario",
-      "units": [],
-      "kept": {},
+      "units": [
+        "Dollars",
+        "Number"
+      ],
+      "kept": {
+        "Type of building": [
+          "Multiple dwelling building total",
+          "Single total",
+          "Total residential"
+        ],
+        "Type of work": [
+          "New dwelling units total",
+          "Types of work, total"
+        ],
+        "Variables": [
+          "Number of dwelling-units created",
+          "Number of dwelling-units lost",
+          "Number of permits",
+          "Value of permits"
+        ],
+        "Seasonal adjustment, value type": [
+          "Unadjusted, current"
+        ]
+      },
       "released": "2026-11-12T08:30",
       "rows": 2205,
       "file": "34-10-0292.csv",

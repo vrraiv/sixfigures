@@ -71,7 +71,7 @@ publisher changes it.
 | 2011 Census and National Household Survey by DA; 2006 Census Profile by DA (Borealis copies of the DLI files) | never | 2011, 2006 | 2011 map, Census Insights, Neighbourhood Explorer's "Since 2006" | static |
 | DA boundary files (2006, 2011, 2016, 2021), DA correspondence files, 2021 FSA boundaries | with each census | 2021 | maps, search, every neighbourhood figure built from DAs | by hand (www12) |
 | Consumer Price Index, annual average, Toronto (`18-10-0005`, Web Data Service) | annual, in January | the census years 2005 to 2021 | restating earlier censuses' dollars (`cpi.json`) | `make cpi` (only needed with a new census) |
-| City and CMA series: population estimates, tax-file income, labour force, CMA building permits (`17-10-0155`, `11-10-0239`, `14-10-0459`, `34-10-0292`, Web Data Service) | annual or monthly; revised | as retrieved 2026-10-30 | Housing Insights (context), forecasts | `python pipeline/series.py`, then `make housing-insights` |
+| City and CMA series: population estimates, tax-file income, labour force, CMA building permits (`17-10-0155`, `11-10-0239`, `14-10-0459`, `34-10-0292`, Web Data Service, series by series) | annual or monthly; revised | as retrieved 2026-11-18 | Housing Insights (context), forecasts | `python pipeline/series.py`, then `make housing-insights` |
 
 Open Government Licence – Canada (Statistics Canada Open Licence for the Web Data Service).
 

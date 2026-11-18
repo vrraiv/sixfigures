@@ -4,8 +4,9 @@ shelter costs in 2021 dollars.
 
 Source: Statistics Canada table 18-10-0005-01, Consumer Price Index, annual
 average, not seasonally adjusted (2002=100), read through the Web Data Service
-(https://www.statcan.gc.ca/en/developers/wds/user-guide), which is meant for
-scripts (unlike www12.statcan.gc.ca, it has no bot challenge).
+(https://www.statcan.gc.ca/en/developers/wds/user-guide). Since November 2026 StatCan
+refuses scripts a table's whole download, but the metadata and series calls used here
+still answer (see series.py).
 
     python pipeline/cpi.py                    # Toronto, Ontario (default)
     python pipeline/cpi.py --geo "Canada"
