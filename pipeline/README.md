@@ -233,6 +233,14 @@ Listing pages:
 downloads usually get HTTP 403. `download.py` detects this, never saves the challenge
 page, and prints the URLs; open them in a browser and save to `pipeline/raw/`.
 
+Since November 2026 the same block covers the Web Data Service's whole-table downloads
+(`getFullTableDownloadCSV` and the zips it points to), from GitHub's runners, home and
+office connections alike. Its series calls (`getCubeMetadata`, `getCodeSets`,
+`getDataFromCubePidCoordAndLatestNPeriods`) still answer, so `series.py` and `cpi.py`
+read every table series by series; `series.py` rebuilt the committed tables identically
+that way. If StatCan refuses those too (403), `series.py` keeps the committed copy and
+marks it `carried_over` in the manifest, and the scheduled refresh carries on.
+
 Building permits (downloaded 2026-10-30), for the forecast model: the City's cleared
 permits 2000-2016 and since 2017 and its active permits (Open Data, through CKAN;
 `download.py`). `make permits` runs `pipeline/permits.py`, which keeps one row per

@@ -49,7 +49,7 @@ drivers is a conditional forecast, and has to be scored and labelled that way.
 
 ## Catalogue
 
-### Statistics Canada (Web Data Service: scripted, no bot challenge)
+### Statistics Canada (Web Data Service: scripted; series calls only since November 2026)
 
 | Source | Table | Years | Geography | Role | Origin | Check after ingest |
 |---|---|---|---|---|---|---|
