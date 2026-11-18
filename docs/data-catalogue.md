@@ -22,7 +22,10 @@ and, for the forecast model's sources, [`data-sources.md`](data-sources.md).
   merged, [`data-release.yml`](../.github/workflows/data-release.yml) makes a GitHub release
   tagged `data-YYYY-MM-DD`: the refresh's report as its notes, and a zip of each
   `pipeline/<source>/` folder it changed (the committed tables and `manifest.json`). That
-  is the data the site deployed with. Refreshes run and merged by hand get no release.
+  is the data the site deployed with. For one that was missed (the workflow failed, or the
+  refresh was run locally and committed without a pull request):
+  `gh workflow run data-release.yml -f pr=<number>` or `-f sha=<commit>`, or Actions, Data
+  release, Run workflow. A merge that already has a release gets no second one.
 - **`pipeline/download.py` keeps what is already on disk.** To get a newer copy of a
   file, delete it from `pipeline/raw/` first, or for the City's files use
   `python pipeline/download.py --toronto FILE ... --fresh`. Files that change upstream
