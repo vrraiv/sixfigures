@@ -1,18 +1,34 @@
 # Data release (docs/data-catalogue.md). When a pull request from the scheduled refresh
 # (data-refresh.yml, branch `data-refresh`) is merged, publish that data as a GitHub release:
-# tag data-YYYY-MM-DD (data-YYYY-MM-DD.2 for a second one that day), the refresh's report as
-# the notes, and a zip of each pipeline/<source>/ folder the refresh changed: its committed
-# tables and manifest.json, as of the merge. The site deploys from the same merge, so each
-# release is the data the site went live with.
+# tag data-YYYY-MM-DD (the day it was merged; data-YYYY-MM-DD.2 for a second one that day),
+# the refresh's report as the notes, and a zip of each pipeline/<source>/ folder the refresh
+# changed: its committed tables and manifest.json, as of the merge. The site deploys from the
+# same merge, so each release is the data the site went live with.
+#
+# By hand, for a release that was missed (the workflow failed, or the refresh was run locally
+# and committed without a pull request): Actions tab, Data release, Run workflow, with the
+# merged pull request's number or the refresh commit's SHA. Or:
+#   gh workflow run data-release.yml -f pr=106
+#   gh workflow run data-release.yml -f sha=<commit on main>
+# A merge that already has a release gets no second one.
 name: Data release
 
 on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "A merged pull request's number"
+        required: false
+      sha:
+        description: "Or a commit on main (a refresh committed without a pull request)"
+        required: false
 
 permissions:
   contents: write  # create the release
+  pull-requests: read
 
 concurrency:
   group: data-release
@@ -21,29 +37,72 @@ concurrency:
 jobs:
   release:
     if: >-
+      github.event_name == 'workflow_dispatch' || (
       github.event.pull_request.merged &&
       github.event.pull_request.head.ref == 'data-refresh' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
+      - name: Which merge
+        id: which
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EV_PR: ${{ github.event.pull_request.number }}
+          IN_PR: ${{ inputs.pr }}
+          IN_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          meta="$RUNNER_TEMP/meta"; mkdir -p "$meta"
+          pr="${EV_PR:-$IN_PR}"
+          if [ -n "$pr" ]; then
+            [[ "$pr" =~ ^[0-9]+$ ]] || { echo "::error::pr must be a number"; exit 1; }
+            gh pr view "$pr" --json state,mergeCommit,mergedAt,title,body > "$meta/pr.json"
+            [ "$(jq -r .state "$meta/pr.json")" = MERGED ] || { echo "::error::#$pr is not merged"; exit 1; }
+            sha=$(jq -r .mergeCommit.oid "$meta/pr.json")
+            day=$(jq -r .mergedAt "$meta/pr.json" | cut -c1-10)
+            jq -r .title "$meta/pr.json" > "$meta/title"
+            jq -r .body "$meta/pr.json" > "$meta/body"
+            echo "The data merged in #$pr (commit $sha), the same merge the site deployed from." > "$meta/head"
+          elif [ -n "$IN_SHA" ]; then
+            [[ "$IN_SHA" =~ ^[0-9a-f]{7,40}$ ]] || { echo "::error::sha must be a commit SHA"; exit 1; }
+            gh api "repos/$GH_REPO/commits/$IN_SHA" > "$meta/commit.json"
+            sha=$(jq -r .sha "$meta/commit.json")
+            status=$(gh api "repos/$GH_REPO/compare/$sha...main" -q .status)
+            [ "$status" = ahead ] || [ "$status" = identical ] || { echo "::error::$sha is not on main"; exit 1; }
+            day=$(jq -r .commit.committer.date "$meta/commit.json" | cut -c1-10)
+            jq -r .commit.message "$meta/commit.json" | head -1 > "$meta/title"
+            jq -r .commit.message "$meta/commit.json" | tail -n +2 > "$meta/body"
+            echo "The data in commit $sha on main." > "$meta/head"
+          else
+            echo "::error::Give a pull request number (pr) or a commit (sha)"; exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "day=$day" >> "$GITHUB_OUTPUT"
+          echo "meta=$meta" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ steps.which.outputs.sha }}
           fetch-depth: 2  # the merge and its parent on main: the refresh's changes
           persist-credentials: false
 
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          SHA: ${{ github.event.pull_request.merge_commit_sha }}
-          TITLE: ${{ github.event.pull_request.title }}
-          BODY: ${{ github.event.pull_request.body }}
+          SHA: ${{ steps.which.outputs.sha }}
+          DAY: ${{ steps.which.outputs.day }}
+          META: ${{ steps.which.outputs.meta }}
         run: |
           set -euo pipefail
-          day=$(date -u +%F)
-          tag="data-$day"; n=1
-          while gh release view "$tag" >/dev/null 2>&1; do n=$((n + 1)); tag="data-$day.$n"; done
+          # One release per merge
+          for t in $(gh release list --limit 200 --json tagName -q '.[].tagName | select(startswith("data-"))'); do
+            if [ "$(gh release view "$t" --json targetCommitish -q .targetCommitish)" = "$SHA" ]; then
+              echo "::notice::$SHA already has a release, $t"; exit 0
+            fi
+          done
+          tag="data-$DAY"; n=1
+          while gh release view "$tag" >/dev/null 2>&1; do n=$((n + 1)); tag="data-$DAY.$n"; done
 
           # The pipeline folders the refresh changed (not the tests, nor raw downloads)
           dirs=$(git diff --name-only "$SHA^1" "$SHA" \
@@ -56,14 +115,14 @@ jobs:
           done
 
           {
-            echo "The data merged in #$PR (commit $SHA), the same merge the site deployed from."
+            cat "$META/head"
             if [ -n "$dirs" ]; then
               echo "Each zip is a pipeline folder the refresh changed: its committed tables and \`manifest.json\` (sources, periods, retrieval dates)."
             fi
             echo
-            printf '%s\n' "$BODY"
+            cat "$META/body"
           } > "$RUNNER_TEMP/notes.md"
 
-          gh release create "$tag" --target "$SHA" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md" \
+          gh release create "$tag" --target "$SHA" --title "$(cat "$META/title")" --notes-file "$RUNNER_TEMP/notes.md" \
             $(find "$out" -name '*.zip' | sort)
           echo "Published $tag"
