@@ -1,9 +1,9 @@
 {
- "retrieved": "2026-11-14",
+ "retrieved": "2026-11-18",
  "files": {
-  "toronto_permits_active.csv": 66835944,
+  "toronto_permits_active.csv": 66728594,
   "toronto_permits_cleared_2000_2016.csv": 155623064,
-  "toronto_permits_cleared_2017.csv": 152977531
+  "toronto_permits_cleared_2017.csv": 153229395
  },
  "excluded": {
   "26 256637 BLD": "100,000 units on a change of use from a cafe to an arcade",
@@ -33,7 +33,7 @@
    "units": 596
   }
  },
- "permits_with_units": 84552,
+ "permits_with_units": 84575,
  "placed_share_of_units_created_by_issue_year": {
   "2000": 0.891,
   "2001": 0.888,
@@ -77,25 +77,25 @@
    "spearman": 0.638
   },
   "households 2011-2016 lag 2": {
-   "permits": 69498,
+   "permits": 69497,
    "census": 66530,
    "pearson": 0.833,
    "spearman": 0.575
   },
   "households 2011-2016 lag 3": {
-   "permits": 69964,
+   "permits": 69963,
    "census": 66530,
    "pearson": 0.678,
    "spearman": 0.471
   },
   "households 2016-2021 lag 0": {
-   "permits": 83604,
+   "permits": 83603,
    "census": 48090,
    "pearson": 0.901,
    "spearman": 0.59
   },
   "households 2016-2021 lag 1": {
-   "permits": 93592,
+   "permits": 93591,
    "census": 48090,
    "pearson": 0.913,
    "spearman": 0.57
@@ -125,25 +125,25 @@
    "spearman": 0.685
   },
   "dwellings 2011-2016 lag 2": {
-   "permits": 69498,
+   "permits": 69497,
    "census": 71206,
    "pearson": 0.883,
    "spearman": 0.602
   },
   "dwellings 2011-2016 lag 3": {
-   "permits": 69964,
+   "permits": 69963,
    "census": 71206,
    "pearson": 0.745,
    "spearman": 0.489
   },
   "dwellings 2016-2021 lag 0": {
-   "permits": 83604,
+   "permits": 83603,
    "census": 74181,
    "pearson": 0.927,
    "spearman": 0.754
   },
   "dwellings 2016-2021 lag 1": {
-   "permits": 93592,
+   "permits": 93591,
    "census": 74181,
    "pearson": 0.925,
    "spearman": 0.739
@@ -191,7 +191,7 @@
    "cma": 44564
   },
   "2025": {
-   "city": 17380,
+   "city": 17379,
    "cma": 37468
   }
  }
