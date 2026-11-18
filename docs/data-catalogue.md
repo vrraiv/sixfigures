@@ -18,6 +18,11 @@ and, for the forecast model's sources, [`data-sources.md`](data-sources.md).
   hand: `make refresh-quarterly`, `make refresh-safety`, `make refresh-housing`, or
   `python pipeline/data_refresh.py prices rentals safety housing`. Housing needs the
   one-time setup below.
+- **Each merged refresh is published as a release.** When a `data-refresh` pull request is
+  merged, [`data-release.yml`](../.github/workflows/data-release.yml) makes a GitHub release
+  tagged `data-YYYY-MM-DD`: the refresh's report as its notes, and a zip of each
+  `pipeline/<source>/` folder it changed (the committed tables and `manifest.json`). That
+  is the data the site deployed with. Refreshes run and merged by hand get no release.
 - **`pipeline/download.py` keeps what is already on disk.** To get a newer copy of a
   file, delete it from `pipeline/raw/` first, or for the City's files use
   `python pipeline/download.py --toronto FILE ... --fresh`. Files that change upstream

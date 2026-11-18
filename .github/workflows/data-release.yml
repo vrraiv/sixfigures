@@ -1,0 +1,69 @@
+# Data release (docs/data-catalogue.md). When a pull request from the scheduled refresh
+# (data-refresh.yml, branch `data-refresh`) is merged, publish that data as a GitHub release:
+# tag data-YYYY-MM-DD (data-YYYY-MM-DD.2 for a second one that day), the refresh's report as
+# the notes, and a zip of each pipeline/<source>/ folder the refresh changed: its committed
+# tables and manifest.json, as of the merge. The site deploys from the same merge, so each
+# release is the data the site went live with.
+name: Data release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write  # create the release
+
+concurrency:
+  group: data-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      github.event.pull_request.merged &&
+      github.event.pull_request.head.ref == 'data-refresh' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 2  # the merge and its parent on main: the refresh's changes
+          persist-credentials: false
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          day=$(date -u +%F)
+          tag="data-$day"; n=1
+          while gh release view "$tag" >/dev/null 2>&1; do n=$((n + 1)); tag="data-$day.$n"; done
+
+          # The pipeline folders the refresh changed (not the tests, nor raw downloads)
+          dirs=$(git diff --name-only "$SHA^1" "$SHA" \
+            | awk -F/ '$1 == "pipeline" && NF > 2 && $2 != "tests" && $2 != "raw" { print $2 }' | sort -u)
+          out="$RUNNER_TEMP/assets"; mkdir -p "$out"
+          for d in $dirs; do
+            [ -n "$(git ls-files "pipeline/$d")" ] || continue  # a folder the refresh removed
+            git ls-files -z "pipeline/$d" | xargs -0 zip -q -X "$out/$d.zip"
+            echo "$d.zip: $(unzip -Z1 "$out/$d.zip" | wc -l) files"
+          done
+
+          {
+            echo "The data merged in #$PR (commit $SHA), the same merge the site deployed from."
+            if [ -n "$dirs" ]; then
+              echo "Each zip is a pipeline folder the refresh changed: its committed tables and \`manifest.json\` (sources, periods, retrieval dates)."
+            fi
+            echo
+            printf '%s\n' "$BODY"
+          } > "$RUNNER_TEMP/notes.md"
+
+          gh release create "$tag" --target "$SHA" --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md" \
+            $(find "$out" -name '*.zip' | sort)
+          echo "Published $tag"
