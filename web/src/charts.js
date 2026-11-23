@@ -241,7 +241,9 @@ function yTicks(lo, hi, fmt) {
   for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(v);
   return { ticks, fmt };
 }
-export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l, height = 170, zero = true, partialFrom = null }) {
+// marks: [{ at, label }] draws a dated rule across the chart, `at` a fractional bar index (1.5:
+// halfway through the second bar), with a short label at its top.
+export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l, height = 170, zero = true, partialFrom = null, marks = [] }) {
   const n = labels.length;
   const sum = (vs) => vs.reduce((a, v) => a + (v ?? 0), 0);
   const stackTop = labels.map((_, k) => sum(bars.filter((s) => !s.neg).map((s) => s.values[k])));
@@ -278,13 +280,16 @@ export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l,
   const every = Math.ceil(n / (String(labels[0]).length > 4 ? 5 : 8)); // month labels are wider
   // every `every`th label, and the last, unless it would crowd the one before
   const xt = labels.map((l, k) => ((k % every === 0 && n - 1 - k >= every * 0.9) || k === n - 1 ? `<span style="left:${x(k)}%">${l}</span>` : "")).join("");
-  const zeroLine = lo < 0 ? `<span class="ch-zero" style="bottom:${100 - y(0)}%"></span>` : "";
+  const zeroLine = (lo < 0 ? `<span class="ch-zero" style="bottom:${100 - y(0)}%"></span>` : "")
+    // labels stacked, and to the left of their rule in the right half of the chart
+    // in a band above the plot, one row each, left of their rule in the chart's right half
+    + marks.map((m, k) => `<span class="ch-mark" style="left:${(m.at / n) * 100}%;top:${-13 * (marks.length - k)}px"><em style="${m.at / n > 0.5 ? "right:3px" : "left:3px"}">${escapeHTML(m.label)}</em></span>`).join("");
   // The marks give their figures on hover or a tap; the same figures as a table, for a keyboard,
   // a screen reader, or anyone who wants the numbers: closed until asked for.
   const all = [...bars, ...lines];
   const table = `<details class="ch-data"><summary>Figures as a table</summary><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="txt"></th>${all.map((s) => `<th>${s.name}</th>`).join("")}</tr></thead>
     <tbody>${labels.map((l, k) => `<tr><th>${tipLabel(l, k)}</th>${all.map((s) => `<td>${s.values[k] == null ? "—" : fmt(s.values[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
-  return `<div class="ch-box" style="height:${height}px">${yt}${zeroLine}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>${table}`;
+  return `<div class="ch-box" style="height:${height}px${marks.length ? `;margin-top:${13 * marks.length + 6}px` : ""}">${yt}${zeroLine}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>${table}`;
 }
 export const key = (items) => `<ul class="year-key">${items.map(([name, color, kind]) => `<li><span class="${kind === "line" ? "key-line" : "key-sq"}" style="background:${color}"></span>${name}</li>`).join("")}</ul>`;
 

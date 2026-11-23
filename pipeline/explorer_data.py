@@ -38,8 +38,9 @@ How each source is shaped for comparison:
   prices     the median sale price of the neighbourhood's TRREB community: the
              mean of the year's four quarterly medians, for years with four
              quarters (prices.json). Several neighbourhoods share a community
-  housing    units on building permits (created, net) and in development
-             applications per 1,000 households a year, averaged over the three
+  housing    units on building permits (created, net), units in development
+             applications and houseplexes of 3 to 6 units applied for on permits
+             (multiplex.py) per 1,000 households a year, averaged over the three
              years ending in the year named (permits are lumpy); CMHC's average
              rent and vacancy by year (its zones' figures); registered apartment
              units per 1,000 households and their social-housing share (today)
@@ -253,6 +254,12 @@ def housing(b: Book):
     flow("created", h["permits"], "created", "Units created on building permits", "Units on permits", last)
     flow("net", h["permits"], "net", "Net units on building permits", "Net units on permits", last)
     flow("dev", h["development"], "units", "Units proposed in development applications", "Units proposed", h["partial"]["development"] - 1)
+    # houseplexes of 3 to 6 units on permit applications (multiplex.py), complete years
+    mx = h["multiplex"]
+    mx_block = {"years": mx["years"], "n": {y: [a + c for a, c in zip(mx["nbhd"]["3-4"][y], mx["nbhd"]["5-6"][y])]
+                                            for y in mx["nbhd"]["3-4"]}}
+    flow("multiplex", mx_block, "n", "Houseplexes of 3 to 6 units applied for on building permits", "Houseplexes applied for",
+         int(mx["last_month"][:4]) - (0 if mx["last_month"].endswith("-12") else 1))
     c = h["cmhc"]
     for key, label, short, unit, digits in (("avg_rent", "Average rent, purpose-built rental (CMHC zone)", "Average rent", "money", 0),
                                             ("vacancy", "Vacancy rate, purpose-built rental (CMHC zone)", "Vacancy rate", "pct", 1)):

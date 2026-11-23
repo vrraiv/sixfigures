@@ -10,12 +10,13 @@ and, for the forecast model's sources, [`data-sources.md`](data-sources.md).
 
 ## How a refresh works
 
-- **Prices, short-term rentals, safety and housing refresh themselves.** A GitHub
+- **Prices, short-term rentals, safety, housing, multiplexes and getting around refresh themselves.** A GitHub
   Actions workflow ([`data-refresh.yml`](../.github/workflows/data-refresh.yml)) runs on
   the schedule below, downloads what is new, rebuilds only the pages whose inputs
   changed, runs the tests and the build, and opens a pull request (branch
   `data-refresh`) with a summary. Review it and merge; merging deploys. The same run by
-  hand: `make refresh-quarterly`, `make refresh-safety`, `make refresh-housing`, or
+  hand: `make refresh-quarterly`, `make refresh-safety`, `make refresh-housing`,
+  `make refresh-multiplex`, `make refresh-transport`, or
   `python pipeline/data_refresh.py prices rentals safety housing`. Housing needs the
   one-time setup below.
 - **Each merged refresh is published as a release.** When a `data-refresh` pull request is
@@ -106,6 +107,7 @@ Open Government Licence – Ontario.
 |---|---|---|---|---|
 | Building permits, cleared (2000-2016, since 2017) and active | daily | retrieved 2026-10-30 (2026 partial) | Housing, the explorers, New building theme | **automated** (March). By hand: `download.py --toronto … --fresh`; `make permits` |
 | Development applications; apartment building registration; rental demolition and replacement; affordable rental pipeline | daily to quarterly | retrieved 2026-10-30 | Housing, the explorers | **automated** (March). By hand: `download.py --toronto … --fresh`; `make city` |
+| Multiplexes: houseplexes of 3 to 6 units read from the building permits (cleared since 2017, active), with the address points | daily | applications January 2017 to October 2026 (whole months; retrieved 2026-11-23) | Housing (multiplex section, neighbourhood measure), the Data Explorer | **automated** (monthly, the 18th). By hand: `make refresh-multiplex`, or `download.py --toronto toronto_permits_cleared_2017.csv toronto_permits_active.csv toronto_address_points_4326.csv --fresh`; `make multiplex`; `make housing-insights` |
 | CMHC starts, completions and under construction by census subdivision | monthly | to September 2026 | Housing | `make cmhc` (fetches new months itself) |
 | CMHC Rental Market Survey (October) by zone and City | annual; each October survey is published that winter | to the October 2025 survey | Housing, the explorers | `make cmhc` |
 | CMHC survey zone boundaries (2017) | rarely | 2017 | Housing (zone to neighbourhood) | static |
@@ -226,8 +228,12 @@ The explorers' yearly sale price only changes in March (when Q4 completes a year
 the June, October and December runs mostly move the Sale Prices page. Registrations
 alone don't make a pull request: they aren't on the site, and wait for the next scrape.
 
-The same workflow runs on the **18th of every month** for Getting around alone
-(`make refresh-transport` by hand): it fetches Bike Share's file for the current year (and,
+The same workflow runs on the **18th of every month** for Getting around and multiplexes
+(`make refresh-transport` and `make refresh-multiplex` by hand). For multiplexes it fetches
+the permit files and address points fresh, rereads the houseplexes applied for to the last
+whole month (`multiplex.py`) and rebuilds the Housing page; a month's applications are in
+the daily files well before the 18th, and a revision or a permit issued since the last run
+also counts as new. For Getting around it fetches Bike Share's file for the current year (and,
 until April, last year's, whose final months arrive in the new year), the ride-hail
 summary, the subway delay file, the bicycle counters and the TTC's schedule, recounts them,
 and rebuilds the page. A new schedule period adds a period to the TTC's service figures,

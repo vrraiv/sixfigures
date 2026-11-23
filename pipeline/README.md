@@ -258,6 +258,33 @@ and the CMA's permits in StatCan table 34-10-0292. The dwelling check reads tota
 dwellings from the raw 2011, 2016 and 2021 profiles once and caches them in
 `pipeline/out/toronto_dwellings.csv`.
 
+Multiplexes (the Housing page's multiplex section): `make multiplex` runs
+`pipeline/multiplex.py` on the cleared (since 2017) and active permit files and the address
+points, and writes `pipeline/multiplex/projects.csv` (committed: one row per application
+number that builds or converts to a houseplex of 3 to 6 units) and `manifest.json`. The
+files have no multiplex flag, so the rules are the script's:
+- the structure types are stable since 2016 ("2 Unit - Detached", "3+ Unit - Detached",
+  "3+ Unit - Semi-detached" and so on), but "3+ Unit" doesn't give a size: that is read
+  from the proposed use ("Sixplex", "6 Unit - Detached", "Multiplex - 6 Units", "Sfd - 5
+  Units") or the description ("construct a new three storey sixplex", "total of six
+  dwelling units"). `DWELLING_UNITS_CREATED` counts only the units a permit adds, so a
+  fourplex converted to five units records 1, and is no use for the size.
+- descriptions often name units added ("add 2 units") or a lot's count ("6 freehold
+  lots"), and an apartment building's descriptions the units added inside it ("convert the
+  garage into 5 units"): a count after "add", "create" or "new" is skipped, and for
+  single-family, apartment and multiple-unit structure types only the proposed use counts.
+  A project whose text names more than six units, or whose proposed use names a business
+  (a restaurant below, say), is left out.
+- revisions change sizes: 24 137631 was filed as a fourplex in April 2024 and revised to
+  five units in March 2026. A project takes its latest size and is dated by the first
+  application that gave it that size (`sized`; `applied` keeps the first).
+- WARD_GRID's first three characters are the ward (S04 is Ward 4, in the Toronto and East
+  York district): the sixplex wards are matched exactly by code, with no map.
+- checked by hand: before the rules on apartment buildings, lots and businesses, about one
+  in ten of a sample of 30 five- and six-unit projects was not a houseplex; with them, a
+  fresh sample of 30 since 2025 (23 November 2026) had none. 15 to 35 "3+ Unit" projects
+  a year have no size in the text and are counted in the manifest, not in the table.
+
 CMHC (a model input, not part of the site): `make cmhc` runs `download.py`, which adds new
 editions to `pipeline/raw/cmhc/`, then `pipeline/cmhc.py`, which writes `pipeline/cmhc/`
 (committed). `download.py` fetches the monthly starts, completions and under-construction

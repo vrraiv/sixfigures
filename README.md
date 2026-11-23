@@ -8,7 +8,7 @@ Six Figures brings together open data about the City of Toronto and its 158
 neighbourhoods, and sets it side by side so it can be compared.
 
 A great deal is published about Toronto: the census every five years, school test
-results, home sale prices, new construction and rents, crime and road safety, the tree
+results, home sale prices, new construction (multiplexes among it) and rents, crime and road safety, the tree
 canopy and summer heat, Bike Share, the TTC and ride-hail trips, elections. But it comes from many different organizations, in
 different formats, on different maps and at different times. That makes simple questions
 hard to answer: how do a neighbourhood's incomes compare with its school results? Which
@@ -110,7 +110,17 @@ Housing Insights, `/insights/housing/`, covers new homes and the rental market: 
 building permits (2000 on), development applications, rental demolitions, registered
 apartment buildings and affordable rental pipeline, CMHC's starts, completions, rents and
 vacancy, and StatCan's series for the City and CMA (population, prices, the labour force,
-income, metro permits). By neighbourhood it maps and ranks permits, applications,
+income, metro permits). Its multiplex section follows the zoning by-laws that allowed
+fourplexes citywide (474-2023, May 2023) and fiveplexes and sixplexes in Toronto and East
+York and Ward 23 (47-2025 and 654-2025, February and June 2025): houseplexes of three or
+four and of five or six units applied for on building permits (2017 on, to the last whole
+month), new or converted, by quarter inside and outside the sixplex wards, all of them or
+those with a permit issued, and by ward in the quarters either side of 654-2025. The permit
+files have no multiplex flag, so a project's size is read from its proposed use or
+description (`pipeline/multiplex.py`); the section says what that can't show: homes
+built, projects still at the Committee of Adjustment, three-unit houses that are a house
+with two secondary suites, and projects filed without a size. Its tables are
+`pipeline/multiplex/`. By neighbourhood it maps and ranks permits, multiplexes, applications,
 demolitions, the apartment stock, the affordable pipeline and household change, as counts
 or per 1,000 households, shows how concentrated new units are, correlates them with the
 2021 Census, compares net units on permits with census household change, and tabulates
@@ -210,7 +220,7 @@ next tap elsewhere hides them. Under each line and bar chart, "Figures as a tabl
 chart's numbers as a table, for screen readers and for copying. A page whose data fails to load
 says so and offers to try again.
 
-The Data Explorer, `/insights/explorer/`, offers every neighbourhood measure on the site in one menu: 73 measures from the census,
+The Data Explorer, `/insights/explorer/`, offers every neighbourhood measure on the site in one menu: 74 measures from the census,
 safety, schools, sale prices, housing, trees and heat, getting around, elections and short-term
 rentals. Up to
 three can be chosen, each with its own period, and the page shows the view that suits the number:
@@ -529,7 +539,7 @@ own tests (`pipeline/tests/`), and both run on every pull request
 
 Every dataset, its publisher's update cadence, what the site holds now and how to refresh
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
-(a monthly run for Getting around, a quarterly run for TRREB, Inside Airbnb and the City's street
+(a monthly run for Getting around and multiplexes, a quarterly run for TRREB, Inside Airbnb and the City's street
 trees and tree points, two annual
 runs, and the 2026 Census releases).
 The monthly and quarterly runs and the yearly police and housing refreshes are automated: the Data

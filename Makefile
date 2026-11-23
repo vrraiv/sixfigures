@@ -128,6 +128,16 @@ $(PERMITS): $(PERMITRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/lda_000b2
             pipeline/permits.py
 	$(PYTHON) pipeline/permits.py
 
+# Houseplexes of three to six units on building permits (applications since 2017), by month,
+# ward and neighbourhood: the Housing page's multiplex section
+MULTIPLEX := pipeline/multiplex/projects.csv
+.PHONY: multiplex
+multiplex: $(MULTIPLEX)
+
+$(MULTIPLEX): $(RAW)/toronto_permits_cleared_2017.csv $(RAW)/toronto_permits_active.csv \
+              $(RAW)/toronto_address_points_4326.csv pipeline/multiplex.py pipeline/places.py
+	$(PYTHON) pipeline/multiplex.py
+
 # build.py also applies cpi.json and writes the CSVs, but a change to those alone
 # only needs `make breaks`, not a rebuild of the GeoJSON and tiles.
 $(GEOJSON) $(GEOJSON16) $(GEOM) $(GEOM16) $(BREAKS) $(FIGURES) &: $(STATCAN) $(RAW)/toronto_neighbourhoods_4326.geojson \
@@ -417,9 +427,10 @@ neighbourhoods:
 #   refresh-quarterly  TRREB's latest quarter, Inside Airbnb's latest scrape, the City's street trees and tree points
 #   refresh-safety     the police's crime files and KSI collisions (March, once the year is complete)
 #   refresh-housing    permits, the City's housing files, CMHC and the StatCan series (March)
+#   refresh-multiplex  houseplexes on building permits, to the last whole month (monthly, the 18th)
 #   publish-inputs     upload the StatCan files housing needs to the pipeline-inputs release, for
 #                      the workflow (once; scripts/publish-inputs.sh)
-.PHONY: refresh-quarterly refresh-safety refresh-housing publish-inputs
+.PHONY: refresh-quarterly refresh-safety refresh-housing refresh-multiplex publish-inputs
 refresh-quarterly:
 	$(PYTHON) pipeline/data_refresh.py prices rentals trees
 
@@ -428,6 +439,9 @@ refresh-safety:
 
 refresh-housing:
 	$(PYTHON) pipeline/data_refresh.py housing
+
+refresh-multiplex:
+	$(PYTHON) pipeline/data_refresh.py multiplex
 
 publish-inputs:
 	bash scripts/publish-inputs.sh
