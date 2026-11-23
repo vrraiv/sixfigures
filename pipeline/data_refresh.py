@@ -2,12 +2,12 @@
 
     python pipeline/data_refresh.py prices rentals trees            # the quarterly run
     python pipeline/data_refresh.py prices rentals trees safety housing   # March: the year's too
-    python pipeline/data_refresh.py transport                       # the monthly run
+    python pipeline/data_refresh.py transport multiplex             # the monthly run
     python pipeline/data_refresh.py housing --report report.md
 
 The scheduled GitHub Actions workflow (.github/workflows/data-refresh.yml) runs this
 and opens a pull request with what it changed; `make refresh-quarterly`,
-`make refresh-safety` and `make refresh-housing` run it by hand. docs/data-catalogue.md
+`make refresh-safety`, `make refresh-housing` and `make refresh-multiplex` run it by hand. docs/data-catalogue.md
 has the schedule.
 
 The parts (each downloads its inputs, then rebuilds its committed outputs):
@@ -24,6 +24,10 @@ The parts (each downloads its inputs, then rebuilds its committed outputs):
            repository's `pipeline-inputs` release holds (download.py --inputs;
            scripts/publish-inputs.sh uploads them). Without that release the part is
            skipped, and the others still run.
+
+  multiplex  the City's building permits (cleared since 2017, active) and address
+           points: houseplexes of 3 to 6 units applied for, to the last whole
+           month (multiplex.py). Monthly, on the 18th, with transport
 
   trees    the City's street-tree inventory, updated a few times a year (trees.py
            --street-trees: the street-tree figures alone, leaving canopy and heat as
@@ -115,6 +119,15 @@ PARTS = {
         "build": [["permits.py"], ["city_layers.py"], ["cmhc.py"], ["series.py"]],
         "dirs": ["pipeline/permits", "pipeline/city", "pipeline/cmhc", "pipeline/series"],
         "data": ["pipeline/permits/by_nbhd.csv", "pipeline/city/*.csv", "pipeline/cmhc/*.csv", "pipeline/series/*.csv"],
+        "pages": ["housing_insights.py"],
+    },
+    "multiplex": {
+        "label": "Multiplexes (houseplexes on building permits)",
+        "toronto": ["toronto_permits_cleared_2017.csv", "toronto_permits_active.csv", "toronto_address_points_4326.csv"],
+        "build": [["multiplex.py"]],
+        "dirs": ["pipeline/multiplex"],
+        # a new month of applications, or a project revised or given a permit since the last run
+        "data": ["pipeline/multiplex/projects.csv"],
         "pages": ["housing_insights.py"],
     },
     "trees": {
@@ -210,6 +223,14 @@ def news_housing(read) -> str:
     return f"permits retrieved {json.loads(permits)['retrieved']}, starts to {month}, rental survey to October {year}"
 
 
+def news_multiplex(read) -> str:
+    m = read("pipeline/multiplex/manifest.json")
+    if not m:
+        return "none"
+    m = json.loads(m)
+    return f"applications to {m['last_month']}: {m['by_size'].get('3-4', 0):,} of 3-4 units, {m['by_size'].get('5-6', 0):,} of 5-6"
+
+
 def news_transport(read) -> str:
     bike, ride, sub = read("pipeline/bikeshare/city_month.csv"), read("pipeline/transport/ridehail_month.csv"), read("pipeline/transport/subway_month.csv")
     if not (bike and ride and sub):
@@ -234,6 +255,7 @@ NEWS = {
     "rentals": lambda read: news_rentals(read("pipeline/rentals/snapshots.json")),
     "safety": lambda read: news_safety(read("pipeline/crime/manifest.json")),
     "housing": news_housing,
+    "multiplex": news_multiplex,
     "transport": news_transport,
     "trees": news_trees,
 }

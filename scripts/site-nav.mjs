@@ -22,7 +22,7 @@ export const ROWS = [
       { href: "/insights/", label: "Insights", blurb: "the 158 neighbourhoods ranked and compared, 2006 to 2021" },
     ] },
     { href: "/insights/schools/", label: "Schools", blurb: "Grade 3 and 6 test results for public and Catholic elementary schools, by school and by neighbourhood, 2018 to 2025." },
-    { href: "/insights/housing/", label: "Housing", blurb: "What is being built and what it costs to rent: building permits, development applications, housing starts and rents, by year and by neighbourhood." },
+    { href: "/insights/housing/", label: "Housing", blurb: "What is being built and what it costs to rent: building permits, multiplexes since the zoning by-laws allowed them, development applications, housing starts and rents, by year, ward and neighbourhood." },
     { href: "/insights/prices/", label: "Sale prices", blurb: "Home sales and median sale prices by quarter, for the city and each neighbourhood, set against the census." },
     { href: "/insights/safety/", label: "Safety", blurb: "Crime, shootings, homicides and road injuries in each neighbourhood, year by year." },
     { href: "/insights/trees/", label: "Trees", blurb: "Tree canopy, street trees, how tall the trees are and summer ground temperature: where the shade is, and where it isn't." },

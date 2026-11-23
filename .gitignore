@@ -33,6 +33,8 @@ pipeline/out/
 *.ivt
 # the permit totals by neighbourhood pipeline/permits.py writes
 !pipeline/permits/*.csv
+# the houseplex projects on building permits pipeline/multiplex.py writes
+!pipeline/multiplex/*.csv
 # the school results by school and neighbourhood pipeline/schools.py writes
 !pipeline/schools/*.csv
 # office documents

@@ -1,0 +1,93 @@
+{
+ "retrieved": "2026-11-23",
+ "built": "2026-11-23",
+ "files": {
+  "toronto_permits_cleared_2017.csv": 153734853,
+  "toronto_permits_active.csv": 66455717
+ },
+ "first": "2017-01-01",
+ "last_month": "2026-10",
+ "left_out_after_last_month": 22,
+ "bylaws": [
+  {
+   "id": "474-2023",
+   "date": "2023-05-12",
+   "what": "Duplexes, triplexes and fourplexes allowed citywide"
+  },
+  {
+   "id": "47-2025",
+   "date": "2025-02-05",
+   "what": "Fiveplexes and sixplexes allowed in Ward 23 Scarborough North"
+  },
+  {
+   "id": "654-2025",
+   "date": "2025-06-26",
+   "what": "Fiveplexes and sixplexes allowed in Toronto and East York (Wards 4, 9-14, 19) and Ward 23"
+  }
+ ],
+ "sixplex_wards": [
+  "E23",
+  "S04",
+  "S09",
+  "S10",
+  "S11",
+  "S12",
+  "S13",
+  "S14",
+  "S19"
+ ],
+ "wards": {
+  "W01": "Etobicoke North",
+  "W02": "Etobicoke Centre",
+  "W03": "Etobicoke-Lakeshore",
+  "S04": "Parkdale-High Park",
+  "W05": "York South-Weston",
+  "N06": "York Centre",
+  "W07": "Humber River-Black Creek",
+  "N08": "Eglinton-Lawrence",
+  "S09": "Davenport",
+  "S10": "Spadina-Fort York",
+  "S11": "University-Rosedale",
+  "S12": "Toronto-St. Paul's",
+  "S13": "Toronto Centre",
+  "S14": "Toronto-Danforth",
+  "N15": "Don Valley West",
+  "N16": "Don Valley East",
+  "N17": "Don Valley North",
+  "N18": "Willowdale",
+  "S19": "Beaches-East York",
+  "E20": "Scarborough Southwest",
+  "E21": "Scarborough Centre",
+  "E22": "Scarborough-Agincourt",
+  "E23": "Scarborough North",
+  "E24": "Scarborough-Guildwood",
+  "E25": "Scarborough-Rouge Park"
+ },
+ "projects": 2330,
+ "by_size": {
+  "3-4": 2125,
+  "5-6": 205
+ },
+ "placed_share": 0.9996,
+ "placed_by": {
+  "geo_id": 2264,
+  "address": 65,
+  "unplaced": 1
+ },
+ "no_size_3plus_unit_projects_by_year": {
+  "2012": 2,
+  "2013": 1,
+  "2015": 2,
+  "2016": 25,
+  "2017": 18,
+  "2018": 31,
+  "2019": 19,
+  "2020": 17,
+  "2021": 35,
+  "2022": 31,
+  "2023": 18,
+  "2024": 26,
+  "2025": 21,
+  "2026": 15
+ }
+}

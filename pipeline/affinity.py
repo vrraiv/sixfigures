@@ -109,6 +109,9 @@ THEMES = [
 # around: the kinds were cut and locked (kinds.py) before the theme was added, so they don't rest
 # on it; take it out of this set when they are cut again, and it will count like the others.
 NOT_TYPED = {"voting", "transport"}
+# Not in a theme yet: housing.multiplex (houseplexes applied for on permits, multiplex.py). In New
+# building it would move the kinds' `next` and descriptions, which stay locked until the kinds are
+# cut again; add it to New building then.
 
 def pct_rank(v: pd.Series) -> pd.Series:
     """Percentile rank among the known values, 0-100; ties share the middle."""
