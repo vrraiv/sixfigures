@@ -2,7 +2,7 @@
 // <!-- site-header --> comment), so every page shares one definition:
 //
 //   [map] Six Figures                 TOPICS  Census · Schools · Housing · Sale prices · Safety · Trees · Getting around     Home · About
-//         Toronto, mapped by its data TOOLS   Data Explorer · Neighbourhood Explorer · Forecasts
+//         Toronto, mapped by its data TOOLS   Data Explorer · Neighbourhood Explorer · Experiments
 //   [Census:  2021 · 2016 map · 2011 map · Insights]     <- only inside a section with pages of its own
 //
 // Topics holds the pages about one subject; Tools the pages that work across subjects; Home (the
@@ -35,10 +35,12 @@ export const ROWS = [
       // `under`: also the current link on the pages below it, /n/<slug>/ (scripts/nbhd-pages.mjs)
       { href: "/n/", label: "A–Z", under: true, blurb: "a page of figures for each of the 158 neighbourhoods" },
     ] },
-    { href: "/forecasts/", label: "Forecasts", blurb: "An experiment in predicting school results and home values, published with its ranges and its own errors.", pages: [
-      { href: "/forecasts/", label: "Method", blurb: "how the forecasts are made and tested" },
-      { href: "/forecasts/schools/", label: "Schools", blurb: "Grade 3 and 6 results for 2026–27" },
-      { href: "/forecasts/value/", label: "Dwelling value", blurb: "home values in the 2026 Census" },
+    { href: "/experiments/", label: "Experiments", blurb: "Tests of how much open data can be made to say, each published with its ranges and its failures: forecasts of school results and home values, and an estimate of what sixplex zoning has done so far.", pages: [
+      { href: "/experiments/", label: "About", blurb: "what the experiments are, and how to read them" },
+      { href: "/forecasts/", label: "Forecast method", blurb: "how the forecasts are made and tested" },
+      { href: "/forecasts/schools/", label: "School forecasts", blurb: "Grade 3 and 6 results for 2026–27" },
+      { href: "/forecasts/value/", label: "Dwelling-value forecasts", blurb: "home values in the 2026 Census" },
+      { href: "/experiments/sixplex/", label: "Sixplex zoning", blurb: "whether allowing six homes on a lot in eight wards has added homes" },
     ] },
   ] },
 ];

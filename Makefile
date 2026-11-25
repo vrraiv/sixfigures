@@ -239,6 +239,20 @@ price-insights: $(PRICEINS)
 $(PRICEINS): pipeline/price_insights.py pipeline/housing_insights.py pipeline/school_insights.py
 	$(PYTHON) pipeline/price_insights.py
 
+# The Sixplex zoning experiment (Experiments). `make sixplex-data` counts the homes proposed in
+# multiplex projects by ward and month from the City's permit files, address points and wards
+# (pipeline/sixplex/, committed); `make sixplex` writes the page's sixplex.json from that table,
+# with no raw file. Its inputs aren't prerequisites, as for the other pages.
+SIXPLEX := web/public/sixplex.json
+.PHONY: sixplex sixplex-data
+sixplex-data: $(PERMITRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/toronto_wards_4326.geojson
+	$(PYTHON) pipeline/sixplex.py
+
+sixplex: $(SIXPLEX)
+
+$(SIXPLEX): pipeline/sixplex_insights.py pipeline/sixplex/by_ward_month.csv pipeline/sixplex/wards.json
+	$(PYTHON) pipeline/sixplex_insights.py
+
 # 2006 Census on the 158 neighbourhoods (a model input). insights.py adds its comparable
 # measures to insights.json; since this reads insights.json, its output isn't a prerequisite
 # there (a cycle): after `make census2006`, run `python pipeline/insights.py`. The
@@ -414,14 +428,19 @@ neighbourhoods:
 # Scheduled refreshes (docs/data-catalogue.md): download what's new from the scripted sources,
 # rebuild only the pages whose inputs changed. .github/workflows/data-refresh.yml runs the same
 # script on a schedule and opens a pull request.
-#   refresh-quarterly  TRREB's latest quarter, Inside Airbnb's latest scrape, the City's street trees and tree points
+#   refresh-quarterly  TRREB's latest quarter, Inside Airbnb's latest scrape, the City's street trees and tree points,
+#                      and the building permits by ward for the Sixplex zoning experiment
+#   refresh-sixplex    the last of those alone
 #   refresh-safety     the police's crime files and KSI collisions (March, once the year is complete)
 #   refresh-housing    permits, the City's housing files, CMHC and the StatCan series (March)
 #   publish-inputs     upload the StatCan files housing needs to the pipeline-inputs release, for
 #                      the workflow (once; scripts/publish-inputs.sh)
-.PHONY: refresh-quarterly refresh-safety refresh-housing publish-inputs
+.PHONY: refresh-quarterly refresh-safety refresh-housing refresh-sixplex publish-inputs
 refresh-quarterly:
-	$(PYTHON) pipeline/data_refresh.py prices rentals trees
+	$(PYTHON) pipeline/data_refresh.py prices rentals trees sixplex
+
+refresh-sixplex:
+	$(PYTHON) pipeline/data_refresh.py sixplex
 
 refresh-safety:
 	$(PYTHON) pipeline/data_refresh.py safety

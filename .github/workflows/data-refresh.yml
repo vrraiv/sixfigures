@@ -5,7 +5,8 @@
 #
 # When: the 12th and 26th of March, June, October and December. TRREB posts each quarter's
 # community reports 8 to 12 weeks after it ends, so a run before they are up finds nothing new
-# for prices and the next run picks them up. Runs in March also refresh the police files and
+# for prices and the next run picks them up. Each run also recounts the building permits for the
+# Sixplex zoning experiment, which compares whole quarters. Runs in March also refresh the police files and
 # housing, once the past year is complete. To run it by hand and choose the parts: Actions tab,
 # Data refresh, Run workflow.
 #
@@ -43,6 +44,10 @@ on:
         default: false
       housing:
         description: "Housing: permits, the City's housing files, CMHC, StatCan series"
+        type: boolean
+        default: false
+      sixplex:
+        description: "Sixplex zoning: building permits by ward"
         type: boolean
         default: false
 
@@ -88,11 +93,12 @@ jobs:
           RENTALS: ${{ inputs.rentals }}
           SAFETY: ${{ inputs.safety }}
           HOUSING: ${{ inputs.housing }}
+          SIXPLEX: ${{ inputs.sixplex }}
         run: |
           if [ "$EVENT" = schedule ] && [ "$CRON" = "23 11 18 * *" ]; then
             parts="transport"
           elif [ "$EVENT" = schedule ]; then
-            parts="prices rentals trees"
+            parts="prices rentals trees sixplex"
             if [ "$(date -u +%m)" = 03 ]; then parts="$parts safety housing"; fi
           else
             parts=""
@@ -102,6 +108,7 @@ jobs:
             if [ "$RENTALS" = true ]; then parts="$parts rentals"; fi
             if [ "$SAFETY" = true ]; then parts="$parts safety"; fi
             if [ "$HOUSING" = true ]; then parts="$parts housing"; fi
+            if [ "$SIXPLEX" = true ]; then parts="$parts sixplex"; fi
           fi
           if [ -z "$parts" ]; then echo "::error::Choose at least one part"; exit 1; fi
           echo "parts=$parts" >> "$GITHUB_OUTPUT"

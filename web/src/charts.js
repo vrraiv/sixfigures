@@ -234,6 +234,7 @@ export function initPick(fig, bar, get, set, extra = () => "", names = null) {
 // ---- small chart kit: bars and lines over years ----------------------------------------
 // Marks live in a 0-100 SVG box stretched to the chart; labels and hover targets are
 // HTML so they keep their size. series: [{name, color, values, neg?}]; bars stack.
+// mark: {k, label} rules the chart off before label k (a date something changed).
 function yTicks(lo, hi, fmt) {
   const raw = (hi - lo) / 4, mag = 10 ** Math.floor(Math.log10(raw || 1));
   const step = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((s) => s >= raw);
@@ -241,7 +242,7 @@ function yTicks(lo, hi, fmt) {
   for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(v);
   return { ticks, fmt };
 }
-export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l, height = 170, zero = true, partialFrom = null }) {
+export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l, height = 170, zero = true, partialFrom = null, mark = null }) {
   const n = labels.length;
   const sum = (vs) => vs.reduce((a, v) => a + (v ?? 0), 0);
   const stackTop = labels.map((_, k) => sum(bars.filter((s) => !s.neg).map((s) => s.values[k])));
@@ -284,7 +285,8 @@ export function chart({ labels, bars = [], lines = [], fmt, tipLabel = (l) => l,
   const all = [...bars, ...lines];
   const table = `<details class="ch-data"><summary>Figures as a table</summary><div class="tbl-wrap"><table class="tbl"><thead><tr><th class="txt"></th>${all.map((s) => `<th>${s.name}</th>`).join("")}</tr></thead>
     <tbody>${labels.map((l, k) => `<tr><th>${tipLabel(l, k)}</th>${all.map((s) => `<td>${s.values[k] == null ? "—" : fmt(s.values[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
-  return `<div class="ch-box" style="height:${height}px">${yt}${zeroLine}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>${table}`;
+  const rule = mark ? `<span class="ch-mark" style="left:${mark.k * bw}%"><span>${mark.label}</span></span>` : "";
+  return `<div class="ch-box" style="height:${height}px">${yt}${zeroLine}${rule}<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${tips}</div><div class="ch-xticks">${xt}</div>${table}`;
 }
 export const key = (items) => `<ul class="year-key">${items.map(([name, color, kind]) => `<li><span class="${kind === "line" ? "key-line" : "key-sq"}" style="background:${color}"></span>${name}</li>`).join("")}</ul>`;
 

@@ -1300,3 +1300,38 @@ body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
   .nbp-tbl th[scope="row"] { min-width: 0; }
   .nbp-tbl th, .nbp-tbl td { padding: 4px 6px; }
 }
+
+/* ---- Experiments: the list of them, and the Sixplex zoning page ---- */
+.xp-list { list-style: none; padding: 0 !important; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 12px; }
+.xp-list > li { margin: 0; padding: 12px 14px; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
+.xp-list h3 { margin: 0 0 4px; font-size: 16px; }
+.xp-list p { margin: 0 0 8px; }
+.xp-list ul li { margin: 0 0 4px; font-size: 13px; }
+/* a date ruled across a chart (charts.js chart, `mark`) */
+.ch-mark { position: absolute; top: -4px; bottom: 0; width: 0; border-left: 1px dashed var(--ink-2); pointer-events: none; }
+.ch-mark span { position: absolute; top: -12px; left: 4px; font-size: 11px; color: var(--ink-2); white-space: nowrap; }
+.sx .panel { margin-top: 18px; }
+.sx .panel .ch-box { margin-top: 18px; }
+.sx-head { font-size: 17px !important; font-weight: 650; margin: 4px 0 8px; }
+.sx .card-row { margin: 14px 0 8px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.sx-map svg { max-height: 460px; max-width: 760px; }
+.sx-map path { cursor: default; }
+.sx-n text { font-size: 13px; font-weight: 650; text-anchor: middle; dominant-baseline: central; fill: var(--ink); pointer-events: none; }
+.sx-n text.on { fill: #fff; }
+.sx-steps { padding-left: 22px; }
+.sx-checks { list-style: none; margin: 10px 0 0; padding: 0; max-width: 860px; font-size: 13px; }
+.sx-checks li { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(120px, 2fr) 96px; gap: 12px; align-items: center; margin: 0; padding: 5px 0; border-bottom: 1px solid #f0f0ec; max-width: none; font-size: 13px; }
+.sx-checks li.main { font-weight: 650; }
+.sx-track { position: relative; height: 16px; }
+.sx-one { position: absolute; top: -6px; bottom: -6px; width: 1px; background: #9a9a93; }
+.sx-range { position: absolute; top: 4px; height: 8px; background: #cde2fb; border-radius: 4px; }
+.sx-range.span { background: #dcdcd6; }
+.sx-dot { position: absolute; top: 3px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--surface); }
+.sx-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sx-checks li.sx-axis { border-bottom: 0; color: var(--ink-3); font-size: 11px; }
+.sx-axis .sx-track span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+@media (max-width: 640px) {
+  .sx-checks li { grid-template-columns: minmax(0, 1fr) 84px; gap: 2px 8px; }
+  .sx-checks .sx-name { grid-column: 1 / -1; }
+  .sx-n text { font-size: 17px; }
+}

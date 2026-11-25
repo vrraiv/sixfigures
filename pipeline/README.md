@@ -361,6 +361,36 @@ out, and 352 outside the neighbourhoods. The docstring has the owner groups.
   is Cedarvale, VMC). 95.8% of delays match a station; the rest are Line 3's closed stations,
   stretches between stations and yards. Codes go to ten cause groups (`CAUSES`).
 
+## Sixplex zoning (`sixplex.py`, `sixplex_insights.py`)
+
+`make sixplex-data` runs `pipeline/sixplex.py`, which reads the three building permit
+files again and counts the homes proposed in multiplex projects by ward and month
+(`pipeline/sixplex/by_ward_month.csv`, with the wards' outlines and arms in `wards.json`).
+`make sixplex` runs `pipeline/sixplex_insights.py`, which writes the experiment's
+`web/public/sixplex.json` from that table alone. Its docstring is the design.
+
+- **A multiplex is a structure type.** The City files house-scale buildings of three or
+  more homes as "3+ Unit - Detached", "- Semi-detached" or "- Townhouse" (and a few as
+  "Triplex"). Some sixplexes are filed as "Apartment Building" or "Multiple Unit
+  Building", with small apartment buildings on main streets: those are left out of the
+  estimate and counted in a check (`broad_homes`).
+- **Units created are net.** A house converted to six homes shows 5, so a project of
+  "five or six" is one that creates five or six: more than the four-home rule can. A
+  conversion to five (4 created) can't be told from a new fourplex.
+- **The files keep each revision**, with its own application date and unit count.
+  `permits.py` takes a permit's latest revision and earliest issue date; here each
+  revision's change in units is dated by the revision. Otherwise a 2024 fourplex revised
+  to six in 2026 would put six homes before the by-law (67 revisions changed a multiplex
+  permit's homes; 7 took one from four or fewer to five or six).
+- **The latest revision's application date is not the permit's.** A revised permit's last
+  row carries the revision's date, which can be years after the permit was issued.
+- **Wards come from the address points** (their `WARD` column), by `permits.py`'s
+  placement with wards in place of neighbourhoods. All but 1 multiplex permit is placed.
+- **Whole months only**: the last month kept ends before the files' latest application
+  date. 5 multiplex permits that reach more than six homes are left out.
+- **Refused and withdrawn applications** drop out (as in `permits.py`), and older ones
+  have had longer to: `filed_homes` keeps them, for a check.
+
 ## Forecast backtests
 
 `make forecast` runs `pipeline/forecast/schools.py` (one-year forecasts of each

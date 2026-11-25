@@ -67,6 +67,8 @@ pipeline/out/
 !pipeline/transport/*.csv
 # the TTC's service by neighbourhood and subway delays by station (ttc.py)
 !pipeline/ttc/*.csv
+# Homes proposed in multiplex projects by ward and month (sixplex.py), for the Sixplex experiment
+!pipeline/sixplex/*.csv
 # The derived web/public/*.pmtiles, breaks.json, search.json and data/*.csv ARE committed.
 
 # --- environments / build output ---

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Experiments with Toronto's open data</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="description" content="Experiments testing what can be learned from Toronto's open data: forecasts of school results and home values, and the effect of sixplex zoning." />
+  </head>
+  <body class="with-nav doc">
+    <!-- site-header -->
+    <section class="bar" aria-label="This page">
+      <h1>Experiments <span class="sub">Tests of what can be learned from open data</span></h1>
+    </section>
+
+    <main class="insights fc-doc">
+      <section class="ins-section" aria-labelledby="what-h">
+        <h2 id="what-h">What these are</h2>
+        <p>The rest of this site describes Toronto: what the census, the City, the school boards and others have counted, mapped and set side by side. The pages here ask more of the same data. Can it say what next year's school results will be? What a home will be worth in the next census? Whether a change to the zoning rules did anything?</p>
+        <p>Each page is an experiment in two senses. It tests a question about the city, and it tests the data: how far figures that anyone can download will go before they stop supporting an answer. Sometimes that is further than expected. Often it isn't far, and the page says so.</p>
+      </section>
+
+      <section class="ins-section" aria-labelledby="list-h">
+        <h2 id="list-h">The experiments</h2>
+        <ul class="xp-list">
+          <li>
+            <h3><a href="/forecasts/">Forecasts</a></h3>
+            <p>Can public data predict the next round of results? Two forecasts, each with a range and a record of how the same method did on years already known.</p>
+            <ul>
+              <li><a href="/forecasts/schools/">School forecasts</a>: each neighbourhood's Grade 3 and Grade 6 test results for 2026–27.</li>
+              <li><a href="/forecasts/value/">Dwelling-value forecasts</a>: each neighbourhood's median home value in the 2026 Census.</li>
+              <li><a href="/forecasts/">Forecast method</a>: how the forecasts are made, tested and chosen.</li>
+            </ul>
+          </li>
+          <li>
+            <h3><a href="/experiments/sixplex/">Sixplex zoning</a></h3>
+            <p>In June 2025 the City allowed six homes in a house-sized building in eight wards and left the rest of the city at four. Building permits before and after, in both groups of wards, are used to ask whether the change has added homes so far, and how sure anyone can be.</p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="rules-h">
+        <h2 id="rules-h">How they are run</h2>
+        <ul>
+          <li><b>The method is written down first.</b> What will be measured, compared and reported is fixed before the result is computed, and each page says when. A change made after seeing a result is marked as one.</li>
+          <li><b>Every number comes with a range.</b> A single figure hides how much it could move. The pages give the range and say how it was made.</li>
+          <li><b>Failures are published.</b> A forecast that missed is scored and left up. A comparison that fails its own checks is shown failing them.</li>
+          <li><b>Only open data.</b> Everything is built from files that the City, the Province, Statistics Canada and others publish, with the code in the <a href="https://github.com/vrraiv/sixfigures">repository</a>, so anyone can rerun it.</li>
+        </ul>
+      </section>
+
+      <section class="ins-section" aria-labelledby="read-h">
+        <h2 id="read-h">How to read them</h2>
+        <p class="fc-exercise"><b>Exercises, not advice.</b> Nothing here is a prediction to rely on, a guide to choosing a school or a home, or a verdict on a policy.</p>
+        <ul>
+          <li>Open data is published for administration, not research. Permits record applications, not homes. Test results describe the students who wrote the test. Each page lists what its data can't show.</li>
+          <li>An estimate from a few years of figures for one city is a starting point. It can be wrong for reasons no range covers: a rule that changed at the same time, a neighbourhood that was different to begin with.</li>
+          <li>These pages are the work of one person and have not been peer reviewed. Corrections are welcome through the repository.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="foot">
+      Each experiment credits its own sources on its page.
+      <a href="https://github.com/vrraiv/sixfigures">Source</a>
+    </footer>
+    <script type="module" src="/src/experiments.js"></script>
+  </body>
+</html>
