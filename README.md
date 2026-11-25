@@ -331,7 +331,7 @@ every choice of 8 wards of 24, ten checks and three placebos. It shows the proje
 five or six homes that followed the by-law, the homes in smaller and larger projects in
 each group of wards, the estimate and its range, the trend before the by-law that
 undermines the comparison, each check, and every ward. As of 2026 Q3 the estimate is no
-measurable effect (a range from about 460 fewer homes to about 260 more), and a check
+measurable effect (a range from about 480 fewer homes to about 260 more), and a check
 that carries the earlier trend forward gives about 400 more. What it can't show: whether
 the homes get built (these are applications), the long run (five quarters), the zoning
 apart from the development-charge waiver passed a month later, or what the eight wards,

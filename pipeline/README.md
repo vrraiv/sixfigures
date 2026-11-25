@@ -385,7 +385,7 @@ files again and counts the homes proposed in multiplex projects by ward and mont
 - **The latest revision's application date is not the permit's.** A revised permit's last
   row carries the revision's date, which can be years after the permit was issued.
 - **Wards come from the address points** (their `WARD` column), by `permits.py`'s
-  placement with wards in place of neighbourhoods. All but 1 multiplex permit is placed.
+  placement with wards in place of neighbourhoods. All but 3 multiplex permits are placed.
 - **Whole months only**: the last month kept ends before the files' latest application
   date. 8 multiplex permits that reach more than six homes are left out.
 - **A permit's first row isn't always its first application.** For 53 multiplex permits
