@@ -398,6 +398,16 @@ which writes the experiment's `web/public/sixplex.json` from that table alone. I
 docstring is the design. The multiplex part of the data refresh runs both after
 `multiplex.py`.
 
+- **The headline carries the trend before the by-law on, fading.** The other wards gained
+  on the eight by about 10% a quarter before the by-law, so the comparison fixed in
+  advance (the groups' averages before and after) finds a loss that began before the
+  by-law did, and fails two of its three placebos. `faded()` fits a line to the log of the
+  groups' ratio over "before" and carries it on with each step `PHI` times the last;
+  `HALF_LIFE` (4 quarters) is an assumption, not an estimate, and the page shows the
+  band from stopping to never slowing. `Relabelled` refits the trend in every one of the
+  735,471 relabellings for the range (about 40 seconds for the script). A straight line
+  carried on has no floor, so its estimate grows with every quarter added; the fading one
+  settles. On a small series the method is unstable ("new buildings only" gives x7.7).
 - **One list of projects, two counts of homes.** `projects.csv` gives a building's size
   (a duplex made into a fourplex is 4). The experiment asks what was added, so a project's
   homes are the `DWELLING_UNITS_CREATED` on its building permit (2), taken from the permit

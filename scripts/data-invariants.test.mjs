@@ -176,7 +176,17 @@ test("the sixplex estimate follows from its counts and sits inside its range", (
   assert.ok(m.lo <= m.ratio && m.ratio <= m.hi && m.extra_lo <= m.extra && m.extra <= m.extra_hi, "the estimate is inside its range");
   assert.ok(m.p > 0 && m.p <= 1);
   assert.equal(d.leave.length, 24);
-  assert.deepEqual(d.checks.filter((c) => c.late).map((c) => c.key), ["trend"]);
+  // the headline: the trend before, fading; between the catch-up stopping and never slowing
+  const h = d.headline;
+  assert.equal(h.t1, m.t1);
+  assert.ok(Math.abs(h.extra - (h.t1 - h.expected)) < 0.06 && h.lo <= h.ratio && h.ratio <= h.hi && h.extra_lo <= h.extra && h.extra <= h.extra_hi, "the headline is inside its range");
+  assert.ok(h.p > 0 && h.p <= 1 && h.phi > 0 && h.phi < 1 && h.floor > 0);
+  const [a, b] = [d.fades.stop.extra, d.fades.full.extra].sort((x, y) => x - y);
+  assert.ok(a <= h.extra && h.extra <= b, "fading sits between stopping and never slowing");
+  assert.equal(d.expected_fading.filter((v) => v != null).length, a1 - a0 + 1);
+  assert.ok(Math.abs(d.expected_fading.reduce((s, v) => s + (v ?? 0), 0) - h.expected) < 1);
+  assert.equal(d.headline_leave.length, 24);
+  assert.deepEqual(d.headline_placebos.map((c) => c.key), d.placebos.map((c) => c.key));
 });
 
 test("Housing multiplexes: whole months, the wards add to the city, the sixplex wards are the by-law's", () => {

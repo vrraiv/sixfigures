@@ -141,6 +141,36 @@ class Estimate(unittest.TestCase):
         match = model.neighbours(first, second, np.array([True, False, False, False, False]), k=2)
         self.assertEqual(sorted(match[0]), [1, 3])
 
+    def test_a_fading_trend_slows_by_the_same_share_each_quarter(self):
+        self.assertEqual(list(model.carried(3, 1.0)), [1, 2, 3])  # never slowing
+        self.assertEqual(list(model.carried(3, 0.0)), [0, 0, 0])  # stopping at once
+        self.assertEqual(list(model.carried(3, 0.5)), [0.5, 0.75, 0.875])
+        self.assertAlmostEqual(model.FADES["fade"] ** model.HALF_LIFE, 0.5)
+
+    def test_the_trend_is_carried_on_from_where_it_ended(self):
+        # the eight fall 10% a quarter against the sixteen for four quarters, then hold: the by-law's doing
+        four = np.full(8, 1000.0)
+        six = np.concatenate([1000 * 0.9 ** np.arange(4), np.full(4, 1000 * 0.9 ** 3)])
+        pre, post = [0, 1, 2, 3], [4, 5, 6, 7]
+        stop, full = model.faded(six, four, pre, post, 0.0), model.faded(six, four, pre, post, 1.0)
+        self.assertAlmostEqual(stop["slope"], -10, places=1)
+        self.assertAlmostEqual(stop["extra"], 0, delta=1)  # had the drift stopped, nothing to explain
+        self.assertAlmostEqual(full["expected"], sum(1000 * 0.9 ** np.arange(4, 8)), delta=1)
+        self.assertGreater(full["extra"], model.faded(six, four, pre, post, 0.8)["extra"])
+        self.assertGreater(model.faded(six, four, pre, post, 0.8)["extra"], stop["extra"])
+
+    def test_the_trends_range_refits_it_in_every_relabelling(self):
+        rng = np.random.default_rng(1)
+        W = rng.poisson(40, size=(6, 8)).astype(float)
+        treated = np.array([True, True, False, False, False, False])
+        W[treated, 4:] *= 3  # the two treated wards far ahead after
+        r = model.Relabelled(W, [0, 1, 2, 3], [4, 5, 6, 7], treated, model.assignments(6, 2), 0.5)
+        self.assertAlmostEqual(r.p(), 1 / 15)  # only the real labelling is as far out
+        self.assertGreater(r.p(3.0), 0.2)  # with the tripling taken out, nothing unusual
+        lo, hi = r.interval(level=0.5)
+        self.assertLess(lo, 3)
+        self.assertGreater(hi, 3)
+
     def test_only_whole_quarters_are_kept(self):
         q = model.quarters_of(["2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"])
         self.assertEqual(list(q), ["2026 Q2", "2026 Q3"])

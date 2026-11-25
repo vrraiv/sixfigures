@@ -1329,6 +1329,8 @@ body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
 .sx-range { position: absolute; top: 4px; height: 8px; background: #cde2fb; border-radius: 4px; }
 .sx-range.span { background: #dcdcd6; }
 .sx-dot { position: absolute; top: 3px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--surface); }
+.sx-dot.off { background: var(--surface); box-shadow: inset 0 0 0 2px var(--ink); }
+.sx-checks li.sx-group { display: block; padding: 12px 0 3px; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); }
 .sx-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sx-checks li.sx-axis { border-bottom: 0; color: var(--ink-3); font-size: 11px; }
 .sx-axis .sx-track span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }

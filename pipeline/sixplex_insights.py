@@ -56,6 +56,30 @@ home as three. BEFORE_REBUILD keeps the estimate as it stood.
   placebos    the same estimate where there should be none: laneway and garden
               suites, new detached houses, and a by-law imagined a year early
 
+The headline, changed on 24 November 2026 at the author's direction, after the results
+above had been seen. The estimate fixed in advance assumes the two groups of wards
+would have kept their average standing of "before". They weren't keeping it: the other
+wards gained on the eight in nearly every quarter before the by-law (multiplexes were
+new to the suburbs in 2023), and the placebos said so. The headline allows for that:
+
+  trend       a line through log(eight wards / sixteen wards) over the quarters of
+              "before" (0.5 added to each count, so a quarter with none can be logged)
+  carried on  from the line's level at the end of "before", the drift continues but
+              fades: each quarter's step is PHI times the last, with PHI set so that
+              the pace halves every HALF_LIFE quarters. That is an assumption, stated
+              on the page, not an estimate: nothing in these series identifies how
+              fast a catch-up saturates. A fading drift has a floor (the eight wards'
+              standing can't fall forever), so the estimate doesn't grow just because
+              "after" gets longer, as a straight line carried on would make it
+  band        the same with the catch-up stopping at the by-law (PHI 0) and going on
+              at full pace (PHI 1). If it had stopped a year before the by-law, the
+              "one year before" check is the estimate
+  range       the permutation test again, with the trend refitted in every relabelling
+  checks      the checks that are a different count or set of wards, by this method
+  placebos    the same three, by this method
+
+The estimate fixed in advance stays on the page with its range, checks and placebos.
+
 Every figure the page states is in the file: the page refreshes with the permits.
 """
 import itertools
@@ -74,6 +98,9 @@ PRE = ("2023 Q3", "2025 Q2")
 POST_FROM = "2025 Q3"
 FIXED = "2026-11-24"
 REBUILT = "2026-11-24"
+CHANGED = "2026-11-24"  # the headline: from the estimate fixed in advance to the fading trend
+HALF_LIFE = 4  # quarters in which the catch-up's pace halves: an assumption
+FADES = {"stop": 0.0, "fade": 0.5 ** (1 / HALF_LIFE), "full": 1.0}
 BEFORE_REBUILD = {"extra": -58.1, "extra_lo": -477.8, "extra_hi": 256.7, "t1": 851, "expected": 909.1}  # as first published in the pull request
 K = 3  # nearest neighbours
 LEVEL = 0.9
@@ -158,15 +185,62 @@ def additive(pre: np.ndarray, post: np.ndarray, treated: np.ndarray, q0: int, q1
             "expected": float(t1 - extra), "extra": float(extra)}
 
 
-def trend(six: np.ndarray, four: np.ndarray, pre_q: list[int], post_q: list[int]) -> dict:
-    """The estimate if the two groups' ratio had kept moving as it did before: a line
-    through log(six / four) over the quarters before, carried through those after."""
-    x, xp = np.array(pre_q), np.array(post_q)
-    slope, level = np.polyfit(x, np.log(six[x] / four[x]), 1)
-    expected = float((four[xp] * np.exp(level + slope * xp)).sum())
-    t1 = float(six[xp].sum())
-    return {"t0": float(six[x].sum()), "t1": t1, "ratio": t1 / expected, "expected": expected, "extra": t1 - expected,
-            "slope": float(np.expm1(slope) * 100)}
+def carried(steps: int, phi: float) -> np.ndarray:
+    """How many quarters' worth of the earlier drift have accumulated 1 .. `steps` quarters
+    on, when each quarter's step is `phi` times the one before: phi + phi^2 + ..."""
+    return np.cumsum(phi ** np.arange(1, steps + 1))
+
+
+def faded(six: np.ndarray, four: np.ndarray, pre_q: list[int], post_q: list[int], phi: float) -> dict:
+    """The estimate with the two groups' ratio carried on from its trend before, fading
+    (see the docstring). `six` and `four` are the groups' homes by quarter. Also returns the
+    trend (percent a quarter), the expected ratio's path and the expected homes by quarter."""
+    x = np.arange(len(pre_q), dtype=float)
+    slope, level = np.polyfit(x, np.log((six[pre_q] + 0.5) / (four[pre_q] + 0.5)), 1)
+    end = level + slope * x[-1]
+    path = np.exp(end + slope * carried(len(post_q), phi))
+    by_quarter = four[post_q] * path
+    t1, expected = float(six[post_q].sum()), float(by_quarter.sum())
+    return {"t0": float(six[pre_q].sum()), "t1": t1, "ratio": t1 / expected, "expected": expected, "extra": t1 - expected,
+            "slope": float(np.expm1(slope) * 100), "fitted": [float(v) for v in np.exp(level + slope * x)],
+            "path": [float(v) for v in path], "by_quarter": [float(v) for v in by_quarter]}
+
+
+class Relabelled:
+    """The fading-trend estimate under every relabelling of the wards, for its p-value and
+    range. `W` is wards x quarters (the wards of the estimate). The trend of each relabelling
+    is fitted once; trying an effect size only rescales the sixplex wards' homes after."""
+
+    def __init__(self, W: np.ndarray, pre_q: list[int], post_q: list[int], treated: np.ndarray, picks: np.ndarray, phi: float):
+        self.t1 = W[treated][:, post_q].sum()
+        idx = np.vstack([np.flatnonzero(treated)[None, :], picks]).astype(np.intp)  # row 0: the real one
+        gather = lambda M, qs: np.stack([M[:, q][idx].sum(axis=1) for q in qs], axis=1)  # noqa: E731
+        pre = gather(W, pre_q)
+        rest = W[:, pre_q].sum(axis=0) - pre
+        x = np.arange(len(pre_q), dtype=float)
+        dx = x - x.mean()
+        y = np.log((pre + 0.5) / (rest + 0.5))
+        slope = y @ dx / (dx @ dx)
+        end = y.mean(axis=1) + slope * dx[-1]
+        self.path = np.exp(end[:, None] + slope[:, None] * carried(len(post_q), phi)[None, :])
+        # homes after, split by whether the ward really is a sixplex ward
+        self.mine_t, self.mine_u = gather(W * treated[:, None], post_q), gather(W * ~treated[:, None], post_q)
+        self.all_t, self.all_u = W[treated][:, post_q].sum(axis=0), W[~treated][:, post_q].sum(axis=0)
+
+    def p(self, r: float = 1.0) -> float | None:
+        """The share of relabellings at least as far from no effect as the real one, with the
+        sixplex wards' homes after divided by r."""
+        mine = self.mine_u + self.mine_t / r
+        rest = (self.all_u - self.mine_u) + (self.all_t - self.mine_t) / r
+        with np.errstate(divide="ignore", invalid="ignore"):
+            stat = np.log(mine.sum(axis=1)) - np.log((rest * self.path).sum(axis=1))
+        if not np.isfinite(stat).all():
+            return None
+        return float((np.abs(stat[1:]) >= abs(stat[0]) - 1e-12).mean())
+
+    def interval(self, level: float = LEVEL) -> tuple[float, float]:
+        kept = [r for r in GRID if (p := self.p(r)) is not None and p > 1 - level]
+        return (float(min(kept)), float(max(kept))) if kept else (None, None)
 
 
 def quarters_of(months: list[str]) -> dict:
@@ -178,7 +252,8 @@ def quarters_of(months: list[str]) -> dict:
 
 
 def rounded(d: dict) -> dict:
-    return {k: (None if v is None else round(v, 3) if k in ("ratio", "p", "lo", "hi") else round(v, 1)) for k, v in d.items()}
+    return {k: (v if v is None or isinstance(v, (str, bool)) else [round(x, 3) for x in v] if isinstance(v, list) else
+                round(v, 3) if k in ("ratio", "p", "lo", "hi", "phi", "floor") else round(v, 1)) for k, v in d.items()}
 
 
 def main() -> int:
@@ -256,7 +331,6 @@ def main() -> int:
         check(key, estimate(s))
     check("oneyear", estimate("plex_homes", pre_=pre_q[half:]))
     check("additive", additive(pre, post, treated, len(pre_q), len(post_q)))
-    check("trend", trend(cube["plex_homes"][arm == "six"].sum(axis=0), cube["plex_homes"][arm == "four"].sum(axis=0), pre_q, post_q), late=True)
     leave = []
     for i in range(int(study.sum())):
         keep = np.arange(int(study.sum())) != i
@@ -274,6 +348,53 @@ def main() -> int:
         print(f"  {key:12s} x{e['ratio']:.2f}  p {e['p']:.4f}")
     parts = {key: rounded(estimate(s)) for key, s in (("small", "small_homes"), ("big", "big_homes"))}
 
+    # ---- the headline: the trend before, carried on and fading (see the docstring) -----------------
+    def by_group(s: str, keep: np.ndarray = study, inside: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
+        inside = (arm == "six") if inside is None else inside
+        return cube[s][keep & inside].sum(axis=0), cube[s][keep & ~inside].sum(axis=0)
+
+    def fading(s: str = "plex_homes", pre_: list[int] = pre_q, post_: list[int] = post_q, phi: float = FADES["fade"],
+               keep: np.ndarray = study, inside: np.ndarray | None = None, test: bool = False, with_range: bool = False) -> dict:
+        e = faded(*by_group(s, keep, inside), pre_, post_, phi)
+        if test or with_range:
+            relabelled = Relabelled(cube[s][study], pre_, post_, treated, picks, phi)
+            e["p"] = relabelled.p()
+            if with_range:
+                lo, hi = relabelled.interval()
+                e |= {"lo": lo, "hi": hi, "extra_lo": e["t1"] - e["t1"] / lo, "extra_hi": e["t1"] - e["t1"] / hi}
+        return e
+
+    slim = lambda e: {k: v for k, v in e.items() if k not in ("fitted", "path", "by_quarter")}  # noqa: E731
+    head = fading(with_range=True)
+    phi = FADES["fade"]
+    # where the eight wards' standing would settle, against its level at the by-law
+    head |= {"phi": phi, "floor": float(np.exp(np.log1p(head["slope"] / 100) * phi / (1 - phi)))}
+    print(f"headline (the trend before, its pace halving every {HALF_LIFE} quarters): trend {head['slope']:.1f}% a quarter, settling at x{head['floor']:.2f}")
+    print(f"  expected {head['expected']:.0f}, extra {head['extra']:.0f} (x{head['ratio']:.2f}); p {head['p']:.4f}; "
+          f"{LEVEL:.0%} range x{head['lo']:.2f} to x{head['hi']:.2f} ({head['extra_lo']:.0f} to {head['extra_hi']:.0f} homes)")
+    fades = {}
+    for key in ("stop", "full"):
+        fades[key] = fading(phi=FADES[key], test=True)
+        print(f"  {key:12s} x{fades[key]['ratio']:.2f}  extra {fades[key]['extra']:6.0f}  p {fades[key]['p']:.4f}")
+    print("its checks:")
+    head_checks = []
+    for key, e in (("ward23", fading(keep=all25, inside=t25)), ("borders", fading(keep=near)),
+                   *((k, fading(s)) for k, s in (("filed", "filed_homes"), ("issued", "issued_homes"), ("new", "new_homes"),
+                                                 ("building", "building_homes"), ("projects", "plex_projects")))):
+        head_checks.append({"key": key} | rounded(slim(e)))
+        print(f"  {key:12s} x{e['ratio']:.2f}  extra {e['extra']:6.0f}")
+    head_leave = []
+    for i in np.flatnonzero(study):
+        e = fading(keep=study & (np.arange(len(wards)) != i))
+        head_leave.append({"ward": codes[i], "ratio": round(e["ratio"], 3), "extra": round(e["extra"], 1)})
+    print(f"  leaving one ward out: x{min(r['ratio'] for r in head_leave):.2f} to x{max(r['ratio'] for r in head_leave):.2f}")
+    print("its placebos:")
+    head_placebos = []
+    for key, e in (("suites", fading("suites_homes", test=True)), ("houses", fading("houses_homes", test=True)),
+                   ("yearearly", fading(pre_=pre_q[:half], post_=pre_q[half:], test=True))):
+        head_placebos.append({"key": key} | rounded(slim(e)))
+        print(f"  {key:12s} x{e['ratio']:.2f}  p {e['p']:.4f}")
+
     # ---- quarter by quarter: the two groups, and the sixplex wards against the path of the others ----
     def by_arm(s: str) -> dict:
         return {a: [int(v) for v in cube[s][arm == a].sum(axis=0)] for a in ("six", "four", "early")}
@@ -284,6 +405,11 @@ def main() -> int:
     base = main_["t0"] / main_["c0"]
     expected_q = [round(float(v), 1) for v in four * base]
     rel = [None if four[i] == 0 or i < pre_q[0] else round(float(six[i] / four[i] / base), 3) for i in range(len(quarters))]
+    # the trend and its three ways on, on the chart's scale (1 = the average standing before), from the first quarter of "before"
+    blank = [None] * (len(pre_q) - 1)
+    paths = {"fitted": [round(v / base, 3) for v in head["fitted"]] + [None] * len(post_q)}
+    for key, e in (("fade", head), ("stop", fades["stop"]), ("full", fades["full"])):
+        paths[key] = blank + [round(head["fitted"][-1] / base, 3)] + [round(v / base, 3) for v in e["path"]]
 
     out = {
         "built": pd.Timestamp.today().date().isoformat(),
@@ -307,7 +433,16 @@ def main() -> int:
                    "big_homes_post": int(cube["big_homes"][i, post_q].sum())} for i, w in enumerate(wards)],
         "arms": arms,
         "expected": expected_q,
+        "expected_fading": [None] * post_q[0] + [round(v, 1) for v in head["by_quarter"]],
         "relative": rel,
+        "paths": paths,
+        "changed": CHANGED,
+        "half_life": HALF_LIFE,
+        "headline": rounded(slim(head)),
+        "fades": {k: rounded(slim(e)) for k, e in fades.items()},
+        "headline_checks": head_checks,
+        "headline_leave": head_leave,
+        "headline_placebos": head_placebos,
         "main": rounded(main_),
         "parts": parts,
         "checks": checks,
