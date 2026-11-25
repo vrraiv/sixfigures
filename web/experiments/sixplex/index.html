@@ -16,22 +16,22 @@
     </section>
 
     <main class="insights fc-doc sx">
-      <p class="fc-exercise"><b>An experiment, not a verdict.</b> This page tries to put a number on a zoning change using public permit records. It counts applications, not finished homes, over a short period, and the number rests on an assumption that can't be checked. It is not an evaluation of the policy.</p>
-
-      <section class="ins-section" aria-labelledby="q-h" data-toc="The question">
-        <h2 id="q-h">One city, two rules</h2>
-        <p>Since May 2023 a house lot anywhere in Toronto can hold a building of up to four homes without a rezoning. On 25–26 June 2025 City Council raised that to six, but only in the eight wards of the old city of Toronto and East York. Staff had recommended six everywhere. Council left the other wards at four, free to opt in later. The City's multiplex page still lists six homes only for those eight wards and one other, below.</p>
-        <p>That split is useful. The two parts of the city share a housing market, interest rates, a building code and a permit office, and differ in one rule. If the eight wards pulled ahead of the rest after June 2025, the rule is a likely reason. That comparison is what this page makes: how many homes builders proposed in each group of wards, before the change and after it.</p>
-        <p id="q-note"></p>
-        <figure class="nb-map sx-map" id="ward-map"></figure>
-        <ul class="corr-key" id="map-key"></ul>
-        <p class="tbl-note" id="map-note"></p>
-      </section>
+      <p class="fc-exercise"><b>An experiment, not a verdict.</b> This page estimates what one zoning change has done so far, from public building permit records. It counts applications to build, not finished homes, and the estimate is uncertain.</p>
 
       <section class="ins-section" aria-labelledby="a-h" data-toc="The short answer">
         <h2 id="a-h">The short answer</h2>
         <div id="answer"></div>
         <div id="cards" class="card-row"></div>
+        <figure class="panel" id="answer-fig"></figure>
+      </section>
+
+      <section class="ins-section" aria-labelledby="q-h" data-toc="What changed">
+        <h2 id="q-h">What changed: one city, two rules</h2>
+        <p>Since May 2023, a house lot anywhere in Toronto can hold a building of up to four homes without special permission. In June 2025 City Council raised that to six, but only in the eight wards of the old city of Toronto and East York. City staff had recommended six everywhere. Council left the other wards at four, free to opt in later.</p>
+        <p>That split makes a comparison possible. Both parts of the city share a housing market, interest rates and a permit office, and differ in one rule.</p>
+        <figure class="nb-map sx-map" id="ward-map"></figure>
+        <ul class="corr-key" id="map-key"></ul>
+        <p class="tbl-note" id="map-note"></p>
       </section>
 
       <section class="ins-section" aria-labelledby="came-h" data-toc="Sixplexes arrived">
@@ -40,45 +40,44 @@
         <figure class="panel" id="came-fig"></figure>
       </section>
 
-      <section class="ins-section" aria-labelledby="homes-h" data-toc="More homes?">
-        <h2 id="homes-h">More homes, or bigger buildings in place of smaller ones?</h2>
-        <p id="homes-lede"></p>
-        <div class="panels" id="homes-figs"></div>
+      <section class="ins-section" aria-labelledby="homes-h" data-toc="Extra homes?">
+        <h2 id="homes-h">Are they extra homes, or homes that would have been built anyway?</h2>
+        <div id="homes-lede"></div>
+        <figure class="panel" id="homes-fig"></figure>
         <p id="homes-after"></p>
       </section>
 
-      <section class="ins-section" aria-labelledby="est-h" data-toc="The estimate">
-        <h2 id="est-h">The estimate: where the eight wards were heading</h2>
-        <div id="est"></div>
+      <section class="ins-section" aria-labelledby="sure-h" data-toc="How sure?">
+        <h2 id="sure-h">How sure is this?</h2>
+        <div id="sure-lede"></div>
+        <div id="sure"></div>
+        <div id="sure-after"></div>
       </section>
 
-      <section class="ins-section" aria-labelledby="doubt-h" data-toc="The first plan">
-        <h2 id="doubt-h">The comparison fixed in advance</h2>
-        <p id="doubt-lede"></p>
-        <div id="doubt-after"></div>
-      </section>
-
-      <section class="ins-section" aria-labelledby="checks-h" data-toc="Other ways to ask">
-        <h2 id="checks-h">The same question, asked other ways</h2>
-        <p id="checks-lede"></p>
-        <div id="checks"></div>
-        <p class="tbl-note" id="checks-note"></p>
-      </section>
-
-      <section class="ins-section" aria-labelledby="wards-h" data-toc="Ward by ward">
-        <h2 id="wards-h">Ward by ward</h2>
-        <p id="wards-lede"></p>
-        <div class="tbl-wrap"><table class="tbl" id="wards"></table></div>
-      </section>
-
-      <section class="ins-section" aria-labelledby="cant-h" data-toc="What this can't show">
-        <h2 id="cant-h">What this can't show</h2>
+      <section class="ins-section" aria-labelledby="cant-h" data-toc="What it can't tell you">
+        <h2 id="cant-h">What this can't tell you</h2>
         <ul id="cant"></ul>
       </section>
 
-      <section class="ins-section" aria-labelledby="how-h" data-toc="Method">
-        <h2 id="how-h">How it was done</h2>
-        <div id="how"></div>
+      <section class="ins-section sx-appendix" aria-labelledby="app-h" data-toc="Technical appendix">
+        <h2 id="app-h">Technical appendix</h2>
+        <p>For readers who want to check the work. Each part opens.</p>
+        <details><summary>How the estimate is made</summary><div id="est"></div></details>
+        <details><summary>The first plan, and the tests both methods were put through</summary>
+          <p id="doubt-lede"></p>
+          <div id="doubt-after"></div>
+        </details>
+        <details><summary>The same question, asked other ways</summary>
+          <p id="checks-lede"></p>
+          <div id="checks"></div>
+          <p class="tbl-note" id="checks-note"></p>
+        </details>
+        <details><summary>Ward by ward</summary>
+          <p id="wards-lede"></p>
+          <div class="tbl-wrap"><table class="tbl" id="wards"></table></div>
+          <figure class="panel" id="others-fig"></figure>
+        </details>
+        <details><summary>Data, definitions and what was decided when</summary><div id="how"></div></details>
       </section>
       <div id="tip" class="tip" role="tooltip" hidden></div>
     </main>

@@ -22,6 +22,8 @@ const word = (n) => WORDS[n] ?? String(n);
 const fmtN = (v) => (v == null ? "—" : (Math.round(v) + 0).toLocaleString("en-CA")); // + 0: no "-0"
 const signed = (v) => (v == null ? "—" : `${Math.round(v) < 0 ? "−" : Math.round(v) > 0 ? "+" : ""}${Math.abs(Math.round(v)).toLocaleString("en-CA")}`);
 const fmtX = (r) => (r == null ? "—" : `×${r.toFixed(2)}`);
+// a round figure for a sentence: 252 -> "250"
+const about = (v) => fmtN(Math.round(Math.abs(v) / 10) * 10);
 // "12% more" / "9% fewer", from a ratio
 const more = (r) => `${Math.round(Math.abs(r - 1) * 100)}% ${r >= 1 ? "more" : "fewer"}`;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -54,71 +56,93 @@ function renderMap() {
   $("map-key").innerHTML = `<li><span class="key-sq" style="background:${BLUE}"></span>Six homes allowed from June 2025 (${word(six.length)} wards)</li>`
     + `<li><span class="key-sq" style="background:${GREY}"></span>Four homes (${word(four.length)} wards)</li>`
     + (early ? `<li><span class="key-sq" style="background:repeating-linear-gradient(45deg, ${GREY} 0 3px, ${BLUE} 3px 5px)"></span>${escapeHTML(early.name)}: six from February 2025</li>` : "");
-  $("map-note").textContent = `The number in each ward: projects of five or six homes proposed from ${after}. Hover or tap a ward for its figures.`;
-  $("q-note").innerHTML = early ? `One ward sits outside the comparison. ${escapeHTML(early.name)} (ward ${+early.ward}) got six homes under its own by-law on ${day(D.bylaw.early)}, months before the others, so it belongs with neither group. `
-    + `It has had ${early.big_post === 0 ? "no project of five or six homes" : `${word(early.big_post)} project${early.big_post > 1 ? "s" : ""} of five or six homes`} since.` : "";
+  $("map-note").innerHTML = `The number in each ward: buildings of five or six homes proposed from ${after}. Hover or tap a ward for its figures.`
+    + (early ? ` ${escapeHTML(early.name)} got six homes under its own by-law in February 2025, months before the others, so it is left out of the comparison.` : "");
 }
 
 // ---- the short answer ---------------------------------------------------------------------------------------------
+const pane = { labels: () => cut(Q), bars: (a) => [{ name: "In buildings of up to four homes", color: LIGHT, values: cut(arms.small_homes[a]) }, { name: "In buildings of five or six", color: DARK, values: cut(arms.big_homes[a]) }] };
 function renderAnswer() {
-  const head = verdict === "more" ? "Sixplexes arrived, and the eight wards got more homes than they were heading for."
-    : verdict === "fewer" ? "Sixplexes arrived, but the eight wards got fewer homes than they were heading for."
-    : H.extra > 0 ? "Sixplexes arrived, and the best estimate is that they added homes. The data can't yet rule out that they didn't."
-    : "Sixplexes arrived. Whether the city got more homes because of them can't be told yet.";
-  const reading = verdict === "unclear"
-    ? `The range runs from ${signed(H.extra_lo)} to ${signed(H.extra_hi)}: the best estimate is ${H.extra > 0 ? "a gain" : "a loss"}, but wards differ enough from one another that no effect at all can't be ruled out.`
-    : `The range runs from ${signed(H.extra_lo)} to ${signed(H.extra_hi)}, clear of zero.`;
+  const gain = H.extra > 0, share = Math.round((Math.abs(H.extra) / H.t1) * 100);
+  const head = verdict === "more" ? `Yes: about ${about(H.extra)} more homes have been proposed than without it.`
+    : verdict === "fewer" ? `No: about ${about(H.extra)} fewer homes have been proposed than without it.`
+    : gain ? `Our best estimate is about ${about(H.extra)} more homes proposed so far. It is too early to be sure there are any.`
+    : "So far there is no sign that it has added homes, though it is too early to be sure.";
+  const unsure = verdict === "unclear"
+    ? `That figure is uncertain. The true number could plausibly be anywhere from ${H.extra_lo < 0 ? `a small loss` : `about ${fmtN(H.extra_lo)}`} to nearly ${fmtN(Math.ceil(H.extra_hi / 50) * 50)}, so no gain at all can't be ruled out.`
+    : `The true number could plausibly be anywhere from about ${fmtN(H.extra_lo)} to about ${fmtN(H.extra_hi)}.`;
   $("answer").innerHTML = `<p class="sx-head">${head}</p>
-    <p>Builders proposed <b>${fmtN(big.sixPost)} projects of five or six homes</b> in the eight wards in the ${nPost * 3} months after the by-law (${after}). In the two years before, there ${big.sixPre === 1 ? "was one" : `were ${word(big.sixPre)}`}.</p>
-    <p>What matters, though, is every multiplex project, large and small, since a sixplex may only replace a fourplex that would have been built anyway. On that count the eight wards saw <b>${fmtN(H.t1)} homes</b> proposed. The question is what they would have seen without the by-law.</p>
-    <p>Before it, the rest of the city had been ${catching ? "gaining on" : "losing ground to"} the eight wards by about ${Math.abs(H.slope).toFixed(0)}% a quarter${catching ? ", as multiplexes spread to suburbs where they had been rare" : ""}. If that had carried on but faded, its pace halving every ${halfLife}, the eight wards would have been heading for about <b>${fmtN(H.expected)}</b> homes. The difference is <b>${signed(H.extra)}</b>. ${reading}</p>
-    <p>How fast the ${catching ? "catch-up" : "drift"} would have faded is an assumption, and the answer leans on it. If it had stopped dead at the by-law, the difference is ${signed(F.stop.extra)}; if it had never slowed, ${signed(F.full.extra)}. If it had already ended a year before the by-law, ${signed(check("oneyear").extra)}. And the comparison this page first fixed in advance, which takes no account of it, gives ${signed(M.extra)} (range ${signed(M.extra_lo)} to ${signed(M.extra_hi)}).</p>
-    <p>All of it is ${nPost * 3} months of applications, not homes built.</p>`;
+    <p>In June 2025 Toronto began allowing six homes on a house lot in eight downtown wards. Everywhere else the limit stayed at four.</p>
+    <p>Builders responded at once. In the ${nPost * 3} months since, they have applied to build <b>${fmtN(big.sixPost)} buildings of five or six homes</b> in those wards, against ${fmtN(big.sixPre)} in the two years before.</p>
+    <p>Some of those would have been built anyway as fourplexes. So this page counts every home in every small multi-unit building (a "multiplex"), and asks how many the eight wards would have seen without the new rule. They saw ${fmtN(H.t1)}. We estimate they were heading for about ${about(H.expected)}. The difference, <b>about ${about(H.extra)} ${gain ? "extra" : "fewer"} homes</b>, is what we credit to the rule.</p>
+    <p>${unsure} And these are applications to build, not finished homes.</p>`;
   const card = (name, v, note) => `<div class="card static"><span class="card-name">${name}</span><span class="card-value">${v}</span><span class="card-delta">${note}</span></div>`;
   $("cards").innerHTML = [
-    card("Projects of five or six homes", fmtN(big.sixPost), `in the eight wards since the by-law; ${fmtN(big.fourPost)} elsewhere`),
-    card("Homes proposed, eight wards", fmtN(H.t1), `in multiplex projects, ${after}`),
-    card("Heading for, without the by-law", fmtN(H.expected), `if the ${catching ? "suburbs' catch-up" : "earlier drift"} had faded`),
-    card("The estimate", signed(H.extra), `homes; range ${signed(H.extra_lo)} to ${signed(H.extra_hi)}`),
-    card("Depending on the fade", `${signed(F.stop.extra)} to ${signed(F.full.extra)}`, "stopped at the by-law, or never slowed"),
-    card("Fixed in advance", signed(M.extra), `no trend allowed for; range ${signed(M.extra_lo)} to ${signed(M.extra_hi)}`),
+    card("Buildings of five or six homes proposed", fmtN(big.sixPost), `in the eight wards since June 2025, up from ${fmtN(big.sixPre)} in the two years before`),
+    card(`${gain ? "Extra" : "Fewer"} homes: best estimate`, signed(H.extra), `about ${share}% of the ${fmtN(H.t1)} homes proposed there`),
+    card("It could plausibly be", `${signed(H.extra_lo)} to ${signed(H.extra_hi)}`, verdict === "unclear" ? "none at all can't be ruled out" : "homes"),
   ].join("");
+  $("answer-fig").innerHTML = `<h3 class="sub-h">Homes proposed in multiplexes in the eight wards, every three months</h3>`
+    + chart({ labels: pane.labels(), bars: pane.bars("six"), lines: [{ name: "Where they were heading without the new rule", color: ORANGE, dash: true, values: cut(D.expected_fading) }], fmt: fmtN, marks, height: 220 })
+    + key([["In buildings of up to four homes", LIGHT], ["In buildings of five or six", DARK], ["Where the eight wards were heading without the new rule (our estimate)", ORANGE, "line"]])
+    + `<figcaption>Each bar is three months of applications. The dark part is homes in buildings of five or six, which the new rule allows. The bars standing above the dashed line are the extra homes.</figcaption>`;
 }
 
 // ---- sixplexes arrived --------------------------------------------------------------------------------------------
 const from = Q.indexOf("2022 Q1") < 0 ? 0 : Q.indexOf("2022 Q1");
 const cut = (vs) => vs.slice(from);
-const marks = [{ at: A0 - from, label: "By-law" }];
+const marks = [{ at: A0 - from, label: "New rule" }];
 function renderCame() {
-  $("came-lede").innerHTML = `A building of five or six homes isn't allowed under the four-home rule, so it is the clearest trace of the new one. `
-    + `In the two years before the by-law the eight wards saw ${fmtN(big.sixPre)}, each needing special permission. They have seen ${fmtN(big.sixPost)} since, adding ${fmtN(total(arms.big_homes.six, A0, A1))} homes. `
-    + `The other sixteen wards had ${fmtN(big.fourPost)}. Their permits point to other routes: a minor variance, the rules for apartment buildings on major streets, or the legalizing of homes that already existed.`;
-  $("came-fig").innerHTML = `<h3 class="sub-h">Projects of five or six homes proposed, by quarter</h3>`
-    + chart({ labels: cut(Q), bars: [{ name: "The eight sixplex wards", color: BLUE, values: cut(bigBy.six) }, { name: "The other sixteen wards", color: ORANGE, values: cut(bigBy.four) }], fmt: fmtN, marks })
-    + key([["The eight sixplex wards", BLUE], ["The other sixteen wards", ORANGE]])
-    + `<figcaption>Building permit applications for houseplexes of five or six homes, by the quarter the project reached that size. Applications since refused or withdrawn are left out. The <a href="/insights/housing/">Housing page</a> counts those too, and Ward 23 with the eight: ${fmtN(big.filed)} over the same quarters.</figcaption>`;
+  $("came-lede").innerHTML = `A building of five or six homes isn't allowed under the four-home rule, so it is the clearest sign of the new one. `
+    + `In the two years before June 2025 the eight wards saw ${fmtN(big.sixPre)} proposed, each needing special permission. They have seen ${fmtN(big.sixPost)} since. `
+    + `The rest of the city had ${fmtN(big.fourPost)}, by special permission or under other rules.`;
+  $("came-fig").innerHTML = `<h3 class="sub-h">Buildings of five or six homes proposed, every three months</h3>`
+    + chart({ labels: cut(Q), bars: [{ name: "The eight wards where six are allowed", color: BLUE, values: cut(bigBy.six) }, { name: "The rest of the city", color: ORANGE, values: cut(bigBy.four) }], fmt: fmtN, marks })
+    + key([["The eight wards where six are allowed", BLUE], ["The rest of the city", ORANGE]])
+    + `<figcaption>Applications since refused or withdrawn are left out. The <a href="/insights/housing/">Housing page</a> counts those too: ${fmtN(big.filed)} over the same months.</figcaption>`;
 }
 
 // ---- more homes? ---------------------------------------------------------------------------------------------------
 function renderHomes() {
-  const smallSix = [total(arms.small_homes.six, P0, P1) / nPre, total(arms.small_homes.six, A0, A1) / nPost];
-  const smallFour = [total(arms.small_homes.four, P0, P1) / nPre, total(arms.small_homes.four, A0, A1) / nPost];
   const allSix = [M.t0 / nPre, M.t1 / nPost], allFour = [M.c0 / nPre, M.c1 / nPost];
-  const size = (a, p0, p1) => total(arms.plex_homes[a], p0, p1) / total(arms.plex_projects[a], p0, p1);
-  const change = (v) => { const r = v[1] / v[0]; return Math.abs(r - 1) < 0.1 ? "about level" : `${r > 1 ? "up" : "down"} ${Math.round(Math.abs(r - 1) * 100)}%`; };
-  $("homes-lede").innerHTML = `A sixplex adds homes only if it is built where nothing, or something smaller, would have been. If builders are putting up sixplexes in place of the fourplexes they would have built anyway, the gain is two homes a lot, not six. `
-    + `So the count that matters is every home in every multiplex project: two, three, four, five or six homes at a time.`;
-  const panel = (title, a, line) => `<figure class="panel"><h3 class="sub-h">${title}</h3>`
-    + chart({ labels: cut(Q), bars: [{ name: "In projects of up to four homes", color: LIGHT, values: cut(arms.small_homes[a]) }, { name: "In projects of five or six", color: DARK, values: cut(arms.big_homes[a]) }],
-      lines: line ? [{ name: "Heading for, the earlier trend fading", color: ORANGE, dash: true, values: cut(D.expected_fading) },
-        { name: "Heading for, no trend (fixed in advance)", color: MUTED, dash: true, values: cut(D.expected.map((v, k) => (k >= A0 ? v : null))) }] : [], fmt: fmtN, marks, height: 200 })
-    + key([["Projects of up to four homes", LIGHT], ["Projects of five or six", DARK], ...(line ? [["Heading for: the earlier trend, fading", ORANGE, "line"], ["Heading for: no trend (fixed in advance)", MUTED, "line"]] : [])]) + `</figure>`;
-  $("homes-figs").innerHTML = panel("The eight sixplex wards: homes proposed, by quarter", "six", true) + panel("The other sixteen wards", "four", false);
-  $("homes-after").innerHTML = `In the eight wards, homes in smaller projects went from ${fmtN(smallSix[0])} a quarter before the by-law to ${fmtN(smallSix[1])} after (${change(smallSix)}), and projects of five or six homes added ${fmtN(total(arms.big_homes.six, A0, A1) / nPost)} a quarter on top. `
-    + `All together: ${fmtN(allSix[0])} homes a quarter before, ${fmtN(allSix[1])} after, ${change(allSix)}. `
-    + `Over the same months the other sixteen wards, with no new rule, went from ${fmtN(allFour[0])} to ${fmtN(allFour[1])}, ${change(allFour)}, with ${Math.round((1 - total(arms.big_homes.four, A0, A1) / M.c1) * 100)}% of their homes after the by-law in projects of up to four (${change(smallFour)}). `
-    + `The average project in the eight wards grew from ${size("six", P0, P1).toFixed(1)} homes to ${size("six", A0, A1).toFixed(1)}. `
-    + `The dashed lines are two answers to where the eight wards were heading without the by-law. The grey one holds them to their average share of the two groups' homes before it. The orange one lets that share go on ${catching ? "slipping" : "drifting"} as it had been, more slowly each quarter. The next section is about the difference.`;
+  const up = (v) => { const r = v[1] / v[0]; return Math.abs(r - 1) < 0.05 ? "about the same" : `${r > 1 ? "up" : "down"} ${Math.round(Math.abs(r - 1) * 100)}%`; };
+  $("homes-lede").innerHTML = `<p>A sixplex only adds homes if it goes up where nothing, or something smaller, would have. If builders are putting up sixplexes in place of the fourplexes they had planned anyway, the gain is two homes a lot, not six. So the fair count is every home in every multiplex, large or small.</p>
+    <p>On that count the eight wards went from ${fmtN(allSix[0])} homes every three months before the new rule to ${fmtN(allSix[1])} after: ${up(allSix)}. The obvious check is the rest of the city, where the rule didn't change. It went from ${fmtN(allFour[0])} to ${fmtN(allFour[1])}: ${up(allFour)}.</p>
+    ${catching ? `<p>That looks like the eight wards did worse. But the two parts of the city were not on the same path to begin with. Multiplexes have long been common downtown. In the suburbs they were rare until 2023, and have been spreading fast since, as the chart shows. The suburbs were catching up before the new rule and would have kept catching up without it.</p>` : ""}`;
+  $("homes-fig").innerHTML = `<h3 class="sub-h">Homes proposed in multiplexes, every three months</h3>`
+    + chart({ labels: cut(Q), lines: [{ name: "The eight wards where six are allowed", color: BLUE, values: cut(arms.plex_homes.six) }, { name: "The rest of the city", color: ORANGE, values: cut(arms.plex_homes.four) }], fmt: fmtN, marks, height: 200 })
+    + key([["The eight wards where six are allowed", BLUE, "line"], ["The rest of the city (sixteen wards)", ORANGE, "line"]])
+    + `<figcaption>The rest of the city starts near zero, passes the eight wards in 2024 and keeps climbing. Four homes were allowed everywhere from May 2023.</figcaption>`;
+  $("homes-after").innerHTML = `So the question is not whether the eight wards kept up with the suburbs, but whether they did better than they were heading for. `
+    + `Before the new rule they were ${catching ? "slipping" : "gaining"} against the rest of the city by about ${Math.abs(H.slope).toFixed(0)}% every three months. Our estimate assumes that would have continued but gradually slowed, since a catch-up can't run forever. `
+    + `On that path the eight wards were heading for about ${about(H.expected)} homes. They got ${fmtN(H.t1)}.`;
+}
+
+// ---- how sure? the answer under each assumption about the catch-up ---------------------------------------------------
+function renderSure() {
+  const one = check("oneyear");
+  const rows = [
+    { name: `${catching ? "The suburbs' catch-up" : "The earlier drift"} slowed gradually (our estimate)`, v: H.extra, lo: H.extra_lo, hi: H.extra_hi, main: true },
+    { name: "It kept going at full speed", v: F.full.extra },
+    { name: "It stopped when the rule changed", v: F.stop.extra },
+    { name: "It had already stopped a year earlier", v: one.extra },
+    { name: "It was never happening", v: M.extra },
+  ];
+  const vals = rows.flatMap((r) => [r.v, r.lo, r.hi]).filter((v) => v != null);
+  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals), pad = (hi - lo) * 0.06;
+  const x = (v) => (((v - (lo - pad)) / (hi - lo + 2 * pad)) * 100).toFixed(2);
+  const positive = rows.filter((r) => r.v > 0).length;
+  $("sure-lede").innerHTML = `<p>Two things make the estimate uncertain.</p>
+    <p><b>First, nobody knows how the catch-up would have gone on.</b> We assumed it would slow gradually, halving its pace every ${halfLife}. Here is the answer under that and four other assumptions.</p>`;
+  $("sure").innerHTML = `<ol class="sx-checks">${rows.map((r) => `<li${r.main ? ' class="main"' : ""}><span class="sx-name">${r.name}</span>
+      <span class="sx-track" data-tip="${escapeHTML(`${r.name}<br><b>${signed(r.v)}</b> homes${r.main ? `<br>Plausible range ${signed(r.lo)} to ${signed(r.hi)}` : ""}`)}"><span class="sx-one" style="left:${x(0)}%"></span>${r.main ? `<span class="sx-range" style="left:${x(r.lo)}%;width:${(x(r.hi) - x(r.lo)).toFixed(2)}%"></span>` : ""}<span class="sx-dot" style="left:${x(r.v)}%"></span></span>
+      <span class="sx-val">${signed(r.v)}</span></li>`).join("")}
+    <li class="sx-axis" aria-hidden="true"><span class="sx-name"></span><span class="sx-track"><span style="left:${x(0)}%">no extra homes</span></span><span class="sx-val"></span></li></ol>`;
+  const pct = Math.round(H.p * 100), inN = pct > 0 ? Math.round(100 / pct) : null;
+  $("sure-after").innerHTML = `<p>${positive >= rows.length - 1 && M.extra <= 0 ? `Every assumption but the last gives a gain. The last ignores the catch-up altogether, and it fails basic tests (see the appendix).` : `${word(positive)} of the ${word(rows.length)} give a gain.`}</p>`
+    + `<p><b>Second, eight wards is not many, and wards differ.</b> The blue bar is the plausible range for our estimate. To set it, we ran the same sums on every possible group of eight wards, as if each had been the ones with the new rule. `
+    + `${pct >= 1 ? `About one in ${inN <= 20 ? word(inN) : inN} of those made-up groups` : "Almost none of those made-up groups"} showed a gap as large as the real one. ${pct >= 10 ? "That is too common to call the result certain." : "That is uncommon enough to take the result seriously."} `
+    + `More months of data will narrow the range.</p>`;
 }
 
 // ---- the estimate --------------------------------------------------------------------------------------------------
@@ -127,7 +151,7 @@ function renderEstimate() {
   const rel = D.relative.slice(P0), path = (k) => D.paths[k];
   const row = (name, e, note) => `<tr><th>${name}</th><td>${fmtN(e.expected)}</td><td>${signed(e.extra)}</td><td class="txt">${note}</td></tr>`;
   const one = check("oneyear");
-  $("est").innerHTML = `<p>The rest of the city stands in for what the eight wards would have done without the by-law. The simplest version of that says the eight would have kept pace with the sixteen. But they hadn't been keeping pace: in the two years before the by-law, the eight wards' homes ${catching ? "fell" : "rose"} against the sixteen's by about ${Math.abs(H.slope).toFixed(0)}% a quarter${catching ? ", because multiplexes were new to the suburbs in 2023 and long familiar downtown" : ""}. A comparison that ignores this finds a "loss" that began before the by-law did.</p>
+  $("est").innerHTML = `<p>The rest of the city stands in for what the eight wards would have done without the by-law. The chart puts the two groups on one line: the eight wards' homes divided by the sixteen's.</p>
     <figure class="panel"><h3 class="sub-h">The eight wards against the other sixteen (1 = their average standing before the by-law)</h3>`
     + chart({ labels: Q.slice(P0), lines: [
       { name: "The trend before", color: MUTED, values: path("fitted") },
@@ -248,19 +272,19 @@ function renderWards() {
     return `<tr${w.arm === "six" ? ' class="sel"' : ""}><th>${escapeHTML(w.name)} <span class="small">${+w.ward}</span></th><td class="txt">${rule[w.arm]}</td><td>${a.toFixed(1)}</td><td>${b.toFixed(1)}</td><td>${w.pre >= 8 ? `${b >= a ? "+" : "−"}${Math.round(Math.abs(b / a - 1) * 100)}%` : "—"}</td><td>${w.big_post}</td></tr>`;
   }).join("")}</tbody>
     <caption>Before: ${before}. After: ${after}. A change isn't given where a ward had fewer than eight homes proposed before.</caption>`;
+  $("others-fig").innerHTML = `<h3 class="sub-h">The other sixteen wards: homes proposed, by quarter</h3>`
+    + chart({ labels: pane.labels(), bars: pane.bars("four"), fmt: fmtN, marks, height: 200 })
+    + key([["In buildings of up to four homes", LIGHT], ["In buildings of five or six", DARK]]);
 }
 
 // ---- what this can't show, and how it was done ------------------------------------------------------------------------
 function renderCant() {
   $("cant").innerHTML = [
-    `<b>Whether homes get built.</b> These are permit applications. Some will be refused or withdrawn, some approved and never built, and a multiplex takes a year or more to finish. The first sixplexes proposed under the by-law are mostly not yet lived in.`,
-    `<b>The long run.</b> The by-law is ${nPost * 3} months old in this data. Builders needed time to design for it, and an early rush or a slow start would both mislead.`,
-    `<b>What the eight wards would have done.</b> They weren't picked at random. They are the old city: smaller lots, older houses, more transit, dearer land and a longer history of duplexes and triplexes. The rest of the city is the best stand-in available, and it was on a path of its own. The estimate allows for that path with an assumption about how it would have gone on, which can't be checked.`,
-    `<b>The zoning alone.</b> In July 2025 Council also waived development charges and parkland levies on multiplexes of up to six homes. The estimate is of everything that changed for these projects that summer, together.`,
-    `<b>Where builders would otherwise have gone.</b> If the by-law drew small builders from the suburbs into the eight wards, the gap overstates what the city gained. Owners outside the eight wards also got five or six homes by other routes (${fmtN(big.fourPost)} projects), which narrows the gap between the groups.`,
-    `<b>How many homes a project really adds.</b> A project's homes are the dwelling units its permit says it creates. ${fmtN(D.counted["projects on the list with no homes created on a permit"])} projects on the list state none and add nothing here, and the City's counts are not audited. Counting each building's full size, which includes homes already there, is one of the checks above.`,
-    `<b>Anything about who lives there.</b> Nothing here bears on rents, prices, who can afford the homes, what was demolished, trees, parking or what neighbours think.`,
-    `<b>What Council should do.</b> A number of homes proposed is one input to a decision about zoning, and this one is uncertain.`,
+    `<b>Whether the homes get built.</b> These are applications. Some will be refused or dropped, and a multiplex takes a year or more to finish.`,
+    `<b>The long run.</b> The rule is ${nPost * 3} months old in this data. An early rush or a slow start would both mislead.`,
+    `<b>The zoning on its own.</b> A month later Council also waived development charges on these buildings. The estimate is of both changes together.`,
+    `<b>Whether the city as a whole gained.</b> If the rule drew builders downtown who would otherwise have built in the suburbs, some of the gain is homes moved, not homes added.`,
+    `<b>Anything about who lives there.</b> Nothing here bears on rents, prices, what was demolished, or what neighbours think.`,
   ].map((t) => `<li>${t}</li>`).join("");
 }
 
@@ -280,6 +304,9 @@ function renderHow() {
     <li><b>Fixed in advance, mostly.</b> The outcome, the wards, the periods, the estimate, the checks and the placebos were written down on ${day(D.fixed)}, before any estimate was computed, but after rough counts of permits by size and half-year had been looked at for each group of wards. A check that carried the earlier trend forward was added after the first results.</li>
     <li><b>The headline changed, after the results.</b> On ${day(D.changed)} the author made the trend the headline, fading, in place of the estimate fixed in advance, with both sets of results in view. The first estimate, its range, its checks and its placebos are all still on this page, under "The comparison fixed in advance".</li>
     <li><b>Rebuilt once, after the first results.</b> The first version counted projects its own way: permits of the City's "3+ Unit" types, placed by address, with a project of "five or six" one that added that many homes. On ${day(D.rebuilt)} it was rebuilt on the Housing page's list so that the two pages count the same projects. The outcome, wards, periods, estimate and range stayed as fixed. The estimate fixed in advance moved from ${signed(D.before_rebuild.extra)} homes (range ${signed(D.before_rebuild.extra_lo)} to ${signed(D.before_rebuild.extra_hi)}) to ${signed(M.extra)} (${signed(M.extra_lo)} to ${signed(M.extra_hi)}). Two checks changed with it: "a wider definition" became "new buildings only", and "the building's homes" was added.</li>
+    <li><b>The eight wards weren't picked at random.</b> They are the old city: smaller lots, older houses, more transit, dearer land and a longer history of duplexes and triplexes. The rest of the city is the best stand-in available, and it was on a path of its own.</li>
+    <li><b>How many homes a project adds</b> is what its permit says. ${fmtN(D.counted["projects on the list with no homes created on a permit"])} projects on the list state none and add nothing here, and the City's counts are not audited. Owners outside the eight wards also got five or six homes by other routes (${fmtN(big.fourPost)} projects), which narrows the gap between the groups.</li>
+    <li><b>The development-charge waiver</b> of July 2025 is dated here from news reports, not from a Council record.</li>
     <li><b>It will move.</b> The page is rebuilt when the permit files are refreshed, each quarter adding to "after". Later revisions, refusals and withdrawals change earlier quarters too.</li>
   </ul>
   <p>The code is <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex.py"><code>pipeline/sixplex.py</code></a> (the counts) and <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex_insights.py"><code>pipeline/sixplex_insights.py</code></a> (the estimates), and the table of homes by ward and month is <a href="https://github.com/vrraiv/sixfigures/tree/main/pipeline/sixplex">in the repository</a>.</p>`;
@@ -289,6 +316,7 @@ renderMap();
 renderAnswer();
 renderCame();
 renderHomes();
+renderSure();
 renderEstimate();
 renderPlan();
 renderChecks();

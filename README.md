@@ -341,11 +341,12 @@ before (2023 Q3 to 2025 Q2) and after. The other wards were gaining on the eight
 the by-law, so the estimate carries that trend on, fading (its pace halving every year: an
 assumption, stated as one), and counts the homes beyond where the eight were heading. Its
 range comes from a permutation test over every choice of 8 wards of 24, with the trend
-refitted in each. The page shows the projects of five or six homes that followed the
-by-law, the homes in smaller and larger projects in each group of wards, the trend and
-the ways of carrying it on, the estimate and its range, the comparison fixed in advance
-(no trend: a difference in differences of ratios) with its own range, the placebos for
-both, each check, and every ward. As of 2026 Q3 the estimate is about 250 more homes, with
+refitted in each. The page opens with the answer in plain words and one chart, then the
+buildings of five or six homes that followed the by-law, why the rest of the city isn't a
+like-for-like comparison, and how sure the answer is under five assumptions about the
+catch-up. A technical appendix, closed until opened, holds how the estimate is made, the
+comparison fixed in advance (no trend: a difference in differences of ratios) with its
+range, the placebos for both, each check, every ward, and the definitions. As of 2026 Q3 the estimate is about 250 more homes, with
 a range from about 140 fewer to about 490 more: a gain on the best estimate, and not
 distinguishable from none. It runs from about 100 more if the catch-up stopped at the
 by-law to about 310 if it never slowed; the comparison fixed in advance gives about 130
