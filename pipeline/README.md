@@ -388,6 +388,41 @@ out, and 352 outside the neighbourhoods. The docstring has the owner groups.
   is Cedarvale, VMC). 95.8% of delays match a station; the rest are Line 3's closed stations,
   stretches between stations and yards. Codes go to ten cause groups (`CAUSES`).
 
+## Sixplex zoning (`sixplex.py`, `sixplex_insights.py`)
+
+`make sixplex-data` runs `pipeline/sixplex.py`, which takes the Housing page's list of
+houseplex projects (`pipeline/multiplex/projects.csv`, from `multiplex.py`) and counts the
+homes they add by ward and month (`pipeline/sixplex/by_ward_month.csv`, with the wards'
+outlines and arms in `wards.json`). `make sixplex` runs `pipeline/sixplex_insights.py`,
+which writes the experiment's `web/public/sixplex.json` from that table alone. Its
+docstring is the design. The multiplex part of the data refresh runs both after
+`multiplex.py`.
+
+- **One list of projects, two counts of homes.** `projects.csv` gives a building's size
+  (a duplex made into a fourplex is 4). The experiment asks what was added, so a project's
+  homes are the `DWELLING_UNITS_CREATED` on its building permit (2), taken from the permit
+  of the application that creates the most, since companions repeat the count. 65 projects
+  on the list state no units created and add nothing. The building's size is kept as a
+  check (`building_homes`): it gives a lower estimate, because it counts the homes
+  conversions already had, and conversions are most of the eight wards' projects.
+- **The files keep each revision**, with its own application date and unit count. Each
+  revision's change in units is dated by the revision; otherwise a 2024 fourplex revised
+  to six in 2026 would put six homes before the by-law.
+- **A permit's first row isn't always its first application.** For some closed permits
+  the files hold only a later revision, dated when the revision was applied for. Permit
+  numbers run in order through a year, so those are dated where their number falls among
+  the year's permits whose first application is in the files (`origins`: within half a
+  day for nine in ten permits whose date is known). On the list's projects this moves 2,
+  because `multiplex.py` already takes the earliest date among an application's permits.
+- **Wards are the permit's** (`WARD_GRID`, as in `multiplex.py`), so every project has
+  one. The script stops if the ward file's names differ from `multiplex.py`'s.
+- **Ward 23 is in neither group here**, though `multiplex.py`'s `sixplex_area` includes
+  it: it got six homes five months before the others.
+- **Dropped applications** (refused, withdrawn, cancelled: `multiplex.py`'s status) are
+  left out, and older ones have had longer to drop: `filed_homes` keeps them, for a check.
+- **Two placebo series** come straight from the permit files: laneway and garden suites,
+  and new detached houses.
+
 ## Forecast backtests
 
 `make forecast` runs `pipeline/forecast/schools.py` (one-year forecasts of each

@@ -152,6 +152,33 @@ test("Neighbourhood Explorer: every neighbourhood has a share of runs with each 
   assert.deepEqual(bad, [], list(bad));
 });
 
+// The Sixplex experiment (pipeline/sixplex_insights.py): every ward in one group, the estimate
+// what its four totals give, inside its own range, and the totals those of the quarterly series.
+test("the sixplex estimate follows from its counts and sits inside its range", () => {
+  const d = json(`${PUBLIC}/sixplex.json`);
+  const arms = Object.groupBy(d.wards, (w) => w.arm);
+  assert.deepEqual([d.wards.length, arms.six.length, arms.four.length, arms.early.length], [25, 8, 16, 1]);
+  assert.deepEqual(arms.six.map((w) => +w.ward), [4, 9, 10, 11, 12, 13, 14, 19]);
+  const m = d.main, [p0, p1] = d.pre, [a0, a1] = d.post;
+  assert.equal(d.quarters[p0], "2023 Q3");
+  assert.equal(d.quarters[a0], "2025 Q3");
+  assert.equal(a1, d.quarters.length - 1);
+  const total = (vs, a, b) => vs.slice(a, b + 1).reduce((s, v) => s + v, 0);
+  assert.equal(total(d.arms.plex_homes.six, p0, p1), m.t0);
+  assert.equal(total(d.arms.plex_homes.six, a0, a1), m.t1);
+  assert.equal(total(d.arms.plex_homes.four, a0, a1), m.c1);
+  assert.equal(arms.six.reduce((s, w) => s + w.post, 0), m.t1);
+  for (const k of ["six", "four", "early"]) {
+    d.arms.plex_homes[k].forEach((v, q) => assert.equal(v, d.arms.small_homes[k][q] + d.arms.big_homes[k][q], `${k} ${d.quarters[q]}: small and big homes add up`));
+  }
+  const expected = (m.t0 * m.c1) / m.c0;
+  assert.ok(Math.abs(m.expected - expected) < 0.06 && Math.abs(m.extra - (m.t1 - expected)) < 0.06, "the extra homes are those beyond the other wards' pace");
+  assert.ok(m.lo <= m.ratio && m.ratio <= m.hi && m.extra_lo <= m.extra && m.extra <= m.extra_hi, "the estimate is inside its range");
+  assert.ok(m.p > 0 && m.p <= 1);
+  assert.equal(d.leave.length, 24);
+  assert.deepEqual(d.checks.filter((c) => c.late).map((c) => c.key), ["trend"]);
+});
+
 test("Housing multiplexes: whole months, the wards add to the city, the sixplex wards are the by-law's", () => {
   const { multiplex: m } = json(`${PUBLIC}/housing.json`);
   // every number in a nest of objects and arrays, summed

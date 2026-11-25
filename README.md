@@ -31,8 +31,9 @@ measure can be mapped, ranked and set against any other. On the site you can:
   2006, and which of nine kinds of neighbourhood each one is.
 - **Look up one neighbourhood**: each of the 158 has its own page of figures, `/n/<name>/`,
   listed A–Z at `/n/`.
-- **See where the numbers might go** in the Forecasts, an experiment in predicting school
-  results and home values that publishes its own errors.
+- **Follow the experiments**, which test how much the data can be made to say: forecasts of
+  school results and home values, and an estimate of what sixplex zoning has added so far,
+  each published with its range and its own errors.
 
 Everything comes from public sources, credited on each page and listed in the
 [data catalogue](docs/data-catalogue.md). The figures can be downloaded, and the code that
@@ -56,16 +57,17 @@ across the City of Toronto's dissemination areas (DAs) in the 2016 and 2021 cens
 the change between them. Hover for values, click for detail, or search for a Toronto
 address, intersection or neighbourhood to jump there. Around it are pages on schools, housing, sale
 prices, safety and trees by neighbourhood, two explorers that work across all of them,
-and forecasts. (The map was at `/` until the landing page took that address; the landing
+and experiments (forecasts, and a study of sixplex zoning). (The map was at `/` until the landing page took that address; the landing
 page sends old map links, such as `/#m=rent&y=2021`, on to `/census/`.)
 
 Every page carries the same header: a small map of the city and the site's name, two rows
 of links, and Home and About. **Topics** has the pages about one subject (Census, Schools,
 Housing, Sale prices, Safety, Trees, Getting around); **Tools** the pages that work across subjects (Data
-Explorer, Neighbourhood Explorer, Forecasts). A section with pages of its own shows them
+Explorer, Neighbourhood Explorer, Experiments). A section with pages of its own shows them
 in a third row: Census has the 2021 · 2016 map, the 2011 map and Census Insights;
 the Neighbourhood Explorer has Compare and A–Z (the neighbourhood pages count as A–Z's);
-Forecasts has Method, Schools and Dwelling value. On phones the links fold behind a Menu
+Experiments has About, Forecast method, School forecasts, Dwelling-value forecasts and
+Sixplex zoning. On phones the links fold behind a Menu
 button. The header is defined once, in `scripts/site-nav.mjs`, and written into each page
 at build time (`vite.config.js`); a page holds only a `<!-- site-header -->` comment, and
 a new page is added to the header there (`npm test` checks every built page is in it).
@@ -324,6 +326,35 @@ data is `web/public/neighbourhoods.json` (`pipeline/affinity.py`, `make neighbou
 after `make explorer`), where the choice of method is recorded; the code is
 `web/src/neighbourhoods.js`, which works the affinity out in the browser.
 
+Experiments, `/experiments/`, introduces the pages that ask more of the data than the rest
+of the site does: what they are, how they are run (the method written down first, a range
+with every number, failures published) and how to read them. They are the forecasts and
+the sixplex study below; the forecasts keep their `/forecasts/` addresses.
+
+Sixplex zoning, `/experiments/sixplex/`, asks whether the June 2025 by-law that allowed
+six homes on a lot in eight wards (the Toronto and East York district), leaving sixteen at
+four, has added homes. Its projects are the Housing page's list of houseplexes
+(`pipeline/multiplex/projects.csv`), so the two pages count the same ones; its homes are
+the dwelling units each project's permit creates, by ward and quarter, each dated by the
+application or revision that proposed it. It compares the eight wards with the sixteen
+before (2023 Q3 to 2025 Q2) and after: a difference in differences of ratios, with a range
+from a permutation test over every choice of 8 wards of 24, eleven checks and three
+placebos. It shows the projects of five or six homes that followed the by-law, the homes
+in smaller and larger projects in each group of wards, the estimate and its range, the
+trend before the by-law that undermines the comparison, each check, and every ward. As of
+2026 Q3 the estimate is no measurable effect (a range from about 540 fewer homes to about
+170 more), and a check that carries the earlier trend forward gives about 310 more. What
+it can't show: whether the homes get built (these are applications), the long run (five
+quarters), the zoning apart from the development-charge waiver passed a month later, or
+what the eight wards, which weren't chosen at random, would have done otherwise. Ward 23,
+which got six homes earlier under its own by-law, is in neither group (the Housing page,
+which describes where six are allowed, counts it with the eight). The design is in
+`pipeline/sixplex_insights.py`'s docstring, with the date it was fixed and how it was
+rebuilt on the Housing page's list. Its data is `web/public/sixplex.json`
+(`pipeline/sixplex_insights.py`, `make sixplex`), from `pipeline/sixplex/`
+(`pipeline/sixplex.py`, `make sixplex-data`); the code is `web/src/sixplex.js`. It is by
+ward, so it adds nothing to the two Explorers.
+
 Forecasts are an exercise in how far public data can be pushed, not advice, and each
 forecast page opens by saying so. Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
 the rungs, the backtests, the decision rule and the ranges), with a page for each
@@ -539,8 +570,8 @@ own tests (`pipeline/tests/`), and both run on every pull request
 
 Every dataset, its publisher's update cadence, what the site holds now and how to refresh
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
-(a monthly run for Getting around and multiplexes, a quarterly run for TRREB, Inside Airbnb and the City's street
-trees and tree points, two annual
+(a monthly run for Getting around and multiplexes, with the Sixplex zoning experiment, a quarterly run for TRREB,
+Inside Airbnb and the City's street trees and tree points, two annual
 runs, and the 2026 Census releases).
 The monthly and quarterly runs and the yearly police and housing refreshes are automated: the Data
 refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that

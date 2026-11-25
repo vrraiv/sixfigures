@@ -27,7 +27,9 @@ The parts (each downloads its inputs, then rebuilds its committed outputs):
 
   multiplex  the City's building permits (cleared since 2017, active) and address
            points: houseplexes of 3 to 6 units applied for, to the last whole
-           month (multiplex.py). Monthly, on the 18th, with transport
+           month (multiplex.py), and from that list the homes proposed by ward
+           and month for the Sixplex zoning experiment (sixplex.py). Monthly, on
+           the 18th, with transport
 
   trees    the City's street-tree inventory, updated a few times a year (trees.py
            --street-trees: the street-tree figures alone, leaving canopy and heat as
@@ -44,8 +46,8 @@ A part counts as changed when its data does (each part's "data" below), not just
 manifest's retrieval dates: an unchanged part is put back as it was, so a run with
 nothing new leaves no diff. For rentals that means a new scrape. The pages that read
 a changed part are then rebuilt, in order (price_insights.py, housing_insights.py,
-safety_insights.py, trees_insights.py, transport_insights.py), and after them the two
-explorers (explorer_data.py, affinity.py). The kinds of neighbourhood are locked
+safety_insights.py, trees_insights.py, transport_insights.py, sixplex_insights.py), and after
+them the two explorers (explorer_data.py, affinity.py). The kinds of neighbourhood are locked
 (pipeline/kinds/), so this never regroups or renames them.
 
 The City's files a part reads are fetched fresh once per run ("toronto"), or only if
@@ -124,11 +126,14 @@ PARTS = {
     "multiplex": {
         "label": "Multiplexes (houseplexes on building permits)",
         "toronto": ["toronto_permits_cleared_2017.csv", "toronto_permits_active.csv", "toronto_address_points_4326.csv"],
-        "build": [["multiplex.py"]],
-        "dirs": ["pipeline/multiplex"],
+        # sixplex.py: the closed permit file (permits.py's loader reads all three) and the wards' outlines
+        "toronto_once": ["toronto_permits_cleared_2000_2016.csv", "toronto_wards_4326.geojson"],
+        # sixplex.py reads multiplex.py's list: the Sixplex zoning experiment's table, by ward and month
+        "build": [["multiplex.py"], ["sixplex.py"]],
+        "dirs": ["pipeline/multiplex", "pipeline/sixplex"],
         # a new month of applications, or a project revised or given a permit since the last run
-        "data": ["pipeline/multiplex/projects.csv"],
-        "pages": ["housing_insights.py"],
+        "data": ["pipeline/multiplex/projects.csv", "pipeline/sixplex/by_ward_month.csv"],
+        "pages": ["housing_insights.py", "sixplex_insights.py"],
     },
     "trees": {
         "label": "Trees (the City's street-tree inventory and tree points)",
@@ -154,7 +159,8 @@ PARTS = {
         "pages": ["transport_insights.py"],
     },
 }
-PAGE_ORDER = ["price_insights.py", "housing_insights.py", "safety_insights.py", "trees_insights.py", "transport_insights.py"]
+PAGE_ORDER = ["price_insights.py", "housing_insights.py", "safety_insights.py", "trees_insights.py", "transport_insights.py",
+              "sixplex_insights.py"]
 EXPLORERS = ["explorer_data.py", "affinity.py"]
 # every run: the neighbourhood outlines the page scripts draw (school_insights.paths)
 COMMON_ONCE = ["toronto_neighbourhoods_4326.geojson"]

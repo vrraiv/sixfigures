@@ -58,16 +58,17 @@ export default defineConfig({
     __NEIGHBOURHOODS_VERSION__: JSON.stringify(version("web/public/neighbourhoods.json")),
     __TREES_DA_VERSION__: JSON.stringify(version("web/public/trees_da.json")),
     __FORECASTS_VERSION__: JSON.stringify(version("web/public/forecasts.json")),
+    __SIXPLEX_VERSION__: JSON.stringify(version("web/public/sixplex.json")),
     __SEARCH_VERSION__: JSON.stringify(version("web/public/search.json")),
     __FIGURES_VERSION__: JSON.stringify(FIGURES_VERSION),
   },
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Seventeen pages (each also listed in scripts/site-nav.mjs): / (the landing page) and /about/, /census/ (2016 and 2021), /2011/,
+    // Nineteen pages (each also listed in scripts/site-nav.mjs): / (the landing page) and /about/, /census/ (2016 and 2021), /2011/,
     // the Insights pages /insights/ (census), /insights/schools/, /insights/housing/, /insights/prices/, /insights/safety/, /insights/trees/, /insights/transport/,
-    // /insights/explorer/ and /insights/neighbourhoods/ with its index of neighbourhoods /n/, and the Forecasts pages /forecasts/ (method), /forecasts/schools/ and /forecasts/value/.
-    rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", transport: "web/insights/transport/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html", nbindex: "web/n/index.html",
+    // /insights/explorer/ and /insights/neighbourhoods/ with its index of neighbourhoods /n/, and the Experiments pages /experiments/ (about them), /forecasts/ (method), /forecasts/schools/, /forecasts/value/ and /experiments/sixplex/.
+    rollupOptions: { input: { home: "web/index.html", about: "web/about/index.html", main: "web/census/index.html", 2011: "web/2011/index.html", insights: "web/insights/index.html", schools: "web/insights/schools/index.html", housing: "web/insights/housing/index.html", prices: "web/insights/prices/index.html", safety: "web/insights/safety/index.html", trees: "web/insights/trees/index.html", transport: "web/insights/transport/index.html", explorer: "web/insights/explorer/index.html", neighbourhoods: "web/insights/neighbourhoods/index.html", forecasts: "web/forecasts/index.html", fcschools: "web/forecasts/schools/index.html", fcvalue: "web/forecasts/value/index.html", experiments: "web/experiments/index.html", sixplex: "web/experiments/sixplex/index.html", nbindex: "web/n/index.html",
       // and the 158 neighbourhood pages, /n/<slug>/ (scripts/nbhd-pages.mjs)
       ...NBHD_PAGES } },
   },

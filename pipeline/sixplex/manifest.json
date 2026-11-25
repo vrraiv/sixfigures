@@ -1,0 +1,25 @@
+{
+ "retrieved": "2026-11-24",
+ "projects_retrieved": "2026-11-23",
+ "files": {
+  "toronto_permits_active.csv": 66454675,
+  "toronto_permits_cleared_2000_2016.csv": 155623064,
+  "toronto_permits_cleared_2017.csv": 153736216
+ },
+ "months": [
+  "2021-01",
+  "2026-10"
+ ],
+ "counted": {
+  "projects counted": 1585,
+  "projects on the list with no homes created on a permit": 65,
+  "projects whose homes changed with a revision": 87,
+  "projects revised from four or fewer homes to five or six": 20,
+  "projects dated before their first row in the files": 2
+ },
+ "first_applications": {
+  "dated_by_number": 633,
+  "median_error_days": 0.0,
+  "p90_error_days": 0.4
+ }
+}

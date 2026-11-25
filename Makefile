@@ -249,6 +249,21 @@ price-insights: $(PRICEINS)
 $(PRICEINS): pipeline/price_insights.py pipeline/housing_insights.py pipeline/school_insights.py
 	$(PYTHON) pipeline/price_insights.py
 
+# The Sixplex zoning experiment (Experiments). `make sixplex-data` counts the homes proposed in
+# multiplex projects by ward and month, from `make multiplex`'s list of projects, the City's
+# permit files and its wards (pipeline/sixplex/, committed); `make sixplex` writes the page's
+# sixplex.json from that table, with no raw file. Its inputs aren't prerequisites, as for the
+# other pages. `make refresh-multiplex` does all of it with fresh files.
+SIXPLEX := web/public/sixplex.json
+.PHONY: sixplex sixplex-data
+sixplex-data: $(PERMITRAW) $(RAW)/toronto_wards_4326.geojson pipeline/multiplex/projects.csv
+	$(PYTHON) pipeline/sixplex.py
+
+sixplex: $(SIXPLEX)
+
+$(SIXPLEX): pipeline/sixplex_insights.py pipeline/sixplex/by_ward_month.csv pipeline/sixplex/wards.json
+	$(PYTHON) pipeline/sixplex_insights.py
+
 # 2006 Census on the 158 neighbourhoods (a model input). insights.py adds its comparable
 # measures to insights.json; since this reads insights.json, its output isn't a prerequisite
 # there (a cycle): after `make census2006`, run `python pipeline/insights.py`. The
