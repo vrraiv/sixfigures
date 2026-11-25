@@ -106,7 +106,7 @@ Open Government Licence – Ontario.
 | Data | Upstream | On the site | Used by | Refresh with |
 |---|---|---|---|---|
 | Building permits, cleared (2000-2016, since 2017) and active | daily | retrieved 2026-10-30 (2026 partial) | Housing, the explorers, New building theme | **automated** (March). By hand: `download.py --toronto … --fresh`; `make permits` |
-| The same building permit files, by ward and month: homes proposed in multiplex projects, dated by application or revision (`pipeline/sixplex/`) | daily | whole months to 2026-10 (retrieved 2026-11-24) | Sixplex zoning (Experiments) | **automated** (quarterly). By hand: `make refresh-sixplex`, or `make sixplex-data` then `make sixplex` |
+| Homes proposed in multiplex projects by ward and month (`pipeline/sixplex/`): the projects of `pipeline/multiplex/projects.csv`, with the dwelling units each creates from the building permit files, dated by application or revision | daily | whole months to 2026-10 | Sixplex zoning (Experiments) | **automated** (monthly, with multiplexes: `make refresh-multiplex`). By hand: `make sixplex-data` then `make sixplex` |
 | Development applications; apartment building registration; rental demolition and replacement; affordable rental pipeline | daily to quarterly | retrieved 2026-10-30 | Housing, the explorers | **automated** (March). By hand: `download.py --toronto … --fresh`; `make city` |
 | Multiplexes: houseplexes of 3 to 6 units read from the building permits (cleared since 2017, active), with the address points | daily | applications January 2017 to October 2026 (whole months; retrieved 2026-11-23) | Housing (multiplex section, neighbourhood measure), the Data Explorer | **automated** (monthly, the 18th). By hand: `make refresh-multiplex`, or `download.py --toronto toronto_permits_cleared_2017.csv toronto_permits_active.csv toronto_address_points_4326.csv --fresh`; `make multiplex`; `make housing-insights` |
 | CMHC starts, completions and under construction by census subdivision | monthly | to September 2026 | Housing | `make cmhc` (fetches new months itself) |
@@ -210,13 +210,6 @@ mid-June, Q2 by early October, Q3 by mid-December), and Inside Airbnb has posted
 latest scrape. A run before TRREB posts finds nothing new for prices, and the next one
 picks the quarter up; a run with nothing new at all opens no pull request. What it does
 (`make refresh-quarterly` by hand):
-
-- Sixplex zoning: fetch the building permit files, recount the homes proposed in multiplex
-  projects by ward and month (`sixplex.py`) and rebuild the experiment's page
-  (`sixplex_insights.py`; `make refresh-sixplex` by hand, alone). The page compares whole
-  quarters, so the March run adds Q4, June's Q1 and October's Q2 and Q3. A run nearly
-  always finds a change, since revisions, refusals and withdrawals move earlier months
-  too. The page is by ward, so the explorers aren't rebuilt for it.
 
 0. Trees: fetch the City's street-tree inventory and redo the street-tree figures alone
    (`trees.py --street-trees`; canopy and heat aren't touched), and fetch its tree points

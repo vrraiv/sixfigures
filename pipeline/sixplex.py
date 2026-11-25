@@ -2,8 +2,11 @@
 
     python pipeline/sixplex.py
 
-Reads the City's building permit files (the three permits.py reads), its address
-points and its ward boundaries, and writes pipeline/sixplex/:
+Reads pipeline/multiplex/projects.csv (multiplex.py: the Housing page's list of
+houseplex projects of three to six units, so that the two pages count the same
+projects), the City's building permit files (for the homes each project adds, two
+placebo series and the dates of first applications) and its ward boundaries, and
+writes pipeline/sixplex/:
 
   by_ward_month.csv  ward, month, then for each series the homes proposed and, for
                      some, the projects (see SERIES): every ward and every whole
@@ -11,61 +14,60 @@ points and its ward boundaries, and writes pipeline/sixplex/:
                      every ward has houses a multiplex could replace)
   wards.json         the 25 wards: number, name, arm (see below), whether a ward of
                      the rest of the city borders the sixplex wards, and an outline
-  manifest.json      retrieval date, file sizes, the months covered, what was left
-                     out and how much, and how the permits were placed
+  manifest.json      retrieval dates, the months covered, what was counted and how
+                     first applications were dated
 
 On 25-26 June 2025 City Council allowed up to six homes in a house-scale building
 in the Toronto and East York district (wards 4, 9, 10, 11, 12, 13, 14 and 19: arm
-"six") and left the rest of the city at the four allowed everywhere since 10 May
-2023 (arm "four"). Ward 23 (arm "early") got six under its own by-law on 5 February
-2025, so it belongs with neither.
+"six") and left the rest of the city at the four allowed everywhere since May 2023
+(arm "four"). Ward 23 (arm "early") got six under its own by-law on 5 February
+2025, so it belongs with neither. (multiplex.py's `sixplex_area` puts Ward 23 with
+the eight: the Housing page describes where six are allowed, this compares.)
 
-What is counted. A multiplex project is a building permit whose structure type is
-one of the City's "3+ Unit" types or "Triplex" (MULTIPLEX). Its homes are the
-dwelling units it creates: net of the homes already there, so a house converted to
-six shows 5. The files keep a row for each revision of a permit, each with its own
-application date and unit count, so homes are dated by when they were proposed: a
-permit's first row counts its units in the month of its application, and each later
-revision counts the change in its units in the month of the revision. A fourplex
-applied for in 2024 and revised to six homes in 2026 is 4 homes in 2024 and 2 in
-2026. (permits.py's totals take a permit's latest revision; that would move those 2
-homes to before the by-law.)
+What is counted. A project is a row of projects.csv: an application that builds or
+converts to a houseplex of three to six homes, its size read from the permit's
+proposed use or description (multiplex.py has the rules), in the ward its permit
+names (WARD_GRID). Its homes are the homes it adds: the dwelling units created on
+its building permit, so a duplex made into a fourplex is 2, where the building's
+size (projects.csv's `units`) would make it 4 and count the homes already there.
+An application's permits often repeat one count (the building permit and its
+companions), so the count is taken from the permit with the most. The files keep a
+row for each revision of a permit, each with its own application date and unit
+count, so homes are dated by when they were proposed: a permit's first row counts
+its units in the month of the project's first application, and each later revision
+counts the change in its units in the month of the revision. A fourplex applied for
+in 2024 and revised to six homes in 2026 is 4 homes in 2024 and 2 in 2026.
 
-A permit's first row isn't always its first application. For some permits, mostly
-closed ones, the files keep only a later revision, dated when the revision was
-applied for: sometimes years after the permit. Permit numbers are given out in order
-through a year ("24 142054 BLD" is the 142,054th folder of 2024), so such a permit's
-homes are dated where its number falls among the year's permits whose first
-application is in the files (origins; the manifest gives how many, and how close the
-rule comes on permits whose date is known). The same date serves a permit whose first
-application is dead (superseded, say) while a revision lives.
-
-Series (homes; `_projects` where given counts first applications):
-  plex     multiplex projects of up to CAP homes whose permit is alive (permits.py's
-           DROP_STATUS: not cancelled, refused, withdrawn, abandoned or superseded)
+Series (homes; `_projects` where given):
+  plex     projects not since dropped (multiplex.py's status: cancelled, refused,
+           withdrawn, abandoned); `plex_projects` counts first applications
   small    of those, the homes proposed while the project stood at four or fewer
-  big      and at five or six: more than the four-home rule can produce. A house
-           converted to five (4 created) can't be told from a new fourplex, so this
-           undercounts
-  up       revisions that took a project from four or fewer to five or six
-           (`up_projects`; their homes are in `big`)
-  filed    plex, with the dead permits too: older applications have had longer to be
-           refused or withdrawn than recent ones
-  issued   plex, only permits issued so far
-  broad    plex, and new buildings of three to six homes filed as "Apartment
-           Building" or "Multiple Unit Building": some sixplexes are filed that way,
-           with small apartment buildings on main streets that aren't multiplexes
+  big      and at five or six (from the month it reached that size, `sized`): more
+           than the four-home rule allows. `big_projects` counts projects of five
+           or six, in that month; `up_projects` those of them first applied for
+           smaller
+  filed    plex, with the dropped applications too: older applications have had
+           longer to be refused or withdrawn than recent ones. `filed_big_projects`
+           is the Housing page's count of 5-6 unit applications
+  issued   plex, only projects with a permit issued so far
+  new      plex, only new buildings
+  building plex, with each project's homes the building's size, not the homes it
+           adds (`units_first` at its first application, the change to `units` at
+           `sized`)
   suites   laneway and garden suites, and
-  houses   new detached houses: neither changed with the by-law, so each is a check
+  houses   new detached houses, both from the permit files (units created, live
+           permits): neither changed with the by-law, so each is a check
 
-Left out, and counted in the manifest: permits whose units repeat another permit's
-(permits.py's companions); multiplex permits that reach more than CAP homes; rows
-with no application date; permits no address places in a ward. The months kept are
-whole: the last one ends before the files' latest application date.
+A first application isn't always in the files. For some permits, mostly closed
+ones, the files keep only a later revision, dated when the revision was applied
+for: sometimes years after the permit. Permit numbers are given out in order
+through a year ("24 142054 BLD" is the 142,054th folder of 2024), so such a
+permit is dated where its number falls among the year's permits whose first
+application is in the files (origins; the manifest gives how many projects that
+moved, and how close the rule comes on permits whose date is known). A project's
+first application is the earlier of that and projects.csv's `applied`.
 
-A permit is placed in a ward by its GEO_ID's address point (the address points
-carry the ward), and failing that as permits.py places one in a neighbourhood: by
-its address string, the nearest number on the street, or a street all in one ward.
+The months kept are whole: to projects.csv's last whole month.
 """
 import contextlib
 import datetime as dt
@@ -82,19 +84,17 @@ import permits as P
 HERE = Path(__file__).parent
 RAW = HERE / "raw"
 OUT = HERE / "sixplex"
+PROJECTS = HERE / "multiplex" / "projects.csv"
+PROJECTS_MANIFEST = HERE / "multiplex" / "manifest.json"
 WARDS = RAW / "toronto_wards_4326.geojson"
 START = "2021-01"
-CAP = 6
-BIG = 5  # homes created from which a project is beyond the four-home rule
+BIG = 5  # homes from which a project is beyond the four-home rule
 SIX = ["04", "09", "10", "11", "12", "13", "14", "19"]  # Toronto and East York district
 EARLY = ["23"]  # Scarborough North: its own by-law, 5 February 2025
-MULTIPLEX = ("3+ Unit", "Triplex")
-APARTMENT = {"Apartment Building", "Multiple Unit Building"}
-NEW_BUILDING = {"New Building", "New Houses"}
 SUITE = "Laneway / Rear Yard Suite"
 HOUSE = "SFD - Detached"
-SERIES = ["plex_homes", "plex_projects", "small_homes", "small_projects", "big_homes", "big_projects",
-          "up_projects", "filed_homes", "issued_homes", "broad_homes", "suites_homes", "houses_homes"]
+SERIES = ["plex_homes", "plex_projects", "small_homes", "big_homes", "big_projects", "up_projects",
+          "filed_homes", "filed_big_projects", "issued_homes", "new_homes", "building_homes", "suites_homes", "houses_homes"]
 WIDTH, SIMPLIFY, BORDER = 600, 40, 50  # outline box (px), simplification and "borders" distance (m)
 
 
@@ -113,6 +113,15 @@ def events(rows: pd.DataFrame) -> pd.DataFrame:
         r["applied"] = r.applied.where(~r["first"] | r.origin.isna(), r.origin)
     r = r[r["first"] | (r.homes != 0)]
     return r.rename(columns={"applied": "date", "units": "total"})[["permit", "date", "homes", "total", "first"]]
+
+
+def proposals(p: pd.DataFrame) -> pd.DataFrame:
+    """projects.csv's rows as proposals: each project's first size at its first
+    application, then the change to its latest size when it reached it. `p` has
+    app_no, applied, sized, units_first, units. Returns events()'s columns."""
+    first = pd.DataFrame({"permit": p.app_no, "rev": 0, "applied": p.applied, "units": p.units_first})
+    last = pd.DataFrame({"permit": p.app_no, "rev": 1, "applied": p.sized, "units": p.units})
+    return events(pd.concat([first, last[p.units.to_numpy() != p.units_first.to_numpy()]]))
 
 
 def origins(rows: pd.DataFrame) -> tuple[pd.Series, dict]:
@@ -147,18 +156,13 @@ def origins(rows: pd.DataFrame) -> tuple[pd.Series, dict]:
                     "median_error_days": round(float(np.median(errors)), 1), "p90_error_days": round(float(np.quantile(errors, 0.9)), 1)}
 
 
-def whole_months(latest: pd.Timestamp, start: str = START) -> list[str]:
-    """The months from `start` that end before `latest`, the files' latest application date."""
-    end = pd.Period(latest, "M") - 1
-    return [str(m) for m in pd.period_range(start, end, freq="M")]
+def whole_months(last: str, start: str = START) -> list[str]:
+    """The months from `start` to `last`, the last whole month."""
+    return [str(m) for m in pd.period_range(start, last, freq="M")]
 
 
-def kind(structure: str, permit_type: str, work: str) -> str | None:
-    """Which kind of project a permit row is (see the docstring), or None."""
-    if structure.startswith(MULTIPLEX):
-        return "plex"
-    if structure in APARTMENT and permit_type in NEW_BUILDING and work.startswith("New Building"):
-        return "apartment"
+def kind(structure: str, work: str) -> str | None:
+    """Which placebo series a permit row belongs to, or None."""
     if structure == SUITE:
         return "suite"
     if structure == HOUSE and work.startswith("New Building"):
@@ -166,94 +170,105 @@ def kind(structure: str, permit_type: str, work: str) -> str | None:
     return None
 
 
-def load() -> tuple[pd.DataFrame, dict, dict]:
-    """The permit rows this table counts, one per permit and revision, with what was left
-    out and how the permits without a first application were dated."""
+def ward_of(grid: pd.Series) -> pd.Series:
+    """WARD_GRID's ward, "01" to "25" ("S0423" is ward 4), or NaN."""
+    w = grid.fillna("").str.strip().str[1:3]
+    return w.where(w.str.fullmatch(r"\d\d") & w.between("01", "25"))
+
+
+def permit_rows() -> tuple[pd.DataFrame, pd.Series, dict]:
+    """The permit rows that create homes (one per permit and revision, with its application
+    number, whether it is dead, its placebo kind, ward and first application date), every
+    permit's first application date, and how those were found."""
     with contextlib.redirect_stdout(io.StringIO()):  # permits.py prints its own checks
         raw = P.load()
-        repeats = P.companions(P.dedupe(raw))
     raw["applied"] = pd.to_datetime(raw.APPLICATION_DATE.str[:10], errors="coerce")
     origin, dating = origins(raw[raw.applied.notna()].rename(columns={"PERMIT_NUM": "permit", "REVISION_NUM": "rev"}))
-    raw = raw[raw.created > 0].copy()
-    # a permit whose units repeat another's: the live permits companions() zeroed
-    live_units = raw[~raw.STATUS.isin(P.DROP_STATUS)].groupby("PERMIT_NUM").created.max()
-    repeated = set(repeats.index[(repeats.created == 0) & (live_units.reindex(repeats.index) > 0)])
-    raw["kind"] = [kind(s, t, w) for s, t, w in zip(raw.STRUCTURE_TYPE.fillna("").str.strip(), raw.PERMIT_TYPE.fillna(""),
-                                                    raw.WORK.fillna("").str.strip())]
-    raw = raw[raw.kind.notna()]
-    left = {"permits repeating another permit's homes": int(raw.PERMIT_NUM.isin(repeated).groupby(raw.PERMIT_NUM).first().sum())}
-    raw = raw[~raw.PERMIT_NUM.isin(repeated)]
-    left["rows with no application date"] = int(raw.applied.isna().sum())
-    raw = raw[raw.applied.notna()]
-    raw["rank"] = raw.source.map({s: i for i, s in enumerate(P.FILES)})
+    raw = raw[(raw.created > 0) & raw.applied.notna()].copy()
     raw["dead"] = raw.STATUS.isin(P.DROP_STATUS)
-    # one row per permit and revision: a cleared row beats an active one (as in permits.py)
+    raw["kind"] = [kind(s, w) for s, w in zip(raw.STRUCTURE_TYPE.fillna("").str.strip(), raw.WORK.fillna("").str.strip())]
+    raw["rank"] = raw.source.map({s: i for i, s in enumerate(P.FILES)})
     rows = (raw.sort_values(["PERMIT_NUM", "REVISION_NUM", "rank"]).drop_duplicates(["PERMIT_NUM", "REVISION_NUM"], keep="last")
             .rename(columns={"PERMIT_NUM": "permit", "REVISION_NUM": "rev", "created": "units"}))
-    rows["issued"] = pd.to_datetime(rows.ISSUED_DATE.str[:10], errors="coerce")
+    rows["app"] = rows.permit.str[:9]
     rows["origin"] = rows.permit.map(origin)
-    return rows, left, dating
+    rows["ward"] = ward_of(rows.WARD_GRID)
+    return rows, origin, dating
 
 
-def place(rows: pd.DataFrame) -> pd.Series:
-    """Each permit's ward ("01" to "25"), by permits.py's rules with wards for neighbourhoods."""
-    a = pd.read_csv(P.ADDRESSES, dtype=str, usecols=["ADDRESS_POINT_ID", "LO_NUM", "LINEAR_NAME", "LINEAR_NAME_TYPE",
-                                                     "LINEAR_NAME_DIR", "MUNICIPALITY_NAME", "WARD"])
-    a = a[a.WARD.notna()]
-    a["DAUID"], a["nbhd_id"] = a.WARD, a.WARD.astype(int)
-    a["street"] = P.street_key(a.LINEAR_NAME, a.LINEAR_NAME_TYPE, a.LINEAR_NAME_DIR)
-    a["num"] = pd.to_numeric(a.LO_NUM, errors="coerce")
-    one = rows.sort_values(["permit", "rev"]).drop_duplicates("permit", keep="last").set_index("permit")
-    p = P.place(one, a)
-    how = p.method.value_counts()
-    print("permits placed in a ward, by method:", ", ".join(f"{k} {v:,}" for k, v in how.items()))
-    ward = p.nbhd_id.dropna().astype(int).map("{:02d}".format)
-    return ward, {k: int(v) for k, v in how.items()}
+def added(p: pd.DataFrame, rows: pd.DataFrame) -> pd.DataFrame:
+    """The homes each project adds, as proposals (events()'s columns, with app_no): from the
+    permit of its application that creates the most, its live rows where it has any."""
+    r = rows[rows.app.isin(p.app_no)]
+    live = r[~r.dead]
+    r = pd.concat([live, r[~r.app.isin(live.app)]])
+    lead = r.loc[r.groupby("app").units.idxmax(), "permit"]
+    r = r[r.permit.isin(lead)]
+    ev = events(r[["permit", "rev", "applied", "units", "origin"]])
+    ev["app_no"] = ev.permit.str[:9]
+    # the project's first application, where that is earlier still (another of its permits)
+    start = ev.app_no.map(p.set_index("app_no").applied)
+    ev["date"] = ev.date.where(~(ev["first"] & (start < ev.date)), start)
+    return ev
 
 
-def table(rows: pd.DataFrame, months: list[str]) -> tuple[pd.DataFrame, dict]:
-    """by_ward_month.csv from the placed rows (permit, rev, applied, units, kind, dead, issued, ward)."""
-    counts = {}
-    out = {}
-    index = pd.MultiIndex.from_product([sorted(rows.ward.unique()), months], names=["ward", "month"])
+def projects(origin: pd.Series) -> tuple[pd.DataFrame, int]:
+    """projects.csv with each project's ward as "01" to "25" and its first application
+    dated (see the docstring); and how many projects that moved to an earlier month."""
+    p = pd.read_csv(PROJECTS, dtype={"ward": str}, parse_dates=["applied", "sized"])
+    need = {"app_no", "applied", "sized", "units_first", "units", "size", "work", "status", "ward"}
+    if missing := need - set(p.columns):
+        sys.exit(f"{PROJECTS}: columns missing {sorted(missing)}; multiplex.py's table has changed")
+    p["ward"] = p.ward.str[1:]
+    if p.ward.isna().any() or not p.ward.str.fullmatch(r"\d\d").all() or p.ward.nunique() != 25:
+        sys.exit(f"{PROJECTS}: a project without one of the 25 wards")
+    by_app = origin.groupby(origin.index.str[:9]).min()
+    first = p.app_no.map(by_app)
+    earlier = first.notna() & (first.dt.to_period("M") < p.applied.dt.to_period("M"))
+    p["applied"] = p.applied.where(~(first < p.applied), first)
+    return p, int(earlier.sum())
+
+
+def table(p: pd.DataFrame, rows: pd.DataFrame, months: list[str]) -> tuple[pd.DataFrame, dict]:
+    """by_ward_month.csv from the projects and the placebo series' permit rows."""
+    index = pd.MultiIndex.from_product([[f"{w:02d}" for w in range(1, 26)], months], names=["ward", "month"])
 
     def tally(ev: pd.DataFrame, col: str = "homes") -> pd.Series:
         ev = ev.assign(month=ev.date.dt.to_period("M").astype(str))
         return ev.groupby(["ward", "month"])[col].sum().reindex(index, fill_value=0)
 
-    def proposals(sub: pd.DataFrame) -> pd.DataFrame:
-        ev = events(sub[["permit", "rev", "applied", "units", "origin"]])
-        return ev.join(sub.drop_duplicates("permit").set_index("permit")[["ward", "issued_ever"]], on="permit")
+    info = p.set_index("app_no")
 
-    rows = rows.assign(issued_ever=rows.groupby("permit").issued.transform("min").notna())
-    plex_all = rows[rows.kind == "plex"]
-    over = plex_all.groupby("permit").units.max() > CAP
-    counts[f"multiplex permits reaching more than {CAP} homes"] = int(over.sum())
-    plex_all = plex_all[~plex_all.permit.isin(over.index[over])]
-    alive = plex_all[~plex_all.dead]
-    ev = proposals(alive)
-    ev["big"] = ev.total >= BIG
-    out["plex_homes"], out["plex_projects"] = tally(ev), tally(ev, "first")
-    out["small_homes"], out["small_projects"] = tally(ev[~ev.big]), tally(ev[~ev.big], "first")
-    out["big_homes"], out["big_projects"] = tally(ev[ev.big]), tally(ev[ev.big], "first")
-    was_small = ev.total - ev.homes < BIG
-    up = ev[ev.big & ~ev["first"] & was_small]
-    out["up_projects"] = tally(up.assign(n=1), "n")
-    out["filed_homes"] = tally(proposals(plex_all))
-    out["issued_homes"] = tally(ev[ev.issued_ever])
-    apt = rows[(rows.kind == "apartment") & ~rows.dead]
-    size = apt.groupby("permit").units.max()
-    apt = apt[apt.permit.isin(size.index[size.between(3, CAP)])]
-    out["broad_homes"] = out["plex_homes"] + tally(proposals(apt))
+    def homes(sub: pd.DataFrame) -> pd.DataFrame:
+        ev = added(sub, rows)
+        return ev.join(info[["ward", "size", "sized", "units_first"]], on="app_no")
+
+    alive = p[p.status != "dropped"]
+    ev = homes(alive)
+    # a project's homes are "big" from when it stood at five or six
+    big = (ev["size"] == "5-6") & ((ev.units_first >= BIG) | (ev.date >= ev.sized))
+    six = lambda d: d[d["size"] == "5-6"].assign(date=lambda x: x.sized, n=1)  # noqa: E731
+    out = {
+        "plex_homes": tally(ev), "plex_projects": tally(ev, "first"),
+        "small_homes": tally(ev[~big]), "big_homes": tally(ev[big]),
+        "big_projects": tally(six(alive), "n"), "up_projects": tally(six(alive[alive.units_first < BIG]), "n"),
+        "filed_homes": tally(homes(p)), "filed_big_projects": tally(six(p), "n"),
+        "issued_homes": tally(homes(alive[alive.status == "issued"])),
+        "new_homes": tally(homes(alive[alive.work == "new"])),
+        "building_homes": tally(proposals(alive).join(info.ward, on="permit")),
+    }
     for name, k in (("suites_homes", "suite"), ("houses_homes", "house")):
-        out[name] = tally(proposals(rows[(rows.kind == k) & ~rows.dead]))
+        sub = rows[(rows.kind == k) & rows.ward.notna() & ~rows.dead]
+        out[name] = tally(events(sub[["permit", "rev", "applied", "units", "origin"]]).join(sub.drop_duplicates("permit").set_index("permit").ward, on="permit"))
     t = pd.DataFrame(out)[SERIES].astype(int).reset_index()
-    counts["multiplex permits counted"] = int(ev[ev.date.dt.to_period("M").astype(str).isin(months)].permit.nunique())
-    start = alive.sort_values(["permit", "rev"]).drop_duplicates("permit")
-    late = start[(start.applied > start.origin) & start.permit.isin(ev[ev.date >= months[0]].permit)]
-    counts["multiplex permits dated before their first row in the files"] = int(len(late))
-    counts["revisions that changed a multiplex permit's homes"] = int((~ev["first"]).sum())
-    counts["revisions that took a project to five or six homes"] = int(len(up))
+    seen = ev[ev.date.dt.to_period("M").astype(str).isin(months)]
+    listed = alive[proposals(alive).query("first").set_index("permit").date.reindex(alive.app_no).dt.to_period("M").astype(str).isin(months).to_numpy()]
+    counts = {
+        "projects counted": int(seen.app_no.nunique()),
+        "projects on the list with no homes created on a permit": int((~listed.app_no.isin(ev.app_no)).sum()),
+        "projects whose homes changed with a revision": int((~seen["first"]).sum()),
+        "projects revised from four or fewer homes to five or six": int(out["up_projects"].sum()),
+    }
     return t, counts
 
 
@@ -292,42 +307,37 @@ def wards() -> dict:
 
 
 def main() -> int:
-    for f in [*(RAW / n for n in P.FILES.values()), P.ADDRESSES, WARDS]:
+    for f in [PROJECTS, PROJECTS_MANIFEST, *(RAW / n for n in P.FILES.values()), WARDS]:
         if not f.exists():
-            sys.exit(f"{f} is missing (python pipeline/download.py --toronto {f.name})")
-    rows, left, dating = load()
-    latest = rows.applied.max()
-    months = whole_months(latest)
-    ward, how = place(rows)
-    rows["ward"] = rows.permit.map(ward)
-    since = rows[rows.applied >= START]
-    plex = since[(since.kind == "plex") & ~since.dead]
-    left["multiplex permits that no address places in a ward"] = int(plex[plex.ward.isna()].permit.nunique())
-    rows = rows[rows.ward.notna()]
-    if rows.ward.nunique() != 25:
-        sys.exit(f"permits in {rows.ward.nunique()} wards, not 25: the address points' wards have changed")
-    t, counts = table(rows, months)
+            sys.exit(f"{f} is missing (make multiplex; python pipeline/download.py --toronto {f.name})")
+    source = json.loads(PROJECTS_MANIFEST.read_text())
+    months = whole_months(source["last_month"])
+    rows, origin, dating = permit_rows()
+    p, moved = projects(origin)
+    t, counts = table(p, rows, months)
     w = wards()
+    names = {x["ward"]: x["name"] for x in w["wards"]}
+    theirs = {k[1:]: v for k, v in source["wards"].items()}
+    if names != theirs:
+        sys.exit("the wards' names differ from multiplex.py's: WARD_GRID's numbers may not be the ward file's")
 
     OUT.mkdir(exist_ok=True)
     t.to_csv(OUT / "by_ward_month.csv", index=False, lineterminator="\n")
     (OUT / "wards.json").write_text(json.dumps(w, separators=(",", ":")) + "\n")
     manifest = {
         "retrieved": dt.date.today().isoformat(),
+        "projects_retrieved": source["retrieved"],
         "files": {n: (RAW / n).stat().st_size for n in P.FILES.values()},
-        "latest_application": latest.date().isoformat(),
         "months": [months[0], months[-1]],
-        "left_out": left | {k: v for k, v in counts.items() if "more than" in k},
-        "counted": {k: v for k, v in counts.items() if "more than" not in k},
+        "counted": counts | {"projects dated before their first row in the files": moved},
         "first_applications": dating,
-        "placed_by": how,
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
 
     arm = {x["ward"]: x["arm"] for x in w["wards"]}
     half = t.assign(arm=t.ward.map(arm), half=t.month.str[:4] + "H" + ((t.month.str[5:].astype(int) > 6) + 1).astype(str))
-    print(f"\nlatest application {latest.date()}; months {months[0]} to {months[-1]}")
-    for k, v in (left | counts).items():
+    print(f"months {months[0]} to {months[-1]} (projects.csv retrieved {source['retrieved']})")
+    for k, v in manifest["counted"].items():
         print(f"  {k}: {v:,}")
     print("\nhomes proposed in multiplex projects by half-year (small / big):")
     print(half.pivot_table(index="half", columns="arm", values=["small_homes", "big_homes"], aggfunc="sum").to_string())

@@ -11,6 +11,18 @@ The design, fixed on 24 November 2026. It was fixed after the counts of permits 
 size, half-year and group of wards had been looked at, and before any estimate below
 was computed.
 
+Rebuilt the same day, after the first results were seen, on the Housing page's list of
+projects (pipeline/multiplex/projects.csv) in place of this experiment's own count, so
+that the two pages agree. That changed which projects count (a building of three to
+six homes, sized from the permit's text; before, a permit of a "3+ Unit" type), when a
+project is one of five or six (its size; before, five or six homes added) and where
+its ward comes from (the permit; before, its address). The outcome (homes added), the
+wards, periods, estimate, range and placebos stayed, and the checks but for two: "a
+wider definition" (the new list is that definition) gave way to "new buildings only",
+and "the building's homes, not the homes added" was added, because the list gives a
+building's size and counting that was tried first: it counts a triplex that gains a
+home as three. BEFORE_REBUILD keeps the estimate as it stood.
+
   outcome     homes proposed in multiplex projects (sixplex.py's `plex_homes`), by the
               date each was proposed
   wards       the eight sixplex wards ("six") against the sixteen left at four
@@ -34,8 +46,8 @@ was computed.
               never replacing it: Ward 23 in; only the four-home wards bordering the
               eight; each sixplex ward against its K most similar four-home wards
               (nearest neighbours on the level and growth of homes proposed before);
-              dead applications in; issued permits only; a broader definition;
-              projects, not homes; a one-year "before"; a difference in homes per
+              dropped applications in; issued permits only; new buildings only;
+              the building's homes, not the homes added; projects, not homes; a one-year "before"; a difference in homes per
               ward, not a ratio; and each ward left out in turn
   added later one more check, added after the first results were seen (they showed the
               other wards gaining on the eight before the by-law, quarter after
@@ -61,6 +73,8 @@ BYLAW = {"four": "2023-05-10", "early": "2025-02-05", "six": "2025-06-26"}
 PRE = ("2023 Q3", "2025 Q2")
 POST_FROM = "2025 Q3"
 FIXED = "2026-11-24"
+REBUILT = "2026-11-24"
+BEFORE_REBUILD = {"extra": -58.1, "extra_lo": -477.8, "extra_hi": 256.7, "t1": 851, "expected": 909.1}  # as first published in the pull request
 K = 3  # nearest neighbours
 LEVEL = 0.9
 GRID = np.exp(np.linspace(np.log(0.25), np.log(8), 281))  # effect sizes tried for the range
@@ -237,7 +251,8 @@ def main() -> int:
     half = len(pre_q) // 2
     match = neighbours(sums("plex_homes", pre_q[:half]), sums("plex_homes", pre_q[half:]), treated)
     check("matched", matched(pre, post, match))
-    for key, s in (("filed", "filed_homes"), ("issued", "issued_homes"), ("broad", "broad_homes"), ("projects", "plex_projects")):
+    for key, s in (("filed", "filed_homes"), ("issued", "issued_homes"), ("new", "new_homes"), ("building", "building_homes"),
+                   ("projects", "plex_projects")):
         check(key, estimate(s))
     check("oneyear", estimate("plex_homes", pre_=pre_q[half:]))
     check("additive", additive(pre, post, treated, len(pre_q), len(post_q)))
@@ -264,7 +279,7 @@ def main() -> int:
         return {a: [int(v) for v in cube[s][arm == a].sum(axis=0)] for a in ("six", "four", "early")}
 
     arms = {s: by_arm(s) for s in ("plex_homes", "small_homes", "big_homes", "plex_projects", "big_projects", "up_projects",
-                                   "suites_homes", "houses_homes")}
+                                   "filed_big_projects", "suites_homes", "houses_homes")}
     six, four = np.array(arms["plex_homes"]["six"], float), np.array(arms["plex_homes"]["four"], float)
     base = main_["t0"] / main_["c0"]
     expected_q = [round(float(v), 1) for v in four * base]
@@ -272,9 +287,11 @@ def main() -> int:
 
     out = {
         "built": pd.Timestamp.today().date().isoformat(),
-        "retrieved": manifest["retrieved"],
-        "latest_application": manifest["latest_application"],
+        "retrieved": manifest["projects_retrieved"],
+        "last_month": manifest["months"][1],
         "fixed": FIXED,
+        "rebuilt": REBUILT,
+        "before_rebuild": BEFORE_REBUILD,
         "bylaw": BYLAW,
         "quarters": quarters,
         "pre": [pre_q[0], pre_q[-1]],
@@ -285,8 +302,8 @@ def main() -> int:
         "map": {"width": geo["width"], "height": geo["height"]},
         "wards": [{**w,
                    "pre": int(cube["plex_homes"][i, pre_q].sum()), "post": int(cube["plex_homes"][i, post_q].sum()),
-                   "big_pre": int(cube["big_projects"][i, pre_q].sum() + cube["up_projects"][i, pre_q].sum()),
-                   "big_post": int(cube["big_projects"][i, post_q].sum() + cube["up_projects"][i, post_q].sum()),
+                   "big_pre": int(cube["big_projects"][i, pre_q].sum()),
+                   "big_post": int(cube["big_projects"][i, post_q].sum()),
                    "big_homes_post": int(cube["big_homes"][i, post_q].sum())} for i, w in enumerate(wards)],
         "arms": arms,
         "expected": expected_q,
@@ -297,7 +314,6 @@ def main() -> int:
         "leave": leave,
         "matches": [{"ward": np.array(codes)[study][i], "like": [np.array(codes)[study][m] for m in ms]} for i, ms in match.items()],
         "placebos": placebos,
-        "left_out": manifest["left_out"],
         "counted": manifest["counted"],
     }
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n")

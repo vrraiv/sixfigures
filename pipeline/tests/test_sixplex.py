@@ -49,22 +49,50 @@ class Proposals(unittest.TestCase):
         r = rows(("24 000255 BLD", "01", "2026-02-01", 6)).assign(origin=origin["24 000255 BLD"])
         self.assertEqual(list(sixplex.events(r).date.dt.year), [2024])
 
-    def test_only_whole_months_are_kept(self):
-        self.assertEqual(sixplex.whole_months(pd.Timestamp("2026-11-20"), "2026-08"), ["2026-08", "2026-09", "2026-10"])
-        self.assertEqual(sixplex.whole_months(pd.Timestamp("2026-11-30"), "2026-10"), ["2026-10"])
+    def test_the_months_run_to_the_last_whole_one(self):
+        self.assertEqual(sixplex.whole_months("2026-10", "2026-08"), ["2026-08", "2026-09", "2026-10"])
 
-    def test_what_counts_as_a_multiplex(self):
-        self.assertEqual(sixplex.kind("3+ Unit - Detached", "New Houses", "New Building"), "plex")
-        self.assertEqual(sixplex.kind("3+ Unit - Semi-detached", "Small Residential Projects", "Multiple Projects"), "plex")
-        self.assertEqual(sixplex.kind("Apartment Building", "New Building", "New Building"), "apartment")
-        self.assertIsNone(sixplex.kind("Apartment Building", "Building Additions/Alterations", "Interior Alterations"))
-        self.assertEqual(sixplex.kind("Laneway / Rear Yard Suite", "New Houses", "New Laneway / Rear Yard Suite"), "suite")
-        self.assertIsNone(sixplex.kind("2 Unit - Detached", "Small Residential Projects", "Second Suite (New)"))
-        self.assertIsNone(sixplex.kind("SFD - Detached", "Small Residential Projects", "Addition(s)"))
+    def test_a_projects_homes_are_those_its_permit_adds_not_the_buildings(self):
+        # a duplex made into a fourplex: the list says a building of 4, the permit says 2 created
+        p = pd.DataFrame({"app_no": ["24 100200"], "applied": pd.to_datetime(["2024-05-01"]), "sized": pd.to_datetime(["2024-05-01"]),
+                          "units_first": [4], "units": [4]})
+        permits = rows(("24 100200 BLD", "00", "2024-05-01", 2), ("24 100200 PLB", "00", "2024-05-03", 2)).assign(
+            dead=False, origin=pd.NaT, app="24 100200")
+        self.assertEqual(sixplex.added(p, permits).homes.sum(), 2)  # the building permit and its companion count once
+        self.assertEqual(sixplex.proposals(p).homes.sum(), 4)
+
+    def test_a_dead_revision_is_passed_over_while_the_project_has_a_live_row(self):
+        p = pd.DataFrame({"app_no": ["25 100300"], "applied": pd.to_datetime(["2025-08-01"]), "sized": pd.to_datetime(["2025-08-01"]),
+                          "units_first": [6], "units": [6]})
+        permits = rows(("25 100300 BLD", "00", "2025-08-01", 5), ("25 100300 BLD", "01", "2025-12-01", 9)).assign(
+            dead=[False, True], origin=pd.NaT, app="25 100300")
+        self.assertEqual(sixplex.added(p, permits).homes.sum(), 5)
+
+    def test_the_lists_sizes_are_dated_as_they_were_proposed(self):
+        p = pd.DataFrame({"app_no": ["24 1"], "applied": pd.to_datetime(["2024-04-30"]), "sized": pd.to_datetime(["2026-01-15"]),
+                          "units_first": [4], "units": [6]})
+        ev = sixplex.proposals(p)
+        self.assertEqual(list(ev.homes), [4, 2])
+        self.assertEqual(list(ev.date.dt.year), [2024, 2026])
+
+    def test_a_ward_is_read_from_the_permit(self):
+        w = sixplex.ward_of(pd.Series(["S0423", "E2301", "N08", " W0227", "", None, "X99"]))
+        self.assertEqual(list(w[:4]), ["04", "23", "08", "02"])
+        self.assertTrue(w[4:].isna().all())
+
+    def test_the_placebo_series(self):
+        self.assertEqual(sixplex.kind("Laneway / Rear Yard Suite", "New Laneway / Rear Yard Suite"), "suite")
+        self.assertEqual(sixplex.kind("SFD - Detached", "New Building"), "house")
+        self.assertIsNone(sixplex.kind("SFD - Detached", "Addition(s)"))
+        self.assertIsNone(sixplex.kind("3+ Unit - Detached", "New Building"))
 
     def test_the_sixplex_wards_are_the_toronto_and_east_york_district(self):
         self.assertEqual(sixplex.SIX, ["04", "09", "10", "11", "12", "13", "14", "19"])
         self.assertEqual(sixplex.EARLY, ["23"])
+
+    def test_the_comparison_groups_follow_the_housing_pages_sixplex_wards(self):
+        import multiplex
+        self.assertEqual(sorted(w[1:] for w in multiplex.SIXPLEX_WARDS), sorted(sixplex.SIX + sixplex.EARLY))
 
 
 class Estimate(unittest.TestCase):

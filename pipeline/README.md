@@ -390,38 +390,38 @@ out, and 352 outside the neighbourhoods. The docstring has the owner groups.
 
 ## Sixplex zoning (`sixplex.py`, `sixplex_insights.py`)
 
-`make sixplex-data` runs `pipeline/sixplex.py`, which reads the three building permit
-files again and counts the homes proposed in multiplex projects by ward and month
-(`pipeline/sixplex/by_ward_month.csv`, with the wards' outlines and arms in `wards.json`).
-`make sixplex` runs `pipeline/sixplex_insights.py`, which writes the experiment's
-`web/public/sixplex.json` from that table alone. Its docstring is the design.
+`make sixplex-data` runs `pipeline/sixplex.py`, which takes the Housing page's list of
+houseplex projects (`pipeline/multiplex/projects.csv`, from `multiplex.py`) and counts the
+homes they add by ward and month (`pipeline/sixplex/by_ward_month.csv`, with the wards'
+outlines and arms in `wards.json`). `make sixplex` runs `pipeline/sixplex_insights.py`,
+which writes the experiment's `web/public/sixplex.json` from that table alone. Its
+docstring is the design. The multiplex part of the data refresh runs both after
+`multiplex.py`.
 
-- **A multiplex is a structure type.** The City files house-scale buildings of three or
-  more homes as "3+ Unit - Detached", "- Semi-detached" or "- Townhouse" (and a few as
-  "Triplex"). Some sixplexes are filed as "Apartment Building" or "Multiple Unit
-  Building", with small apartment buildings on main streets: those are left out of the
-  estimate and counted in a check (`broad_homes`).
-- **Units created are net.** A house converted to six homes shows 5, so a project of
-  "five or six" is one that creates five or six: more than the four-home rule can. A
-  conversion to five (4 created) can't be told from a new fourplex.
-- **The files keep each revision**, with its own application date and unit count.
-  `permits.py` takes a permit's latest revision and earliest issue date; here each
-  revision's change in units is dated by the revision. Otherwise a 2024 fourplex revised
-  to six in 2026 would put six homes before the by-law (73 revisions changed a multiplex
-  permit's homes; 7 took one from four or fewer to five or six).
-- **The latest revision's application date is not the permit's.** A revised permit's last
-  row carries the revision's date, which can be years after the permit was issued.
-- **Wards come from the address points** (their `WARD` column), by `permits.py`'s
-  placement with wards in place of neighbourhoods. All but 3 multiplex permits are placed.
-- **Whole months only**: the last month kept ends before the files' latest application
-  date. 8 multiplex permits that reach more than six homes are left out.
-- **A permit's first row isn't always its first application.** For 53 multiplex permits
-  the files hold only a later revision (the cleared file keeps a closed permit's last
-  one), dated when the revision was applied for. Permit numbers run in order through a
-  year, so those permits are dated where their number falls among the year's permits
-  whose first application is in the files (`origins`).
-- **Refused and withdrawn applications** drop out (as in `permits.py`), and older ones
-  have had longer to: `filed_homes` keeps them, for a check.
+- **One list of projects, two counts of homes.** `projects.csv` gives a building's size
+  (a duplex made into a fourplex is 4). The experiment asks what was added, so a project's
+  homes are the `DWELLING_UNITS_CREATED` on its building permit (2), taken from the permit
+  of the application that creates the most, since companions repeat the count. 65 projects
+  on the list state no units created and add nothing. The building's size is kept as a
+  check (`building_homes`): it gives a lower estimate, because it counts the homes
+  conversions already had, and conversions are most of the eight wards' projects.
+- **The files keep each revision**, with its own application date and unit count. Each
+  revision's change in units is dated by the revision; otherwise a 2024 fourplex revised
+  to six in 2026 would put six homes before the by-law.
+- **A permit's first row isn't always its first application.** For some closed permits
+  the files hold only a later revision, dated when the revision was applied for. Permit
+  numbers run in order through a year, so those are dated where their number falls among
+  the year's permits whose first application is in the files (`origins`: within half a
+  day for nine in ten permits whose date is known). On the list's projects this moves 2,
+  because `multiplex.py` already takes the earliest date among an application's permits.
+- **Wards are the permit's** (`WARD_GRID`, as in `multiplex.py`), so every project has
+  one. The script stops if the ward file's names differ from `multiplex.py`'s.
+- **Ward 23 is in neither group here**, though `multiplex.py`'s `sixplex_area` includes
+  it: it got six homes five months before the others.
+- **Dropped applications** (refused, withdrawn, cancelled: `multiplex.py`'s status) are
+  left out, and older ones have had longer to drop: `filed_homes` keeps them, for a check.
+- **Two placebo series** come straight from the permit files: laneway and garden suites,
+  and new detached houses.
 
 ## Forecast backtests
 

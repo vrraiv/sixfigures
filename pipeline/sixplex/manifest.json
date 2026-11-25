@@ -1,38 +1,25 @@
 {
  "retrieved": "2026-11-24",
+ "projects_retrieved": "2026-11-23",
  "files": {
   "toronto_permits_active.csv": 66454675,
   "toronto_permits_cleared_2000_2016.csv": 155623064,
   "toronto_permits_cleared_2017.csv": 153736216
  },
- "latest_application": "2026-11-20",
  "months": [
   "2021-01",
   "2026-10"
  ],
- "left_out": {
-  "permits repeating another permit's homes": 57,
-  "rows with no application date": 0,
-  "multiplex permits that no address places in a ward": 3,
-  "multiplex permits reaching more than 6 homes": 8
- },
  "counted": {
-  "multiplex permits counted": 1701,
-  "multiplex permits dated before their first row in the files": 53,
-  "revisions that changed a multiplex permit's homes": 73,
-  "revisions that took a project to five or six homes": 7
+  "projects counted": 1585,
+  "projects on the list with no homes created on a permit": 65,
+  "projects whose homes changed with a revision": 87,
+  "projects revised from four or fewer homes to five or six": 20,
+  "projects dated before their first row in the files": 2
  },
  "first_applications": {
   "dated_by_number": 633,
   "median_error_days": 0.0,
   "p90_error_days": 0.4
- },
- "placed_by": {
-  "geo_id": 28385,
-  "address": 3081,
-  "nearest": 1008,
-  "unplaced": 975,
-  "street": 292,
-  "between": 35
  }
 }

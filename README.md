@@ -333,24 +333,27 @@ the sixplex study below; the forecasts keep their `/forecasts/` addresses.
 
 Sixplex zoning, `/experiments/sixplex/`, asks whether the June 2025 by-law that allowed
 six homes on a lot in eight wards (the Toronto and East York district), leaving sixteen at
-four, has added homes. It counts the homes proposed in multiplex projects from the City's
-building permits, by ward and quarter, each home dated by the application or revision that
-proposed it, and compares the eight wards with the sixteen before (2023 Q3 to 2025 Q2) and
-after: a difference in differences of ratios, with a range from a permutation test over
-every choice of 8 wards of 24, ten checks and three placebos. It shows the projects of
-five or six homes that followed the by-law, the homes in smaller and larger projects in
-each group of wards, the estimate and its range, the trend before the by-law that
-undermines the comparison, each check, and every ward. As of 2026 Q3 the estimate is no
-measurable effect (a range from about 480 fewer homes to about 260 more), and a check
-that carries the earlier trend forward gives about 400 more. What it can't show: whether
-the homes get built (these are applications), the long run (five quarters), the zoning
-apart from the development-charge waiver passed a month later, or what the eight wards,
-which weren't chosen at random, would have done otherwise. Ward 23, which got six homes
-earlier under its own by-law, is in neither group. The design is in
-`pipeline/sixplex_insights.py`'s docstring, with the date it was fixed. Its data is
-`web/public/sixplex.json` (`pipeline/sixplex_insights.py`, `make sixplex`), from
-`pipeline/sixplex/` (`pipeline/sixplex.py`, `make sixplex-data`); the code is
-`web/src/sixplex.js`. It is by ward, so it adds nothing to the two Explorers.
+four, has added homes. Its projects are the Housing page's list of houseplexes
+(`pipeline/multiplex/projects.csv`), so the two pages count the same ones; its homes are
+the dwelling units each project's permit creates, by ward and quarter, each dated by the
+application or revision that proposed it. It compares the eight wards with the sixteen
+before (2023 Q3 to 2025 Q2) and after: a difference in differences of ratios, with a range
+from a permutation test over every choice of 8 wards of 24, eleven checks and three
+placebos. It shows the projects of five or six homes that followed the by-law, the homes
+in smaller and larger projects in each group of wards, the estimate and its range, the
+trend before the by-law that undermines the comparison, each check, and every ward. As of
+2026 Q3 the estimate is no measurable effect (a range from about 540 fewer homes to about
+170 more), and a check that carries the earlier trend forward gives about 310 more. What
+it can't show: whether the homes get built (these are applications), the long run (five
+quarters), the zoning apart from the development-charge waiver passed a month later, or
+what the eight wards, which weren't chosen at random, would have done otherwise. Ward 23,
+which got six homes earlier under its own by-law, is in neither group (the Housing page,
+which describes where six are allowed, counts it with the eight). The design is in
+`pipeline/sixplex_insights.py`'s docstring, with the date it was fixed and how it was
+rebuilt on the Housing page's list. Its data is `web/public/sixplex.json`
+(`pipeline/sixplex_insights.py`, `make sixplex`), from `pipeline/sixplex/`
+(`pipeline/sixplex.py`, `make sixplex-data`); the code is `web/src/sixplex.js`. It is by
+ward, so it adds nothing to the two Explorers.
 
 Forecasts are an exercise in how far public data can be pushed, not advice, and each
 forecast page opens by saying so. Forecasts, `/forecasts/`, sets out how the forecasts are made and tested (the method,
@@ -567,8 +570,8 @@ own tests (`pipeline/tests/`), and both run on every pull request
 
 Every dataset, its publisher's update cadence, what the site holds now and how to refresh
 it are in [docs/data-catalogue.md](docs/data-catalogue.md), with the update schedule
-(a monthly run for Getting around and multiplexes, a quarterly run for TRREB, Inside Airbnb, the City's street
-trees and tree points and the building permits behind the Sixplex zoning experiment, two annual
+(a monthly run for Getting around and multiplexes, with the Sixplex zoning experiment, a quarterly run for TRREB,
+Inside Airbnb and the City's street trees and tree points, two annual
 runs, and the 2026 Census releases).
 The monthly and quarterly runs and the yearly police and housing refreshes are automated: the Data
 refresh workflow (`.github/workflows/data-refresh.yml`, `pipeline/data_refresh.py`) runs on that

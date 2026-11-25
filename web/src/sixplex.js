@@ -27,11 +27,12 @@ const qStart = (q) => `${MONTHS[(+q.at(-1) - 1) * 3]} ${q.slice(0, 4)}`, qEnd = 
 const day = (iso) => `${+iso.slice(8)} ${MONTHS[+iso.slice(5, 7) - 1]} ${iso.slice(0, 4)}`;
 const before = `${qStart(Q[P0])} to ${qEnd(Q[P1])}`, after = `${qStart(Q[A0])} to ${qEnd(Q[A1])}`;
 const total = (vs, a, b) => vs.slice(a, b + 1).reduce((s, v) => s + v, 0);
-const add = (a, b) => a.map((v, k) => v + b[k]);
 const check = (k) => D.checks.find((c) => c.key === k), placebo = (k) => D.placebos.find((c) => c.key === k);
-// projects of five or six homes: first applications and revisions that reached five or six
-const bigBy = { six: add(arms.big_projects.six, arms.up_projects.six), four: add(arms.big_projects.four, arms.up_projects.four) };
-const big = { sixPre: total(bigBy.six, P0, P1), sixPost: total(bigBy.six, A0, A1), fourPost: total(bigBy.four, A0, A1) };
+// projects of five or six homes, by the quarter they reached that size; `filed` counts those
+// since refused or withdrawn too, as the Housing page does
+const bigBy = { six: arms.big_projects.six, four: arms.big_projects.four };
+const big = { sixPre: total(bigBy.six, P0, P1), sixPost: total(bigBy.six, A0, A1), fourPost: total(bigBy.four, A0, A1),
+  filed: total(arms.filed_big_projects.six, A0, A1) + total(arms.filed_big_projects.early, A0, A1) };
 // which way the estimate points: the range's side of "no effect"
 const verdict = M.lo > 1 ? "more" : M.hi < 1 ? "fewer" : "unclear";
 const trend = check("trend");
@@ -89,13 +90,13 @@ const from = Q.indexOf("2022 Q1") < 0 ? 0 : Q.indexOf("2022 Q1");
 const cut = (vs) => vs.slice(from);
 const marks = [{ at: A0 - from, label: "By-law" }];
 function renderCame() {
-  $("came-lede").innerHTML = `A project that adds five or six homes to a lot can't be built under the four-home rule, so it is the clearest trace of the new one. `
-    + `There were almost none before the by-law. In the eight wards there have been ${fmtN(big.sixPost)} since, holding ${fmtN(total(arms.big_homes.six, A0, A1))} homes. `
+  $("came-lede").innerHTML = `A building of five or six homes isn't allowed under the four-home rule, so it is the clearest trace of the new one. `
+    + `In the two years before the by-law the eight wards saw ${fmtN(big.sixPre)}, each needing special permission. They have seen ${fmtN(big.sixPost)} since, adding ${fmtN(total(arms.big_homes.six, A0, A1))} homes. `
     + `The other sixteen wards had ${fmtN(big.fourPost)}. Their permits point to other routes: a minor variance, the rules for apartment buildings on major streets, or the legalizing of homes that already existed.`;
   $("came-fig").innerHTML = `<h3 class="sub-h">Projects of five or six homes proposed, by quarter</h3>`
     + chart({ labels: cut(Q), bars: [{ name: "The eight sixplex wards", color: BLUE, values: cut(bigBy.six) }, { name: "The other sixteen wards", color: ORANGE, values: cut(bigBy.four) }], fmt: fmtN, marks })
     + key([["The eight sixplex wards", BLUE], ["The other sixteen wards", ORANGE]])
-    + `<figcaption>Building permit applications for multiplex projects that create five or six homes, by the quarter they were applied for, with projects revised up to five or six in the quarter of the revision.</figcaption>`;
+    + `<figcaption>Building permit applications for houseplexes of five or six homes, by the quarter the project reached that size. Applications since refused or withdrawn are left out. The <a href="/insights/housing/">Housing page</a> counts those too, and Ward 23 with the eight: ${fmtN(big.filed)} over the same quarters.</figcaption>`;
 }
 
 // ---- more homes? ---------------------------------------------------------------------------------------------------
@@ -166,7 +167,8 @@ const CHECKS = {
   matched: () => `Each of the eight against its ${word(D.k)} most similar wards`,
   filed: () => "Counting applications since refused or withdrawn",
   issued: () => "Only permits issued so far",
-  broad: () => "A wider definition of a multiplex",
+  new: () => "New buildings only, not conversions",
+  building: () => "The building's homes, not the homes added",
   projects: () => "Projects, not homes",
   oneyear: () => "One year before, not two",
   additive: () => "Homes per ward, not growth rates",
@@ -216,24 +218,26 @@ function renderCant() {
     `<b>What the eight wards would have done.</b> They weren't picked at random. They are the old city: smaller lots, older houses, more transit, dearer land and a longer history of duplexes and triplexes. The rest of the city is the best stand-in available, and the section above shows it is a poor one.`,
     `<b>The zoning alone.</b> In July 2025 Council also waived development charges and parkland levies on multiplexes of up to six homes. The estimate is of everything that changed for these projects that summer, together.`,
     `<b>Where builders would otherwise have gone.</b> If the by-law drew small builders from the suburbs into the eight wards, the gap overstates what the city gained. Owners outside the eight wards also got five or six homes by other routes (${fmtN(big.fourPost)} projects), which narrows the gap between the groups.`,
-    `<b>How many homes a building holds.</b> A permit records the homes it adds, net of those already there: a house converted to six homes shows as five. A house converted to five can't be told from a new fourplex, so the count of five- and six-home projects is low.`,
+    `<b>How many homes a project really adds.</b> A project's homes are the dwelling units its permit says it creates. ${fmtN(D.counted["projects on the list with no homes created on a permit"])} projects on the list state none and add nothing here, and the City's counts are not audited. Counting each building's full size, which includes homes already there, gives a lower estimate (in the checks above).`,
     `<b>Anything about who lives there.</b> Nothing here bears on rents, prices, who can afford the homes, what was demolished, trees, parking or what neighbours think.`,
     `<b>What Council should do.</b> A number of homes proposed is one input to a decision about zoning, and this one is uncertain.`,
   ].map((t) => `<li>${t}</li>`).join("");
 }
 
 function renderHow() {
-  const out = Object.entries(D.left_out).filter(([, n]) => n > 0).map(([k, n]) => `${k} (${fmtN(n)})`).join("; ");
+
   $("how").innerHTML = `<ul>
-    <li><b>The data.</b> The City of Toronto's building permit files, retrieved ${day(D.retrieved)}, with applications to ${day(D.latest_application)}. Only whole quarters are used, so the latest is ${Q[A1]}.</li>
-    <li><b>A multiplex project</b> is a building permit the City files under a "3+ Unit" structure type, creating up to six homes: ${fmtN(D.counted["multiplex permits counted"])} permits since 2021. Left out: ${out || "nothing"}.</li>
+    <li><b>The data.</b> The City of Toronto's building permit files, retrieved ${day(D.retrieved)}, to the end of ${MONTHS[+D.last_month.slice(5) - 1]} ${D.last_month.slice(0, 4)}. Only whole quarters are used, so the latest is ${Q[A1]}.</li>
+    <li><b>A multiplex project</b> is one on the <a href="/insights/housing/">Housing page</a>'s list: an application that builds, or converts a building into, a houseplex of three to six homes, its size read from the permit's proposed use or description. ${fmtN(D.counted["projects counted"])} projects since 2021 add homes here. Applications since refused, withdrawn or cancelled are left out of the estimate and counted in a check.</li>
+    <li><b>Its homes</b> are the dwelling units created on its building permit: the homes added, not the building's size, so a duplex made into a fourplex is two.</li>
     <li><b>Which wards have six.</b> From the City's multiplex housing page, read ${day(D.fixed)}: the Toronto and East York district and Ward 23. If another ward opts in, it has to leave the comparison group, and this page will need redoing.</li>
-    <li><b>Homes are dated by when they were proposed.</b> The files keep each revision of a permit. A fourplex applied for in 2024 and revised to six homes in 2026 counts as four homes in 2024 and two in 2026. ${fmtN(D.counted["revisions that changed a multiplex permit's homes"])} revisions changed a project's homes. For ${fmtN(D.counted["multiplex permits dated before their first row in the files"])} permits the files hold only a later revision, and the first application is dated from the permit's number, which the City gives out in order.</li>
-    <li><b>Wards.</b> Each permit is placed in a ward by its address. The eight are wards ${six.map((w) => +w.ward).join(", ").replace(/, (\d+)$/, " and $1")}.</li>
+    <li><b>Homes are dated by when they were proposed.</b> The files keep each revision of a permit. A fourplex applied for in 2024 and revised to six homes in 2026 counts as four homes in 2024 and two in 2026. ${fmtN(D.counted["projects whose homes changed with a revision"])} projects' homes changed with a revision.</li>
+    <li><b>Wards.</b> Each project is in the ward its permit names. The eight are wards ${six.map((w) => +w.ward).join(", ").replace(/, (\d+)$/, " and $1")}.</li>
     <li><b>Before and after.</b> Before runs from the first whole quarter after four homes were allowed everywhere (${day(D.bylaw.four)}) to ${qEnd(Q[P1])}, so the by-law's last five days of June 2025 count as before. After runs from ${qStart(Q[A0])}.</li>
     <li><b>The estimate</b> is a ratio: the eight wards' homes after over before, divided by the same for the sixteen. Ratios, because the two groups differ in size and the counts are small.</li>
     <li><b>The range</b> comes from a permutation test over all ${D.assignments.toLocaleString("en-CA")} ways of choosing ${word(six.length)} wards of ${six.length + four.length}. It treats the wards as interchangeable, which they are not, so it measures how unusual the eight are among groups of wards and not the chance of an error in a designed trial.</li>
     <li><b>Fixed in advance, mostly.</b> The outcome, the wards, the periods, the estimate, the checks and the placebos were written down on ${day(D.fixed)}, before any estimate was computed, but after rough counts of permits by size and half-year had been looked at for each group of wards. The trend check (†) was added after the first results.</li>
+    <li><b>Rebuilt once, after the first results.</b> The first version counted projects its own way: permits of the City's "3+ Unit" types, placed by address, with a project of "five or six" one that added that many homes. On ${day(D.rebuilt)} it was rebuilt on the Housing page's list so that the two pages count the same projects. The outcome, wards, periods, estimate and range stayed as fixed. The estimate moved from ${signed(D.before_rebuild.extra)} homes (range ${signed(D.before_rebuild.extra_lo)} to ${signed(D.before_rebuild.extra_hi)}) to ${signed(M.extra)} (${signed(M.extra_lo)} to ${signed(M.extra_hi)}). Two checks changed with it: "a wider definition" became "new buildings only", and "the building's homes" was added.</li>
     <li><b>It will move.</b> The page is rebuilt when the permit files are refreshed, each quarter adding to "after". Later revisions, refusals and withdrawals change earlier quarters too.</li>
   </ul>
   <p>The code is <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex.py"><code>pipeline/sixplex.py</code></a> (the counts) and <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex_insights.py"><code>pipeline/sixplex_insights.py</code></a> (the estimates), and the table of homes by ward and month is <a href="https://github.com/vrraiv/sixfigures/tree/main/pipeline/sixplex">in the repository</a>.</p>`;

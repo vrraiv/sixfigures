@@ -1,13 +1,13 @@
 """Refresh the site's data from its scripted sources, and rebuild only what changed.
 
-    python pipeline/data_refresh.py prices rentals trees sixplex    # the quarterly run
-    python pipeline/data_refresh.py prices rentals trees sixplex safety housing   # March: the year's too
+    python pipeline/data_refresh.py prices rentals trees            # the quarterly run
+    python pipeline/data_refresh.py prices rentals trees safety housing   # March: the year's too
     python pipeline/data_refresh.py transport multiplex             # the monthly run
     python pipeline/data_refresh.py housing --report report.md
 
 The scheduled GitHub Actions workflow (.github/workflows/data-refresh.yml) runs this
 and opens a pull request with what it changed; `make refresh-quarterly`,
-`make refresh-safety`, `make refresh-housing`, `make refresh-sixplex` and `make refresh-multiplex` run it by hand. docs/data-catalogue.md
+`make refresh-safety`, `make refresh-housing` and `make refresh-multiplex` run it by hand. docs/data-catalogue.md
 has the schedule.
 
 The parts (each downloads its inputs, then rebuilds its committed outputs):
@@ -27,7 +27,9 @@ The parts (each downloads its inputs, then rebuilds its committed outputs):
 
   multiplex  the City's building permits (cleared since 2017, active) and address
            points: houseplexes of 3 to 6 units applied for, to the last whole
-           month (multiplex.py). Monthly, on the 18th, with transport
+           month (multiplex.py), and from that list the homes proposed by ward
+           and month for the Sixplex zoning experiment (sixplex.py). Monthly, on
+           the 18th, with transport
 
   trees    the City's street-tree inventory, updated a few times a year (trees.py
            --street-trees: the street-tree figures alone, leaving canopy and heat as
@@ -40,18 +42,12 @@ The parts (each downloads its inputs, then rebuilds its committed outputs):
            years, transport.py, ttc.py: a new schedule period adds a period to
            pipeline/ttc/service.csv)
 
-  sixplex  the building permit files again, for the Sixplex zoning experiment: homes
-           proposed in multiplex projects by ward and month (sixplex.py). Quarterly,
-           because the page compares whole quarters. A run nearly always finds a change:
-           each adds a quarter or moves earlier ones (revisions, refusals, withdrawals)
-
 A part counts as changed when its data does (each part's "data" below), not just its
 manifest's retrieval dates: an unchanged part is put back as it was, so a run with
 nothing new leaves no diff. For rentals that means a new scrape. The pages that read
 a changed part are then rebuilt, in order (price_insights.py, housing_insights.py,
 safety_insights.py, trees_insights.py, transport_insights.py, sixplex_insights.py), and after
-them the two explorers (explorer_data.py, affinity.py), unless only a page they don't read
-(sixplex_insights.py: wards, not neighbourhoods) was rebuilt. The kinds of neighbourhood are locked
+them the two explorers (explorer_data.py, affinity.py). The kinds of neighbourhood are locked
 (pipeline/kinds/), so this never regroups or renames them.
 
 The City's files a part reads are fetched fresh once per run ("toronto"), or only if
@@ -130,11 +126,14 @@ PARTS = {
     "multiplex": {
         "label": "Multiplexes (houseplexes on building permits)",
         "toronto": ["toronto_permits_cleared_2017.csv", "toronto_permits_active.csv", "toronto_address_points_4326.csv"],
-        "build": [["multiplex.py"]],
-        "dirs": ["pipeline/multiplex"],
+        # sixplex.py: the closed permit file (permits.py's loader reads all three) and the wards' outlines
+        "toronto_once": ["toronto_permits_cleared_2000_2016.csv", "toronto_wards_4326.geojson"],
+        # sixplex.py reads multiplex.py's list: the Sixplex zoning experiment's table, by ward and month
+        "build": [["multiplex.py"], ["sixplex.py"]],
+        "dirs": ["pipeline/multiplex", "pipeline/sixplex"],
         # a new month of applications, or a project revised or given a permit since the last run
-        "data": ["pipeline/multiplex/projects.csv"],
-        "pages": ["housing_insights.py"],
+        "data": ["pipeline/multiplex/projects.csv", "pipeline/sixplex/by_ward_month.csv"],
+        "pages": ["housing_insights.py", "sixplex_insights.py"],
     },
     "trees": {
         "label": "Trees (the City's street-tree inventory and tree points)",
@@ -159,20 +158,10 @@ PARTS = {
                  "pipeline/ttc/service.csv", "pipeline/ttc/cause_month.csv"],
         "pages": ["transport_insights.py"],
     },
-    "sixplex": {
-        "label": "Sixplex zoning (building permits by ward)",
-        "toronto": ["toronto_permits_cleared_2017.csv", "toronto_permits_active.csv", "toronto_address_points_4326.csv"],
-        "toronto_once": ["toronto_permits_cleared_2000_2016.csv", "toronto_wards_4326.geojson"],
-        "build": [["sixplex.py"]],
-        "dirs": ["pipeline/sixplex"],
-        "data": ["pipeline/sixplex/by_ward_month.csv"],
-        "pages": ["sixplex_insights.py"],
-    },
 }
 PAGE_ORDER = ["price_insights.py", "housing_insights.py", "safety_insights.py", "trees_insights.py", "transport_insights.py",
               "sixplex_insights.py"]
 EXPLORERS = ["explorer_data.py", "affinity.py"]
-NOT_EXPLORED = {"sixplex_insights.py"}  # pages the explorers don't read
 # every run: the neighbourhood outlines the page scripts draw (school_insights.paths)
 COMMON_ONCE = ["toronto_neighbourhoods_4326.geojson"]
 SETUP = "the `pipeline-inputs` release isn't set up: see docs/data-catalogue.md, \"One-time setup\""
@@ -267,13 +256,6 @@ def news_trees(read) -> str:
     return f"{s['rows']:,} street trees; {m['points']:,} tree points dated {', '.join(sorted(m['points_dated']))}"
 
 
-def news_sixplex(text: str | None) -> str:
-    if not text:
-        return "none"
-    m = json.loads(text)
-    return f"months to {m['months'][1]}, {m['counted']['multiplex permits counted']:,} multiplex permits, retrieved {m['retrieved']}"
-
-
 NEWS = {
     "prices": lambda read: news_prices(read("pipeline/trreb/community.csv")),
     "rentals": lambda read: news_rentals(read("pipeline/rentals/snapshots.json")),
@@ -282,7 +264,6 @@ NEWS = {
     "multiplex": news_multiplex,
     "transport": news_transport,
     "trees": news_trees,
-    "sixplex": lambda read: news_sixplex(read("pipeline/sixplex/manifest.json")),
 }
 
 
@@ -323,7 +304,7 @@ def main() -> int:
         print(f"\n{name}: {'changed' if done[name] else 'nothing new'}", flush=True)
 
     pages = [p for p in PAGE_ORDER if any(done[n] and p in PARTS[n]["pages"] for n in done)]
-    explorers = EXPLORERS if set(pages) - NOT_EXPLORED else []
+    explorers = EXPLORERS if pages else []
     for page in pages + explorers if pages else []:
         run([page])
 

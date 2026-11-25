@@ -250,12 +250,13 @@ $(PRICEINS): pipeline/price_insights.py pipeline/housing_insights.py pipeline/sc
 	$(PYTHON) pipeline/price_insights.py
 
 # The Sixplex zoning experiment (Experiments). `make sixplex-data` counts the homes proposed in
-# multiplex projects by ward and month from the City's permit files, address points and wards
-# (pipeline/sixplex/, committed); `make sixplex` writes the page's sixplex.json from that table,
-# with no raw file. Its inputs aren't prerequisites, as for the other pages.
+# multiplex projects by ward and month, from `make multiplex`'s list of projects, the City's
+# permit files and its wards (pipeline/sixplex/, committed); `make sixplex` writes the page's
+# sixplex.json from that table, with no raw file. Its inputs aren't prerequisites, as for the
+# other pages. `make refresh-multiplex` does all of it with fresh files.
 SIXPLEX := web/public/sixplex.json
 .PHONY: sixplex sixplex-data
-sixplex-data: $(PERMITRAW) $(RAW)/toronto_address_points_4326.csv $(RAW)/toronto_wards_4326.geojson
+sixplex-data: $(PERMITRAW) $(RAW)/toronto_wards_4326.geojson pipeline/multiplex/projects.csv
 	$(PYTHON) pipeline/sixplex.py
 
 sixplex: $(SIXPLEX)
@@ -438,20 +439,15 @@ neighbourhoods:
 # Scheduled refreshes (docs/data-catalogue.md): download what's new from the scripted sources,
 # rebuild only the pages whose inputs changed. .github/workflows/data-refresh.yml runs the same
 # script on a schedule and opens a pull request.
-#   refresh-quarterly  TRREB's latest quarter, Inside Airbnb's latest scrape, the City's street trees and tree points,
-#                      and the building permits by ward for the Sixplex zoning experiment
-#   refresh-sixplex    the last of those alone
+#   refresh-quarterly  TRREB's latest quarter, Inside Airbnb's latest scrape, the City's street trees and tree points
 #   refresh-safety     the police's crime files and KSI collisions (March, once the year is complete)
 #   refresh-housing    permits, the City's housing files, CMHC and the StatCan series (March)
 #   refresh-multiplex  houseplexes on building permits, to the last whole month (monthly, the 18th)
 #   publish-inputs     upload the StatCan files housing needs to the pipeline-inputs release, for
 #                      the workflow (once; scripts/publish-inputs.sh)
-.PHONY: refresh-quarterly refresh-safety refresh-housing refresh-sixplex refresh-multiplex publish-inputs
+.PHONY: refresh-quarterly refresh-safety refresh-housing refresh-multiplex publish-inputs
 refresh-quarterly:
-	$(PYTHON) pipeline/data_refresh.py prices rentals trees sixplex
-
-refresh-sixplex:
-	$(PYTHON) pipeline/data_refresh.py sixplex
+	$(PYTHON) pipeline/data_refresh.py prices rentals trees
 
 refresh-safety:
 	$(PYTHON) pipeline/data_refresh.py safety
