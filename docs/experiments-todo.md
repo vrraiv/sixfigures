@@ -67,6 +67,31 @@ and data the site can get. Listed 25 November 2026; nothing here is decided.
   needs redoing (`SIX` in `pipeline/sixplex.py`).
 - [ ] The one-year half-life (`HALF_LIFE` in `pipeline/sixplex_insights.py`) is an assumption.
   Revisit it if the fourplex test above measures how fast the catch-up fades.
+- [ ] **The catch-up is the weak spot: its rate and its end point are both assumed.** A note;
+  this might be its own page, and the method may prove too uncertain to do.
+  - The model has one setting, so rate and end point move together (at a one-year half-life
+    the eight wards settle at about 56% of their standing at the by-law). The band runs from
+    "stops at the by-law" to "full pace": it leaves out a catch-up that gains steam (which
+    would make the estimated gain larger) and one that reverses (smaller).
+  - An end point would bound it, however fast the catch-up went. The right one is a stock
+    ratio, multiplex homes per residential lot, and where each group starts from. (Parity in
+    new proposals per house ignores that the old city's suitable lots may already be
+    converted while the suburbs' are untouched, so the suburbs could outpace it for years.)
+  - The denominator is available: houses by ward from the 2021 Census (single-detached,
+    semi-detached, row; the City's Ward Profiles, or `pipeline/demography.py` by
+    neighbourhood), or lots from the zoning map.
+  - The numerator isn't. The census has no multiplex category: triplexes, fourplexes and
+    conversions sit in "apartment in a building of fewer than five storeys" with walk-ups and
+    low-rise condos, and "duplex" is mostly houses with a basement suite. MPAC's property codes
+    aren't open.
+    - The sixteen wards: probably close to knowable. Before 2023 their house lots were mostly
+      zoned for detached houses only, so their multiplexes are mainly those in the permits
+      since 2000, plus a few that predate the rules.
+    - The eight wards: the unknown, a century of conversions from before the permit files.
+      Duplex plus under-five-storey homes gives only an upper bound.
+  - So the end point would be a range, not a number. Even so, it would replace an assumption
+    and give the band an upper side. It shares the zoning and stock data with the fourplex
+    test above.
 - [ ] **Did the city as a whole gain homes?** Not answerable yet; tried 25 November 2026 and
   judged not publishable.
   - What was tried: each group of wards, and the whole city, against its own trend before the
