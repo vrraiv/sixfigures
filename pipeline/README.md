@@ -401,7 +401,7 @@ docstring is the design. The multiplex part of the data refresh runs both after
 - **The headline carries the trend before the by-law on, fading.** The other wards gained
   on the eight by about 10% a quarter before the by-law, so the comparison fixed in
   advance (the groups' averages before and after) finds a loss that began before the
-  by-law did, and fails two of its three placebos. `faded()` fits a line to the log of the
+  by-law did, and fails or is doubtful on two of its three placebos. `faded()` fits a line to the log of the
   groups' ratio over "before" and carries it on with each step `PHI` times the last;
   `HALF_LIFE` (4 quarters) is an assumption, not an estimate, and the page shows the
   band from stopping to never slowing. `Relabelled` refits the trend in every one of the
@@ -413,8 +413,9 @@ docstring is the design. The multiplex part of the data refresh runs both after
   homes are the `DWELLING_UNITS_CREATED` on its building permit (2), taken from the permit
   of the application that creates the most, since companions repeat the count. 65 projects
   on the list state no units created and add nothing. The building's size is kept as a
-  check (`building_homes`): it gives a lower estimate, because it counts the homes
-  conversions already had, and conversions are most of the eight wards' projects.
+  check (`building_homes`): under the comparison fixed in advance it gives a much lower
+  estimate, because it counts the homes conversions already had, and conversions are most
+  of the eight wards' projects.
 - **The files keep each revision**, with its own application date and unit count. Each
   revision's change in units is dated by the revision; otherwise a 2024 fourplex revised
   to six in 2026 would put six homes before the by-law.

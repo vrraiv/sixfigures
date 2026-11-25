@@ -66,7 +66,7 @@ function renderAnswer() {
     : H.extra > 0 ? "Sixplexes arrived, and the best estimate is that they added homes. The data can't yet rule out that they didn't."
     : "Sixplexes arrived. Whether the city got more homes because of them can't be told yet.";
   const reading = verdict === "unclear"
-    ? `The range runs from ${signed(H.extra_lo)} to ${signed(H.extra_hi)}: ${H.extra > 0 ? "a gain" : "a loss"} is the likelier reading, but wards differ enough from one another that no effect at all can't be ruled out.`
+    ? `The range runs from ${signed(H.extra_lo)} to ${signed(H.extra_hi)}: the best estimate is ${H.extra > 0 ? "a gain" : "a loss"}, but wards differ enough from one another that no effect at all can't be ruled out.`
     : `The range runs from ${signed(H.extra_lo)} to ${signed(H.extra_hi)}, clear of zero.`;
   $("answer").innerHTML = `<p class="sx-head">${head}</p>
     <p>Builders proposed <b>${fmtN(big.sixPost)} projects of five or six homes</b> in the eight wards in the ${nPost * 3} months after the by-law (${after}). In the two years before, there ${big.sixPre === 1 ? "was one" : `were ${word(big.sixPre)}`}.</p>
@@ -175,7 +175,14 @@ function renderPlan() {
     ${row("Laneway and garden suites, which the by-law didn't touch", "suites")}
     ${row("New detached houses, which it didn't touch either", "houses")}
     </tbody></table></div>
-    <p>The comparison fixed in advance fails or is doubtful on ${count(planOff)}; the fading trend on ${count(headOff)}.${planOff > headOff ? " Where the first one goes wrong, it finds the rest of the city gaining on the eight wards with no by-law to explain it, which is the trend the second one allows for." : ""}</p>
+    <p>The comparison fixed in advance fails or is doubtful on ${count(planOff)}; the fading trend on ${count(headOff)}.${planOff > headOff ? " Where the first one goes wrong, it finds the rest of the city gaining on the eight wards with no by-law to explain it, which is the trend the second one allows for." : ""}
+    Read the estimates more than the results. The trend's test is the blunter of the two, because it refits a trend in every grouping: its own estimate of ${fmtX(H.ratio)} turns up in ${Math.round(H.p * 100)}% of them, so a "pass" is easier to get. What counts for it is that its placebo estimates sit ${D.headline_placebos.every((c) => Math.abs(c.ratio - 1) < Math.abs(placebo(c.key).ratio - 1) + 0.05) ? "closer to" : "no further from"} ×1.00.</p>
+    <p><b>Its own checks.</b> The checks written down with it, each changing one choice:</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="txt">Fixed in advance, with</th><th>Estimate</th><th>Difference</th></tr></thead><tbody>
+    <tr class="sel"><th>nothing changed</th><td>${fmtX(M.ratio)}</td><td>${signed(M.extra)}</td></tr>
+    ${D.checks.map((c) => `<tr><th>${PLAN_CHECKS[c.key]()}</th><td>${fmtX(c.ratio)}</td><td>${signed(c.extra)}${c.key === "projects" ? " projects" : ""}</td></tr>`).join("")}
+    <tr><th>Leaving out any one ward</th><td>${fmtX(Math.min(...D.leave.map((l) => l.ratio)))} to ${fmtX(Math.max(...D.leave.map((l) => l.ratio)))}</td><td>${signed(Math.min(...D.leave.map((l) => l.extra)))} to ${signed(Math.max(...D.leave.map((l) => l.extra)))}</td></tr>
+    </tbody></table></div>
     <p><b>What changing the headline costs.</b> The trend was added to this page as a check, after the first results were in, and was made the headline on ${day(D.changed)}, at the author's choice, with those results in view. A method picked after seeing what each one says deserves less trust than one picked before, however good the reasons. That is why the first estimate stays here in full, and why the fade is shown as a band and not a single number.</p>`;
 }
 
@@ -191,6 +198,7 @@ const CHECKS = {
   projects: () => "Projects, not homes",
   additive: () => "Homes per ward, not growth rates",
 };
+const PLAN_CHECKS = { ...CHECKS, oneyear: () => "One year before, not two" };
 function renderChecks() {
   const lr = D.headline_leave.map((l) => l.ratio);
   const of = (c) => ({ name: CHECKS[c.key](), ratio: c.ratio, extra: c.extra, unit: c.key === "projects" ? " projects" : "" });
@@ -250,7 +258,7 @@ function renderCant() {
     `<b>What the eight wards would have done.</b> They weren't picked at random. They are the old city: smaller lots, older houses, more transit, dearer land and a longer history of duplexes and triplexes. The rest of the city is the best stand-in available, and it was on a path of its own. The estimate allows for that path with an assumption about how it would have gone on, which can't be checked.`,
     `<b>The zoning alone.</b> In July 2025 Council also waived development charges and parkland levies on multiplexes of up to six homes. The estimate is of everything that changed for these projects that summer, together.`,
     `<b>Where builders would otherwise have gone.</b> If the by-law drew small builders from the suburbs into the eight wards, the gap overstates what the city gained. Owners outside the eight wards also got five or six homes by other routes (${fmtN(big.fourPost)} projects), which narrows the gap between the groups.`,
-    `<b>How many homes a project really adds.</b> A project's homes are the dwelling units its permit says it creates. ${fmtN(D.counted["projects on the list with no homes created on a permit"])} projects on the list state none and add nothing here, and the City's counts are not audited. Counting each building's full size, which includes homes already there, gives a lower estimate (in the checks above).`,
+    `<b>How many homes a project really adds.</b> A project's homes are the dwelling units its permit says it creates. ${fmtN(D.counted["projects on the list with no homes created on a permit"])} projects on the list state none and add nothing here, and the City's counts are not audited. Counting each building's full size, which includes homes already there, is one of the checks above.`,
     `<b>Anything about who lives there.</b> Nothing here bears on rents, prices, who can afford the homes, what was demolished, trees, parking or what neighbours think.`,
     `<b>What Council should do.</b> A number of homes proposed is one input to a decision about zoning, and this one is uncertain.`,
   ].map((t) => `<li>${t}</li>`).join("");
@@ -270,8 +278,8 @@ function renderHow() {
     <li><b>The estimate fixed in advance</b> is the eight wards' homes after over before, divided by the same for the sixteen.</li>
     <li><b>The range</b> comes from a permutation test over all ${D.assignments.toLocaleString("en-CA")} ways of choosing ${word(six.length)} wards of ${six.length + four.length}. The trend is fitted afresh in each. It treats the wards as interchangeable, which they are not, so it measures how unusual the eight are among groups of wards and not the chance of an error in a designed trial.</li>
     <li><b>Fixed in advance, mostly.</b> The outcome, the wards, the periods, the estimate, the checks and the placebos were written down on ${day(D.fixed)}, before any estimate was computed, but after rough counts of permits by size and half-year had been looked at for each group of wards. A check that carried the earlier trend forward was added after the first results.</li>
-    <li><b>The headline changed, after the results.</b> On ${day(D.changed)} the author made the trend the headline, fading, in place of the estimate fixed in advance, with both sets of results in view. The first estimate, its range, its checks and its placebos are all still on this page.</li>
-    <li><b>Rebuilt once, after the first results.</b> The first version counted projects its own way: permits of the City's "3+ Unit" types, placed by address, with a project of "five or six" one that added that many homes. On ${day(D.rebuilt)} it was rebuilt on the Housing page's list so that the two pages count the same projects. The outcome, wards, periods, estimate and range stayed as fixed. The estimate moved from ${signed(D.before_rebuild.extra)} homes (range ${signed(D.before_rebuild.extra_lo)} to ${signed(D.before_rebuild.extra_hi)}) to ${signed(M.extra)} (${signed(M.extra_lo)} to ${signed(M.extra_hi)}). Two checks changed with it: "a wider definition" became "new buildings only", and "the building's homes" was added.</li>
+    <li><b>The headline changed, after the results.</b> On ${day(D.changed)} the author made the trend the headline, fading, in place of the estimate fixed in advance, with both sets of results in view. The first estimate, its range, its checks and its placebos are all still on this page, under "The comparison fixed in advance".</li>
+    <li><b>Rebuilt once, after the first results.</b> The first version counted projects its own way: permits of the City's "3+ Unit" types, placed by address, with a project of "five or six" one that added that many homes. On ${day(D.rebuilt)} it was rebuilt on the Housing page's list so that the two pages count the same projects. The outcome, wards, periods, estimate and range stayed as fixed. The estimate fixed in advance moved from ${signed(D.before_rebuild.extra)} homes (range ${signed(D.before_rebuild.extra_lo)} to ${signed(D.before_rebuild.extra_hi)}) to ${signed(M.extra)} (${signed(M.extra_lo)} to ${signed(M.extra_hi)}). Two checks changed with it: "a wider definition" became "new buildings only", and "the building's homes" was added.</li>
     <li><b>It will move.</b> The page is rebuilt when the permit files are refreshed, each quarter adding to "after". Later revisions, refusals and withdrawals change earlier quarters too.</li>
   </ul>
   <p>The code is <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex.py"><code>pipeline/sixplex.py</code></a> (the counts) and <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex_insights.py"><code>pipeline/sixplex_insights.py</code></a> (the estimates), and the table of homes by ward and month is <a href="https://github.com/vrraiv/sixfigures/tree/main/pipeline/sixplex">in the repository</a>.</p>`;

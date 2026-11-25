@@ -346,10 +346,11 @@ by-law, the homes in smaller and larger projects in each group of wards, the tre
 the ways of carrying it on, the estimate and its range, the comparison fixed in advance
 (no trend: a difference in differences of ratios) with its own range, the placebos for
 both, each check, and every ward. As of 2026 Q3 the estimate is about 250 more homes, with
-a range from about 140 fewer to about 490 more: likelier a gain than not, and not
+a range from about 140 fewer to about 490 more: a gain on the best estimate, and not
 distinguishable from none. It runs from about 100 more if the catch-up stopped at the
 by-law to about 310 if it never slowed; the comparison fixed in advance gives about 130
-fewer (540 fewer to 170 more) and fails two of three placebos, which the trend passes.
+fewer (540 fewer to 170 more) and fails or is doubtful on two of three placebos, where the
+trend's placebo estimates sit near no effect (its test is the blunter of the two).
 The headline was changed from that comparison to the trend after the results were seen,
 and the page says so. What
 it can't show: whether the homes get built (these are applications), the long run (five
