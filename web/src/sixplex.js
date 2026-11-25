@@ -193,7 +193,7 @@ function renderChecks() {
   }).join("")}
     <li class="sx-axis" aria-hidden="true"><span class="sx-name"></span><span class="sx-track">${ticks.map((t) => `<span style="left:${x(t)}%">${t === 1 ? "no effect" : `×${t}`}</span>`).join("")}</span><span class="sx-val"></span></li></ol>`;
   const near = D.checks.filter((c) => !c.late && c.ratio != null), inside = near.filter((c) => c.ratio >= M.lo && c.ratio <= M.hi).length;
-  $("checks-note").innerHTML = `The figure at the right is the difference in homes (the scale is the ratio to what was expected: ×1.5 is half as many again). ${inside === near.length ? `All ${word(near.length)}` : `${inside} of the ${near.length}`} checks chosen in advance fall inside the estimate's range. `
+  $("checks-note").innerHTML = `The figure at the right is the difference in homes (the scale is the ratio to what was expected: ×1.5 is half as many again). ${inside === near.length ? `All ${word(near.length)}` : `${inside} of the ${near.length}`} checks not marked † fall inside the estimate's range. `
     + `† Added after the first results were seen. "Similar" wards are the nearest on how many homes were proposed before the by-law and how fast that was growing.`;
 }
 
