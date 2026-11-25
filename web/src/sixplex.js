@@ -72,9 +72,9 @@ function renderAnswer() {
     ? `That figure is uncertain. The true number could plausibly be anywhere from ${H.extra_lo < 0 ? `a small loss` : `about ${fmtN(H.extra_lo)}`} to nearly ${fmtN(Math.ceil(H.extra_hi / 50) * 50)}, so no gain at all can't be ruled out.`
     : `The true number could plausibly be anywhere from about ${fmtN(H.extra_lo)} to about ${fmtN(H.extra_hi)}.`;
   $("answer").innerHTML = `<p class="sx-head">${head}</p>
-    <p>In June 2025 Toronto began allowing six homes on a house lot in eight downtown wards. Everywhere else the limit stayed at four.</p>
-    <p>Builders responded at once. In the ${nPost * 3} months since, they have applied to build <b>${fmtN(big.sixPost)} buildings of five or six homes</b> in those wards, against ${fmtN(big.sixPre)} in the two years before.</p>
-    <p>Some of those would have been built anyway as fourplexes. So this page counts every home in every small multi-unit building (a "multiplex"), and asks how many the eight wards would have seen without the new rule. They saw ${fmtN(H.t1)}. We estimate they were heading for about ${about(H.expected)}. The difference, <b>about ${about(H.extra)} ${gain ? "extra" : "fewer"} homes</b>, is what we credit to the rule.</p>
+    <p>In June 2025 Toronto began allowing six homes on a house lot in eight downtown wards. Everywhere else the limit stayed at four. A month later City Council also waived development charges on these buildings. The two changes came too close together to tell apart, so what follows is the effect of both.</p>
+    <p>Builders responded right away. In the ${nPost * 3} months since, they have applied to build <b>${fmtN(big.sixPost)} buildings of five or six homes</b> in those wards, against ${fmtN(big.sixPre)} in the two years before.</p>
+    <p>Some of those would have been built anyway as fourplexes. So this page counts every home in every small multi-unit building (a "multiplex"), and asks how many the eight wards would have seen without the new rule. They saw ${fmtN(H.t1)}. We estimate they were heading for about ${about(H.expected)}. The difference, <b>about ${about(H.extra)} ${gain ? "extra" : "fewer"} homes</b>, is what we credit to the two changes.</p>
     <p>${unsure} And these are applications to build, not finished homes.</p>`;
   const card = (name, v, note) => `<div class="card static"><span class="card-name">${name}</span><span class="card-value">${v}</span><span class="card-delta">${note}</span></div>`;
   $("cards").innerHTML = [
