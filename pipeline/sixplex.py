@@ -18,6 +18,8 @@ writes pipeline/sixplex/:
                      first applications were dated
 
 On 25-26 June 2025 City Council allowed up to six homes in a house-scale building
+(By-law 654-2025; By-law 845-2025, 24 July 2025, then set the development charges on
+the fifth and sixth homes to zero)
 in the Toronto and East York district (wards 4, 9, 10, 11, 12, 13, 14 and 19: arm
 "six") and left the rest of the city at the four allowed everywhere since May 2023
 (arm "four"). Ward 23 (arm "early") got six under its own by-law on 5 February

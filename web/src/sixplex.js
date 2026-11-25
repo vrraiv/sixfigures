@@ -8,6 +8,8 @@ import { chart, initTip, key } from "./charts.js";
 import { buildToc } from "./nbtools.js";
 
 const D = await loadJSON(`/sixplex.json?v=${__SIXPLEX_VERSION__}`).catch(loadFailed);
+// The two by-laws: the zoning (26 June 2025), and the development charges and parkland levy (24 July 2025)
+const ZONING = `<a href="https://www.toronto.ca/legdocs/bylaws/2025/law0654.pdf">By-law 654-2025</a>`, CHARGES = `<a href="https://www.toronto.ca/legdocs/bylaws/2025/law0845.pdf">By-law 845-2025</a>`;
 const LIGHT = COLORS[1], BLUE = COLORS[3], DARK = COLORS[5], ORANGE = "#c2410c", GREY = "#dcdcd6", MUTED = "#8a8a84";
 const Q = D.quarters, [P0, P1] = D.pre, [A0, A1] = D.post;
 // H: the headline (the trend before the by-law carried on, fading); F: the same with the catch-up
@@ -72,7 +74,7 @@ function renderAnswer() {
     ? `That figure is uncertain. The true number could plausibly be anywhere from ${H.extra_lo < 0 ? `a small loss` : `about ${fmtN(H.extra_lo)}`} to nearly ${fmtN(Math.ceil(H.extra_hi / 50) * 50)}, so no gain at all can't be ruled out.`
     : `The true number could plausibly be anywhere from about ${fmtN(H.extra_lo)} to about ${fmtN(H.extra_hi)}.`;
   $("answer").innerHTML = `<p class="sx-head">${head}</p>
-    <p>In June 2025 Toronto began allowing six homes on a house lot in eight downtown wards. Everywhere else the limit stayed at four. A month later City Council also waived development charges on these buildings. The two changes came too close together to tell apart, so what follows is the effect of both.</p>
+    <p>In June 2025 Toronto began allowing six homes on a house lot in eight downtown wards (${ZONING}). Everywhere else the limit stayed at four. A month later City Council also dropped the development charges and parkland levy on the fifth and sixth homes of such a building (${CHARGES}). The two changes came too close together to tell apart, so what follows is the effect of both.</p>
     <p>Builders responded right away. In the ${nPost * 3} months since, they have applied to build <b>${fmtN(big.sixPost)} buildings of five or six homes</b> in those wards, against ${fmtN(big.sixPre)} in the two years before.</p>
     <p>Some of those would have been built anyway as fourplexes. So this page counts every home in every small multi-unit building (a "multiplex"), and asks how many the eight wards would have seen without the new rule. They saw ${fmtN(H.t1)}. We estimate they were heading for about ${about(H.expected)}. The difference, <b>about ${about(H.extra)} ${gain ? "extra" : "fewer"} homes</b>, is what we credit to the two changes.</p>
     <p>${unsure} And these are applications to build, not finished homes.</p>`;
@@ -282,7 +284,7 @@ function renderCant() {
   $("cant").innerHTML = [
     `<b>Whether the homes get built.</b> These are applications. Some will be refused or dropped, and a multiplex takes a year or more to finish.`,
     `<b>The long run.</b> The rule is ${nPost * 3} months old in this data. An early rush or a slow start would both mislead.`,
-    `<b>The zoning on its own.</b> A month later Council also waived development charges on these buildings. The estimate is of both changes together.`,
+    `<b>The zoning on its own.</b> A month after the zoning (${ZONING}), Council set the development charges on a building's fifth and sixth homes to zero and dropped its parkland levy (${CHARGES}). The second to fourth homes were already exempt. The estimate is of both changes together.`,
     `<b>Whether the city as a whole gained.</b> If the rule drew builders downtown who would otherwise have built in the suburbs, some of the gain is homes moved, not homes added.`,
     `<b>Anything about who lives there.</b> Nothing here bears on rents, prices, what was demolished, or what neighbours think.`,
   ].map((t) => `<li>${t}</li>`).join("");
@@ -294,7 +296,7 @@ function renderHow() {
     <li><b>The data.</b> The City of Toronto's building permit files, retrieved ${day(D.retrieved)}, to the end of ${MONTHS[+D.last_month.slice(5) - 1]} ${D.last_month.slice(0, 4)}. Only whole quarters are used, so the latest is ${Q[A1]}.</li>
     <li><b>A multiplex project</b> is one on the <a href="/insights/housing/">Housing page</a>'s list: an application that builds, or converts a building into, a houseplex of three to six homes, its size read from the permit's proposed use or description. ${fmtN(D.counted["projects counted"])} projects since 2021 add homes here. Applications since refused, withdrawn or cancelled are left out of the estimate and counted in a check.</li>
     <li><b>Its homes</b> are the dwelling units created on its building permit: the homes added, not the building's size, so a duplex made into a fourplex is two.</li>
-    <li><b>Which wards have six.</b> From the City's multiplex housing page, read ${day(D.fixed)}: the Toronto and East York district and Ward 23. If another ward opts in, it has to leave the comparison group, and this page will need redoing.</li>
+    <li><b>Which wards have six.</b> ${ZONING}, passed on 26 June 2025, covers the Toronto and East York Community Council area and the part of Scarborough North between Steeles Avenue, Highway 401, Midland Avenue and Neilson Road and the Rouge River, counted here as Ward 23. The City's multiplex housing page, read ${day(D.fixed)}, lists no other ward. If another opts in, it has to leave the comparison group, and this page will need redoing.</li>
     <li><b>Homes are dated by when they were proposed.</b> The files keep each revision of a permit. A fourplex applied for in 2024 and revised to six homes in 2026 counts as four homes in 2024 and two in 2026. ${fmtN(D.counted["projects whose homes changed with a revision"])} projects' homes changed with a revision.</li>
     <li><b>Wards.</b> Each project is in the ward its permit names. The eight are wards ${six.map((w) => +w.ward).join(", ").replace(/, (\d+)$/, " and $1")}.</li>
     <li><b>Before and after.</b> Before runs from the first whole quarter after four homes were allowed everywhere (${day(D.bylaw.four)}) to ${qEnd(Q[P1])}, so the by-law's last five days of June 2025 count as before. After runs from ${qStart(Q[A0])}.</li>
@@ -306,7 +308,7 @@ function renderHow() {
     <li><b>Rebuilt once, after the first results.</b> The first version counted projects its own way: permits of the City's "3+ Unit" types, placed by address, with a project of "five or six" one that added that many homes. On ${day(D.rebuilt)} it was rebuilt on the Housing page's list so that the two pages count the same projects. The outcome, wards, periods, estimate and range stayed as fixed. The estimate fixed in advance moved from ${signed(D.before_rebuild.extra)} homes (range ${signed(D.before_rebuild.extra_lo)} to ${signed(D.before_rebuild.extra_hi)}) to ${signed(M.extra)} (${signed(M.extra_lo)} to ${signed(M.extra_hi)}). Two checks changed with it: "a wider definition" became "new buildings only", and "the building's homes" was added.</li>
     <li><b>The eight wards weren't picked at random.</b> They are the old city: smaller lots, older houses, more transit, dearer land and a longer history of duplexes and triplexes. The rest of the city is the best stand-in available, and it was on a path of its own.</li>
     <li><b>How many homes a project adds</b> is what its permit says. ${fmtN(D.counted["projects on the list with no homes created on a permit"])} projects on the list state none and add nothing here, and the City's counts are not audited. Owners outside the eight wards also got five or six homes by other routes (${fmtN(big.fourPost)} projects), which narrows the gap between the groups.</li>
-    <li><b>The development-charge waiver</b> of July 2025 is dated here from news reports, not from a Council record.</li>
+    <li><b>The development charges.</b> ${CHARGES}, passed on 24 July 2025 and in effect that day, applies across the city to a lot with no more than six homes: no charge on the second to fourth, zero on the fifth and sixth, and no parkland levy on the second to sixth. Only where six homes are allowed does the fifth-and-sixth part matter, so in practice it arrived with the zoning in the eight wards.</li>
     <li><b>It will move.</b> The page is rebuilt when the permit files are refreshed, each quarter adding to "after". Later revisions, refusals and withdrawals change earlier quarters too.</li>
   </ul>
   <p>The code is <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex.py"><code>pipeline/sixplex.py</code></a> (the counts) and <a href="https://github.com/vrraiv/sixfigures/blob/main/pipeline/sixplex_insights.py"><code>pipeline/sixplex_insights.py</code></a> (the estimates), and the table of homes by ward and month is <a href="https://github.com/vrraiv/sixfigures/tree/main/pipeline/sixplex">in the repository</a>.</p>`;

@@ -355,7 +355,8 @@ trend's placebo estimates sit near no effect (its test is the blunter of the two
 The headline was changed from that comparison to the trend after the results were seen,
 and the page says so. What
 it can't show: whether the homes get built (these are applications), the long run (five
-quarters), the zoning apart from the development-charge waiver passed a month later, or
+quarters), the zoning (By-law 654-2025) apart from the development charges dropped on the fifth and
+sixth homes a month later (By-law 845-2025), or
 what the eight wards, which weren't chosen at random, would have done otherwise. Ward 23,
 which got six homes earlier under its own by-law, is in neither group (the Housing page,
 which describes where six are allowed, counts it with the eight). The design is in
