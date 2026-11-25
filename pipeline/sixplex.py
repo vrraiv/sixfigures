@@ -31,6 +31,15 @@ applied for in 2024 and revised to six homes in 2026 is 4 homes in 2024 and 2 in
 2026. (permits.py's totals take a permit's latest revision; that would move those 2
 homes to before the by-law.)
 
+A permit's first row isn't always its first application. For some permits, mostly
+closed ones, the files keep only a later revision, dated when the revision was
+applied for: sometimes years after the permit. Permit numbers are given out in order
+through a year ("24 142054 BLD" is the 142,054th folder of 2024), so such a permit's
+homes are dated where its number falls among the year's permits whose first
+application is in the files (origins; the manifest gives how many, and how close the
+rule comes on permits whose date is known). The same date serves a permit whose first
+application is dead (superseded, say) while a revision lives.
+
 Series (homes; `_projects` where given counts first applications):
   plex     multiplex projects of up to CAP homes whose permit is alive (permits.py's
            DROP_STATUS: not cancelled, refused, withdrawn, abandoned or superseded)
@@ -65,6 +74,7 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 import permits as P
@@ -91,14 +101,50 @@ WIDTH, SIMPLIFY, BORDER = 600, 40, 50  # outline box (px), simplification and "b
 def events(rows: pd.DataFrame) -> pd.DataFrame:
     """One row per proposal: a permit's first application, then each revision that
     changed its units. `rows` has permit, rev, applied, units (one row per permit
-    and revision). Returns permit, date, homes (the change), total (units after it)
-    and first (whether it is the first application)."""
+    and revision) and, optionally, origin: the date of the permit's first
+    application, where the first row here is a later revision. Returns permit, date,
+    homes (the change), total (units after it) and first (whether it is the first
+    application)."""
     r = rows.sort_values(["permit", "rev", "applied"]).copy()
     before = r.groupby("permit").units.shift()
     r["first"] = before.isna()
     r["homes"] = r.units - before.fillna(0)
+    if "origin" in r:
+        r["applied"] = r.applied.where(~r["first"] | r.origin.isna(), r.origin)
     r = r[r["first"] | (r.homes != 0)]
     return r.rename(columns={"applied": "date", "units": "total"})[["permit", "date", "homes", "total", "first"]]
+
+
+def origins(rows: pd.DataFrame) -> tuple[pd.Series, dict]:
+    """Each permit's first application date: its revision 00's where the files hold
+    one, and otherwise where its number falls among its year's permits that do
+    (never later than its earliest row). `rows` has permit, rev, applied. Returns the
+    dates by permit, and how many were dated by number and how well that rule dates
+    the permits whose date is known (every other one, from the rest)."""
+    first = rows[rows.rev == "00"].groupby("permit").applied.min()
+    earliest = rows.groupby("permit").applied.min()
+    year, seq = first.index.str[:2], pd.to_numeric(first.index.str[3:9], errors="coerce")
+    known = pd.DataFrame({"year": year, "seq": seq, "date": first.to_numpy().astype("datetime64[s]").astype("int64")}).dropna()
+    known = known.sort_values(["year", "seq"])
+    lost = earliest.index.difference(first.index)
+    out, errors = {}, []
+    for y, k in known.groupby("year"):
+        # permits are numbered in order, but some carry a date far from their neighbours' (a folder
+        # opened late, or early): the median of the 21 around each, then never running backwards
+        k = k.assign(said=k.date, date=k.date.rolling(21, center=True, min_periods=1).median().cummax())
+        if len(k) > 20:
+            a, b = k.iloc[::2], k.iloc[1::2]
+            errors.extend(abs(np.interp(b.seq, a.seq, a.date) - b.said) / 86400)
+        mine = lost[lost.str[:2] == y]
+        s = pd.to_numeric(mine.str[3:9], errors="coerce")
+        ok = ~np.isnan(s)
+        out.update(zip(mine[ok], pd.to_datetime(np.interp(s[ok], k.seq, k.date), unit="s").normalize()))
+    by_number = pd.Series(out, dtype="datetime64[ns]")
+    by_number = by_number.where(by_number <= earliest.reindex(by_number.index), earliest.reindex(by_number.index))
+    origin = pd.concat([first, by_number])
+    origin = origin.where(origin <= earliest.reindex(origin.index), earliest.reindex(origin.index))
+    return origin, {"dated_by_number": int(len(by_number)),
+                    "median_error_days": round(float(np.median(errors)), 1), "p90_error_days": round(float(np.quantile(errors, 0.9)), 1)}
 
 
 def whole_months(latest: pd.Timestamp, start: str = START) -> list[str]:
@@ -120,11 +166,14 @@ def kind(structure: str, permit_type: str, work: str) -> str | None:
     return None
 
 
-def load() -> tuple[pd.DataFrame, dict]:
-    """The permit rows this table counts, one per permit and revision, with what was left out."""
+def load() -> tuple[pd.DataFrame, dict, dict]:
+    """The permit rows this table counts, one per permit and revision, with what was left
+    out and how the permits without a first application were dated."""
     with contextlib.redirect_stdout(io.StringIO()):  # permits.py prints its own checks
         raw = P.load()
         repeats = P.companions(P.dedupe(raw))
+    raw["applied"] = pd.to_datetime(raw.APPLICATION_DATE.str[:10], errors="coerce")
+    origin, dating = origins(raw[raw.applied.notna()].rename(columns={"PERMIT_NUM": "permit", "REVISION_NUM": "rev"}))
     raw = raw[raw.created > 0].copy()
     # a permit whose units repeat another's: the live permits companions() zeroed
     live_units = raw[~raw.STATUS.isin(P.DROP_STATUS)].groupby("PERMIT_NUM").created.max()
@@ -134,7 +183,6 @@ def load() -> tuple[pd.DataFrame, dict]:
     raw = raw[raw.kind.notna()]
     left = {"permits repeating another permit's homes": int(raw.PERMIT_NUM.isin(repeated).groupby(raw.PERMIT_NUM).first().sum())}
     raw = raw[~raw.PERMIT_NUM.isin(repeated)]
-    raw["applied"] = pd.to_datetime(raw.APPLICATION_DATE.str[:10], errors="coerce")
     left["rows with no application date"] = int(raw.applied.isna().sum())
     raw = raw[raw.applied.notna()]
     raw["rank"] = raw.source.map({s: i for i, s in enumerate(P.FILES)})
@@ -143,7 +191,8 @@ def load() -> tuple[pd.DataFrame, dict]:
     rows = (raw.sort_values(["PERMIT_NUM", "REVISION_NUM", "rank"]).drop_duplicates(["PERMIT_NUM", "REVISION_NUM"], keep="last")
             .rename(columns={"PERMIT_NUM": "permit", "REVISION_NUM": "rev", "created": "units"}))
     rows["issued"] = pd.to_datetime(rows.ISSUED_DATE.str[:10], errors="coerce")
-    return rows, left
+    rows["origin"] = rows.permit.map(origin)
+    return rows, left, dating
 
 
 def place(rows: pd.DataFrame) -> pd.Series:
@@ -173,7 +222,7 @@ def table(rows: pd.DataFrame, months: list[str]) -> tuple[pd.DataFrame, dict]:
         return ev.groupby(["ward", "month"])[col].sum().reindex(index, fill_value=0)
 
     def proposals(sub: pd.DataFrame) -> pd.DataFrame:
-        ev = events(sub[["permit", "rev", "applied", "units"]])
+        ev = events(sub[["permit", "rev", "applied", "units", "origin"]])
         return ev.join(sub.drop_duplicates("permit").set_index("permit")[["ward", "issued_ever"]], on="permit")
 
     rows = rows.assign(issued_ever=rows.groupby("permit").issued.transform("min").notna())
@@ -199,7 +248,10 @@ def table(rows: pd.DataFrame, months: list[str]) -> tuple[pd.DataFrame, dict]:
     for name, k in (("suites_homes", "suite"), ("houses_homes", "house")):
         out[name] = tally(proposals(rows[(rows.kind == k) & ~rows.dead]))
     t = pd.DataFrame(out)[SERIES].astype(int).reset_index()
-    counts["multiplex permits counted"] = int(alive.permit.nunique())
+    counts["multiplex permits counted"] = int(ev[ev.date.dt.to_period("M").astype(str).isin(months)].permit.nunique())
+    start = alive.sort_values(["permit", "rev"]).drop_duplicates("permit")
+    late = start[(start.applied > start.origin) & start.permit.isin(ev[ev.date >= months[0]].permit)]
+    counts["multiplex permits dated before their first row in the files"] = int(len(late))
     counts["revisions that changed a multiplex permit's homes"] = int((~ev["first"]).sum())
     counts["revisions that took a project to five or six homes"] = int(len(up))
     return t, counts
@@ -243,7 +295,7 @@ def main() -> int:
     for f in [*(RAW / n for n in P.FILES.values()), P.ADDRESSES, WARDS]:
         if not f.exists():
             sys.exit(f"{f} is missing (python pipeline/download.py --toronto {f.name})")
-    rows, left = load()
+    rows, left, dating = load()
     latest = rows.applied.max()
     months = whole_months(latest)
     ward, how = place(rows)
@@ -254,7 +306,7 @@ def main() -> int:
     rows = rows[rows.ward.notna()]
     if rows.ward.nunique() != 25:
         sys.exit(f"permits in {rows.ward.nunique()} wards, not 25: the address points' wards have changed")
-    t, counts = table(rows[rows.applied.dt.to_period("M").astype(str).isin(months)], months)
+    t, counts = table(rows, months)
     w = wards()
 
     OUT.mkdir(exist_ok=True)
@@ -267,6 +319,7 @@ def main() -> int:
         "months": [months[0], months[-1]],
         "left_out": left | {k: v for k, v in counts.items() if "more than" in k},
         "counted": {k: v for k, v in counts.items() if "more than" not in k},
+        "first_applications": dating,
         "placed_by": how,
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")

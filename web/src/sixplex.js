@@ -67,11 +67,13 @@ function renderAnswer() {
     more: `The difference is ${signed(M.extra)} homes, more than differences between groups of wards usually produce: the range runs from ${signed(M.extra_lo)} to ${signed(M.extra_hi)}.`,
     fewer: `The difference is ${signed(M.extra)} homes, with a range from ${signed(M.extra_lo)} to ${signed(M.extra_hi)}.`,
   }[verdict];
-  const gap = Math.abs(trend.extra - M.extra) > Math.abs(M.extra_hi - M.extra_lo) / 4;
+  const where = trend.extra > M.extra_hi ? "above that range" : trend.extra < M.extra_lo ? "below that range" : "inside that range";
+  const catching = trend.slope < 0;
   $("answer").innerHTML = `<p class="sx-head">${head}</p>
     <p>Builders proposed <b>${fmtN(big.sixPost)} projects of five or six homes</b> in the eight wards in the ${nPost * 3} months after the by-law (${after}). In the two years before, there ${big.sixPre === 1 ? "was one" : `were ${word(big.sixPre)}`}.</p>
     <p>What matters, though, is every multiplex project, large and small, since a sixplex may only replace a fourplex that would have been built anyway. On that count the eight wards saw <b>${fmtN(M.t1)} homes</b> proposed. Had they grown at the pace of the other sixteen wards, they would have seen about <b>${fmtN(M.expected)}</b>. ${reading}</p>
-    ${gap ? `<p>And that comparison may be the wrong one. Before the by-law, the rest of the city was catching up to the eight wards quarter after quarter. If that had carried on, the eight would have been expected to get far fewer homes than they did, and the by-law would look like it added about ${fmtN(trend.extra)}. The data can't say which is right. The fair summary is a range that runs <b>from no effect to a few hundred homes</b>, over ${nPost * 3} months, in applications.</p>` : ""}`;
+    <p>That comparison may also be the wrong one. Before the by-law the two groups of wards were not moving together: the rest of the city was ${catching ? "gaining on" : "losing ground to"} the eight wards quarter after quarter. A check added after the first results carries that trend forward, and puts the difference at ${signed(trend.extra)} homes, ${where}. The data can't say which reading is right.</p>
+    <p><b>So: the estimate fixed in advance runs from ${signed(M.extra_lo)} to ${signed(M.extra_hi)} homes${verdict === "unclear" ? ", which includes no effect at all" : ""}, and a reasonable check chosen afterwards says ${signed(trend.extra)}.</b> All of it is ${nPost * 3} months of applications, not homes built.</p>`;
   const card = (name, v, note) => `<div class="card static"><span class="card-name">${name}</span><span class="card-value">${v}</span><span class="card-delta">${note}</span></div>`;
   $("cards").innerHTML = [
     card("Projects of five or six homes", fmtN(big.sixPost), `in the eight wards since the by-law; ${fmtN(big.fourPost)} elsewhere`),
@@ -89,7 +91,7 @@ const mark = { k: A0 - from, label: "By-law" };
 function renderCame() {
   $("came-lede").innerHTML = `A project that adds five or six homes to a lot can't be built under the four-home rule, so it is the clearest trace of the new one. `
     + `There were almost none before the by-law. In the eight wards there have been ${fmtN(big.sixPost)} since, holding ${fmtN(total(arms.big_homes.six, A0, A1))} homes. `
-    + `The other sixteen wards had ${fmtN(big.fourPost)}: a project there can still reach five or six with a minor variance, or on a major street, where other rules apply.`;
+    + `The other sixteen wards had ${fmtN(big.fourPost)}. Their permits point to other routes: a minor variance, the rules for apartment buildings on major streets, or the legalizing of homes that already existed.`;
   $("came-fig").innerHTML = `<h3 class="sub-h">Projects of five or six homes proposed, by quarter</h3>`
     + chart({ labels: cut(Q), bars: [{ name: "The eight sixplex wards", color: BLUE, values: cut(bigBy.six) }, { name: "The other sixteen wards", color: ORANGE, values: cut(bigBy.four) }], fmt: fmtN, mark })
     + key([["The eight sixplex wards", BLUE], ["The other sixteen wards", ORANGE]])
@@ -112,7 +114,7 @@ function renderHomes() {
   $("homes-figs").innerHTML = panel("The eight sixplex wards: homes proposed, by quarter", "six", true) + panel("The other sixteen wards", "four", false);
   $("homes-after").innerHTML = `In the eight wards, homes in smaller projects went from ${fmtN(smallSix[0])} a quarter before the by-law to ${fmtN(smallSix[1])} after (${change(smallSix)}), and projects of five or six homes added ${fmtN(total(arms.big_homes.six, A0, A1) / nPost)} a quarter on top. `
     + `All together: ${fmtN(allSix[0])} homes a quarter before, ${fmtN(allSix[1])} after, ${change(allSix)}. `
-    + `Over the same months the other sixteen wards, with no new rule, went from ${fmtN(allFour[0])} to ${fmtN(allFour[1])}, ${change(allFour)}, nearly all of it in projects of up to four homes (${change(smallFour)}). `
+    + `Over the same months the other sixteen wards, with no new rule, went from ${fmtN(allFour[0])} to ${fmtN(allFour[1])}, ${change(allFour)}, with ${Math.round((1 - total(arms.big_homes.four, A0, A1) / M.c1) * 100)}% of their homes after the by-law in projects of up to four (${change(smallFour)}). `
     + `The average project in the eight wards grew from ${size("six", P0, P1).toFixed(1)} homes to ${size("six", A0, A1).toFixed(1)}. `
     + `The dashed line is the comparison this page was built to make: the eight wards' homes if they had kept their earlier share of the two groups' total.`;
 }
@@ -124,7 +126,7 @@ function renderEstimate() {
     <ol class="sx-steps">
       <li><b>Before</b> (${before}, the two years when four homes were allowed everywhere): ${fmtN(M.t0)} homes proposed in the eight wards, ${fmtN(M.c0)} in the other sixteen.</li>
       <li><b>After</b> (${after}): ${fmtN(M.t1)} in the eight, ${fmtN(M.c1)} in the sixteen.</li>
-      <li><b>The comparison.</b> The sixteen wards' count after was ${(M.c1 / M.c0).toFixed(2)} times their count before (a shorter period, but faster building). At that pace the eight wards would have had ${fmtN(M.t0)} × ${(M.c1 / M.c0).toFixed(2)} = about ${fmtN(M.expected)} homes.</li>
+      <li><b>The comparison.</b> The sixteen wards' count after was ${(M.c1 / M.c0).toFixed(2)} times their count before (${nPost} quarters against ${nPre}: the ratio allows for the periods' different lengths). At that pace the eight wards would have had ${fmtN(M.t0)} × ${(M.c1 / M.c0).toFixed(2)} = about ${fmtN(M.expected)} homes.</li>
       <li><b>The estimate.</b> They had ${fmtN(M.t1)}: ${signed(M.extra)} homes, or ${more(M.ratio)} than expected.</li>
     </ol>
     <p><b>The range.</b> Wards differ from one another for all sorts of reasons, so some gap would appear with no by-law at all. To see how much, the same sum was run for every possible way of calling ${word(six.length)} of the ${six.length + four.length} wards "the sixplex wards": ${D.assignments.toLocaleString("en-CA")} of them. `
@@ -137,9 +139,10 @@ function renderEstimate() {
 function renderDoubt() {
   const s = placebo("suites"), h = placebo("houses"), y = placebo("yearearly");
   const fails = (c) => c.p != null && c.p < 0.1, doubtful = (c) => c.p != null && c.p < 0.25;
+  const off = [y, s, h].filter(doubtful);
   $("doubt-lede").innerHTML = `The comparison rests on one assumption: without the by-law, the two groups of wards would have kept moving together. That can be checked for the two years before, and it doesn't hold well. `
     + `The chart shows the eight wards' homes against the other sixteen's, with 1 as their average standing before the by-law. If the groups had been moving together the line would be flat up to the by-law. `
-    + `Instead it ${trend.slope < 0 ? "falls" : "rises"} about ${Math.abs(trend.slope).toFixed(0)}% a quarter: multiplexes were new to the suburbs in 2023 and long familiar downtown, and the suburbs were catching up.`;
+    + `Instead it ${trend.slope < 0 ? "falls" : "rises"} about ${Math.abs(trend.slope).toFixed(0)}% a quarter${trend.slope < 0 ? ". A likely reason: multiplexes were new to the suburbs in 2023 and long familiar downtown, and the suburbs were catching up" : ""}.`;
   $("doubt-fig").innerHTML = `<h3 class="sub-h">The eight wards against the other sixteen (1 = their average standing before the by-law)</h3>`
     + chart({ labels: Q.slice(P0), lines: [{ name: "Eight wards against sixteen", color: DARK, values: D.relative.slice(P0) }], fmt: (v) => v.toFixed(2), zero: false, mark: { k: A0 - P0, label: "By-law" }, height: 190 })
     + `<figcaption>Homes proposed in multiplex projects in the eight wards, divided by those in the sixteen, each quarter, over the same ratio for all of ${before}.</figcaption>`;
@@ -150,8 +153,10 @@ function renderDoubt() {
     ${row("Laneway and garden suites, which the by-law didn't touch", s, "was no change of rule")}
     ${row("New detached houses, which it didn't touch either", h, "was no change of rule")}
     </tbody></table></div>
-    <p>${[y, s, h].some(doubtful) ? `Where a placebo fails or is doubtful, it leans one way: the rest of the city gaining on the eight wards. So the estimate above probably understates what the by-law did, because it holds the eight wards to a pace they were already falling short of.` : "The placebos pass, which supports the comparison without proving it."}
-    One way to allow for that is to carry the earlier trend forward: on that reading the eight wards would have been expected to see about ${fmtN(trend.expected)} homes, and saw ${fmtN(trend.t1)}, a gain of about ${fmtN(trend.extra)}. But that check was added after the first results were in, and it assumes the catching-up would have gone on at the same rate, which nobody can know. A trend drawn through ${nPre} quarters is a thin thing to extend.</p>`;
+    <p>${off.length === 0 ? "The placebos pass, which supports the comparison without proving it."
+    : off.every((c) => c.ratio < 1) && trend.slope < 0 ? `Where a placebo fails or is doubtful, it leans the same way as the chart: the rest of the city gaining on the eight wards with no by-law to explain it. If that was still going on after June 2025, the estimate above understates what the by-law did, because it holds the eight wards to a pace they were already falling short of.`
+    : `Where a placebo fails or is doubtful, the comparison finds a gap with no by-law to explain it, and the estimate above inherits that fault.`}
+    One way to allow for the trend is to carry it forward: on that reading the eight wards would have been expected to see about ${fmtN(trend.expected)} homes, and saw ${fmtN(trend.t1)}, a difference of ${signed(trend.extra)}. But that check was added after the first results were in, and it assumes the earlier drift would have gone on at the same rate, which nobody can know. A trend drawn through ${nPre} quarters is a thin thing to extend.</p>`;
 }
 
 // ---- the same question, other ways ------------------------------------------------------------------------------------
@@ -210,7 +215,7 @@ function renderCant() {
     `<b>The long run.</b> The by-law is ${nPost * 3} months old in this data. Builders needed time to design for it, and an early rush or a slow start would both mislead.`,
     `<b>What the eight wards would have done.</b> They weren't picked at random. They are the old city: smaller lots, older houses, more transit, dearer land and a longer history of duplexes and triplexes. The rest of the city is the best stand-in available, and the section above shows it is a poor one.`,
     `<b>The zoning alone.</b> In July 2025 Council also waived development charges and parkland levies on multiplexes of up to six homes. The estimate is of everything that changed for these projects that summer, together.`,
-    `<b>Where builders would otherwise have gone.</b> If the by-law drew small builders from the suburbs into the eight wards, the gap overstates what the city gained. If owners outside the eight wards got five or six homes by a variance (there were ${fmtN(big.fourPost)} such projects), it understates the rule's effect.`,
+    `<b>Where builders would otherwise have gone.</b> If the by-law drew small builders from the suburbs into the eight wards, the gap overstates what the city gained. Owners outside the eight wards also got five or six homes by other routes (${fmtN(big.fourPost)} projects), which narrows the gap between the groups.`,
     `<b>How many homes a building holds.</b> A permit records the homes it adds, net of those already there: a house converted to six homes shows as five. A house converted to five can't be told from a new fourplex, so the count of five- and six-home projects is low.`,
     `<b>Anything about who lives there.</b> Nothing here bears on rents, prices, who can afford the homes, what was demolished, trees, parking or what neighbours think.`,
     `<b>What Council should do.</b> A number of homes proposed is one input to a decision about zoning, and this one is uncertain.`,
@@ -222,7 +227,8 @@ function renderHow() {
   $("how").innerHTML = `<ul>
     <li><b>The data.</b> The City of Toronto's building permit files, retrieved ${day(D.retrieved)}, with applications to ${day(D.latest_application)}. Only whole quarters are used, so the latest is ${Q[A1]}.</li>
     <li><b>A multiplex project</b> is a building permit the City files under a "3+ Unit" structure type, creating up to six homes: ${fmtN(D.counted["multiplex permits counted"])} permits since 2021. Left out: ${out || "nothing"}.</li>
-    <li><b>Homes are dated by when they were proposed.</b> The files keep each revision of a permit. A fourplex applied for in 2024 and revised to six homes in 2026 counts as four homes in 2024 and two in 2026. ${fmtN(D.counted["revisions that changed a multiplex permit's homes"])} revisions changed a project's homes.</li>
+    <li><b>Which wards have six.</b> From the City's multiplex housing page, read ${day(D.fixed)}: the Toronto and East York district and Ward 23. If another ward opts in, it has to leave the comparison group, and this page will need redoing.</li>
+    <li><b>Homes are dated by when they were proposed.</b> The files keep each revision of a permit. A fourplex applied for in 2024 and revised to six homes in 2026 counts as four homes in 2024 and two in 2026. ${fmtN(D.counted["revisions that changed a multiplex permit's homes"])} revisions changed a project's homes. For ${fmtN(D.counted["multiplex permits dated before their first row in the files"])} permits the files hold only a later revision, and the first application is dated from the permit's number, which the City gives out in order.</li>
     <li><b>Wards.</b> Each permit is placed in a ward by its address. The eight are wards ${six.map((w) => +w.ward).join(", ").replace(/, (\d+)$/, " and $1")}.</li>
     <li><b>Before and after.</b> Before runs from the first whole quarter after four homes were allowed everywhere (${day(D.bylaw.four)}) to ${qEnd(Q[P1])}, so the by-law's last five days of June 2025 count as before. After runs from ${qStart(Q[A0])}.</li>
     <li><b>The estimate</b> is a ratio: the eight wards' homes after over before, divided by the same for the sixteen. Ratios, because the two groups differ in size and the counts are small.</li>

@@ -380,14 +380,19 @@ files again and counts the homes proposed in multiplex projects by ward and mont
 - **The files keep each revision**, with its own application date and unit count.
   `permits.py` takes a permit's latest revision and earliest issue date; here each
   revision's change in units is dated by the revision. Otherwise a 2024 fourplex revised
-  to six in 2026 would put six homes before the by-law (67 revisions changed a multiplex
+  to six in 2026 would put six homes before the by-law (73 revisions changed a multiplex
   permit's homes; 7 took one from four or fewer to five or six).
 - **The latest revision's application date is not the permit's.** A revised permit's last
   row carries the revision's date, which can be years after the permit was issued.
 - **Wards come from the address points** (their `WARD` column), by `permits.py`'s
   placement with wards in place of neighbourhoods. All but 1 multiplex permit is placed.
 - **Whole months only**: the last month kept ends before the files' latest application
-  date. 5 multiplex permits that reach more than six homes are left out.
+  date. 8 multiplex permits that reach more than six homes are left out.
+- **A permit's first row isn't always its first application.** For 53 multiplex permits
+  the files hold only a later revision (the cleared file keeps a closed permit's last
+  one), dated when the revision was applied for. Permit numbers run in order through a
+  year, so those permits are dated where their number falls among the year's permits
+  whose first application is in the files (`origins`).
 - **Refused and withdrawn applications** drop out (as in `permits.py`), and older ones
   have had longer to: `filed_homes` keeps them, for a check.
 

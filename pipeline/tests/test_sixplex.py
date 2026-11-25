@@ -38,6 +38,17 @@ class Proposals(unittest.TestCase):
         ev = sixplex.events(rows(("24 3 BLD", "01", "2025-09-01", 6), ("24 3 BLD", "00", "2024-03-01", 3)))
         self.assertEqual(list(ev.homes), [3, 3])
 
+    def test_a_permit_whose_first_row_is_a_revision_is_dated_by_its_number(self):
+        # a folder a day through March 2024, numbered in order; 24 000255's first application
+        # isn't in the files, only a revision made in 2026
+        known = [(f"24 {100 + 10 * d:06d} BLD", "00", f"2024-03-{d + 1:02d}", 1) for d in range(30)]
+        origin, dating = sixplex.origins(rows(("24 000255 BLD", "01", "2026-02-01", 6), *known))
+        self.assertEqual(dating["dated_by_number"], 1)
+        self.assertEqual(origin["24 000255 BLD"], pd.Timestamp("2024-03-16"))  # between the 16th's folder and the 17th's
+        self.assertEqual(origin["24 000200 BLD"], pd.Timestamp("2024-03-11"))  # its own date
+        r = rows(("24 000255 BLD", "01", "2026-02-01", 6)).assign(origin=origin["24 000255 BLD"])
+        self.assertEqual(list(sixplex.events(r).date.dt.year), [2024])
+
     def test_only_whole_months_are_kept(self):
         self.assertEqual(sixplex.whole_months(pd.Timestamp("2026-11-20"), "2026-08"), ["2026-08", "2026-09", "2026-10"])
         self.assertEqual(sixplex.whole_months(pd.Timestamp("2026-11-30"), "2026-10"), ["2026-10"])

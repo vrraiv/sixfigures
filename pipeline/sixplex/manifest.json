@@ -14,12 +14,18 @@
   "permits repeating another permit's homes": 57,
   "rows with no application date": 0,
   "multiplex permits that no address places in a ward": 1,
-  "multiplex permits reaching more than 6 homes": 5
+  "multiplex permits reaching more than 6 homes": 8
  },
  "counted": {
-  "multiplex permits counted": 1712,
-  "revisions that changed a multiplex permit's homes": 67,
+  "multiplex permits counted": 1703,
+  "multiplex permits dated before their first row in the files": 53,
+  "revisions that changed a multiplex permit's homes": 73,
   "revisions that took a project to five or six homes": 7
+ },
+ "first_applications": {
+  "dated_by_number": 633,
+  "median_error_days": 0.0,
+  "p90_error_days": 0.4
  },
  "placed_by": {
   "geo_id": 28434,
