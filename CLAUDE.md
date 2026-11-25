@@ -17,6 +17,20 @@ Checks before a pull request: `npm test`, `npm run build`, and
 requests against `main`, not against another open branch: a pull request merged into a
 branch that has already been merged never reaches the site.
 
+## Previewing the site
+
+`.claude/launch.json` holds two servers, each on a fixed port so a start fails at once if
+the port is taken and never moves to another:
+
+- `dev` (`npm run dev`, port 5173): needs no build, and reloads as files change. Use this
+  one to look at a page while working on it.
+- `preview` (`npm run preview`, port 4173): serves `web/dist` with the production headers,
+  so run `npm run build` first. Without a build it starts and serves nothing.
+
+Starting either can ask for permission. In a session where nobody is watching for that
+request, the start waits on it: say that it is waiting, and go on with what doesn't need
+the preview (`npm test` and `npm run build` check a page without one).
+
 ## Adding a new data source
 
 Work through all of these. The last three sections are the ones that get forgotten.
