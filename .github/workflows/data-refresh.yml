@@ -18,7 +18,8 @@ name: Data refresh
 on:
   schedule:
     - cron: "23 10 12,26 3,6,10,12 *"
-    # Getting around, every month: Bike Share's trips for the month before arrive about the 10th.
+    # Getting around and multiplexes, every month: Bike Share's trips for the month before arrive
+    # about the 10th; the permit files are updated daily, so the month before is whole by then.
     - cron: "23 11 18 * *"
   workflow_dispatch:
     inputs:
@@ -48,6 +49,10 @@ on:
         default: false
       sixplex:
         description: "Sixplex zoning: building permits by ward"
+        type: boolean
+        default: false
+      multiplex:
+        description: "Multiplexes: houseplexes of 3 to 6 units on building permits"
         type: boolean
         default: false
 
@@ -94,9 +99,10 @@ jobs:
           SAFETY: ${{ inputs.safety }}
           HOUSING: ${{ inputs.housing }}
           SIXPLEX: ${{ inputs.sixplex }}
+          MULTIPLEX: ${{ inputs.multiplex }}
         run: |
           if [ "$EVENT" = schedule ] && [ "$CRON" = "23 11 18 * *" ]; then
-            parts="transport"
+            parts="transport multiplex"
           elif [ "$EVENT" = schedule ]; then
             parts="prices rentals trees sixplex"
             if [ "$(date -u +%m)" = 03 ]; then parts="$parts safety housing"; fi
@@ -109,6 +115,7 @@ jobs:
             if [ "$SAFETY" = true ]; then parts="$parts safety"; fi
             if [ "$HOUSING" = true ]; then parts="$parts housing"; fi
             if [ "$SIXPLEX" = true ]; then parts="$parts sixplex"; fi
+            if [ "$MULTIPLEX" = true ]; then parts="$parts multiplex"; fi
           fi
           if [ -z "$parts" ]; then echo "::error::Choose at least one part"; exit 1; fi
           echo "parts=$parts" >> "$GITHUB_OUTPUT"

@@ -178,3 +178,27 @@ test("the sixplex estimate follows from its counts and sits inside its range", (
   assert.equal(d.leave.length, 24);
   assert.deepEqual(d.checks.filter((c) => c.late).map((c) => c.key), ["trend"]);
 });
+
+test("Housing multiplexes: whole months, the wards add to the city, the sixplex wards are the by-law's", () => {
+  const { multiplex: m } = json(`${PUBLIC}/housing.json`);
+  // every number in a nest of objects and arrays, summed
+  const total = (o) => (Array.isArray(o) ? o.reduce((a, v) => a + v, 0) : Object.values(o).reduce((a, v) => a + total(v), 0));
+  assert.match(m.last_month, /^\d{4}-\d{2}$/);
+  assert.ok(m.last_month < m.retrieved.slice(0, 7), "the last month is a whole month before the retrieval date");
+  assert.equal(m.quarters.at(-1), `${m.last_month.slice(0, 4)}Q${Math.ceil(+m.last_month.slice(5) / 3)}`);
+  assert.equal(m.partial_quarter == null, +m.last_month.slice(5) % 3 === 0, "a quarter is partial unless the month ends it");
+  assert.equal(m.wards.length, 25);
+  assert.deepEqual(m.wards.filter((w) => w.sixplex).map((w) => +w.code.slice(1)).sort((a, b) => a - b), [4, 9, 10, 11, 12, 13, 14, 19, 23]);
+  for (const sz of ["3-4", "5-6"]) {
+    m.quarters.forEach((q, k) => {
+      const byWard = m.wards.reduce((a, w) => a + w[sz][k], 0);
+      const byWork = ["inside", "outside"].reduce((a, ar) => a + m.city[ar][sz].new[k] + m.city[ar][sz].conversion[k], 0);
+      const byStatus = ["inside", "outside"].reduce((a, ar) => a + Object.values(m.status[ar][sz]).reduce((s, v) => s + v[k], 0), 0);
+      assert.ok(byWard <= byWork, `${q} ${sz}: no more by ward than in the city`);
+      assert.equal(byStatus, byWork, `${q} ${sz}: the statuses add to the applications`);
+    });
+  }
+  // the neighbourhoods hold the placed projects, so no more than the city's
+  assert.ok(total(m.nbhd) <= total(m.city));
+  assert.ok(total(m.nbhd) >= 0.97 * total(m.city), "nearly every project is placed");
+});

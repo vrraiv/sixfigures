@@ -29,6 +29,11 @@ names in insights.json and the neighbourhood boundaries, and writes:
   cmhc              housing starts by year and month; the Rental Market Survey
                     for the City and its 17 zones by year, and each
                     neighbourhood's zone figures (cmhc.py)
+  multiplex         houseplexes of 3-4 and 5-6 units on building permit
+                    applications (multiplex.py), by quarter the size was first
+                    applied for: for the City inside and outside the sixplex
+                    wards, new and conversions, by status, and by ward; by
+                    neighbourhood and year; and the by-laws' dates
   context           the StatCan series (population, prices, labour force, income,
                     CMA permits): each with its geography, unit and values
 
@@ -114,9 +119,46 @@ def context() -> list[dict]:
     return rows
 
 
+def multiplex(ids: list[int]) -> dict:
+    """The multiplex section: counts of projects by quarter (to the last whole
+    month; its quarter is partial unless the month ends one)."""
+    m = json.loads((HERE / "multiplex" / "manifest.json").read_text())
+    p = pd.read_csv(HERE / "multiplex" / "projects.csv", parse_dates=["sized"])
+    if len(p) != m["projects"]:
+        sys.exit(f"multiplex: {len(p)} projects, manifest {m['projects']}")
+    last = pd.Period(m["last_month"], "M")
+    qs = pd.period_range(pd.Period(m["first"][:7], "Q"), last.asfreq("Q"), freq="Q")
+    p["q"] = p.sized.dt.to_period("Q")
+    sizes, works, statuses = ["3-4", "5-6"], ["new", "conversion"], ["issued", "review", "dropped"]
+
+    def count(df: pd.DataFrame) -> list[int]:
+        return [int(v) for v in df.groupby("q").size().reindex(qs, fill_value=0)]
+    area = {k: p[p.sixplex_area == inside] for k, inside in (("inside", True), ("outside", False))}
+    years = list(range(int(m["first"][:4]), last.year + 1))
+    nb = p.dropna(subset=["nbhd_id"]).assign(year=lambda d: d.sized.dt.year, n=1)
+    return {
+        "last_month": m["last_month"],
+        "retrieved": m["retrieved"],
+        "partial_quarter": str(qs[-1]) if last.month % 3 else None,
+        "bylaws": m["bylaws"],
+        "quarters": [str(q) for q in qs],
+        "city": {a: {sz: {w: count(d[(d["size"] == sz) & (d.work == w)]) for w in works} for sz in sizes}
+                 for a, d in area.items()},
+        "status": {a: {sz: {st: count(d[(d["size"] == sz) & (d.status == st)]) for st in statuses} for sz in sizes}
+                   for a, d in area.items()},
+        "wards": [{"code": c, "name": n, "sixplex": c in m["sixplex_wards"],
+                   **{sz: count(p[(p.ward == c) & (p["size"] == sz)]) for sz in sizes}} for c, n in m["wards"].items()],
+        "years": years,
+        "nbhd": {sz: by_year(nb[nb["size"] == sz], "n", ids, years) for sz in sizes},
+        "placed_share": m["placed_share"],
+        "no_size": m["no_size_3plus_unit_projects_by_year"],
+    }
+
+
 def main() -> int:
     need = [HERE / "permits" / "by_nbhd.csv", HERE / "permits" / "manifest.json", HERE / "city" / "manifest.json",
-            HERE / "cmhc" / "manifest.json", HERE / "series" / "manifest.json", INSIGHTS]
+            HERE / "cmhc" / "manifest.json", HERE / "series" / "manifest.json", HERE / "multiplex" / "manifest.json",
+            INSIGHTS]
     missing = [str(f) for f in need if not f.exists()]
     if missing:
         sys.exit(f"missing: {missing}")
@@ -244,6 +286,7 @@ def main() -> int:
             "avg_rent": by_year(rn.rename(columns={}), "avg_rent", ids, ryears),
             "vacancy": by_year(rn, "vacancy", ids, ryears),
         },
+        "multiplex": multiplex(ids),
         "context": context(),
     }
     # by_year fills missing with 0; CMHC withholds some neighbourhoods: keep those null

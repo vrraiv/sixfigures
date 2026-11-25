@@ -42,6 +42,8 @@ const M = {
   demo: { label: "Rental units approved for demolition", kind: "flow", years: D.demolitions.years, get: yearly(D.demolitions, "lost") },
   rent: { label: "Average rent, purpose-built rental (CMHC zone)", kind: "level", unit: "money", zone: true, years: D.cmhc.nbhd_years, get: yearly(D.cmhc, "avg_rent") },
   vacancy: { label: "Vacancy rate, purpose-built rental (CMHC zone)", kind: "level", unit: "pct", zone: true, years: D.cmhc.nbhd_years, get: yearly(D.cmhc, "vacancy") },
+  mx: { label: "Houseplexes of 3 to 6 units applied for on building permits", kind: "flow", years: D.multiplex.years,
+    get: (y) => D.multiplex.nbhd["3-4"][String(y)].map((v, i) => v + D.multiplex.nbhd["5-6"][String(y)][i]) },
   hh_change: { label: "Change in households between censuses", kind: "census" },
   apt: { label: "Units in registered apartment buildings", kind: "stock", count: true, values: D.apartments.units },
   social: { label: "Social housing and TCHC share of apartment units", kind: "stock", unit: "pct",
@@ -74,6 +76,7 @@ const state = {
   lag: ["0", "1", "2", "3"].includes(hash.get("lag")) ? hash.get("lag") : "1",
   span: ["2011-2016", "2016-2021"].includes(hash.get("cs")) ? hash.get("cs") : "2016-2021",
   zoneKey: hash.get("zk") === "vacancy" ? "vacancy" : "avg_rent",
+  mxs: hash.get("mx") === "issued" ? "issued" : "all",
   sx: hash.get("sx"),
   nb: nbIndex(hash.get("nb")),
 };
@@ -83,7 +86,7 @@ const fixPeriod = () => {
 };
 fixPeriod();
 const writeHash = () => {
-  const h = new URLSearchParams({ m: state.m, r: state.rate ? "1" : "0", lag: state.lag, cs: state.span, zk: state.zoneKey });
+  const h = new URLSearchParams({ m: state.m, r: state.rate ? "1" : "0", lag: state.lag, cs: state.span, zk: state.zoneKey, mx: state.mxs });
   if (state.p) h.set("p", state.p);
   if (state.sx) h.set("sx", state.sx);
   if (state.nb != null) h.set("nb", nbhd[state.nb].id);
@@ -130,7 +133,7 @@ initTip();
 // ---- controls ----------------------------------------------------------------------
 const select = $("measure");
 const GROUPS = [
-  ["Building permits", ["created", "net", "lost"]], ["Pipeline and demolitions", ["dev", "demo", "affordable"]],
+  ["Building permits", ["created", "net", "lost", "mx"]], ["Pipeline and demolitions", ["dev", "demo", "affordable"]],
   ["Rental market (CMHC)", ["rent", "vacancy"]], ["Stock and households", ["apt", "social", "built", "hh_change"]],
 ];
 select.innerHTML = GROUPS.map(([g, ms]) => `<optgroup label="${g}">${ms.map((m) => `<option value="${m}">${escapeHTML(M[m].label)}</option>`).join("")}</optgroup>`).join("");
@@ -439,6 +442,88 @@ $("census-list").addEventListener("click", (e) => {
   $("scatter-fig").scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
 
+// ---- multiplexes and the zoning by-laws ------------------------------------------------------------
+// Houseplexes of 3-4 and 5-6 units on building permit applications (pipeline/multiplex.py), by the
+// quarter their size was first applied for, inside and outside the wards where 654-2025 allows
+// fiveplexes and sixplexes.
+const MX = D.multiplex;
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const monthName = (ym) => `${MONTHS[+ym.slice(5, 7) - 1]} ${ym.slice(0, 4)}`;
+const qLabel = (q) => `${q.slice(0, 4)} Q${q.slice(5)}`;
+const qIndex = (date) => MX.quarters.indexOf(`${date.slice(0, 4)}Q${Math.ceil(+date.slice(5, 7) / 3)}`)
+  + (((+date.slice(5, 7) - 1) % 3) + (+date.slice(8, 10) - 1) / 31) / 3;
+const MX_COLORS = { "5-6": { new: ORANGE, conversion: "#f2b48f" }, "3-4": { new: DARK, conversion: LIGHT } };
+const BYLAW_SHORT = { "474-2023": "Fourplexes, May 2023", "47-2025": "Sixplexes in Ward 23, Feb 2025", "654-2025": "Sixplexes here, June 2025" };
+const CHART_FROM = "2020Q1";
+// the quarters a series has in full: all but a partial last one
+const fullQ = MX.partial_quarter ? MX.quarters.length - 1 : MX.quarters.length;
+const qSum = (vs, a, b) => sum(vs.slice(a, b));
+const mxSeries = (area, size) => (state.mxs === "issued" ? MX.status[area][size].issued
+  : MX.city[area][size].new.map((v, k) => v + MX.city[area][size].conversion[k]));
+
+function renderMultiplex() {
+  seg($("mx-status"), [["all", "All applications"], ["issued", "Permit issued"]], state.mxs, (v) => { state.mxs = v; renderMultiplex(); writeHash(); });
+  // the charts start in 2020 (three years before the first by-law); the file goes back to 2017
+  const from = MX.quarters.indexOf(CHART_FROM), labels = MX.quarters.slice(from);
+  const partialFrom = MX.partial_quarter ? labels.length - 1 : null, cut = (vs) => vs.slice(from);
+  const tip = (l, k) => `${qLabel(l)}${k === partialFrom ? ` (to ${monthName(MX.last_month)})` : ""}`;
+  const bars = (area) => (state.mxs === "issued"
+    ? ["5-6", "3-4"].map((sz) => ({ name: `${sz.replace("-", "–")} units, permit issued`, color: MX_COLORS[sz].new, values: cut(MX.status[area][sz].issued) }))
+    : ["5-6", "3-4"].flatMap((sz) => ["new", "conversion"].map((w) => ({
+      name: `${sz.replace("-", "–")} units, ${w === "new" ? "new building" : "conversion"}`, color: MX_COLORS[sz][w], values: cut(MX.city[area][sz][w]) }))));
+  const marks = (ids) => MX.bylaws.filter((b) => ids.includes(b.id)).map((b) => ({ at: qIndex(b.date) - from, label: BYLAW_SHORT[b.id] ?? b.id }));
+  const keyItems = state.mxs === "issued" ? [["5–6 units", ORANGE], ["3–4 units", DARK]]
+    : [["5–6, new", ORANGE], ["5–6, conversion", "#f2b48f"], ["3–4, new", DARK], ["3–4, conversion", LIGHT]];
+  const what = state.mxs === "issued" ? "Applications that have a permit issued (some since closed)" : "Applications, whatever became of them";
+  $("mx-panels").innerHTML = [
+    panel("Toronto and East York and Ward 23: sixplexes allowed", chart({
+      labels: labels.map(qLabel), fmt: fmtN, tipLabel: (l, k) => tip(labels[k], k), partialFrom, bars: bars("inside"), height: 200,
+      marks: marks(["474-2023", "47-2025", "654-2025"]),
+    }) + key(keyItems), `${what}, by the quarter the size was first applied for, from 2020. Wards 4, 9 to 14, 19 and 23.`),
+    panel("The rest of the city: up to fourplexes", chart({
+      labels: labels.map(qLabel), fmt: fmtN, tipLabel: (l, k) => tip(labels[k], k), partialFrom, bars: bars("outside"), height: 200,
+      marks: marks(["474-2023"]),
+    }) + key(keyItems), `${what}. The other 16 wards, where a fiveplex or sixplex needs a minor variance or a rezoning.`),
+  ].join("");
+
+  // five full quarters since 654-2025 (from July 2025) against the five before
+  const start = MX.quarters.indexOf("2025Q3"), n = Math.min(fullQ - start, 5);
+  const span = (a, b) => `${qLabel(MX.quarters[a])} to ${qLabel(MX.quarters[b - 1])}`;
+  const since = (area, sz) => qSum(mxSeries(area, sz), start, start + n), before = (area, sz) => qSum(mxSeries(area, sz), start - n, start);
+  const noun = state.mxs === "issued" ? "applications now with a permit" : "applications";
+  $("mx-lede").innerHTML = `Toronto allowed duplexes, triplexes and fourplexes on residential lots citywide in May 2023 (By-law 474-2023), `
+    + `fiveplexes and sixplexes in Ward 23 Scarborough North in February 2025 (47-2025), and in Toronto and East York and Ward 23 in June 2025 (654-2025, with 648-2025). `
+    + `The permit files have no multiplex flag: these are building permits for houseplexes of three to six units, new or converted, `
+    + `with the size read from the permit's proposed use or description, to ${monthName(MX.last_month)}. `
+    + `In the ${n} full quarters since July 2025 (${span(start, start + n)}) there were <b>${fmtN(since("inside", "5-6"))}</b> ${noun} for 5–6 unit houseplexes in the sixplex wards, `
+    + `against ${fmtN(before("inside", "5-6"))} in the ${n} quarters before; in the rest of the city, ${fmtN(since("outside", "5-6"))} against ${fmtN(before("outside", "5-6"))}. `
+    + `Three- and four-unit ${noun} went from ${fmtN(before("inside", "3-4"))} to ${fmtN(since("inside", "3-4"))} in the sixplex wards and from ${fmtN(before("outside", "3-4"))} to ${fmtN(since("outside", "3-4"))} elsewhere.`;
+
+  // the ward table counts every application (the files' statuses aren't kept by ward)
+  const wardVal = (w, sz, a, b) => qSum(w[sz], a, b);
+  const order = [...MX.wards].sort((a, b) => b.sixplex - a.sixplex || wardVal(b, "5-6", start, start + n) - wardVal(a, "5-6", start, start + n)
+    || wardVal(b, "3-4", start, start + n) - wardVal(a, "3-4", start, start + n));
+  const tot = (pick, sz, a, b) => sum(MX.wards.filter(pick).map((w) => wardVal(w, sz, a, b)));
+  const cell = (v) => `<td>${v ? fmtN(v) : '<span class="muted">0</span>'}</td>`;
+  const wardRow = (w) => `<tr${w.sixplex ? ' class="hl"' : ""}><th class="txt">${escapeHTML(w.name)} <span class="muted">(${+w.code.slice(1)})</span></th>`
+    + `<td class="txt">${w.sixplex ? "Sixplexes" : "Up to fourplexes"}</td>`
+    + ["3-4", "5-6"].map((sz) => cell(wardVal(w, sz, start - n, start)) + cell(wardVal(w, sz, start, start + n))).join("") + "</tr>";
+  const sumRow = (name, pick) => `<tr class="sum"><th class="txt">${name}</th><td></td>`
+    + ["3-4", "5-6"].map((sz) => `<td><b>${fmtN(tot(pick, sz, start - n, start))}</b></td><td><b>${fmtN(tot(pick, sz, start, start + n))}</b></td>`).join("") + "</tr>";
+  $("mx-wards").innerHTML = `<thead><tr><th class="txt" rowspan="2">Ward</th><th class="txt" rowspan="2">Zoning</th><th colspan="2">3–4 units</th><th colspan="2">5–6 units</th></tr>
+    <tr><th>Before</th><th>Since</th><th>Before</th><th>Since</th></tr></thead>
+    <tbody>${order.map(wardRow).join("")}${sumRow("Sixplex wards", (w) => w.sixplex)}${sumRow("Other wards", (w) => !w.sixplex)}</tbody>`;
+  $("mx-ward-lede").innerHTML = `All applications by ward: <b>before</b> is ${span(start - n, start)}, <b>since</b> is ${span(start, start + n)}, `
+    + `the ${n} full quarters on either side of 654-2025. A permit's ward is the City's (the 25 wards of 2018).`;
+  const noSize = Object.entries(MX.no_size).filter(([y]) => +y >= 2023).map(([, v]) => v);
+  $("mx-notes").innerHTML = `What these figures can't show: how many homes are built (an application can be refused, withdrawn or never built; `
+    + `the chart's "Permit issued" view counts those with a permit, and the latest applications have had the least time to get one), nor projects that went to the Committee of Adjustment or a rezoning before applying for a permit, `
+    + `which show up only when they apply. A project's size is its latest revision's, dated by the application that first gave it that size: `
+    + `a fourplex later revised to five units counts as a fiveplex from the revision. Three-unit houses include detached houses with two secondary suites, which the by-laws don't call houseplexes. `
+    + `Garden and laneway suites are separate buildings and aren't counted. About ${fmtN(sum(noSize) / noSize.length)} projects a year since 2023 are filed as houses of three or more units without a size the text gives; they are left out. `
+    + `Permits start in 2017; ${(MX.placed_share * 100).toFixed(1)}% are placed in a neighbourhood.`;
+}
+
 // ---- 8. the wider economy: StatCan series ----------------------------------------------------------------------
 function renderContext() {
   const fmtVal = (row, v) => (v == null ? "—" : row.unit === "percent" ? `${v.toFixed(1)}%` : row.unit.includes("dollars") ? fmtMoney(v)
@@ -470,6 +555,7 @@ function render() {
 }
 renderCards();
 renderYears();
+renderMultiplex();
 renderContext();
 render();
 buildToc();

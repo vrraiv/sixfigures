@@ -87,13 +87,13 @@ function renderAnswer() {
 // ---- sixplexes arrived --------------------------------------------------------------------------------------------
 const from = Q.indexOf("2022 Q1") < 0 ? 0 : Q.indexOf("2022 Q1");
 const cut = (vs) => vs.slice(from);
-const mark = { k: A0 - from, label: "By-law" };
+const marks = [{ at: A0 - from, label: "By-law" }];
 function renderCame() {
   $("came-lede").innerHTML = `A project that adds five or six homes to a lot can't be built under the four-home rule, so it is the clearest trace of the new one. `
     + `There were almost none before the by-law. In the eight wards there have been ${fmtN(big.sixPost)} since, holding ${fmtN(total(arms.big_homes.six, A0, A1))} homes. `
     + `The other sixteen wards had ${fmtN(big.fourPost)}. Their permits point to other routes: a minor variance, the rules for apartment buildings on major streets, or the legalizing of homes that already existed.`;
   $("came-fig").innerHTML = `<h3 class="sub-h">Projects of five or six homes proposed, by quarter</h3>`
-    + chart({ labels: cut(Q), bars: [{ name: "The eight sixplex wards", color: BLUE, values: cut(bigBy.six) }, { name: "The other sixteen wards", color: ORANGE, values: cut(bigBy.four) }], fmt: fmtN, mark })
+    + chart({ labels: cut(Q), bars: [{ name: "The eight sixplex wards", color: BLUE, values: cut(bigBy.six) }, { name: "The other sixteen wards", color: ORANGE, values: cut(bigBy.four) }], fmt: fmtN, marks })
     + key([["The eight sixplex wards", BLUE], ["The other sixteen wards", ORANGE]])
     + `<figcaption>Building permit applications for multiplex projects that create five or six homes, by the quarter they were applied for, with projects revised up to five or six in the quarter of the revision.</figcaption>`;
 }
@@ -109,7 +109,7 @@ function renderHomes() {
     + `So the count that matters is every home in every multiplex project: two, three, four, five or six homes at a time.`;
   const panel = (title, a, line) => `<figure class="panel"><h3 class="sub-h">${title}</h3>`
     + chart({ labels: cut(Q), bars: [{ name: "In projects of up to four homes", color: LIGHT, values: cut(arms.small_homes[a]) }, { name: "In projects of five or six", color: DARK, values: cut(arms.big_homes[a]) }],
-      lines: line ? [{ name: "At the other wards' pace", color: ORANGE, dash: true, values: cut(D.expected.map((v, k) => (k >= A0 ? v : null))) }] : [], fmt: fmtN, mark, height: 200 })
+      lines: line ? [{ name: "At the other wards' pace", color: ORANGE, dash: true, values: cut(D.expected.map((v, k) => (k >= A0 ? v : null))) }] : [], fmt: fmtN, marks, height: 200 })
     + key([["Projects of up to four homes", LIGHT], ["Projects of five or six", DARK], ...(line ? [["At the other wards' pace", ORANGE, "line"]] : [])]) + `</figure>`;
   $("homes-figs").innerHTML = panel("The eight sixplex wards: homes proposed, by quarter", "six", true) + panel("The other sixteen wards", "four", false);
   $("homes-after").innerHTML = `In the eight wards, homes in smaller projects went from ${fmtN(smallSix[0])} a quarter before the by-law to ${fmtN(smallSix[1])} after (${change(smallSix)}), and projects of five or six homes added ${fmtN(total(arms.big_homes.six, A0, A1) / nPost)} a quarter on top. `
@@ -144,7 +144,7 @@ function renderDoubt() {
     + `The chart shows the eight wards' homes against the other sixteen's, with 1 as their average standing before the by-law. If the groups had been moving together the line would be flat up to the by-law. `
     + `Instead it ${trend.slope < 0 ? "falls" : "rises"} about ${Math.abs(trend.slope).toFixed(0)}% a quarter${trend.slope < 0 ? ". A likely reason: multiplexes were new to the suburbs in 2023 and long familiar downtown, and the suburbs were catching up" : ""}.`;
   $("doubt-fig").innerHTML = `<h3 class="sub-h">The eight wards against the other sixteen (1 = their average standing before the by-law)</h3>`
-    + chart({ labels: Q.slice(P0), lines: [{ name: "Eight wards against sixteen", color: DARK, values: D.relative.slice(P0) }], fmt: (v) => v.toFixed(2), zero: false, mark: { k: A0 - P0, label: "By-law" }, height: 190 })
+    + chart({ labels: Q.slice(P0), lines: [{ name: "Eight wards against sixteen", color: DARK, values: D.relative.slice(P0) }], fmt: (v) => v.toFixed(2), zero: false, marks: [{ at: A0 - P0, label: "By-law" }], height: 190 })
     + `<figcaption>Homes proposed in multiplex projects in the eight wards, divided by those in the sixteen, each quarter, over the same ratio for all of ${before}.</figcaption>`;
   const row = (name, c, want) => `<tr><th>${name}</th><td>${fmtX(c.ratio)}</td><td>${c.p == null ? "—" : `${Math.round(c.p * 100)}%`}</td><td class="txt">${fails(c) ? `Fails: a gap where there ${want}` : doubtful(c) ? "Doubtful: a gap this large is uncommon" : "Passes"}</td></tr>`;
   $("doubt-after").innerHTML = `<p>Three placebo tests ask the method for an effect where there shouldn't be one. A sound comparison returns about ×1.00 each time.</p>

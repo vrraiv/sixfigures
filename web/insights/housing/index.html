@@ -7,12 +7,12 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="description" content="Toronto's housing supply and rents: building permits, development applications, rental demolitions, CMHC starts and rents, by year and neighbourhood." />
+    <meta name="description" content="Toronto's housing supply and rents: building permits, multiplexes, development applications, demolitions, CMHC starts and rents, by year and neighbourhood." />
   </head>
   <body class="with-nav doc">
     <!-- site-header -->
     <section class="bar" aria-label="This page">
-      <h1>Housing Insights <span class="sub">New homes, applications, demolitions and rents in Toronto and its 158 neighbourhoods</span></h1>
+      <h1>Housing Insights <span class="sub">New homes, multiplexes, applications, demolitions and rents in Toronto and its 158 neighbourhoods</span></h1>
     </section>
 
     <main class="insights">
@@ -29,6 +29,19 @@
           <h2 id="years-h">Year by year</h2>
         </div>
         <div id="panels" class="panels"></div>
+      </section>
+
+      <section class="ins-section" aria-labelledby="mx-h">
+        <div class="ins-head">
+          <h2 id="mx-h">Multiplexes and the zoning by-laws</h2>
+          <div class="seg" id="mx-status" role="group" aria-label="Applications"></div>
+        </div>
+        <p class="ins-lede" id="mx-lede"></p>
+        <div id="mx-panels" class="panels"></div>
+        <h3 class="sub-h">By ward</h3>
+        <p class="ins-lede" id="mx-ward-lede"></p>
+        <div class="tbl-wrap"><table class="tbl" id="mx-wards"></table></div>
+        <p class="ins-lede" id="mx-notes"></p>
       </section>
 
       <section class="ins-section" aria-labelledby="context-h">

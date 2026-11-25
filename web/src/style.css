@@ -712,6 +712,12 @@ body.doc { display: block; height: auto; }
 .ch-hit { position: absolute; top: 0; bottom: 0; z-index: 1; }
 .ch-hit:hover { background: rgba(26, 26, 25, 0.06); }
 .ch-zero { position: absolute; left: 0; right: 0; height: 1px; background: #9a9a93; }
+/* the Housing page's multiplex table by ward: the sixplex wards shaded, totals ruled off */
+.tbl .muted { color: var(--ink-3); font-weight: normal; }
+.tbl tr.hl > * { background: #fdf1e9; }
+.tbl tr.sum > * { border-top: 1px solid #c9c9c3; }
+.ch-mark { position: absolute; top: 0; bottom: 0; border-left: 1px dashed #6b6b66; pointer-events: none; }
+.ch-mark em { position: absolute; top: -1px; font-size: 10px; line-height: 12px; font-style: normal; color: var(--ink-3); white-space: nowrap; }
 .ch-xticks { position: relative; height: 16px; margin: 3px 0 0 44px; font-size: 11px; color: var(--ink-3); }
 /* a chart's figures as a table (charts.js chart), closed until asked for */
 .ch-data { margin: 6px 0 0; font-size: 12px; }
@@ -1307,11 +1313,7 @@ body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
 .xp-list h3 { margin: 0 0 4px; font-size: 16px; }
 .xp-list p { margin: 0 0 8px; }
 .xp-list ul li { margin: 0 0 4px; font-size: 13px; }
-/* a date ruled across a chart (charts.js chart, `mark`) */
-.ch-mark { position: absolute; top: -4px; bottom: 0; width: 0; border-left: 1px dashed var(--ink-2); pointer-events: none; }
-.ch-mark span { position: absolute; top: -12px; left: 4px; font-size: 11px; color: var(--ink-2); white-space: nowrap; }
 .sx .panel { margin-top: 18px; }
-.sx .panel .ch-box { margin-top: 18px; }
 .sx-head { font-size: 17px !important; font-weight: 650; margin: 4px 0 8px; }
 .sx .card-row { margin: 14px 0 8px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 .sx-map svg { max-height: 460px; max-width: 760px; }
