@@ -1321,6 +1321,11 @@ body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
 .sx-n text { font-size: 13px; font-weight: 650; text-anchor: middle; dominant-baseline: central; fill: var(--ink); pointer-events: none; }
 .sx-n text.on { fill: #fff; }
 .sx-steps { padding-left: 22px; }
+.sx-appendix details { margin: 0 0 8px; padding: 0 14px; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
+.sx-appendix details[open] { padding-bottom: 12px; }
+.sx-appendix summary { padding: 10px 0; font-size: 15px; font-weight: 650; cursor: pointer; }
+.sx-appendix summary:hover, .sx-appendix summary:focus-visible { color: var(--accent); }
+.sx-appendix .ch-data summary { padding: 2px 0; font-size: 12px; font-weight: 400; }
 .sx-checks { list-style: none; margin: 10px 0 0; padding: 0; max-width: 860px; font-size: 13px; }
 .sx-checks li { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(120px, 2fr) 96px; gap: 12px; align-items: center; margin: 0; padding: 5px 0; border-bottom: 1px solid #f0f0ec; max-width: none; font-size: 13px; }
 .sx-checks li.main { font-weight: 650; }
@@ -1329,6 +1334,8 @@ body:not(.doc) .foot .social svg { width: 16px; height: 16px; }
 .sx-range { position: absolute; top: 4px; height: 8px; background: #cde2fb; border-radius: 4px; }
 .sx-range.span { background: #dcdcd6; }
 .sx-dot { position: absolute; top: 3px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--surface); }
+.sx-dot.off { background: var(--surface); box-shadow: inset 0 0 0 2px var(--ink); }
+.sx-checks li.sx-group { display: block; padding: 12px 0 3px; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); }
 .sx-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sx-checks li.sx-axis { border-bottom: 0; color: var(--ink-3); font-size: 11px; }
 .sx-axis .sx-track span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }

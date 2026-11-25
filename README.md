@@ -337,15 +337,26 @@ four, has added homes. Its projects are the Housing page's list of houseplexes
 (`pipeline/multiplex/projects.csv`), so the two pages count the same ones; its homes are
 the dwelling units each project's permit creates, by ward and quarter, each dated by the
 application or revision that proposed it. It compares the eight wards with the sixteen
-before (2023 Q3 to 2025 Q2) and after: a difference in differences of ratios, with a range
-from a permutation test over every choice of 8 wards of 24, eleven checks and three
-placebos. It shows the projects of five or six homes that followed the by-law, the homes
-in smaller and larger projects in each group of wards, the estimate and its range, the
-trend before the by-law that undermines the comparison, each check, and every ward. As of
-2026 Q3 the estimate is no measurable effect (a range from about 540 fewer homes to about
-170 more), and a check that carries the earlier trend forward gives about 310 more. What
+before (2023 Q3 to 2025 Q2) and after. The other wards were gaining on the eight before
+the by-law, so the estimate carries that trend on, fading (its pace halving every year: an
+assumption, stated as one), and counts the homes beyond where the eight were heading. Its
+range comes from a permutation test over every choice of 8 wards of 24, with the trend
+refitted in each. The page opens with the answer in plain words and one chart, then the
+buildings of five or six homes that followed the by-law, why the rest of the city isn't a
+like-for-like comparison, and how sure the answer is under five assumptions about the
+catch-up. A technical appendix, closed until opened, holds how the estimate is made, the
+comparison fixed in advance (no trend: a difference in differences of ratios) with its
+range, the placebos for both, each check, every ward, and the definitions. As of 2026 Q3 the estimate is about 250 more homes, with
+a range from about 140 fewer to about 490 more: a gain on the best estimate, and not
+distinguishable from none. It runs from about 100 more if the catch-up stopped at the
+by-law to about 310 if it never slowed; the comparison fixed in advance gives about 130
+fewer (540 fewer to 170 more) and fails or is doubtful on two of three placebos, where the
+trend's placebo estimates sit near no effect (its test is the blunter of the two).
+The headline was changed from that comparison to the trend after the results were seen,
+and the page says so. What
 it can't show: whether the homes get built (these are applications), the long run (five
-quarters), the zoning apart from the development-charge waiver passed a month later, or
+quarters), the zoning (By-law 654-2025) apart from the development charges dropped on the fifth and
+sixth homes a month later (By-law 845-2025), or
 what the eight wards, which weren't chosen at random, would have done otherwise. Ward 23,
 which got six homes earlier under its own by-law, is in neither group (the Housing page,
 which describes where six are allowed, counts it with the eight). The design is in
