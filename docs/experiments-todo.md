@@ -67,3 +67,27 @@ and data the site can get. Listed 25 November 2026; nothing here is decided.
   needs redoing (`SIX` in `pipeline/sixplex.py`).
 - [ ] The one-year half-life (`HALF_LIFE` in `pipeline/sixplex_insights.py`) is an assumption.
   Revisit it if the fourplex test above measures how fast the catch-up fades.
+- [ ] **Did the city as a whole gain homes?** Not answerable yet; tried 25 November 2026 and
+  judged not publishable.
+  - What was tried: each group of wards, and the whole city, against its own trend before the
+    by-law (an interrupted time series), with the page's three fades. Over 2025 Q3 to 2026 Q3
+    the city came out between about +100 homes (the trend stops at the by-law) and about
+    −1,350 (it carries on at full pace); a one-year half-life gave about −750.
+  - Why it fails: the sixteen wards were growing about 24% a quarter as fourplexes caught on,
+    and how fast that would have levelled off decides the answer. Applied to levels, a
+    one-year half-life has the sixteen settle at about three times their pace at the by-law,
+    a much stronger assumption than the one the page makes about the gap. A by-law imagined a
+    year early gives errors of ×0.73 to ×1.55 under every fade, larger than the effect sought.
+  - What it showed: against their own trend the eight wards were about on track, while the
+    sixteen fell short every quarter after the by-law. Suites and new houses, which the by-law
+    didn't touch, fell short too, consistent with the citywide slowdown commonly reported in
+    2025–26. So the page's +252 is the eight wards holding their pace while the rest of the
+    city slowed: a gain if the by-law shielded them, little or none if builders moved
+    downtown, and the data can't tell these apart.
+  - What it would take: a large comparison city with no rezoning and no Housing Accelerator
+    Fund agreement, with permits that separate small multiplexes from towers; or a direct
+    measure of the slowdown to condition the projection on; or another year or two of permits,
+    until the suburbs' fourplex growth has visibly levelled off.
+  - Meanwhile: consider a sentence in the page's "What this can't tell you" saying that the
+    estimate is against a rest of the city that slowed, and that whether the whole city gained
+    depends on why it slowed.
